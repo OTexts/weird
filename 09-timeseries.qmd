@@ -79,7 +79,7 @@ These can be illustrated using the following examples.
 ```{r}
 #| label: fig-tsparadigms
 #| echo: false
-#| fig-cap: The three main anomaly detection paradigms. In the top panel, we aim to identify unusual observations within historical data. In the middle panel, we aim to identify an unusual time series within a collection of time series. In the bottom panel, we aim to identify an unusual observation in the next time period.
+#| fig-cap: The three main anomaly detection paradigms. In the top panel, we aim to identify unusual observations within historical data. In the middle panel, we aim to identify an unusual time series within a collection of time series. In the bottom panel, we aim to identify an unusual observation in the most recent time period.
 a12 <- tsibbledata::PBS |>
   group_by(ATC2) |>
   summarise(Scripts = sum(Scripts) / 1e3) |>
@@ -164,7 +164,7 @@ for some threshold $\tau$. A related idea is the Hampel filter, where each anoma
 
 The threshold is often set under the assumption of a Normal distribution, for which the MAD is equal to 0.67445 times the standard deviation. So it is common to set $\tau = k/0.67445$ where $k$ is the number of standard deviations permitted before an observation is considered an outlier. Because we apply the rule repeatedly over the length of a time series, we need to be careful of the problem of multiple comparisons, where the probability of a false positive overall is much larger than the probability of a false positive for each individual test. However, it is not straightforward to adjust the probabilities because the tests are not independent, and the dependency between them depends on the window size $h$, and the characteristics of the time series. Setting $k=5$ or 6 seems to work quite well for many problems.
 
-The `hampel_anomalies()` function implements this algorithm. The code below applies the algorithm to all 172 time series in `fr_mortality`.
+The `hampel_anomalies()` function implements this algorithm. The code below applies the algorithm to all 172 time series in `fr_mortality`. The `bandwidth` argument corresponds to $h$, while the `k` argument corresponds to $k$ above.
 
 ```{r}
 #| label: hampel-anomalies
@@ -233,7 +233,7 @@ patchwork::wrap_plots(
 )
 ```
 
-@fig-hampel_fr shows the `r NROW(fr_anomalies)` observations that have been identified as anomalies, showing the wars and epidemics that have occurred over time. The following events in French history are evident in the data:
+@fig-hampel_fr shows the `r NROW(fr_anomalies)` observations (out of `r NROW(fr_mortality)`) that have been identified as anomalies, showing the wars and epidemics that have occurred over time. The following events in French history are evident in the data:
 
 * 1832, 1849, 1854: Cholera outbreaks
 * 1853-1856: Crimean war
@@ -245,145 +245,159 @@ patchwork::wrap_plots(
 
 ### Surprisal anomalies
 
-The Hampel identifier worked well for the annual mortality series, but the local median approach will break down when there is seasonality or other systematic patterns in the data. However, the same idea can be adapted by replacing the local median with a more sophisticated way of modelling the signal in the data. One such method is STL (Seasonal Trend decomposition using Loess) due to @Cleveland1990, and extended by @mstl to handle multiple seasonal periods or series with no seasonality. In the latter case, Friedman's SuperSmoother [@supsmu] is used to estimate the signal $m_t$. This uses local linear regressions rather than local medians, with the window width chosen by cross-validation. Other estimates of $m_t$ are also possible, provided they are robust to outliers.
+The Hampel identifier worked well for the annual mortality series, but the local median approach will break down when there is seasonality or other systematic patterns in the data. However, the same idea can be adapted by replacing the local median with a more sophisticated way of modelling the signal in the data. One such method is STL (Seasonal Trend decomposition using Loess) due to @Cleveland1990, and extended by @mstl to handle multiple seasonal periods or series with no seasonality.
+
+We will apply this idea to find unusual observations in US weekly mortality data between 2015 and 2024, obtained from the @HMD. @fig-stmf shows the data on five age groups. There appears to be no seasonality in the 0--14 age group, but all other age groups have seasonal peaks around the start of January each year due to winter illnesses. There is a noticeable change in mortality rates during 2020, 2021 and the start of 2022. This is due to COVID-19.
 
 ```{r}
-#| label: fr_fit
+#| label: stmf
+us_stmf <- "https://www.mortality.org/File/GetDocument/Public/STMF/Outputs/USAstmfout.csv" |>
+  read.csv(header = TRUE) |>
+  # Create time index varaible
+  mutate(Week = yearweek(paste0(Year,"-W",Week))) |>
+  # Consider only sexes combined, and omit last week due to reporting delays
+  filter(Sex == "b", Week < max(Week) - 1) |>
+  # Fix column names
+  select(Week, `X0.14.1`:`X85..1`) |>
+  rename(
+    "0-14" = `X0.14.1`,
+    "15-64" = `X15.64.1`,
+    "65-74" = `X65.74.1`,
+    "75-84" = `X75.84.1`,
+    "85+" = `X85..1`,
+  ) |>
+  # Create a tsibble object
+  tidyr::pivot_longer(-Week, names_to = "Age group", values_to = "Mortality") |>
+  as_tsibble(index = Week, key = `Age group`)
+```
+
+```{r}
+#| label: fig-stmf
 #| code-fold: false
-fr_fit <- fr_mortality |>
-  as_tsibble(index = Year, key = c(Age, Sex)) |>
+#| fig-cap: Weekly mortality rates for different age groups in the United States between 2015 and 2024.
+#| dependson: stmf
+us_stmf |>
+  autoplot(Mortality) +
+  facet_grid(`Age group` ~ ., scales = "free_y")
+```
+
+Next, we apply an STL model to the mortality rates in each age group. This helps separate out the regular seasonality, from any unusual fluctuations.
+
+```{r}
+#| label: stl-stmf
+#| code-fold: false
+#| dependson: stmf
+stmf_fit <- us_stmf |>
   model(stl = STL(Mortality)) |>
   augment() |>
   as_tibble() |>
   select(-.model, -.innov)
-fr_fit
+stmf_fit
 ```
 
-The `.fitted` column contains the estimates of $m_t$, while the `.resid` column contains the differences $y_t - \hat{m}_t$. We will estimate $s_t$ using a robust estimate of standard deviation across each series (rather than locally, as was done with the Hampel method). This time, we will use IQR, rather than MAD, to estimate the spread, with a similar adjustment so that it is equivalent to a standard deviation if the data were normally distributed.
+The `.fitted` column contains $\hat{m}_t$, while `.resid` column contains estimates of $y_t - \hat{m}_t$, where $\hat{m}_t$ takes account of any seasonality in the data. We will estimate $s_t$ using a robust estimate of standard deviation based on the IQR, with an adjustment so that it is equivalent to a standard deviation if the data were normally distributed. (Note that we are using $s$ to denote the standard deviation of a series, not the surprisals, here.)
 
 ```{r}
-#| label: fr_scores1
+#| label: stmf_scores1
 #| code-fold: false
-#| dependson: fr_fit
-fr_sd <- fr_fit |>
-  group_by(Age, Sex) |>
-  summarise(s = IQR(.resid) / 1.349, .groups = "drop")
-fr_scores <- fr_fit |>
-  left_join(fr_sd, by = c("Age", "Sex")) |>
-  mutate(e = .resid / s)
-fr_scores
-```
-
-At this point, we could identify a point as an anomaly if it is more than $k$ standard deviations away from $m_t$, as was done with the Hampel identifier. This is also the approach taken by the `tsoutliers` function from the `forecast` package, which uses 3 IQR as the threshold, equivalent to $k=4.05$ standard deviations. But we will use density scores instead, and compute the corresponding surprisal probabilities assuming the residuals follow a Normal distribution.
-
-```{r}
-#| label: fr_scores2
-#| code-fold: false
-#| dependson: fr_scores1
-fr_scores <- fr_scores |>
+#| dependson: stl-stmf
+stmf_scores <- stmf_fit |>
+  group_by(`Age group`) |>
   mutate(
-    s = -dnorm(e, log = TRUE),
-    prob = surprisals(s)
-  )
-fr_scores |> arrange(prob)
+    s = IQR(.resid),
+    e = .resid / IQR(.resid) / 1.349
+  ) |>
+  ungroup()
+stmf_scores
 ```
 
-The most extreme anomalies all correspond to male deaths due to World War I. A plot similar to @fig-hampel_fr can be made, showing points with lookout probability less than 0.05. Fewer anomalies have been identified than with the Hampel identifier. Because the lookout probabilities were based on a Generalized Pareto Distribution with a threshold of 90%, and we are identifying anomalies with probability less than 0.05, the overall probability of a false positive is 0.005 per series, so it is unlikely that we have identified any false positives, and likely that we have missed some anomalies.
+At this point, we could identify a point as an anomaly if $|e_t|$ is greater than $k$, as was done with the Hampel identifier. But we will use surprisals with probabilities calculated using a GPD, as it is a safer calculation making fewer assumptions about the distribution of the residuals.
+
+```{r}
+#| label: stmf_scores2
+#| code-fold: false
+#| dependson: stmf_scores1
+stmf_scores <- stmf_scores |>
+  mutate(prob = surprisals(e, distribution = dist_normal(), approximation = "gpd"))
+stmf_scores |> filter(prob < 0.02) |> arrange(prob)
+```
+
 
 ```{r}
 #| label: fig-stl_anomalies
-#| code-fold: true
+#| code-fold: false
 #| warning: false
-#| fig-cap: French mortality observations identified as anomalies using density scores obtained from applying Friedman's supersmoother to each series.
-#| dependson: fr_scores2
-fr_anomalies <- fr_scores |>
-  filter(prob < 0.05) |>
-  as_tibble() |>
-  select(Year, Sex, Age) |>
-  distinct() |>
-  left_join(fr_mortality, by = c("Age", "Sex", "Year"))
-yrs <- fr_anomalies |>
-  select(Year, Sex) |>
-  distinct()
-fr_anomalies_plot_male2 <- fr_anomalies |>
-  filter(Sex == "Male") |>
-  ggplot(aes(x = Year, y = Age)) +
-  facet_grid(. ~ Sex) +
-  scale_x_continuous(
-    breaks = seq(1820, 2000, by = 20),
-    limits = range(yrs$Year)
-  ) +
-  geom_vline(
-    xintercept = unique(yrs$Year[yrs$Sex == "Male"]),
-    alpha = 0.5, color = "grey"
-  ) +
-  geom_point(col = "#478cb2") +
-  ggrepel::geom_text_repel(
-    data = yrs[yrs$Sex == "Male", ],
-    aes(y = 75, label = Year), col = "#478cb2", size = 3, seed = 1967
-  ) +
-  ylim(4, 85)
-fr_anomalies_plot_female2 <- fr_anomalies |>
-  filter(Sex == "Female") |>
-  ggplot(aes(x = Year, y = Age)) +
-  facet_grid(. ~ Sex) +
-  scale_x_continuous(
-    breaks = seq(1820, 2000, by = 20),
-    limits = range(yrs$Year)
-  ) +
-  geom_vline(
-    xintercept = unique(yrs$Year[yrs$Sex == "Female"]),
-    alpha = 0.5, color = "grey"
-  ) +
-  labs(title = "French mortality anomalies") +
-  geom_point(col = "#c1653a") +
-  ggrepel::geom_text_repel(
-    data = yrs[yrs$Sex == "Female", ],
-    aes(y = 75, label = Year), col = "#c1653a", size = 3, seed = 1967
-  ) +
-  ylim(4, 85)
-patchwork::wrap_plots(
-  fr_anomalies_plot_female2,
-  fr_anomalies_plot_male2,
-  nrow = 1
-)
+#| message: false
+#| fig-cap: US weekly mortality rates identified as anomalies using surprisal scores obtained from applying STL to each series.
+#| dependson: stmf_scores2
+us_stmf |>
+  autoplot(Mortality) +
+  facet_grid(`Age group` ~ ., scales = "free_y") +
+  geom_point(data = stmf_scores |> filter(prob < 0.02))
 ```
+
+A total of 55 observations have surprisal probabilities less than 0.02, with the most extreme being in weeks 15--16 of 2020, in the elderly age groups. Although the test can pick up unusually low or unusually high mortality rates, only one of the 55 identified anomalies is for low mortality, and that is for 85+ year olds in Week 3 of 2020, just before COVID-19 cases arrived in the United States (but perhaps after people starting taking some precautions). There are four anomalous peaks in the plot, centred on the following dates:
+
+* 2020 W14 -- W18
+* 2020 W49 -- 2021 W03
+* 2021 W33 -- W39
+* 2022 W02 -- W05
+
+Some of these periods affected some age groups more than others. This analysis treats each series separately, and seeks to find anomalies within each series, regardless of the behaviour of related series.
 
 ### Multivariate time series
 
-A similar can be applied to the whole collection of time series, where we are looking for years that are anomalous across all ages and both sexes. One way to do this is to first take principal components of the series, and then apply the preceding procedure to the series of first principal component scores.
+To take account of all series simultaneously, we need to take a multivariate approach, where we are looking for time periods that are anomalous across multiple series. One way to do this is to first take principal components of the series, and then apply the preceding procedure to the series of first principal component scores.
 
-First we convert the series to logs as they are on vastly different scales, then we transform the data to wide form. Finally, we compute the first principal component of the resulting matrix.
+We will apply this to the US weekly mortality data. First we convert the series to logs as they are on vastly different scales, then we transform the data to wide form. Finally, we compute the first principal component of the resulting matrix.
 
 ```{r}
+#| label: us_stmf_pcs
+#| code-fold: false
 # Convert to wide form
-fr_wide <- fr_mortality |>
+us_wide <- us_stmf |>
+  as_tibble() |>
   mutate(logm = log(Mortality)) |>
-  mutate(series = paste0(substr(Sex, 1, 1), ":", Age)) |>
-  select(-Age, -Sex, -Mortality) |>
-  tidyr::pivot_wider(names_from = series, values_from = logm)
+  tidyr::pivot_wider(id_cols = Week, names_from = `Age group`, values_from = logm)
 # Compute 1 principal component from mortality rates
-pcs <- fr_wide |>
-  select(-Year) |>
+pcs <- us_wide |>
+  select(-Week) |>
   prcomp(rank = 1) |>
-  broom::augment(fr_wide |> select(Year))
-# Plot principal component scores
-pcs |>
-  ggplot(aes(x = Year, y = .fittedPC1)) +
-  geom_line()
+  broom::augment(us_wide |> select(Week))
 ```
 
-Now we can apply an STL model to find anomalies in this series.
+Now we can apply an STL model to find anomalies in this series (plotted in @fig-us_stmf_pcs). There is no need to scale the residuals because there is only one series.
 
 ```{r}
-pcs |>
-  as_tsibble(index = Year) |>
+#| label: us_stmf_pc_anomalies
+#| code-fold: false
+#| message: false
+pc_anomalies <- pcs |>
+  as_tsibble(index = Week) |>
   model(stl = STL(.fittedPC1)) |>
   augment() |>
   select(-.model, -.innov) |>
-  mutate(e = .resid / IQR(.resid) * 1.349) |>
-  filter(abs(e) > 3)
+  mutate(
+    prob = surprisals(.resid, distribution = dist_normal(), approximation = "gpd")
+  ) |>
+  filter(prob < 0.05)
+pc_anomalies
 ```
+
+```{r}
+#| label: fig-us_stmf_pcs
+#| code-fold: false
+#| fig-cap: The first principal component scores calculated from the weekly US mortality rates, along with the identified anomalies. Compare the  individual series shown in @fig-stmf.
+# Plot principal component scores
+pcs |>
+  ggplot(aes(x = Week, y = .fittedPC1)) +
+  geom_line() +
+  labs(y = "First principal component scores") +
+  geom_point(data = pc_anomalies, color = "red")
+```
+
+
+As expected, many of the same weeks identified earlier in an analysis of individual series have been returned. The probability of false positives increases with both the length of each series, and the number of each series. So we have used a larger probability threshold here than in the analysis of individual series. Conversely, some anomalies might appear to be marginal in the individual series, but when the series are combined like this, the anomalous periods may be clearer. This appears to be the case in weeks 3 and 4 of 2020, where unusually low mortality rates are seen, probably because of restricted movements due to growing uncertainty associated with the spread of COVID-19. (The earlier analysis only showed an anomaly in this period for 85+ year olds in 2020 W3.) Unusually low mortality rates have also been identified in Weeks 13 and 15 of 2021, probably also due to restricted movements, especially of older people.
 
 ## Weird series
 
