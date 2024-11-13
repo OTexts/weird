@@ -949,7 +949,7 @@
       "RemoteUsername": "tidyverts",
       "RemoteRepo": "feasts",
       "RemoteRef": "main",
-      "RemoteSha": "6478a867caed070cfc91fc65ac96377177df7e6f",
+      "RemoteSha": "1c72d1bd9deacf54b8cc0b4573e771f460d88d25",
       "Requirements": [
         "R",
         "dplyr",
@@ -968,7 +968,7 @@
         "utils",
         "vctrs"
       ],
-      "Hash": "757b62d6933c2384ec95644cac18f7b6"
+      "Hash": "18a366ca0f25440067a08c7558dc1928"
     },
     "fontawesome": {
       "Package": "fontawesome",
@@ -1583,7 +1583,7 @@
     },
     "knitr": {
       "Package": "knitr",
-      "Version": "1.48",
+      "Version": "1.49",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -1595,7 +1595,7 @@
         "xfun",
         "yaml"
       ],
-      "Hash": "acf380f300c721da9fde7df115a5f86f"
+      "Hash": "9fcb189926d93c636dea94fbe4f44480"
     },
     "ks": {
       "Package": "ks",
@@ -1752,10 +1752,10 @@
     },
     "lpSolve": {
       "Package": "lpSolve",
-      "Version": "5.6.21",
+      "Version": "5.6.22",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "730a90bdc519fb0caff03df11218ddd8"
+      "Hash": "bd62ebb5bdc0cbf55ea6da593a4475ed"
     },
     "lubridate": {
       "Package": "lubridate",
@@ -3026,11 +3026,11 @@
       "Version": "1.0.2.9000",
       "Source": "GitHub",
       "RemoteType": "github",
-      "RemoteHost": "api.github.com",
       "RemoteUsername": "robjhyndman",
       "RemoteRepo": "weird-package",
       "RemoteRef": "main",
-      "RemoteSha": "1850e026310534a00b3970bc1fa2e560ec11df1a",
+      "RemoteSha": "0a395c2d7dbad9216e85b845ee632333058ad47e",
+      "RemoteHost": "api.github.com",
       "Requirements": [
         "R",
         "aplpack",
@@ -3055,7 +3055,7 @@
         "tibble",
         "vctrs"
       ],
-      "Hash": "c37789cd1b72a5c0dc5350fd298b2897"
+      "Hash": "3f4c5d3dd4068f1ff7e5ca8ba14f1f5a"
     },
     "whisker": {
       "Package": "whisker",

@@ -62,7 +62,7 @@ s_i = -\log\left(
 $$
 When $\bm{\Sigma} = \bm{I}$, this is simply the sum of surprisals computed on each of the marginal distributions.
 
-## Surprisal probabilities
+## Surprisal probabilities {#sec-surprisal-probabilities}
 
 We can use surprisals to compute the probability of an observation being at least as anomalous as $\bm{y}_i$ under the distribution $f$:
 $$
@@ -731,7 +731,7 @@ of |>
   arrange(prob, duration)
 ```
 
-Now, `r english::words(sum(surprisals(of) < 0.001))` anomalies are identified, with both of them having infinite LOO surprisals. We can visualize them in an HDR scatterplot, shown in @fig-ofpot2. 
+Now, `r english::words(sum(surprisals(of) < 0.001))` anomalies are identified, with both of them having infinite LOO surprisals. We can visualize them in an HDR scatterplot, shown in @fig-ofpot2.
 
 ```{r}
 #| label: fig-ofpot2

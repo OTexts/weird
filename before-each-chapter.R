@@ -18,6 +18,7 @@ html <- TRUE
 options(
   digits = 4,
   width = 58 + html * 20,
+  pillar.width = 58 + html * 20,
   ggplot2.continuous.colour = "viridis",
   ggplot2.continuous.fill = "viridis",
   ggplot2.discrete.colour = discrete_colors,
