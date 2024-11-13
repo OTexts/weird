@@ -942,9 +942,14 @@
     },
     "feasts": {
       "Package": "feasts",
-      "Version": "0.4.1",
-      "Source": "Repository",
-      "Repository": "CRAN",
+      "Version": "0.4.1.9000",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "tidyverts",
+      "RemoteRepo": "feasts",
+      "RemoteRef": "main",
+      "RemoteSha": "6478a867caed070cfc91fc65ac96377177df7e6f",
       "Requirements": [
         "R",
         "dplyr",
@@ -963,7 +968,7 @@
         "utils",
         "vctrs"
       ],
-      "Hash": "276b81269ccbe43e7ad23fe8d4b4cadd"
+      "Hash": "757b62d6933c2384ec95644cac18f7b6"
     },
     "fontawesome": {
       "Package": "fontawesome",
