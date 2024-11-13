@@ -345,11 +345,13 @@ us_stmf |>
 #| include: false
 low_mortality <- stmf_scores |>  filter(e < 0)
 n_low_mortality <- NROW(low_mortality)
-if(n_low_mortality != 1L)
+if(n_low_mortality != 2L)
   stop("Problem here")
 ```
 
-A total of `r NROW(stmf_scores)` observations have surprisal probabilities less than 0.02, with the most extreme being in weeks 15--16 of 2020, in the elderly age groups. Although the test can pick up unusually low or unusually high mortality rates, only `r n_low_mortality` of the `r NROW(stmf_scores)` identified anomalies is for low mortality, and that is for 85+ year olds in Week 3 of 2020, just before COVID-19 cases arrived in the United States (but perhaps after people starting taking some precautions). There are four anomalous peaks in the plot, centred on the following dates:
+A total of `r NROW(stmf_scores)` observations have surprisal probabilities less than 0.02, with the most extreme being in weeks 15--16 of 2020, in the elderly age groups. Although the test can pick up unusually low or unusually high mortality rates, only `r n_low_mortality` of the `r NROW(stmf_scores)` identified anomalies is for low mortality, and that is for 85+ year olds in Week 3 of 2020 and in Week 15 of 2021. In both weeks, it is possible that the elderly were taking precautions against COVID-19, resulting in restricted movements, and therefore lower mortality rates.
+
+There are four anomalous peaks in the plot, centred on the following dates:
 
 * 2020 W14 -- W18
 * 2020 W49 -- 2021 W03
