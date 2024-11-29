@@ -616,6 +616,7 @@ This process is repeated as we increase the size of the training set. The follow
 #| label: pbsloop
 #| warning: false
 #| message: false
+#| code-fold: false
 #| dependson: pbs
 compute_pbs_scores <- function(pbs) {
   pbs$prob <- NA_real_
@@ -641,11 +642,21 @@ compute_pbs_scores <- function(pbs) {
   }
   return(pbs)
 }
-pbs_scores <- compute_pbs_scores(pbs |> filter(t < 40)) |> cache("pbs_scores")
 ```
 
 ```{r}
-pbs_scores
+#| eval: false
+pbs_scores <- compute_pbs_scores(pbs) |> 
+  filter(t > 36)
+```
+
+```{r}
+#| label: realpbsloop
+#| include: false
+#| eval: true
+pbs_scores <- compute_pbs_scores(pbs) |> 
+  filter(t > 36) |>
+  cache("pbs_scores")
 ```
 
 We compare the distribution against the observation for February 2006.
