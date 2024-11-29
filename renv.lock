@@ -36,13 +36,13 @@
     },
     "DEoptimR": {
       "Package": "DEoptimR",
-      "Version": "1.1-3",
+      "Version": "1.1-3-1",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "stats"
       ],
-      "Hash": "72f87e0092e39384aee16df8d67d7410"
+      "Hash": "53a0299b56b4cbe418b12e3b65587211"
     },
     "DepthProc": {
       "Package": "DepthProc",
@@ -252,7 +252,7 @@
     },
     "RcppArmadillo": {
       "Package": "RcppArmadillo",
-      "Version": "14.0.2-1",
+      "Version": "14.2.0-1",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -262,7 +262,7 @@
         "stats",
         "utils"
       ],
-      "Hash": "edff747eebfb8f2e18eed194e000caa1"
+      "Hash": "ce9c35ab9ea9c6ef4e27a08868cdb32b"
     },
     "RcppCGAL": {
       "Package": "RcppCGAL",
@@ -648,13 +648,13 @@
     },
     "curl": {
       "Package": "curl",
-      "Version": "6.0.0",
+      "Version": "6.0.1",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "R"
       ],
-      "Hash": "ff51697d9205fe715f29e7171e874c6e"
+      "Hash": "e8ba62486230951fcd2b881c5be23f96"
     },
     "cyclocomp": {
       "Package": "cyclocomp",
@@ -972,7 +972,7 @@
     },
     "fontawesome": {
       "Package": "fontawesome",
-      "Version": "0.5.2",
+      "Version": "0.5.3",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -980,7 +980,7 @@
         "htmltools",
         "rlang"
       ],
-      "Hash": "c2efdd5f0bcd1ea861c2d4e2a883a67d"
+      "Hash": "bd1297f9b5b1fc1372d19e2c4cd82215"
     },
     "forcats": {
       "Package": "forcats",
@@ -1440,7 +1440,7 @@
     },
     "httr2": {
       "Package": "httr2",
-      "Version": "1.0.6",
+      "Version": "1.0.7",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -1457,7 +1457,7 @@
         "vctrs",
         "withr"
       ],
-      "Hash": "3ef5d07ec78803475a94367d71b40c41"
+      "Hash": "5a76da345ed4f3e6430517e08441edaf"
     },
     "ids": {
       "Package": "ids",
@@ -2126,7 +2126,7 @@
     },
     "progressr": {
       "Package": "progressr",
-      "Version": "0.15.0",
+      "Version": "0.15.1",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -2134,7 +2134,7 @@
         "digest",
         "utils"
       ],
-      "Hash": "b3727a8cfc03525cc44a5f2854d6e025"
+      "Hash": "f8e9876b6ffff900e83f171081cacd6f"
     },
     "ps": {
       "Package": "ps",
@@ -2174,7 +2174,7 @@
     },
     "quantreg": {
       "Package": "quantreg",
-      "Version": "5.99",
+      "Version": "5.99.1",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -2188,7 +2188,7 @@
         "stats",
         "survival"
       ],
-      "Hash": "c6e207b874494a7ac4d52f02dcd7d3af"
+      "Hash": "c48844cd7961de506a1b4d22b2e082c7"
     },
     "ragg": {
       "Package": "ragg",
@@ -2324,7 +2324,7 @@
     },
     "rgl": {
       "Package": "rgl",
-      "Version": "1.3.12",
+      "Version": "1.3.14",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -2342,7 +2342,7 @@
         "stats",
         "utils"
       ],
-      "Hash": "983b99c0be0dd052350c6aa359c960a3"
+      "Hash": "e9e5def6581dfba38be1eb14771777b1"
     },
     "rlang": {
       "Package": "rlang",
@@ -2912,7 +2912,7 @@
     },
     "usethis": {
       "Package": "usethis",
-      "Version": "3.0.0",
+      "Version": "3.1.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -2934,12 +2934,13 @@
         "rprojroot",
         "rstudioapi",
         "stats",
+        "tools",
         "utils",
         "whisker",
         "withr",
         "yaml"
       ],
-      "Hash": "b2fbf93c2127bedd2cbe9b799530d5d2"
+      "Hash": "0d7f5ca181f9b1e68b217bd93b6cc703"
     },
     "utf8": {
       "Package": "utf8",
@@ -3029,7 +3030,7 @@
       "RemoteUsername": "robjhyndman",
       "RemoteRepo": "weird-package",
       "RemoteRef": "main",
-      "RemoteSha": "0a395c2d7dbad9216e85b845ee632333058ad47e",
+      "RemoteSha": "167f456ac362c8c11dc1dcbe81210185753111f6",
       "RemoteHost": "api.github.com",
       "Requirements": [
         "R",
@@ -3055,7 +3056,7 @@
         "tibble",
         "vctrs"
       ],
-      "Hash": "3f4c5d3dd4068f1ff7e5ca8ba14f1f5a"
+      "Hash": "9c0a8907ea6486bb3b3405c3d22a7899"
     },
     "whisker": {
       "Package": "whisker",
