@@ -593,11 +593,11 @@ We can combine these forecasts with the observed values from time $t=37$.
 #| label: pbs_scores
 #| code-fold: false
 #| dependson: pbsfc
-pbs_scores <- pbs_fc |>
+pbs_compare <- pbs_fc |>
   rename(fcast = Scripts) |>
   left_join(pbs |> filter(t == 37), by = c("Month", "ATC2")) |>
   select(Month, ATC2, Scripts, fcast)
-pbs_scores
+pbs_compare
 ```
 
 Now we can compute the surprisal probabilities from the observed values (column `Scripts`) and the forecast distributions (column `fcast`):
@@ -606,11 +606,39 @@ Now we can compute the surprisal probabilities from the observed values (column 
 #| label: pbs_scores2
 #| code-fold: false
 #| dependson: pbs_scores
-pbs_scores |>
-  mutate(prob = surprisals(Scripts, distribution = fcast))
+pbs_compare <- pbs_compare |>
+  mutate(prob = surprisals(Scripts, distribution = fcast)) |>
+  arrange(prob)
+pbs_compare
 ```
 
-This process is repeated as we increase the size of the training set. The following code block carries out the calculations in a loop. Before starting the calculations, we will set up some new columns in which to store the forecasts, scores and probabilities at each iteration.
+```{r}
+#| include: false
+s01 <- pbs_compare |> pull(ATC2) |> head(1)
+if(s01 != "S01")
+  stop("Problem here")
+```
+
+
+The lowest probabilities indicate possible anomalies. Let's look at the most likely anomaly, from series `r s01`. 
+
+```{r}
+#| label: s01plot0
+s01 <- pbs |> filter(ATC2 == "S01", t <= 37)
+pbs_fc |>
+  filter(ATC2 == "S01")  |>
+  autoplot(s01) +
+  geom_point(data = s01 |> filter(t == 37), aes(x = Month, y = Scripts)) +
+  labs(
+    y = "Scripts (thousands)",
+    title = "Forecast of S01 scripts: Feb 2006"
+  ) +
+  theme(legend.position = "none") 
+```
+
+The shaded regions show 80% and 95% prediction intervals for the forecast distribution. The observation is outside the 95% prediction interval, indicating that it is a possible anomaly. The surprisal probability in this case is about `r sprintf("%.3f", pbs_compare$prob[1])`.
+
+So far, we have just produced forecasts for time $t=37$, using a training set comprising data up to time $t=36$. This process is repeated as we increase the size of the training set. The following code block carries out the calculations in a loop. 
 
 ```{r}
 #| label: pbsloop
@@ -646,52 +674,38 @@ compute_pbs_scores <- function(pbs) {
 
 ```{r}
 #| eval: false
-pbs_scores <- compute_pbs_scores(pbs) |> 
-  filter(t > 36)
+#| code-fold: false
+pbs_scores <- compute_pbs_scores(pbs) 
 ```
 
 ```{r}
 #| label: realpbsloop
 #| include: false
 #| eval: true
-pbs_scores <- compute_pbs_scores(pbs) |> 
-  filter(t > 36) |>
+#| code-fold: false
+pbs_scores <- compute_pbs_scores(pbs) |>
   cache("pbs_scores")
 ```
 
-We compare the distribution against the observation for February 2006.
-
-```{r}
-#| label: a12plot0
-#| eval: false
-observed <- pbs |> filter(ATC2 == "A12", Month == yearmonth("2006 Feb"))
-fc_a12 |>
-  autoplot(a12) +
-  geom_point(data = observed, aes(x = Month, y = Scripts)) +
-  labs(
-    y = "Scripts (thousands)",
-    title = "Forecast of A12 scripts: Feb 2006"
-  ) +
-  theme(legend.position = "none") +
-  ylim(35, 145)
-```
 
 ```{r}
 #| label: pbs_scores3
-#| eval: false
-pbs_anomalies <- pbs |> filter(prob < 0.05)
+#| code-fold: false
+pbs_anomalies <- pbs_scores |> filter(prob < 0.002)
 pbs_anomalies
 ```
 
+
 ```{r}
 #| label: pbs_scores4
-#| eval: false
-pbs_plot(pbs, pbs_anomalies, "L03")
+#| code-fold: false
+pbs_plot(pbs, pbs_anomalies, "A12")
 ```
+
 
 ```{r}
 #| label: pbs_scores5
-#| eval: false
+#| code-fold: false
 pbs_plot(pbs, pbs_anomalies, "N07")
 ```
 
@@ -699,7 +713,6 @@ Consecutive anomalies are hard to identify because the preceding anomalies corru
 
 ```{r}
 #| label: pbs_scores6
-#| eval: false
 pbs_plot(pbs, pbs_anomalies, "R06")
 ```
 
