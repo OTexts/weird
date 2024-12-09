@@ -7,6 +7,19 @@ source("before-each-chapter.R")
 ```
 
 
+Explain functional data
+
+Examples: mortality rates, height/weight data for different ages.
+
+
+Functional PCA
+
+Apply KDE LOO on first few PCs
+
+
+
+
+
 ```{r}
 #| echo: true
 #| code-fold: false
