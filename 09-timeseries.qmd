@@ -620,7 +620,7 @@ if(s01 != "S01")
 ```
 
 
-The lowest probabilities indicate possible anomalies. Let's look at the most likely anomaly, from series `r s01`. 
+The lowest probabilities indicate possible anomalies. Let's look at the most likely anomaly (or least likely observation), from series `r s01`.
 
 ```{r}
 #| label: s01plot0
@@ -633,12 +633,12 @@ pbs_fc |>
     y = "Scripts (thousands)",
     title = "Forecast of S01 scripts: Feb 2006"
   ) +
-  theme(legend.position = "none") 
+  theme(legend.position = "none")
 ```
 
 The shaded regions show 80% and 95% prediction intervals for the forecast distribution. The observation is outside the 95% prediction interval, indicating that it is a possible anomaly. The surprisal probability in this case is about `r sprintf("%.3f", pbs_compare$prob[1])`.
 
-So far, we have just produced forecasts for time $t=37$, using a training set comprising data up to time $t=36$. This process is repeated as we increase the size of the training set. The following code block carries out the calculations in a loop. 
+So far, we have just produced forecasts for time $t=37$, using a training set comprising data up to time $t=36$. This process is repeated as we increase the size of the training set. The following code block carries out the calculations in a loop.
 
 ```{r}
 #| label: pbsloop
@@ -656,13 +656,13 @@ compute_pbs_scores <- function(pbs) {
       model(ets = ETS(Scripts)) |>
       forecast(h = 1) |>
       rename(fcast = Scripts)
-    # Calculate anomaly scores and probabilities from observations in time i+1
+    # Calculate surprisal probabilities from observations in time i+1
     pbs_scores <- pbs |>
       filter(t == i + 1) |>
       right_join(pbs_fc, by = c("Month", "ATC2")) |>
       mutate(surprisal_prob = surprisals(Scripts, distribution = fcast)) |>
       select(Month, ATC2, surprisal_prob)
-    # Add scores to pbs data set
+    # Add probabilities to pbs data set
     pbs <- pbs |>
       left_join(pbs_scores, by = c("Month", "ATC2")) |>
       mutate(prob = if_else(!is.na(surprisal_prob), surprisal_prob, prob)) |>
@@ -675,7 +675,7 @@ compute_pbs_scores <- function(pbs) {
 ```{r}
 #| eval: false
 #| code-fold: false
-pbs_scores <- compute_pbs_scores(pbs) 
+pbs_scores <- compute_pbs_scores(pbs)
 ```
 
 ```{r}
@@ -687,40 +687,44 @@ pbs_scores <- compute_pbs_scores(pbs) |>
   cache("pbs_scores")
 ```
 
+We will identify as anomalies any observations with a surprisal probability less than 1 in 1000.
 
 ```{r}
 #| label: pbs_scores3
 #| code-fold: false
-pbs_anomalies <- pbs_scores |> filter(prob < 0.002)
+pbs_anomalies <- pbs_scores |> filter(prob < 0.001)
 pbs_anomalies
 ```
+
+Now let's look at the A12 series that we started with, and consider the times where anomalies occur.
 
 
 ```{r}
 #| label: pbs_scores4
 #| code-fold: false
+#| dependson: pbs_scores3
 pbs_plot(pbs, pbs_anomalies, "A12")
 ```
+
+One potential anomaly is identified in 2002, and the sudden drop at the start of 2006 causes several anomalies indicating a series of unusual observations. Eventually the "new normal" leads to fewer and fewer observations being labelled as anomalies.
+
+This process of model adjustment is much faster in this next example, where the first jump leads to two anomalies, and then the second much larger jump leads to two more anomalies. After that, the model has learned to allow for large jumps in the series, so the later jump is not seen as anomalous.
 
 
 ```{r}
 #| label: pbs_scores5
 #| code-fold: false
+#| dependson: pbs_scores3
 pbs_plot(pbs, pbs_anomalies, "N07")
 ```
 
-Consecutive anomalies are hard to identify because the preceding anomalies corrupt the model.
+The next example shows less dramatic anomalies that would be harder to identify without a model.
 
 ```{r}
 #| label: pbs_scores6
-pbs_plot(pbs, pbs_anomalies, "R06")
+#| dependson: pbs_scores3
+#| code-fold: false
+pbs_plot(pbs, pbs_anomalies, "R05")
 ```
 
-A sequence of near anomalies makes it hard to spot a true anomaly.
-
-## Somewhere
-
-* AO vs IO
-* tsoutliers package and tsoutliers() function
-* smooth() function
-*
+The first anomaly in 1994 has an unusually large peak compared to the preceding years; the next two in 1997 precede an unusally low trough compared to the previous years; and the final two in 2004 coincide with a disruption to the seasonal pattern in that year.
