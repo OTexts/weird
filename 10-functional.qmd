@@ -6,17 +6,111 @@
 source("before-each-chapter.R")
 ```
 
+Functional data occur when the natural observational representation is a function. The most commonly occurring examples are where observations are taken of functions over one or two dimensions. For example, mortality rates are naturally represented as 1-dimensional functions of age, and surface temperatures are naturally represented as functions over a 2-dimensional plane.
 
-Explain functional data
-
-Examples: mortality rates, height/weight data for different ages.
-
-
-Functional PCA
-
-Apply KDE LOO on first few PCs
+@fig-fr-mortality shows French male mortality rates between 1816 and 1999. Each line denotes the mortality rates as a function of age for one year. Overall, we see a large decrease in mortality rates during early childhood years, then an increase during teenage years. After about age 30, the rates increase almost linearly on a log scale. Comparing the curves over time, we see that the rates have steadily fallen for all ages, with nearly a 100-fold reduction in mortality rates at around age 10. The gap between the curves occurred after World War II due to the effective use of antibiotics, and widespread vaccinations for polio, diptheria, tetanus, whooping cough, measles, mumps and rubella.
 
 
+```{r}
+#| label: fig-fr-mortality
+#| fig-cap: French male mortality rates between 1816 and 1999.
+fr_mortality |>
+  filter(Sex == "Male") |>
+  ggplot() +
+  aes(x = Age, y = log(Mortality), color = Year, group = Year) +
+  geom_line() +
+  scale_color_gradientn(colors = rainbow(100)[1:80]) +
+  labs(y = "Log mortality rate") +
+  scale_y_continuous(
+    sec.axis = sec_axis(~ exp(.),
+      breaks = 10^(-(0:4)),
+      labels = format(10^(-(0:4)), scientific = FALSE),
+      name = "Mortality rate")
+  )
+```
+
+As we are interested in anomalies, we will mostly focus on the unusual curves. There are about 10--15 years where the mortality rate for 20--40 year olds is much higher than in other years. These are the war years. Any anomaly detection method for functional data should identify these years as unusual.
+
+We will denote the functional data as $y_i(x)$. Here, $i$ is a discrete index over all observations, and $x$ is the continuous variable over which each function is defined. For example, $y_{i}(x)$ may represent the mortality rate for age $x$ in year $i$.
+
+It is possible to have multiple indexes (e.g., mortality rates for males and females, or for different countries, or both), and the function may be defined over more than one variable (e.g., mortality rates over age and BMI). It is also possible to have multivariate observations (e.g., mortality and fertility rates).
+
+## Interpolation and smoothing
+
+The distinguishing feature of functional data is that we think of the data as smooth and continuous functions. In practice, our observations would normally be at discrete values, even though the underlying functions are continuous. In @fig-fr-mortality, for example, we observe the mortality rate for discrete ages 0, 1, 2, \dots, while we think of the rate as defined for any age $x \in [0,\infty)$.
+
+It is common to form continuous functions using some kind of interpolation or smoothing of the raw data. Smoothing is used if the underlying curve has been observed with measurement error.
+
+The data shown in @fig-fr-mortality are observed with error, as the "wiggliness" of the curves shows. The mortality rate (or central death rate) at age $x$ and year $t$ is defined as the number of people who died at age $x$ in year $t$ divided by the number of people who were aged $x$ in the middle of year $t$. We can smooth the data to obtain the mortality rates at non-integer values of $x$.
+
+In the following code, we use a smoothing method proposed by @HU07, that takes account of the characteristics of mortality rates.
+
+```{r}
+#| label: fr_smooth
+#| message: false
+#| code-fold: false
+library(vital)
+fr_smooth <- fr_mortality |>
+  as_vital(index = Year, key = c(Age, Sex), .age = "Age", .sex = "Sex") |>
+  smooth_mortality(Mortality, k = 20)
+```
+
+@fig-fr-smooth shows the resulting smooth curve for one year along with the original data, while @fig-fr-smooth2 shows the smooth curves for all years.
+
+```{r}
+#| label: fig-fr-smooth
+#| dependson: fr_smooth
+#| fig-cap: Smoothed French male mortality rates for 1999.
+fr_mortality |>
+  filter(Year == 1999, Sex == "Male") |>
+  ggplot(aes(x = Age, y = Mortality)) +
+  geom_point() +
+  geom_line(data = fr_smooth |> filter(Year == 1999, Sex == "Male"),
+    aes(y = .smooth)) +
+  scale_y_log10()
+```
+
+```{r}
+#| label: fig-fr-smooth2
+#| dependson: fr_smooth
+#| fig-cap: Smoothed French male mortality rates for all years.
+fr_smooth |>
+  filter(Sex == "Male") |>
+  ggplot() +
+  aes(x = Age, y = log(.smooth), color = Year, group = Year) +
+  geom_line() +
+  scale_color_gradientn(colors = rainbow(100)[1:80]) +
+  labs(y = "Log mortality rate") +
+  scale_y_continuous(
+    sec.axis = sec_axis(~ exp(.),
+      breaks = 10^(-(0:4)),
+      labels = format(10^(-(0:4)), scientific = FALSE),
+      name = "Mortality rate")
+  )
+
+```
+
+## Dimension reduction using basis functions
+
+We can approximate functional data using a number of basis functions. The basis functions are a set of functions that span the space of all functions. For example, the Fourier basis functions are a set of sine and cosine functions that can be used to represent any periodic function. The B-spline basis functions are a set of piecewise polynomial functions that can be used to represent any smooth function. The choice of basis functions depends on the characteristics of the data.
+
+Suppose the data are denoted by $y_i(x)$, where $i$ is the index over all observations and $x$ is the continuous variable over which each function is defined. We can approximate each function as a linear combination of basis functions:
+$$
+\hat{y}_i(x) = b_0(x) + \sum_{j=1}^J \beta_{ij} b_j(x),
+$$
+where $b_0(x)$ is a constant function, $b_j(x)$ are the basis functions, and $\beta_{ij}$ are the coefficients. The number of basis functions $J$ is usually much smaller than the number of observations, with larger $J$ corresponding to a more flexible approximation.
+
+If we choose a set of basis functions, then we can estimate the coefficients $\beta_{ij}$ by minimizing the sum of squared errors between the observed data $y_i(x)$ and the approximated data $\hat{y}_i(x)$. 
+
+Alternatively we can use functional principal component analysis to find the basis functions that explain the most variance in the data. Then $b_0(x)$ is set to be the mean function,
+$$b_0(x) = \frac{1}{n} \sum_{i=1}^n y_i(x),$$
+and the first principal component, $b_1(x)$, is the function that minimizes
+$[y_i(x) - b_0(x) - \beta_{i1}b_1(x)]^2$ subject to the constraint that $\int b_1^2(x)dx = 1$.
+Then the second principal component, $b_2(x)$, is the function that minimizes
+$[y_i(x) - b_0(x) - \beta_{i1}b_1(x) - \beta_{i2}b_2(x)]^2$ subject to the constraints that $\int b_2^2(x)dx = 1$ and $\int b_1(x)b_2(x)dx = 0$.
+
+
+PCA is a dimension reduction technique that finds the directions in which the data vary the most. The first principal component is the direction in which the data vary the most, the second principal component is the direction in which the data vary the second most, and so on. The principal components are orthogonal to each other, so the data can be approximated by a linear combination of the principal components.
 
 
 
@@ -51,14 +145,27 @@ pca |>
   ggplot(aes(x = .fittedPC1, y = .fittedPC2)) +
   geom_point()
 
+```
+
+## Anomalies in the principal component space
+
+
+
+
+```{r}
+
 # Find outliers in the PCs
 pca_no_year <- pca |> select(-Year)
 pca <- pca |>
-  mutate(lookout = surprisals(pca_no_year))
-outliers <- pca |> filter(lookout < 0.05)
+  mutate(prob = surprisals(pca_no_year))
+outliers <- pca |> filter(prob < 0.05)
 pca |>
   ggplot(aes(x = .fittedPC1, y = .fittedPC2)) +
   geom_point() +
   geom_point(data = outliers, color = "red") +
   ggrepel::geom_label_repel(data = outliers, aes(label = Year), )
 ```
+
+## Functional depth measures
+
+There are several existing approaches to identifying functional outliers, summarised in @hubert2015multivariate, almost all based on functional depth.
