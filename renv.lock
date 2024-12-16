@@ -314,14 +314,14 @@
     },
     "RcppCGAL": {
       "Package": "RcppCGAL",
-      "Version": "5.6.4",
+      "Version": "6.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "Rcpp",
         "utils"
       ],
-      "Hash": "6757ea7e999e45a03577df6f0e4c71fb"
+      "Hash": "b0b78cb96f4ccb9c80d28015a6368804"
     },
     "RcppEigen": {
       "Package": "RcppEigen",
@@ -1013,14 +1013,9 @@
     },
     "feasts": {
       "Package": "feasts",
-      "Version": "0.4.1.9000",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteUsername": "tidyverts",
-      "RemoteRepo": "feasts",
-      "RemoteRef": "main",
-      "RemoteSha": "1c72d1bd9deacf54b8cc0b4573e771f460d88d25",
+      "Version": "0.4.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
       "Requirements": [
         "R",
         "dplyr",
@@ -1039,7 +1034,7 @@
         "utils",
         "vctrs"
       ],
-      "Hash": "18a366ca0f25440067a08c7558dc1928"
+      "Hash": "276b81269ccbe43e7ad23fe8d4b4cadd"
     },
     "fontawesome": {
       "Package": "fontawesome",
@@ -1823,10 +1818,10 @@
     },
     "lpSolve": {
       "Package": "lpSolve",
-      "Version": "5.6.22",
+      "Version": "5.6.23",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "bd62ebb5bdc0cbf55ea6da593a4475ed"
+      "Hash": "c4e64e374c4ab1e6ffda55073fd04c59"
     },
     "lubridate": {
       "Package": "lubridate",
@@ -2002,7 +1997,7 @@
     },
     "np": {
       "Package": "np",
-      "Version": "0.60-17",
+      "Version": "0.60-18",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -2013,7 +2008,7 @@
         "quantreg",
         "stats"
       ],
-      "Hash": "d27db38609b7816b2cb7a18ded6fc887"
+      "Hash": "78f677738d7b9085418bbd2312091487"
     },
     "numDeriv": {
       "Package": "numDeriv",
@@ -3083,7 +3078,7 @@
       "RemoteHost": "api.github.com",
       "RemoteRepo": "vital",
       "RemoteUsername": "robjhyndman",
-      "RemoteSha": "721d1892e24911b2596125682598f77e5eb2fe16",
+      "RemoteSha": "c9395a53d2a4c142b67d209174a152666174d236",
       "Requirements": [
         "HMDHFDplus",
         "MortalityLaws",
@@ -3106,7 +3101,7 @@
         "tsibble",
         "vctrs"
       ],
-      "Hash": "c9b90f18d259c019da45a94d473fea52"
+      "Hash": "5b3d878fa6e81c765176411f76e46b50"
     },
     "vroom": {
       "Package": "vroom",
@@ -3152,7 +3147,7 @@
       "RemoteUsername": "robjhyndman",
       "RemoteRepo": "weird-package",
       "RemoteRef": "main",
-      "RemoteSha": "691a9f4145695601a425e4f707ac7e24efff9178",
+      "RemoteSha": "25ffe3f389d523b65122ab9c581285f4cfd40228",
       "RemoteHost": "api.github.com",
       "Requirements": [
         "R",
@@ -3178,7 +3173,7 @@
         "tibble",
         "vctrs"
       ],
-      "Hash": "ec80a98466d9d9952e50cf119c0c3ed8"
+      "Hash": "1eb1308b1ecec5ae6bf403ae935c0625"
     },
     "whisker": {
       "Package": "whisker",
