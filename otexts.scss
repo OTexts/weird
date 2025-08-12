@@ -19,7 +19,9 @@ $h3-font-size: 1.3rem !default;
 $h4-font-size: 1.1rem !default;
 $h5-font-size: 0.9rem !default;
 
-$code-block-bg: $theme-gray;
+$code-block-bg: #f8f9fa;
+$code-block-border-left: 3px solid $theme-main;
+$code-block-padding-left: 1em;
 $code-color: $body-color;
 
 $callout-color-tip: $theme-orange;
@@ -35,28 +37,32 @@ h3 {
   font-weight: bold;
 }
 
-h1, h2 {
+h1,
+h2 {
   border-bottom: 2px solid $theme-main;
-  margin-top: 50px !important;
+  margin-top: 60px !important;
+  margin-bottom: 30px !important;
 }
 
-h4, h5 {
+h4,
+h5 {
   color: $body-color;
   font-family: $font-family-sans-serif;
   font-weight: bold;
 }
+
 .header-section-number {
   color: $theme-main;
 }
 
 a {
-  color:$theme-main;
+  color: $theme-main;
   text-decoration: none;
+  font-weight: inherit;
 }
 
 a:hover {
   color: saturate($theme-main, 100%);
-  font-weight: bold;
 }
 
 dt {
@@ -75,17 +81,24 @@ dd {
   font-family: $font-family-sans-serif;
 }
 
-.quarto-title-meta,.quarto-title-meta-author {
+.quarto-title-meta,
+.quarto-title-meta-author {
   font-family: $font-family-sans-serif;
-  color:  $theme-main;
+  color: $theme-main;
 }
 
-.quarto-title-banner,.quarto-secondary-nav h1 {
+.quarto-title-banner,
+.quarto-secondary-nav h1 {
   border-bottom: 0px;
-  color:  $theme-main;
+  color: $theme-main;
 }
 
-.panel-caption, .figure-caption, .subfigure-caption, .table-caption, figcaption.quarto-float-caption, caption {
+.panel-caption,
+.figure-caption,
+.subfigure-caption,
+.table-caption,
+figcaption.quarto-float-caption,
+caption {
   font-family: $font-family-sans-serif;
   color: darken($theme-gray, 70%);
   background-color: $theme-gray;
@@ -99,18 +112,19 @@ dd {
 
 table {
   background: lighten($theme-gray, 50%);
-  border: 0px;
+  margin: 2em 0;
+  border: 1px solid lighten($theme-main, 50%);
 }
 
-table td, table th {
+table td,
+table th {
   border: 1px;
   font-size: 0.9rem;
   height: 12px;
   line-height: 1.2;
-  padding: 0;
-  cellpadding: 0;
-  cellspacing: 0;
   text-shadow: none;
+  padding: 8px 12px !important;
+  line-height: 1.4 !important;
 }
 
 .table>:not(caption)>*>* {
@@ -122,6 +136,7 @@ th {
   background-color: lighten($theme-main, 40%) !important;
   font-weight: bold;
 }
+
 td {
   background-color: lighten($theme-gray, 60%) !important;
 }
@@ -130,11 +145,13 @@ blockquote {
   quotes: none;
   text-shadow: none;
   color: darken($theme-gray, 80%) !important;
-  background: lighten($theme-main, 65%) !important;
-  padding:  7px 20px 7px 20px;
+  background: lighten($theme-main, 50%) !important;
+  padding: 7px 20px 7px 20px;
+  margin: 1.5em 0;
+  border-radius: 5px;
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
-  border-left: 0px;
+  border-left: 4px solid $theme-main !important;
 }
 
 pre code {
@@ -144,15 +161,18 @@ pre code {
   -webkit-border-radius: 5px;
 }
 
-div.sourceCode, div.sourceCode pre.sourceCode {
-    color: $body-color;
+div.sourceCode,
+div.sourceCode pre.sourceCode {
+  color: $body-color;
 }
 
-.quarto-page-breadcrumbs .breadcrumb-item+.breadcrumb-item, .quarto-page-breadcrumbs .breadcrumb-item {
+.quarto-page-breadcrumbs .breadcrumb-item+.breadcrumb-item,
+.quarto-page-breadcrumbs .breadcrumb-item {
   font-family: $font-family-sans-serif;
 }
 
-div.sidebar.sidebar-navigation.rollup.quarto-sidebar-toggle-contents, nav.sidebar.sidebar-navigation:not(.rollup) {
+div.sidebar.sidebar-navigation.rollup.quarto-sidebar-toggle-contents,
+nav.sidebar.sidebar-navigation:not(.rollup) {
   background-color: $theme-main !important;
   color: lighten($theme-gray, 50%) !important;
   font-family: $font-family-sans-serif;
@@ -182,7 +202,8 @@ div.sidebar.sidebar-navigation.rollup.quarto-sidebar-toggle-contents, nav.sideba
   color: $theme-orange !important;
 }
 
-.sidebar-navigation, .sidebar-item {
+.sidebar-navigation,
+.sidebar-item {
   font-family: "Fira Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: lighten($theme-gray, 50%);
   background-color: $theme-main !important;
@@ -198,12 +219,13 @@ div.sidebar.sidebar-navigation.rollup.quarto-sidebar-toggle-contents, nav.sideba
   border-left: 1px solid saturate($theme-main, 60%) !important;
 }
 
-.sidebar nav[role=doc-toc] a:hover  {
+.sidebar nav[role=doc-toc] a:hover {
   color: saturate($theme-main, 60%) !important;
   background-color: lighten($theme-gray, 50%);
 }
 
-.sidebar nav[role=doc-toc] ul>li>a:hover, .sidebar nav[role=doc-toc] ul>li>ul>li>a:hover {
+.sidebar nav[role=doc-toc] ul>li>a:hover,
+.sidebar nav[role=doc-toc] ul>li>ul>li>a:hover {
   color: saturate($theme-main, 60%) !important;
 }
 
@@ -211,18 +233,21 @@ div.sidebar.sidebar-navigation.rollup.quarto-sidebar-toggle-contents, nav.sideba
   background-color: $theme-main !important;
 }
 
-.sidebar-navigation,.sidebar-item a  {
+.sidebar-navigation,
+.sidebar-item a {
   color: lighten($theme-gray, 50%) !important;
 }
 
 #quarto-sidebar .menu-text {
   display: flex;
 }
+
 #quarto-sidebar .chapter-number {
   display: block;
   width: 1.5em;
   text-align: right;
 }
+
 #quarto-sidebar .chapter-title {
   color: inherit !important;
   background-color: inherit !important;
@@ -232,32 +257,39 @@ div.sidebar.sidebar-navigation.rollup.quarto-sidebar-toggle-contents, nav.sideba
   width: 100%;
 }
 
+#toc-title {
+  font-weight: bold;
+}
+
 .sidebar-item .chapter-number {
   color: inherit !important;
   background-color: inherit !important;
 }
 
-.sidebar-navigation,.sidebar-item a.active  {
+.sidebar-navigation,
+.sidebar-item a.active {
   color: $theme-yellow !important;
 }
 
-.sidebar-item a:hover  {
+.sidebar-item a:hover {
   color: $theme-orange !important;
 }
 
-.page-navigation a:hover  {
+.page-navigation a:hover {
   color: saturate($theme-main, 60%) !important;
 }
 
 .csl-entry {
-  padding-left: 22px ;
-  text-indent: -22px ;
+  padding-left: 22px;
+  text-indent: -22px;
 }
 
-.nav-footer,.nav-page-text {
+.nav-footer,
+.nav-page-text {
   font-family: $font-family-sans-serif;
   min-height: 1em;
 }
+
 button {
   background-color: $theme-gray;
   border-radius: 8px;
@@ -266,10 +298,20 @@ button {
   font-family: $font-family-sans-serif;
 }
 
-.katex { font-size: 1.1em !important; }
+.katex {
+  font-size: 1.1em !important;
+}
 
 .callout.callout-style-default .callout-body {
   font-size: 1rem;
   font-weight: 400;
   background-color: lighten($theme-gray, 5%);
+}
+
+.chapter-number::before {
+  content: "Chapter ";
+}
+
+.sidebar .chapter-number::before {
+  content: none !important;
 }

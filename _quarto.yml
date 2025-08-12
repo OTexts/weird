@@ -28,7 +28,7 @@ book:
   appendices:
     - "appendix.qmd"
   page-footer:
-    left: "Published by OTexts using [Quarto](https://quarto.org). {{< fa copyright >}} [Rob J Hyndman](https://robjhyndman.com)"
+    left: "Published by OTexts using [Quarto](https://quarto.org). {{< fa regular copyright >}} [Rob J Hyndman](https://robjhyndman.com) []{#current-year}"
     border: false
     background: light
   sidebar:
@@ -36,17 +36,15 @@ book:
     style: "docked"
   favicon: favicon.ico
 
-toc-title: "<b>Sections</b>"
-html-math-method: katex
 published-title: "Last updated"
 date-format: "DD MMMM YYYY"
 number-depth: 2
-include-before-body: google_analytics.html
 bibliography: weird.bib
 biblio-style: authoryear-comp
 fig-width: 8
 fig-height: 5
 fig-align: center
+fig-dpi: 1200
 output-width: 100%
 highlight-style: tango
 
@@ -59,11 +57,22 @@ execute:
 format:
   html:
     theme:
-      - cosmo
-      - otexts.scss
-    fontsize: 18px
+      light:
+        - cosmo
+        - otexts.scss
+    toc-title: "Sections"
+    fontsize: 1rem
     linestretch: 1.5
     mainfont: "Noto Serif, Georgia, serif"
+    html-math-method: katex
     code-link: false
+    fig-responsive: true
     code-fold: true
     embed-resources: false
+    include-in-header:
+      - file: google_analytics.html
+    include-after-body:
+      - text: |
+          <script>
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+          </script>
