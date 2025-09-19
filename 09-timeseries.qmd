@@ -257,8 +257,8 @@ us_stmf <- "https://www.mortality.org/File/GetDocument/Public/STMF/Outputs/USAst
   read.csv(header = TRUE) |>
   # Create time index varaible
   mutate(Week = yearweek(paste0(Year,"-W",Week))) |>
-  # Consider only sexes combined, and omit last week due to reporting delays
-  filter(Sex == "b", Week < max(Week) - 1) |>
+  # Consider only data to 2024, sexes combined, and omit last week due to reporting delays
+  filter(Week < yearweek("2025 W01"), Sex == "b", Week < max(Week) - 1) |>
   # Fix column names
   select(Week, `X0.14.1`:`X85..1`) |>
   rename(
@@ -345,11 +345,11 @@ us_stmf |>
 #| include: false
 low_mortality <- stmf_scores |>  filter(e < 0)
 n_low_mortality <- NROW(low_mortality)
-if(n_low_mortality != 2L)
+if(n_low_mortality != 1L)
   stop("Problem here")
 ```
 
-A total of `r NROW(stmf_scores)` observations have surprisal probabilities less than 0.02, with the most extreme being in weeks 15--16 of 2020, in the elderly age groups. Although the test can pick up unusually low or unusually high mortality rates, only `r n_low_mortality` of the `r NROW(stmf_scores)` identified anomalies is for low mortality, and that is for 85+ year olds in Week 3 of 2020 and in Week 15 of 2021. In both weeks, it is possible that the elderly were taking precautions against COVID-19, resulting in restricted movements, and therefore lower mortality rates.
+A total of `r NROW(stmf_scores)` observations have surprisal probabilities less than 0.02, with the most extreme being in weeks 15--16 of 2020, in the elderly age groups. Although the test can pick up unusually low or unusually high mortality rates, only `r n_low_mortality` of the `r NROW(stmf_scores)` identified anomalies is for low mortality, and that is for 85+ year olds in Week 3 of 2020. It is possible that the elderly were taking precautions against COVID-19, resulting in restricted movements, and therefore lower mortality rates.
 
 There are four anomalous peaks in the plot, centred on the following dates:
 
