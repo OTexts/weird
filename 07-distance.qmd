@@ -174,11 +174,15 @@ df |>
   # geom_point(aes(x=x, y=y), size=3, data=df[chosen,], col=cols) +
   annotate("text",
     x = df$x[chosen] + 0.3, y = df$y[chosen] + 0.3,
-    label = latex2exp::TeX(paste0("$y_", 1:2, "$"), bold = TRUE), col = discrete_colors[1:2]
+    label = latex2exp::TeX(paste0("$y_", 1:2, "$"), bold = TRUE, output = "character"), 
+    parse = TRUE,
+    col = discrete_colors[1:2]
   ) +
   annotate("text",
     x = c(-0.5, 3.6), y = c(4.2, 6),
-    label = latex2exp::TeX(paste0("$N_{", 1:2, ",5}$")), col = discrete_colors[1:2]
+    label = latex2exp::TeX(paste0("$N_{", 1:2, ",5}$"), output = "character"), 
+    parse = TRUE,
+    col = discrete_colors[1:2]
   ) +
   geom_segment(aes(x = x, y = y, xend = c(7.75, 8.75), yend = y),
     arrow = arrow(length = unit(0.02, "npc")),
@@ -186,7 +190,9 @@ df |>
   ) +
   annotate("text",
     x = c(4.7, 7), y = c(-0.8, 4.1),
-    label = latex2exp::TeX(paste0("$d_{", 1:2, ",5}$")), col = discrete_colors[1:2]
+    label = latex2exp::TeX(paste0("$d_{", 1:2, ",5}$"), output = "character"), 
+    parse = TRUE,
+    col = discrete_colors[1:2]
   ) +
   coord_fixed(xlim = c(-4, 8.5), ylim = range(df$y)) +
   guides(col = "none", fill = "none") +

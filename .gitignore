@@ -12,3 +12,6 @@ _bookdown_files
 /_book/
 /_freeze/
 /renv/
+
+**/*.quarto_ipynb
+.history
