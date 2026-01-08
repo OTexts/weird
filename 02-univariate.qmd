@@ -193,7 +193,7 @@ $$
 
 This is a remarkable result as it does not require any assumptions about the underlying distribution of the random variables $Y_1,\dots,Y_n$, other than that they have finite mean and variance. It is also a useful result, as it allows us to use the Normal distribution to approximate the distribution of many statistics.
 
-For example, the sample mean (or average), is simply the sum of the observations divided by the sample size. So by the CLT, for a large sample size, the sample mean will have a Normal distribution. That is, if the observations come from a distribution with mean $\mu$ and variance $\sigma^2$, then the sample mean will have distribution $\text{N}(\mu, \sigma^2/n)$ when $n$ is large, regardless of the underlying distribution of the observations.
+For example, the sample mean (or average), is simply the sum of the observations divided by the sample size. So by the CLT, for a large sample size, the sample mean will have a Normal distribution. That is, if the observations come from *any* distribution with finite mean $\mu$ and variance $\sigma^2$, then the sample mean will have distribution $\text{N}(\mu, \sigma^2/n)$ when $n$ is large.
 
 Variations on the theorem allow the variables $Y_1,\dots,Y_n$ to be independent but not necessarily identically distributed, or to be weakly dependent.
 
@@ -235,7 +235,7 @@ x5 |>
 
 The quantiles of a continuous distribution are given by the inverse of the cumulative distribution function, $Q(p) = F^{-1}(p)$.
 
-Some quantiles are given special names. The $p=0.5$ quantile is called the **median**. The $p=0.25$ and $p=0.75$ quantiles are called the **lower** and **upper quartiles** respectively. The **deciles** are defined when $p=0.1,0.2,\dots,0.9$, while the **percentiles** are defined with $p=0.01,0.02,\dots,0.99$.
+Some quantiles are given special names. The $p=0.5$ quantile is called the **median**. The $p=0.25$ and $p=0.75$ quantiles are called the **lower** and **upper quartiles** respectively. The **deciles** are defined with $p=0.1,0.2,\dots,0.9$, while the **percentiles** are defined with $p=0.01,0.02,\dots,0.99$.
 
 The "interquartile range" (IQR) is the difference between the upper and lower quartiles. It is a measure of the spread of the distribution, and is often used as a robust alternative to the standard deviation. For a Normal distribution, the standard deviation is equal to 1.349 times the IQR.
 
@@ -383,7 +383,7 @@ With a large sample size $n$, the sample quantile $\hat{Q}(p)$ has an approximat
 $$
 \hat{Q}(p) \approx \text{N}\left(Q(p), \frac{p(1-p)}{n f^2(Q(p))}\right)
 $$ {#eq-sample-quantile-distribution}
-where $f(y)$ is the density of the underlying distribution [@van2000asymptotic, p308]. This is an asymptotic result, that assumes $np$ is large, and holds for all types of sample quantiles.
+where $f(y)$ is the density of the underlying distribution [@van2000asymptotic, p308]. This is an asymptotic result, which assumes $np$ is large, and holds for all types of sample quantiles.
 
 
 ## Highest density regions {#sec-hdr}

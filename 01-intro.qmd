@@ -25,7 +25,7 @@ An old definition due to @Barnett1978 states
 
 These are too vague to be useful, and we will need to be more specific. Following ???, we define an anomaly as **an observation that has very low probability of occurring under some assumed probability distribution**. This definition is more useful, as it allows us to use probability theory to identify and study anomalies. However, it raises two immediate questions:
 
-  1. What probability distribution we should use? This depends on the application, and the nature of the data. In practice, we will often have to estimate the distribution from the available observations, which leads to further complications that will be discussed later.
+  1. What probability distribution should we use? This depends on the application, and the nature of the data. In practice, we will often have to estimate the distribution from the available observations, which leads to further complications that will be discussed later.
   2. What is meant by "very low"? Again, it is application-dependent, and we will need to set an appropriate threshold probability for determining what we consider to be an anomaly.
 
 I will sometimes use the term "outlier" to mean an anomaly that lies at the outer edges of a data set. Other anomalies are actually "inliers", and lie well within the data set. Some papers use the term "inlier" to denote any point that is not an outlier. However, we shall use the earlier definition of "inlier", meaning an observation that is an anomaly but which is surrounded by genuine observations.
@@ -103,7 +103,7 @@ The second half of the 20th century witnessed the advent of computing, which all
 
 ### Distance and density-based methods {-}
 
-Modern tools for anomaly detection can be roughly divided into two groups: those based on densities and those based on distances. Distance-based tools compute the pairwise distances between observations and identify anomalies as those points that are far from other points. Density-based tools compute the probability density at each observation and identify anomalies as those points with very low density. The two ideas are closely related because density estimates are usually based on distances to other observations; for example, a density estimate at a point may be a function of the distances between that point and all other observations. Conversely, distance-based tools are making an implicit assumption about the probability distribution of the data, and how likely it is to find points at different distances from other observations.
+Modern tools for anomaly detection can be roughly divided into two groups: those based on densities and those based on distances. Distance-based tools compute the pairwise distances between observations and identify anomalies as those points that are far from other points. Density-based tools compute the probability density at each observation and identify anomalies as those points with very low density. The two ideas are closely related because density estimates are often based on distances; for example, a density estimate at a point may be a function of the distances between that point and all other observations. Conversely, distance-based tools are making an implicit assumption about the probability distribution of the data, and how likely it is to find points at different distances from other observations.
 
 Density-based methods are discussed in @sec-density-methods, while distance-based methods are the subject of @sec-distance-methods.
 
@@ -208,14 +208,14 @@ batting <- cricket_batting |>
 donave <- max(batting$Average)
 ```
 
-Don Bradman was an Australian cricketer in the first half of the 20th century, and is renowned as the best batter to ever play the game. The most common measure of a batter's ability is their career average --- the total number of runs made divided by the number of times they were dismissed. @fig-cricket1 shows a strip plot of the career averages for all `r NROW(batting)` men and women to have played test cricket and batted more than 20 times.
+Don Bradman was an Australian cricketer in the first half of the 20th century, and is renowned as the best batter to ever play the game. The most common measure of a batter's ability is their career average --- the total number of runs made divided by the number of times they were dismissed. @fig-cricket1 shows a strip plot of the career averages for all `r NROW(batting)` men and women to have played test cricket and batted at least 20 times.
 
 ```{r}
 #| label: fig-cricket1
 #| fig-asp: 0.2
-#| fig-cap: !expr paste("Career batting averages for all men and women to have played test cricket and batted more than 20 times. The anomaly is Don Bradman, who averaged", scales::number(donave, 0.01), "over his career.")
+#| fig-cap: !expr paste("Career batting averages for all men and women to have played test cricket and batted at least 20 times. The anomaly is Don Bradman, who averaged", scales::number(donave, 0.01), "over his career.")
 cricket_batting |>
-  filter(Innings > 20) |>
+  filter(Innings >= 20) |>
   ggplot(aes(x = Average, y = 1)) +
   geom_jitter(width = 0, alpha = 0.5) +
   scale_y_discrete() +
@@ -258,7 +258,7 @@ In @fig-oldfaithful3, we have plotted the duration of each eruption and the wait
 
 ### Example: Wine prices and quality {-}
 
-@fig-shiraz shows a scatterplot of data on `r wine_reviews |> filter(variety %in% c("Shiraz", "Syrah")) |> NROW() |> scales::comma()` Syrah wines (also known as Shiraz). The review points is a measure of the quality of the wine (at least according to one taster's palate). As expected, the price of the wine increases with the quality, although there is considerable variation, and some very expensive wines are rated of relatively low quality, while there are a few exceptional wines at bargain prices.
+@fig-shiraz shows a scatterplot of data on `r wine_reviews |> filter(variety %in% c("Shiraz", "Syrah")) |> NROW() |> scales::comma()` Syrah wines (also known as Shiraz). The review points provide a measure of the quality of the wine (at least according to one taster's palate). As expected, the price of the wine increases with the quality, although there is considerable variation, and some very expensive wines are rated of relatively low quality, while there are a few exceptional wines at bargain prices.
 
 ```{r}
 #| label: fig-shiraz
@@ -291,7 +291,7 @@ A similar phenomenon occurs whenever you consider additional variables. An anoma
 
 While strip plots and scatterplots are useful for finding anomalies in small- to moderate-sized data sets with one or two numerical variables, we will need alternative tools once we have three or more variables, or a large data set, or non-numerical data.
 
-We will consider the problem of high dimensions in [Chapter -@sec-highdim], while various types of non-numerical data are considered in the later chapters of the book.
+We will consider the problem of high dimensions in @sec-highdim, while various types of non-numerical data are considered in the later chapters of the book.
 
 ### Example: Synthetic standard normal data
 
