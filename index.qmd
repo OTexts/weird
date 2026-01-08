@@ -1,16 +1,16 @@
 # Preface {.unnumbered}
 
-> This book is under development. Please don't ask me when it will be finished --- I have to fit this around my other work. In the meantime, I hope the incomplete book is useful.
+> This book is under development, and the table of contents may change. 
 
 This book is about tools and techniques for finding and understanding anomalies. We will begin with some simple data sets containing only one variable, and build up slowly to much more complicated data. We will cover popular but inadvisable methods to identify anomalies (pointing out their shortcomings), as well as more reliable and recommended approaches.
 
 The book is written for two audiences: (1)&nbsp;people finding themselves doing data analysis without having had formal training in anomaly detection; and (2)&nbsp;students studying statistics or data science.
 
-I will assume a knowledge of statistics and probability at about second year undergraduate level. So if you've done a couple of statistics subjects, and are familiar with multiple regression, hypothesis tests and probability distributions, then you should be prepared for what follows. I will also assume some basic knowledge of matrix algebra; some of the matrix results we use are provided in @sec-appendix.
+You will need a knowledge of statistics and probability at about second year undergraduate level. So if you've done a couple of statistics subjects, and are familiar with multiple regression, hypothesis tests and probability distributions, then you should be prepared for what follows. You will also need some knowledge of matrix algebra; the most important matrix results that we use are provided in @sec-appendix.
 
 ### R {-}
 
-I will also assume that you already know how to use R and are familiar with the [tidyverse](https://tidyverse.org) packages such as `dplyr`, `tidyr` and `ggplot2`.
+Finally, you will need to know how to use R and be familiar with the [tidyverse](https://tidyverse.org) packages such as `dplyr`, `tidyr` and `ggplot2`. There are many online resources that cover this material, including @r4ds and the [StartR](https://startr.numbat.space/) self-learning modules we have developed at Monash University.
 
 All R examples in the book assume that you have loaded the [`weird` package](https://pkg.robjhyndman.com/weird-package/) first. It is available [on CRAN](https://cran.r-project.org/package=weird), although many examples in the book use the latest dev version [available on GitHub](https://github.com/robjhyndman/weird-package).
 
