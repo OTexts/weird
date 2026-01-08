@@ -579,8 +579,8 @@ of2021 |>
   geom_density(bw = 15, col = "#0072B2") +
   geom_density(bw = 40, col = "#009E73") +
   labs(x = "y = Duration (seconds)", y = "Density") +
-  xlim(120, 320) +
-  geom_label(x = 260, y = .02, label = "h = 5", col = "#D55E00") +
+  xlim(120, 320) + ylim(0, 0.019) +
+  geom_label(x = 260, y = .018, label = "h = 5", col = "#D55E00") +
   geom_label(x = 275, y = .01, label = "h = 15", col = "#0072B2") +
   geom_label(x = 320, y = .004, label = "h = 40", col = "#009E73")
 ```
@@ -595,31 +595,27 @@ $$
 $$ {#eq-rnrr}
 We will call this the "robust normal reference rule"; it is implemented in the function `kde_bandwidth()`. For the 10 observations in the example above, it gives $h = `r round(h, 1)`$, which is the value we used.
 
-This example using only 10 observations was purely to illustrate the method. Let's now estimate a kernel density estimate for the full data set (other than that one pesky duration of 2 hours).
-
-We will use the `dist_kde()` function, which uses the Gaussian kernel, and by default sets the bandwidth using the robust normal reference rule (@eq-rnrr) via the `kde_bandwidth()` function.
+This example using only 10 observations was purely to illustrate the method. Let's now estimate a kernel density estimate for the full data set. We will use the `dist_kde()` function, which uses the Gaussian kernel, and by default sets the bandwidth using the robust normal reference rule (@eq-rnrr) via the `kde_bandwidth()` function.
 
 ```{r}
 #| label: fig-oldfaithful4
 #| fig.asp: 0.45
 #| code-fold: false
-#| fig.cap: "Kernel density estimate of Old Faithful eruption durations since 2015, omitting the one eruption that lasted nearly two hours."
-of <- oldfaithful |>
-  filter(duration < 7000)
-of_density <- dist_kde(of$duration)
+#| fig.cap: "Kernel density estimate of Old Faithful eruption durations between 2017 and 2023."
+of_density <- dist_kde(oldfaithful$duration)
 of_density |>
   gg_density() +
-  geom_rug(aes(x = duration), of) +
+  geom_rug(aes(x = duration), oldfaithful) +
   labs(x = "Duration (seconds)")
 ```
 
 ```{r}
 #| label: of-bandwidth
 #| include: false
-h <- kde_bandwidth(of$duration)
+h <- kde_bandwidth(oldfaithful$duration)
 ```
 
-As this is a much bigger data set (with `r NROW(of)` observations), the selected bandwidth is smaller and is now $h = `r round(h, 2)`$. Here the estimate has clearly identified the two groups of eruptions, one much larger than the other. The extreme observation of 1 second, and the unusual observations between 140 and 180 seconds are in the areas of low density. Later we will use density estimates at each observation to identify anomalous points.
+As this is a much bigger data set (with `r NROW(oldfaithful)` observations), the selected bandwidth is smaller and is now $h = `r round(h, 2)`$. Here the estimate has clearly identified the two groups of eruptions, one much larger than the other. The extreme observation of 1 second, and the unusual observations between 140 and 180 seconds are in the areas of low density. Later we will use density estimates at each observation to identify anomalous points.
 
 ### Statistical properties {-}
 

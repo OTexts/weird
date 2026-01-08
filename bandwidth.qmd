@@ -150,7 +150,6 @@ Old Faithful data
 
 ```{r}
 of <- oldfaithful |>
-  filter(duration < 7000, waiting < 7000) |>
   select(duration, waiting)
 gg_hdrboxplot(of, duration, waiting,
   scatterplot = TRUE, 

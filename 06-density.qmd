@@ -683,15 +683,15 @@ of_surprisals <- oldfaithful |>
 of_surprisals |> arrange(desc(loo_kde_surprisal))
 ```
 
-The two infinite LOO surprisals correspond to the extreme 2 hour duration, and the tiny 1 second duration. These are so improbable given the rest of the data, that the scores are effectively infinite. The `prob` column contains the LOO surprisal probabilities based on the KDE.
+The two infinite LOO surprisals correspond to ????. These are so improbable given the rest of the data, that the scores are effectively infinite. The `prob` column contains the LOO surprisal probabilities based on the KDE.
 
-If we omit the two extreme values, we obtain different results.
+If we omit the three extreme values, we obtain different results.
 
 ```{r}
 #| label: ofscores2
 #| code-fold: false
 of_surprisals <- oldfaithful |>
-  filter(duration > 1, duration < 7000) |>
+  filter(duration > 60) |>
   mutate(
     loo_kde_surprisal = surprisals(duration, loo = TRUE, probability = FALSE),
     prob = surprisals(duration, loo = TRUE),
@@ -710,18 +710,17 @@ Now there are five points with probabilities less than 0.005, two at 155, and th
 #| fig.asp: 0.2
 #| code-fold: false
 oldfaithful |>
-  filter(duration > 1, duration < 7000) |>
+  filter(duration > 1) |>
   gg_hdrboxplot(duration)
 ```
 
-The same algorithm is easily applied in two dimensions. For example, we can consider the bivariate distribution of Duration and Waiting time, ignoring those observations that are greater than 2 hours in either dimension.
+The same algorithm is easily applied in two dimensions. For example, we can consider the bivariate distribution of Duration and Waiting time.
 
 ```{r}
 #| label: lookout2
 #| code-fold: false
 of <- oldfaithful |>
-  select(duration, waiting) |>
-  filter(duration < 7200, waiting < 7200)
+  select(duration, waiting) 
 of |>
   mutate(
     loo_scores = surprisals(of, loo = TRUE, probability = FALSE),

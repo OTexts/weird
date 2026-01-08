@@ -153,7 +153,7 @@ cricket_batting
 
 ### Old Faithful Geyser eruptions {-}
 
-Data on the eruptions of the Old Faithful Geyser in Yellowstone National Park, Wyoming, USA, have been collected for about 150 years. It was named "Old Faithful" due to the relatively predictable timing and length of its eruptions. The `oldfaithful` data set contains data on all `r NROW(oldfaithful)` eruptions recorded between 1 January 2015 and 1 October 2021.
+Data on the eruptions of the Old Faithful Geyser in Yellowstone National Park, Wyoming, USA, have been collected for about 150 years. It was named "Old Faithful" due to the relatively predictable timing and length of its eruptions. The `oldfaithful` data set contains data on all `r NROW(oldfaithful)` eruptions recorded between 14 January 2017 and 29 December 2023.
 
 ```{r}
 #| label: oldfaithfuldata
@@ -161,7 +161,7 @@ Data on the eruptions of the Old Faithful Geyser in Yellowstone National Park, W
 oldfaithful
 ```
 
-The time stamp indicates the start time of each eruption, with the other variables providing the duration of each eruption and the time to the next eruption (both in seconds).
+The time stamp indicates the start time of each eruption, while `recorded_duration` gives what was transcribed by the observer. This has been converted to seconds to give the `duration` variable. The `waiting` variable is the time to the next eruption, again in seconds. Recordings are incomplete, especially during the winter months when observers may not be present.
 
 ### Wine prices and quality {-}
 
@@ -231,7 +231,7 @@ Some anomalies are not so obvious, and occur within the range of the rest of the
 ```{r}
 #| label: fig-oldfaithful1
 #| fig-asp: 0.2
-#| fig-cap: "Old Faithful eruption durations since 2015. The large anomaly is an eruption recorded on 7&nbsp;December 2015 which apparently lasted nearly two hours."
+#| fig-cap: "Old Faithful eruption durations between 2017 and 2023."
 oldfaithful |>
   ggplot(aes(x = duration, y = 1)) +
   geom_jitter(width = 0, alpha = 0.5) +
@@ -239,21 +239,7 @@ oldfaithful |>
   scale_y_discrete()
 ```
 
-The big anomaly on the right was an eruption recorded as lasting nearly two hours on 7 December 2015. (I can find no record of this in any news media, so perhaps it is an error in the data.) This makes it difficult to see any detail in the rest of the data, so let's omit it so we can look at the remaining data more clearly.
-
-```{r}
-#| label: fig-oldfaithful2
-#| fig-asp: 0.2
-#| fig-cap: "Old Faithful eruption durations since 2015, omitting the one eruption that lasted nearly two hours."
-oldfaithful |>
-  filter(duration < 7000) |>
-  ggplot(aes(x = duration, y = 1)) +
-  geom_jitter(width = 0, alpha = 0.5) +
-  labs(y = "", x = "Duration (seconds)") +
-  scale_y_discrete()
-```
-
-We see that almost all of the remaining eruptions were between 100 and 300 seconds in length, with one extremely short anomalous duration of 1 second. (Again, perhaps this is an error in the recorded data.) However, the plot reveals another feature of the data. The majority of observations are between 200 and 300 seconds, with a smaller group at around 120 seconds. Few observations fall between 140 and 180 seconds. Those that do can be considered "inliers" --- anomalous points that lie within the range of the rest of the data but in regions of low density.
+We see that almost all the eruptions were between 100 and 300 seconds in length, with one extremely short anomalous duration of 1 second, and two other unusually short eruption durations. However, the plot reveals another feature of the data. The majority of observations are between 200 and 300 seconds, with a smaller group at around 120 seconds. Few observations fall between 140 and 180 seconds. Those that do might be considered "inliers" --- anomalous points that lie within the range of the rest of the data but in regions of low density.
 
 The two clusters of observations characterise two eruption modes for the Old Faithful geyser: short durations (around 2 minutes in length) and long durations (between 3 and 5 minutes in length). There was an earthquake in 1998 which changed the distribution of durations. Before 1998, the durations were more evenly split between the two clusters, but currently the long durations are much more common.
 
@@ -261,17 +247,14 @@ The `oldfaithful` data set also contains the time between eruptions. For each ro
 
 ```{r}
 #| label: fig-oldfaithful3
-#| fig-cap: "Old Faithful eruption durations and waiting times since 2015, omitting waiting times and durations of two hours or more."
+#| fig-cap: "Old Faithful eruption durations and waiting times between 2017 and 2023."
 oldfaithful |>
-  filter(duration < 7200, waiting < 7200) |>
   ggplot(aes(x = duration, y = waiting)) +
   geom_point(alpha = 0.5) +
   labs(y = "Waiting time to next eruption (seconds)", x = "Duration (seconds)")
 ```
 
-In @fig-oldfaithful3, we have plotted the duration of each eruption and the waiting time to the next eruption, after filtering some extreme waiting times (which are probably due to incomplete records), and the two-hour duration we have seen previously.
-
-The resulting plot shows some anomalies that occur due to the *combination* of the two variables, although they do not appear anomalous within the data on any one of the variables. For example, there is one eruption of 120 seconds, followed by a waiting time of over 6000 seconds. Neither the waiting time nor the duration are unusual on their own, but the combination is anomalous. Similarly, there are two eruptions of 170 seconds, followed by waiting times of under 4000 seconds. Those waiting times are not particularly unusual compared to other waiting times, but they are unusual given the durations of the previous eruptions.
+In @fig-oldfaithful3, we have plotted the duration of each eruption and the waiting time to the next eruption. This shows some anomalies that occur due to the *combination* of the two variables, although they do not appear anomalous within the data on any one of the variables. For example, there are two eruptions of 110--120 seconds, followed by waiting times of over 6000 seconds. Neither the waiting time nor the duration are unusual on their own, but the combination is anomalous. Similarly, there is one eruption of about 240 seconds, followed by a waiting time of about 3000 seconds. The waiting time is the second-smallest overall, but appears even more extraordinary given the long duration of the previous eruption. All other eruptions of similar duration had waiting times nearly twice as long.
 
 ### Example: Wine prices and quality {-}
 

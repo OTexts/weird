@@ -416,16 +416,13 @@ oldfaithful |>
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 
-Now we will apply the method to the full data set, other than the 2 hour eruption and observations where the subsequent waiting time is more than 2 hours (which are likely to be data errors).
-
-We will use the `dist_kde()` function, which uses a bivariate Gaussian kernel, and the bandwidth matrix given by the `kde_bandwidth()` function.
+Now we will apply the method to the full data set, using the `dist_kde()` function, which uses a bivariate Gaussian kernel, and the bandwidth matrix given by the `kde_bandwidth()` function.
 
 ```{r}
 #| label: fig-ofbivariate2
 #| code-fold: false
 #| fig.cap: "Bivariate kernel density estimate with default bandwidths."
 oldfaithful |>
-  filter(duration < 7000, waiting < 7000) |>
   select(duration, waiting) |>
   dist_kde() |>
   gg_density(show_points = TRUE) +
@@ -554,9 +551,7 @@ Let's consider the `oldfaithful` data again, where durations are much longer tha
 #| label: fig-scaling
 #| warning: false
 #| fig.cap: "Old Faithful duration and waiting time data, before and after scaling."
-of <- oldfaithful |>
-  filter(duration < 7000, waiting < 7000)
-p1 <- of |>
+p1 <- oldfaithful |>
   ggplot(aes(x = duration, y = waiting)) +
   geom_point(alpha = 0.2) +
   labs(
@@ -564,7 +559,7 @@ p1 <- of |>
     x = "Duration of eruption (seconds)",
     y = "Waiting time to next eruption (seconds)"
   )
-p2 <- mvscale(of, warning = FALSE) |>
+p2 <- mvscale(oldfaithful, warning = FALSE) |>
   ggplot(aes(x = z1, y = z2)) +
   geom_point(alpha = 0.2) +
   labs(

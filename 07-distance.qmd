@@ -92,7 +92,7 @@ Mahalanobis distance is not an option provided by the `dist()` function, so we w
 #| label: zscores
 #| code-fold: false
 z <- oldfaithful |>
-  select(-time) |>
+  select(duration, waiting) |>
   mvscale()
 z |>
   head(5) |>
@@ -228,12 +228,11 @@ of_scores <- oldfaithful |>
   mutate(lof = lof_scores(duration, k = 150))
 of_scores |> arrange(desc(lof))
 of_scores |>
-  filter(duration < 7000) |>
   ggplot(aes(x = duration, y = lof)) +
   geom_point()
 ```
 
-Again, the two large scores correspond to the extreme 2 hour duration and the tiny 1 second duration. The value of $k=150$ has been chosen after experimenting with various values.
+Again, the two large scores correspond to ??. The value of $k=150$ has been chosen after experimenting with various values.
 
 
 ## Stahel-Donoho outlyingness
@@ -264,7 +263,6 @@ of_scores <- of_scores |>
   mutate(stray = stray_scores(duration))
 of_scores |> arrange(desc(stray))
 of_scores |>
-  filter(duration < 7000) |>
   ggplot(aes(x = duration, y = stray)) +
   geom_point()
 ```

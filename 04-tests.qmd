@@ -15,7 +15,7 @@ We will only consider univariate methods in this chapter. There have been multiv
 We will test the methods using six examples: two involving real data, and four involving simulated data.
 
 1. The cricket batting averages from the `cricket_batting` data set. As discussed in @sec-scatterplots, these appear to contain one genuine anomaly, the batter Don Bradman.
-2. Old Faithful eruption durations since 2015, also discussed in @sec-scatterplots. For these data, there were two extreme anomalies --- one at nearly 2 hours and one at 1 second --- and several "inliers" in a area of low density between 140 and 180 seconds.
+2. Old Faithful eruption durations between 2017 and 2023, also discussed in @sec-scatterplots. For these data, there were three extreme anomalies --- with durations up to 1 minute --- and several "inliers" in a area of low density between 140 and 180 seconds.
 3. The first 18 rows of the second variable in the `n01` data, along with the values 4.0 and 4.5. The latter two are anomalies as they are unlikely to arise from the N(0,1) distribution. We save  this data set as `n01b`. The plot below shows the data for this example.
 
 ```{r}
@@ -180,7 +180,7 @@ nanomalies <- nanomalies |>
       filter(abs(z) > 3) |>
       NROW()
   ))
-stopifnot(nanomalies$Zscore == c(1, 1, 0, 1, 18, 15))
+stopifnot(nanomalies$Zscore == c(1, 3, 0, 1, 18, 15))
 ```
 
 ### Probability of spurious anomalies
@@ -342,7 +342,7 @@ nanomalies <- nanomalies |>
     chisq4 |> filter(peirce_anomalies(y)) |> NROW()
   ))
 
-stopifnot(nanomalies$Peirce == c(0, 1, 2, 1, 10, 6))
+stopifnot(nanomalies$Peirce == c(0, 2, 2, 1, 10, 6))
 ```
 
 1. When applied to the test cricket batting averages, it doesn't even find the obvious anomaly of Don Bradman.
@@ -371,7 +371,7 @@ nanomalies <- nanomalies |>
     chisq4 |> filter(chauvenet_anomalies(y)) |> NROW()
   ))
 
-stopifnot(nanomalies$Chauvenet == c(0, 1, 2, 1, 12, 7))
+stopifnot(nanomalies$Chauvenet == c(0, 2, 2, 1, 12, 7))
 ```
 
 ## Grubbs' test
@@ -639,7 +639,7 @@ nanomalies <- nanomalies |>
     chisq4 |> filter(dixon_anomalies(y)) |> NROW()
   ))
 
-stopifnot(nanomalies$Dixon == c(1, 1, 0, 0, 1, 0))
+stopifnot(nanomalies$Dixon == c(1, 0, 0, 0, 1, 0))
 ```
 
 For these examples, the test has worked relatively well apart from `n01b`, where it is failed to identify either anomaly, and `t3` where it has identified a spurious anomaly.

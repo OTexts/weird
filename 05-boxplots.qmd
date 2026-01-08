@@ -18,9 +18,9 @@ The other sample quantiles as defined in @sec-sample-quantiles do not correspond
 $$
   L_i = y_{(\lfloor d_i\rfloor)}
   \qquad\text{and}\qquad
-  U_i = y_{(\lfloor n-d_i+1\rfloor)}
+  U_i = y_{(\lfloor n-d_i+1\rfloor)},
 $$
-when the depth is an integer. Otherwise the depth is an integer plus 1/2, and the letter values are given by
+when the depth is an integer. Otherwise, the depth is an integer plus 1/2, and the letter values are given by
 $$
   L_i = (y_{(\lfloor d_i\rfloor)} + y_{(\lfloor d_i\rfloor+1)})/2
   \qquad\text{and}\qquad
@@ -167,7 +167,7 @@ The second problem is demonstrated using the Old Faithful eruption duration data
 #| label: fig-oldfaithful2a
 #| code-fold: false
 #| fig.asp: 0.2
-#| fig.cap: "Boxplot of Old Faithful eruption durations since 2015, omitting the one eruption that lasted nearly two hours."
+#| fig.cap: "Boxplot of Old Faithful eruption durations between 2017 and 2023."
 oldfaithful |>
   filter(duration < 6000) |>
   ggplot(aes(x = duration)) +
@@ -253,10 +253,7 @@ chisq4 <- tibble(y = rchisq(1000, df = 4))
 chisq4 |> filter(barbato_anomaly(y))
 ```
 
-* It misses the anomalies in the cricket batting data, and in the `n01b` data set.
-* Only the extreme outlier in the duration data is identified as an anomaly.
-
-In summary, while the modified IQR approach is an improvement on the original boxplot approach, it is not particularly good at finding genuine anomalies in data.
+It misses all anomalies, even the obvious ones in the cricket batting data, the Old Faithful duration data, and in the `n01b` data set. In summary, while the modified IQR approach is an improvement on the original boxplot approach, it is not particularly good at finding genuine anomalies in data.
 
 ```{r}
 #| label: checkbarbato
@@ -281,7 +278,7 @@ n5 <- t3 |>
 n6 <- chisq4 |>
   filter(barbato_anomaly(y)) |>
   NROW()
-stopifnot(identical(c(n1, n2, n3, n4, n5, n6), c(0L, 1L, 0L, 0L, 0L, 0L)))
+stopifnot(identical(c(n1, n2, n3, n4, n5, n6), c(0L, 0L, 0L, 0L, 0L, 0L)))
 ```
 
 ## Letter value plots
@@ -294,7 +291,7 @@ These can be produced using the `lvplot` package.
 #| label: fig-cricketboxlv
 #| code-fold: false
 #| fig.asp: 0.2
-#| fig.cap: "Letter value plot of career batting averages for all men and women who played test cricket and batter more than 20 times."
+#| fig.cap: "Letter value plot of career batting averages for all men and women who played test cricket and batted more than 20 times."
 library(lvplot)
 cricket_batting |>
   filter(Innings > 20) |>
@@ -333,9 +330,8 @@ When applied to the remaining examples, we see approximately 10--20 observations
 ```{r}
 #| label: fig-lvplots1
 #| fig.asp: 0.2
-#| fig.cap: "Letter value plot of Old Faithful eruption durations, omitting the long 2 hour duration."
+#| fig.cap: "Letter value plot of Old Faithful eruption durations."
 oldfaithful |>
-  filter(duration < 7000) |>
   ggplot(aes(x = 1, y = duration)) +
   geom_lv(aes(fill = after_stat(LV))) +
   scale_x_discrete() +
@@ -496,7 +492,7 @@ A more interesting example is obtained in @fig-oldfaithfulbagplot, showing a bag
 
 ```{r}
 #| label: fig-oldfaithfulbagplot
-#| fig.cap: Bagplot of the durations and waiting times of Old Faithful eruptions since 2015.
+#| fig.cap: Bagplot of the durations and waiting times of Old Faithful eruptions between 2017 and 2023.
 oldfaithful |>
   filter(duration < 7200, waiting < 7200) |>
   gg_bagplot(duration, waiting) +
@@ -509,7 +505,7 @@ A useful variation of the bagplot, especially for larger data sets, displays a s
 
 ```{r}
 #| label: fig-oldfaithfulbagplot2
-#| fig.cap: Bagplot of the durations and waiting times of Old Faithful eruptions since 2015.
+#| fig.cap: Bagplot of the durations and waiting times of Old Faithful eruptions between 2017 and 2023.
 oldfaithful |>
   filter(duration < 7200, waiting < 7200) |>
   gg_bagplot(duration, waiting, scatterplot = TRUE) +
@@ -530,11 +526,9 @@ Let's illustrate the idea with univariate data. In @sec-kde, we estimated the de
 
 ```{r}
 #| label: fig-hdr-faithful
-#| fig.cap: "Kernel density estimate of the duration of Old Faithful eruptions since 2015. Below the density estimate is shown an HDR boxplot of the same data, with the 50% and 99% highest density regions shown as shaded regions, and observations outside the 99% region shown as individual points."
+#| fig.cap: "Kernel density estimate of the duration of Old Faithful eruptions between 2017 and 2023. Below the density estimate is shown an HDR boxplot of the same data, with the 50% and 99% highest density regions shown as shaded regions, and observations outside the 99% region shown as individual points."
 #| warning: false
-of <- oldfaithful |>
-  filter(duration < 7000)
-dist_kde(of$duration, multiplier = 2) |>
+dist_kde(oldfaithful$duration, multiplier = 2) |>
   gg_density(hdr = "fill", prob = c(0.5, 0.99), 
     show_points = TRUE, jitter = TRUE, show_mode = TRUE) +
   scale_y_continuous(breaks = NULL) + labs(y = "") + xlim(-10, 320)
@@ -544,9 +538,9 @@ The HDR shown here can also be produced using the `gg_hdrboxplot()` function.
 
 ```{r}
 #| label: fig-of-hdrboxplot
-#| fig.cap: "HDR boxplot of the duration of Old Faithful eruptions since 2015."
+#| fig.cap: "HDR boxplot of the duration of Old Faithful eruptions between 2017 and 2023."
 #| fig.asp: 0.2
-of |> gg_hdrboxplot(duration, show_anomalies = FALSE) +
+oldfaithful |> gg_hdrboxplot(duration, show_anomalies = FALSE) +
   labs(x = "Duration (seconds)") +
   xlim(-10, 320)
 ```
@@ -559,22 +553,21 @@ The idea naturally extends to higher dimensions. @fig-hdr-faithful2 shows the bi
 
 ```{r}
 #| label: fig-hdr-faithful2
-#| fig.cap: "Bivariate kernel density estimate of the duration and waiting times of Old Faithful eruptions since 2015, excluding durations and waiting times longer than 2 hours."
-of2 <- oldfaithful |>
-  filter(duration < 7000, waiting < 7000) |>
+#| fig.cap: "Bivariate kernel density estimate of the duration and waiting times of Old Faithful eruptions between 2017 and 2023."
+of <- oldfaithful |>
   select(duration, waiting)
-of2 |> gg_hdrboxplot(duration, waiting, show_anomalies = FALSE) +
+of |> gg_hdrboxplot(duration, waiting, show_anomalies = FALSE) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 
-There are `r NROW(of2)` observations used to compute this density estimate, and even with that many observations, computing the 99% HDR contour is difficult, as shown by the rather jagged boundary of the HDR region. This is simply a consequence of the sparsity of points in multidimensional space and in the tails of a distribution.
+There are `r NROW(of)` observations used to compute this density estimate, and even with that many observations, computing the 99% HDR contour is difficult, as shown by the rather jagged boundary of the HDR region. This is simply a consequence of the sparsity of points in multidimensional space and in the tails of a distribution.
 
 As with bagplots, there is a variation that shows the individual points colored according to the HDR region in which they fall.
 
 ```{r}
 #| label: fig-hdr-faithful3
-#| fig.cap: "Bivariate HDR boxplot of the duration and waiting times of Old Faithful eruptions since 2015, excluding durations and waiting times longer than 2 hours. Individual points are colored according to the HDR region in which they fall."
-of2 |> gg_hdrboxplot(duration, waiting, show_anomalies = FALSE, scatterplot = TRUE) +
+#| fig.cap: "Bivariate HDR boxplot of the duration and waiting times of Old Faithful eruptions between 2017 and 2023. Individual points are colored according to the HDR region in which they fall."
+of |> gg_hdrboxplot(duration, waiting, show_anomalies = FALSE, scatterplot = TRUE) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 
