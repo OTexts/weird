@@ -94,7 +94,12 @@ nanomalies <- tibble(
     NROW(chisq4)
   ),
   `Expected anomalies` = c(
-    1, 2, 2, 0, 0, 0
+    1,
+    2,
+    2,
+    0,
+    0,
+    0
   )
 )
 ```
@@ -153,33 +158,35 @@ chisq4 |>
 #| label: check2
 #| include: false
 nanomalies <- nanomalies |>
-  mutate(Zscore = c(
-    cricket_batting |>
-      filter(Innings > 20) |>
-      mutate(z = (Average - mean(Average)) / sd(Average)) |>
-      filter(abs(z) > 3) |>
-      NROW(),
-    oldfaithful |>
-      mutate(z = (duration - mean(duration)) / sd(duration)) |>
-      filter(abs(z) > 3) |>
-      NROW(),
-    n01b |>
-      mutate(z = (y - mean(y)) / sd(y)) |>
-      filter(abs(z) > 3) |>
-      NROW(),
-    n01 |>
-      mutate(z = (v1 - mean(v1)) / sd(v1)) |>
-      filter(abs(z) > 3) |>
-      NROW(),
-    t3 |>
-      mutate(z = (y - mean(y)) / sd(y)) |>
-      filter(abs(z) > 3) |>
-      NROW(),
-    chisq4 |>
-      mutate(z = (y - mean(y)) / sd(y)) |>
-      filter(abs(z) > 3) |>
-      NROW()
-  ))
+  mutate(
+    Zscore = c(
+      cricket_batting |>
+        filter(Innings > 20) |>
+        mutate(z = (Average - mean(Average)) / sd(Average)) |>
+        filter(abs(z) > 3) |>
+        NROW(),
+      oldfaithful |>
+        mutate(z = (duration - mean(duration)) / sd(duration)) |>
+        filter(abs(z) > 3) |>
+        NROW(),
+      n01b |>
+        mutate(z = (y - mean(y)) / sd(y)) |>
+        filter(abs(z) > 3) |>
+        NROW(),
+      n01 |>
+        mutate(z = (v1 - mean(v1)) / sd(v1)) |>
+        filter(abs(z) > 3) |>
+        NROW(),
+      t3 |>
+        mutate(z = (y - mean(y)) / sd(y)) |>
+        filter(abs(z) > 3) |>
+        NROW(),
+      chisq4 |>
+        mutate(z = (y - mean(y)) / sd(y)) |>
+        filter(abs(z) > 3) |>
+        NROW()
+    )
+  )
 stopifnot(nanomalies$Zscore == c(1, 3, 0, 1, 18, 15))
 ```
 
@@ -234,9 +241,19 @@ labels <- zspuriousdf |>
 zspuriousdf |>
   ggplot(aes(x = n, y = pmax, group = c, col = factor(c))) +
   geom_line() +
-  scale_x_log10(breaks = breaks, labels = sprintf("%d", breaks), minor_breaks = NULL) +
-  labs(y = "Probability of at least one spurious anomaly", x = "Sample size (n)") +
-  geom_label(aes(x = n * 0.9, y = 0.78, label = label, hjust = "right"), data = labels) +
+  scale_x_log10(
+    breaks = breaks,
+    labels = sprintf("%d", breaks),
+    minor_breaks = NULL
+  ) +
+  labs(
+    y = "Probability of at least one spurious anomaly",
+    x = "Sample size (n)"
+  ) +
+  geom_label(
+    aes(x = n * 0.9, y = 0.78, label = label, hjust = "right"),
+    data = labels
+  ) +
   guides(col = "none") +
   theme(axis.text.x = element_text(size = 8)) +
   coord_cartesian(xlim = c(6, 7500))
@@ -257,15 +274,34 @@ zspurious2df <- tibble(n = n, c = 3) |>
     `Chi-squared(4)` = pspurious(n, rchisq, df = 4, c = c)
   ) |>
   select(-c) |>
-  tidyr::pivot_longer(-n, values_to = "Probability", names_to = "Distribution") |>
+  tidyr::pivot_longer(
+    -n,
+    values_to = "Probability",
+    names_to = "Distribution"
+  ) |>
   cache("zspurious2df")
 zspurious2df |>
   filter(Distribution != "ApproxNormal") |>
-  ggplot(aes(x = n, y = Probability, group = Distribution, col = Distribution)) +
+  ggplot(aes(
+    x = n,
+    y = Probability,
+    group = Distribution,
+    col = Distribution
+  )) +
   geom_line() +
-  labs(x = "n (sample size)", y = "Probability of at least one spurious anomaly") +
-  scale_x_log10(breaks = breaks, labels = sprintf("%d", breaks), minor_breaks = NULL) +
-  labs(y = "Probability of at least one spurious anomaly", x = "Sample size (n)") +
+  labs(
+    x = "n (sample size)",
+    y = "Probability of at least one spurious anomaly"
+  ) +
+  scale_x_log10(
+    breaks = breaks,
+    labels = sprintf("%d", breaks),
+    minor_breaks = NULL
+  ) +
+  labs(
+    y = "Probability of at least one spurious anomaly",
+    x = "Sample size (n)"
+  ) +
   scale_color_discrete(
     breaks = c("t(3)", "Chi-squared(4)", "Normal"),
     labels = c(
@@ -305,10 +341,18 @@ tibble(n = n, c = threshold) |>
   ggplot(aes(x = n, y = c)) +
   geom_line() +
   geom_line(aes(y = qnorm(1 - 0.25 / n)), col = "red") +
-  scale_x_log10(limits = c(3, 20000), breaks = breaks, labels = sprintf("%d", breaks), minor_breaks = NULL) +
+  scale_x_log10(
+    limits = c(3, 20000),
+    breaks = breaks,
+    labels = sprintf("%d", breaks),
+    minor_breaks = NULL
+  ) +
   labs(x = "n (sample size)", y = "c (threshold)") +
   geom_label(aes(x = 1500, y = 3.95, label = "Peirce criterion")) +
-  geom_label(aes(x = 2600, y = 3.4, label = "Chauvenet criterion"), col = "red") +
+  geom_label(
+    aes(x = 2600, y = 3.4, label = "Chauvenet criterion"),
+    col = "red"
+  ) +
   coord_cartesian(xlim = c(3, 1.2e4), expand = FALSE)
 ```
 
@@ -333,14 +377,16 @@ chisq4 |> filter(peirce_anomalies(y))
 #| label: checkpeirce
 #| include: false
 nanomalies <- nanomalies |>
-  mutate(Peirce = c(
-    cricket_batting |> filter(peirce_anomalies(Average)) |> NROW(),
-    oldfaithful |> filter(peirce_anomalies(duration)) |> NROW(),
-    n01b |> filter(peirce_anomalies(y)) |> NROW(),
-    n01 |> filter(peirce_anomalies(v1)) |> NROW(),
-    t3 |> filter(peirce_anomalies(y)) |> NROW(),
-    chisq4 |> filter(peirce_anomalies(y)) |> NROW()
-  ))
+  mutate(
+    Peirce = c(
+      cricket_batting |> filter(peirce_anomalies(Average)) |> NROW(),
+      oldfaithful |> filter(peirce_anomalies(duration)) |> NROW(),
+      n01b |> filter(peirce_anomalies(y)) |> NROW(),
+      n01 |> filter(peirce_anomalies(v1)) |> NROW(),
+      t3 |> filter(peirce_anomalies(y)) |> NROW(),
+      chisq4 |> filter(peirce_anomalies(y)) |> NROW()
+    )
+  )
 
 stopifnot(nanomalies$Peirce == c(0, 2, 2, 1, 10, 6))
 ```
@@ -362,14 +408,16 @@ The `chauvenet_anomalies()` function can be used to implement this test. For our
 #| label: checkchauvenet
 #| include: false
 nanomalies <- nanomalies |>
-  mutate(Chauvenet = c(
-    cricket_batting |> filter(chauvenet_anomalies(Average)) |> NROW(),
-    oldfaithful |> filter(chauvenet_anomalies(duration)) |> NROW(),
-    n01b |> filter(chauvenet_anomalies(y)) |> NROW(),
-    n01 |> filter(chauvenet_anomalies(v1)) |> NROW(),
-    t3 |> filter(chauvenet_anomalies(y)) |> NROW(),
-    chisq4 |> filter(chauvenet_anomalies(y)) |> NROW()
-  ))
+  mutate(
+    Chauvenet = c(
+      cricket_batting |> filter(chauvenet_anomalies(Average)) |> NROW(),
+      oldfaithful |> filter(chauvenet_anomalies(duration)) |> NROW(),
+      n01b |> filter(chauvenet_anomalies(y)) |> NROW(),
+      n01 |> filter(chauvenet_anomalies(v1)) |> NROW(),
+      t3 |> filter(chauvenet_anomalies(y)) |> NROW(),
+      chisq4 |> filter(chauvenet_anomalies(y)) |> NROW()
+    )
+  )
 
 stopifnot(nanomalies$Chauvenet == c(0, 2, 2, 1, 12, 7))
 ```
@@ -410,12 +458,19 @@ df <- tibble(n = n) |>
 df |>
   ggplot(aes(x = n, y = c, col = test)) +
   geom_line() +
-  scale_x_log10(breaks = breaks, labels = sprintf("%d", breaks), minor_breaks = NULL) +
+  scale_x_log10(
+    breaks = breaks,
+    labels = sprintf("%d", breaks),
+    minor_breaks = NULL
+  ) +
   labs(x = "n (sample size)", y = latex2exp::TeX("$c_{\\alpha}$ (threshold)")) +
   guides(col = "none") +
-  geom_label(aes(x = x, y = y, col = col, label = label, hjust = "left"),
+  geom_label(
+    aes(x = x, y = y, col = col, label = label, hjust = "left"),
     data = data.frame(
-      x = rep(1.1e4, 3), y = c(4.35, 4.6, 4.0), col = c("pearson", "grubbs", "chauvenet"),
+      x = rep(1.1e4, 3),
+      y = c(4.35, 4.6, 4.0),
+      col = c("pearson", "grubbs", "chauvenet"),
       label = c("Pearson-Sekar test", "Grubbs test", "Chauvenet criterion")
     )
   ) +
@@ -436,15 +491,31 @@ pzscoredf |>
   ggplot(aes(x = n, y = pmax, group = test, col = test)) +
   geom_hline(aes(yintercept = 0.05), col = "gray") +
   geom_line() +
-  labs(x = "n (sample size)", y = "Probability of at least one spurious anomaly") +
-  scale_y_continuous(breaks = c(0.05, seq(0.1, 0.8, by = 0.1)), minor_breaks = NULL) +
-  scale_x_log10(breaks = breaks, labels = sprintf("%d", breaks), minor_breaks = NULL) +
-  labs(y = "Probability of at least one spurious anomaly", x = "Sample size (n)") +
+  labs(
+    x = "n (sample size)",
+    y = "Probability of at least one spurious anomaly"
+  ) +
+  scale_y_continuous(
+    breaks = c(0.05, seq(0.1, 0.8, by = 0.1)),
+    minor_breaks = NULL
+  ) +
+  scale_x_log10(
+    breaks = breaks,
+    labels = sprintf("%d", breaks),
+    minor_breaks = NULL
+  ) +
+  labs(
+    y = "Probability of at least one spurious anomaly",
+    x = "Sample size (n)"
+  ) +
   guides(col = "none") +
   theme(axis.text.x = element_text(size = 8)) +
-  geom_label(aes(x = x, y = y, col = test, label = label, hjust = "left"),
+  geom_label(
+    aes(x = x, y = y, col = test, label = label, hjust = "left"),
     data = data.frame(
-      x = rep(1.1e4, 3), y = c(0.10, 0.05, 0.40), test = c("pearson", "grubbs", "chauvenet"),
+      x = rep(1.1e4, 3),
+      y = c(0.10, 0.05, 0.40),
+      test = c("pearson", "grubbs", "chauvenet"),
       label = c("Pearson-Sekar test", "Grubbs test", "Chauvenet criterion")
     )
   ) +
@@ -470,16 +541,36 @@ pgrubbsdf <- pzscoredf |>
     `Chi-squared(4)` = pspurious(n, rchisq, df = 4, c = c)
   ) |>
   select(-c, -test, -pmax) |>
-  tidyr::pivot_longer(-n, values_to = "Probability", names_to = "Distribution") |>
+  tidyr::pivot_longer(
+    -n,
+    values_to = "Probability",
+    names_to = "Distribution"
+  ) |>
   cache("pgrubbsdf")
 pgrubbsdf |>
   filter(Distribution != "ApproxNormal") |>
-  ggplot(aes(x = n, y = Probability, group = Distribution, col = Distribution)) +
+  ggplot(aes(
+    x = n,
+    y = Probability,
+    group = Distribution,
+    col = Distribution
+  )) +
   geom_hline(aes(yintercept = 0.05), col = "gray") +
   geom_line() +
-  labs(x = "n (sample size)", y = "Probability of at least one spurious anomaly") +
-  scale_x_log10(limits = c(3, 2e4), breaks = breaks, labels = sprintf("%d", breaks), minor_breaks = NULL) +
-  labs(y = "Probability of at least one spurious anomaly", x = "Sample size (n)") +
+  labs(
+    x = "n (sample size)",
+    y = "Probability of at least one spurious anomaly"
+  ) +
+  scale_x_log10(
+    limits = c(3, 2e4),
+    breaks = breaks,
+    labels = sprintf("%d", breaks),
+    minor_breaks = NULL
+  ) +
+  labs(
+    y = "Probability of at least one spurious anomaly",
+    x = "Sample size (n)"
+  ) +
   #  guides(col = "none") +
   theme(axis.text.x = element_text(size = 8)) +
   scale_color_discrete(
@@ -521,14 +612,16 @@ chisq4 |>
 #| label: checkgrubbs
 #| include: false
 nanomalies <- nanomalies |>
-  mutate(Grubbs = c(
-    cricket_batting |> filter(grubbs_anomalies(Average)) |> NROW(),
-    oldfaithful |> filter(grubbs_anomalies(duration)) |> NROW(),
-    n01b |> filter(grubbs_anomalies(y)) |> NROW(),
-    n01 |> filter(grubbs_anomalies(v1)) |> NROW(),
-    t3 |> filter(grubbs_anomalies(y)) |> NROW(),
-    chisq4 |> filter(grubbs_anomalies(y)) |> NROW()
-  ))
+  mutate(
+    Grubbs = c(
+      cricket_batting |> filter(grubbs_anomalies(Average)) |> NROW(),
+      oldfaithful |> filter(grubbs_anomalies(duration)) |> NROW(),
+      n01b |> filter(grubbs_anomalies(y)) |> NROW(),
+      n01 |> filter(grubbs_anomalies(v1)) |> NROW(),
+      t3 |> filter(grubbs_anomalies(y)) |> NROW(),
+      chisq4 |> filter(grubbs_anomalies(y)) |> NROW()
+    )
+  )
 
 stopifnot(nanomalies$Grubbs == c(0, 1, 0, 0, 6, 1))
 ```
@@ -583,12 +676,27 @@ dixondf <- tibble(n = c(3:10, seq(12, 26, by = 2), seq(30, 100, by = 5))) |>
   ) |>
   cache("dixondf")
 dixondf |>
-  tidyr::pivot_longer(-n, values_to = "Probability", names_to = "Distribution") |>
-  ggplot(aes(x = n, y = Probability, group = Distribution, col = Distribution)) +
+  tidyr::pivot_longer(
+    -n,
+    values_to = "Probability",
+    names_to = "Distribution"
+  ) |>
+  ggplot(aes(
+    x = n,
+    y = Probability,
+    group = Distribution,
+    col = Distribution
+  )) +
   geom_hline(aes(yintercept = 0.05), col = "gray") +
   geom_line() +
-  scale_y_continuous(breaks = c(0.05, seq(0.1, 0.8, by = 0.1)), minor_breaks = NULL) +
-  labs(y = "Probability of at least one spurious anomaly", x = "Sample size (n)") +
+  scale_y_continuous(
+    breaks = c(0.05, seq(0.1, 0.8, by = 0.1)),
+    minor_breaks = NULL
+  ) +
+  labs(
+    y = "Probability of at least one spurious anomaly",
+    x = "Sample size (n)"
+  ) +
   scale_color_discrete(
     breaks = c("t(3)", "Chi-squared(4)", "Normal"),
     labels = c(
@@ -628,16 +736,19 @@ chisq4 |>
 #| label: checkdixon
 #| include: false
 nanomalies <- nanomalies |>
-  mutate(Dixon = c(
-    cricket_batting |>
-      filter(Innings > 20) |>
-      filter(dixon_anomalies(Average)) |> NROW(),
-    oldfaithful |> filter(dixon_anomalies(duration)) |> NROW(),
-    n01b |> filter(dixon_anomalies(y)) |> NROW(),
-    n01 |> filter(dixon_anomalies(v1)) |> NROW(),
-    t3 |> filter(dixon_anomalies(y)) |> NROW(),
-    chisq4 |> filter(dixon_anomalies(y)) |> NROW()
-  ))
+  mutate(
+    Dixon = c(
+      cricket_batting |>
+        filter(Innings > 20) |>
+        filter(dixon_anomalies(Average)) |>
+        NROW(),
+      oldfaithful |> filter(dixon_anomalies(duration)) |> NROW(),
+      n01b |> filter(dixon_anomalies(y)) |> NROW(),
+      n01 |> filter(dixon_anomalies(v1)) |> NROW(),
+      t3 |> filter(dixon_anomalies(y)) |> NROW(),
+      chisq4 |> filter(dixon_anomalies(y)) |> NROW()
+    )
+  )
 
 stopifnot(nanomalies$Dixon == c(1, 0, 0, 0, 1, 0))
 ```
@@ -661,11 +772,46 @@ nanomalies |>
   ) |>
   knitr::kable(escape = FALSE, format = "html") %>%
   add_header_above(c(" " = 3, "Anomaly detection method" = 5)) %>%
-  column_spec(4, color = if_else(nanomalies$Zscore != nanomalies$`Expected anomalies`, "red", "black")) %>%
-  column_spec(5, color = if_else(nanomalies$Peirce != nanomalies$`Expected anomalies`, "red", "black")) %>%
-  column_spec(6, color = if_else(nanomalies$Chauvenet != nanomalies$`Expected anomalies`, "red", "black")) %>%
-  column_spec(7, color = if_else(nanomalies$Grubbs != nanomalies$`Expected anomalies`, "red", "black")) %>%
-  column_spec(8, color = if_else(nanomalies$Dixon != nanomalies$`Expected anomalies`, "red", "black"))
+  column_spec(
+    4,
+    color = if_else(
+      nanomalies$Zscore != nanomalies$`Expected anomalies`,
+      "red",
+      "black"
+    )
+  ) %>%
+  column_spec(
+    5,
+    color = if_else(
+      nanomalies$Peirce != nanomalies$`Expected anomalies`,
+      "red",
+      "black"
+    )
+  ) %>%
+  column_spec(
+    6,
+    color = if_else(
+      nanomalies$Chauvenet != nanomalies$`Expected anomalies`,
+      "red",
+      "black"
+    )
+  ) %>%
+  column_spec(
+    7,
+    color = if_else(
+      nanomalies$Grubbs != nanomalies$`Expected anomalies`,
+      "red",
+      "black"
+    )
+  ) %>%
+  column_spec(
+    8,
+    color = if_else(
+      nanomalies$Dixon != nanomalies$`Expected anomalies`,
+      "red",
+      "black"
+    )
+  )
 ```
 
 None of the tests found the two clear anomalies in the Old Faithful data, and most failed to find either of the artificial anomalies in `n01b`. All tests found at least one spurious anomaly in the large simulated data sets with no real anomalies.

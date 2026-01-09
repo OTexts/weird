@@ -45,7 +45,7 @@ The U(0,1) distribution is shown in @fig-uniform.
 ```{r}
 #| label: fig-uniform
 #| fig-cap: Probability density function for a U(0,1) distribution. The mean is 0.5 and the variance is 1/12.
-dist_uniform(0,1) |>
+dist_uniform(0, 1) |>
   gg_density() +
   labs(x = "y", y = "Probability Density Function: f(y)")
 ```
@@ -86,11 +86,13 @@ dist_chisq(c(1, 2, 5)) |>
   gg_density() +
   labs(x = "y", y = "Probability Density Function: f(y)") +
   coord_cartesian(ylim = c(0, 1)) +
-  scale_color_discrete(labels = c(
-    latex2exp::TeX("$\\chi^{~2}_{~~1}$"),
-    latex2exp::TeX("$\\chi^{~2}_{~~2}$"),
-    latex2exp::TeX("$\\chi^{~2}_{~~5}$")
-  ))
+  scale_color_discrete(
+    labels = c(
+      latex2exp::TeX("$\\chi^{~2}_{~~1}$"),
+      latex2exp::TeX("$\\chi^{~2}_{~~2}$"),
+      latex2exp::TeX("$\\chi^{~2}_{~~5}$")
+    )
+  )
 ```
 
 ### t distribution
@@ -110,13 +112,15 @@ Three t distributions are shown in @fig-t.
 #| fig-cap: Probability density functions for three $t$ distributions. As the degrees of freedom $k$ increases, the distribution converges to a N(0,1) distribution.
 dist_student_t(c(1, 5, 99)) |>
   gg_density(ngrid = 10001) +
-  coord_cartesian(xlim = c(-8,8)) +
+  coord_cartesian(xlim = c(-8, 8)) +
   labs(x = "y", y = "Probability Density Function: f(y)") +
-  scale_color_discrete(labels = c(
-    latex2exp::TeX("$t_{~1}$"),
-    latex2exp::TeX("$t_{~5}$"),
-    latex2exp::TeX("$t_{~99}$")
-  )) +
+  scale_color_discrete(
+    labels = c(
+      latex2exp::TeX("$t_{~1}$"),
+      latex2exp::TeX("$t_{~5}$"),
+      latex2exp::TeX("$t_{~99}$")
+    )
+  ) +
   theme(legend.text = element_text(hjust = 0))
 ```
 
@@ -164,11 +168,11 @@ An example is shown in @fig-mixture, where $\mu_1 = -2$, $\mu_2 = 2$, $\sigma_1^
 dist_mixture(
   dist_normal(-2, 1),
   dist_normal(2, 1),
-  weights = c(1/3, 2/3)
+  weights = c(1 / 3, 2 / 3)
 ) |>
   gg_density() +
-  gg_density_layer(dist_normal(-2,1), linetype = "dashed", scale = 1/3) +
-  gg_density_layer(dist_normal(2,1), linetype = "dashed", scale = 2/3) +
+  gg_density_layer(dist_normal(-2, 1), linetype = "dashed", scale = 1 / 3) +
+  gg_density_layer(dist_normal(2, 1), linetype = "dashed", scale = 2 / 3) +
   labs(x = "y", y = "Probability Density Function: f(y)")
 ```
 
@@ -254,11 +258,13 @@ c(dist_normal(0, 1), dist_student_t(5), dist_chisq(5)) |>
   ggplot(aes(x = p, y = Q, col = Distribution)) +
   geom_line() +
   labs(x = "p", y = "Quantile function: Q(p)") +
-  scale_color_discrete(labels = c(
-    latex2exp::TeX("N(0,1)"),
-    latex2exp::TeX("$t_{~5}$"),
-    latex2exp::TeX("$\\chi^{~2}_{~~5}$")
-  )) +
+  scale_color_discrete(
+    labels = c(
+      latex2exp::TeX("N(0,1)"),
+      latex2exp::TeX("$t_{~5}$"),
+      latex2exp::TeX("$\\chi^{~2}_{~~5}$")
+    )
+  ) +
   theme(legend.text = element_text(hjust = 0))
 ```
 
@@ -301,10 +307,13 @@ avequantile <- function(n, p, m) {
   tibble(n = n, p = p, Q7 = Q7, Q8 = Q8)
 }
 qbias <- tibble(n = c(100, 1000)) |>
-  purrr::pmap_dfr(~ avequantile(
-    n = .x,
-    p = seq(0.002, 0.998, by = 0.001), m = 10000
-  )) |>
+  purrr::pmap_dfr(
+    ~ avequantile(
+      n = .x,
+      p = seq(0.002, 0.998, by = 0.001),
+      m = 10000
+    )
+  ) |>
   tidyr::pivot_longer(Q7:Q8, names_to = "type", values_to = "Q") |>
   mutate(
     type = paste("type = ", readr::parse_number(type)),
@@ -313,10 +322,12 @@ qbias <- tibble(n = c(100, 1000)) |>
   )
 qbias |>
   ggplot(aes(x = p, group = type)) +
-  geom_line(aes(y = bias, col = type, linetype = "n = 100"),
+  geom_line(
+    aes(y = bias, col = type, linetype = "n = 100"),
     data = qbias |> filter(n == 100)
   ) +
-  geom_line(aes(y = bias, col = type, linetype = "n = 1000"),
+  geom_line(
+    aes(y = bias, col = type, linetype = "n = 1000"),
     data = qbias |> filter(n == 1000)
   ) +
   labs(
@@ -410,20 +421,28 @@ falpha <- density(dist, at = interval2[1])
 gg_density(dist) +
   labs(x = "y", y = "Probability Density Function: f(y)") +
   geom_line(
-    data = tibble(x = interval1), aes(x = x, y = -0.002),
-    col = "#0072B2", linewidth = 2
+    data = tibble(x = interval1),
+    aes(x = x, y = -0.002),
+    col = "#0072B2",
+    linewidth = 2
   ) +
   geom_line(
-    data = tibble(x = interval2[1:2]), aes(x = x, y = 0.001),
-    col = "#D55E00", linewidth = 2
+    data = tibble(x = interval2[1:2]),
+    aes(x = x, y = 0.001),
+    col = "#D55E00",
+    linewidth = 2
   ) +
   geom_line(
     data = tibble(x = rep(interval2[1], 2), y = c(0, falpha)),
-    aes(x = x, y = y), col = "#D55E00", linetype = "dashed"
+    aes(x = x, y = y),
+    col = "#D55E00",
+    linetype = "dashed"
   ) +
   geom_line(
     data = tibble(x = rep(interval2[2], 2), y = c(0, falpha)),
-    aes(x = x, y = y), col = "#D55E00", linetype = "dashed"
+    aes(x = x, y = y),
+    col = "#D55E00",
+    linetype = "dashed"
   ) +
   geom_hline(aes(yintercept = falpha), col = "#D55E00", linetype = "dashed") +
   scale_y_continuous(
@@ -438,7 +457,11 @@ For a multimodal distribution, the HDR may be a union of intervals. For example,
 ```{r}
 #| label: fig-hdr-mixture
 #| fig-cap: Highest density region for the mixture distribution shown in @fig-mixture. The blue bar shows the 90% interval based on the 0.05 and 0.95 quantiles. The orange bar shows the 90% HDR, which is the smallest region containing 90% of the probability mass.
-dist <- dist_mixture(dist_normal(-2,1), dist_normal(2, 1), weights = c(1/3, 2/3))
+dist <- dist_mixture(
+  dist_normal(-2, 1),
+  dist_normal(2, 1),
+  weights = c(1 / 3, 2 / 3)
+)
 interval1 <- quantile(dist, p = c(0.05, 0.95)) |> unlist()
 interval2 <- hdr(dist, size = 90) |> unlist()
 hdrinterval1 <- interval2[c("lower1", "upper1")]
@@ -447,22 +470,31 @@ falpha <- density(dist, at = hdrinterval2[1])
 p <- gg_density(dist) +
   labs(x = "y", y = "Probability Density Function: f(y)") +
   geom_line(
-    data = tibble(x = interval1), aes(x = x, y = -0.0028),
-    col = "#0072B2", linewidth = 2
+    data = tibble(x = interval1),
+    aes(x = x, y = -0.0028),
+    col = "#0072B2",
+    linewidth = 2
   ) +
   geom_line(
-    data = tibble(x = hdrinterval1), aes(x = x, y = 0.0018),
-    col = "#D55E00", linewidth = 2
+    data = tibble(x = hdrinterval1),
+    aes(x = x, y = 0.0018),
+    col = "#D55E00",
+    linewidth = 2
   ) +
   geom_line(
-    data = tibble(x = hdrinterval2), aes(x = x, y = 0.0018),
-    col = "#D55E00", linewidth = 2
+    data = tibble(x = hdrinterval2),
+    aes(x = x, y = 0.0018),
+    col = "#D55E00",
+    linewidth = 2
   )
 for (edge in interval2[1:4]) {
-  p <- p + geom_line(
-    data = tibble(x = rep(edge, 2), y = c(0, falpha)),
-    aes(x = x, y = y), col = "#D55E00", linetype = "dashed"
-  )
+  p <- p +
+    geom_line(
+      data = tibble(x = rep(edge, 2), y = c(0, falpha)),
+      aes(x = x, y = y),
+      col = "#D55E00",
+      linetype = "dashed"
+    )
 }
 p +
   geom_hline(aes(yintercept = falpha), col = "#D55E00", linetype = "dashed") +
@@ -537,10 +569,17 @@ of2021kde <- of2021 |>
   tidyr::unnest(k) |>
   mutate(x = x + duration)
 ggplot() +
-  geom_line(data = of2021kde, aes(x = x, y = y, group = eruption), col = "gray") +
+  geom_line(
+    data = of2021kde,
+    aes(x = x, y = y, group = eruption),
+    col = "gray"
+  ) +
   geom_rug(
-    data = of2021, mapping = aes(x = duration, y = 0),
-    linewidth = 1, length = unit(0.06, "npc"), sides = "b"
+    data = of2021,
+    mapping = aes(x = duration, y = 0),
+    linewidth = 1,
+    length = unit(0.06, "npc"),
+    sides = "b"
   ) +
   labs(x = "y = Duration (seconds)", y = latex2exp::TeX("$K_h(y - y_i)/n$"))
 ```
@@ -556,8 +595,17 @@ These functions are then added together, as in @eq-kde, to give the density esti
 #| echo: false
 #| fig-cap: Density estimate formed by summing the kernel functions centred on the observations.
 ggplot() +
-  geom_line(data = of2021kde, aes(x = x, y = y, group = eruption), col = "gray") +
-  geom_rug(data = of2021, mapping = aes(x = duration, y = 0), sides = "b", linewidth = 1) +
+  geom_line(
+    data = of2021kde,
+    aes(x = x, y = y, group = eruption),
+    col = "gray"
+  ) +
+  geom_rug(
+    data = of2021,
+    mapping = aes(x = duration, y = 0),
+    sides = "b",
+    linewidth = 1
+  ) +
   geom_density(data = of2021, mapping = aes(x = duration), bw = h) +
   labs(x = "y = Duration (seconds)", y = "Density")
 ```
@@ -579,7 +627,8 @@ of2021 |>
   geom_density(bw = 15, col = "#0072B2") +
   geom_density(bw = 40, col = "#009E73") +
   labs(x = "y = Duration (seconds)", y = "Density") +
-  xlim(120, 320) + ylim(0, 0.019) +
+  xlim(120, 320) +
+  ylim(0, 0.019) +
   geom_label(x = 260, y = .018, label = "h = 5", col = "#D55E00") +
   geom_label(x = 275, y = .01, label = "h = 15", col = "#0072B2") +
   geom_label(x = 320, y = .004, label = "h = 40", col = "#009E73")
@@ -691,7 +740,13 @@ The resulting estimate is shown in @fig-of-hdr, along with the 10% of observatio
 #| label: fig-of-hdr
 #| fig-cap: 90% highest density region for the `oldfaithful` data set.
 of_density |>
-  gg_density(hdr = "fill", prob = 0.9, show_points = TRUE, jitter = TRUE, alpha = 0.5) +
+  gg_density(
+    hdr = "fill",
+    prob = 0.9,
+    show_points = TRUE,
+    jitter = TRUE,
+    alpha = 0.5
+  ) +
   labs(x = "Duration (seconds)")
 ```
 
@@ -758,11 +813,15 @@ n <- 1000
 maximums <- replicate(2000, max(rnorm(n)))
 # Fit GEV distribution
 gev_fit <- evd::fgev(maximums)$estimate
-x <- seq(0, 8, l=500)
+x <- seq(0, 8, l = 500)
 # Plot true distribution and GEV distribution
 c(
-  Exact = dist_density(x = x, density = n * pnorm(x)^(n-1) * dnorm(x)),
-  `GEV approximation` = dist_gev(location = gev_fit["loc"], scale = gev_fit["scale"], shape = gev_fit["shape"])
+  Exact = dist_density(x = x, density = n * pnorm(x)^(n - 1) * dnorm(x)),
+  `GEV approximation` = dist_gev(
+    location = gev_fit["loc"],
+    scale = gev_fit["scale"],
+    shape = gev_fit["shape"]
+  )
 ) |>
   gg_density()
 ```
@@ -791,8 +850,16 @@ df <- tibble(y = rnorm(1e5)) |> filter(y >= 3)
 gpd_fit <- evd::fpot(df$y, 3)$estimate
 # Show both distributions
 c(
-  `GPD_from_GEV` = dist_gpd(location = 3, scale = gev_fit["scale"], shape = gev_fit["shape"]),
-  `GPD_estimate` = dist_gpd(location = 3, scale = gpd_fit["scale"], shape = gpd_fit["shape"])
+  `GPD_from_GEV` = dist_gpd(
+    location = 3,
+    scale = gev_fit["scale"],
+    shape = gev_fit["shape"]
+  ),
+  `GPD_estimate` = dist_gpd(
+    location = 3,
+    scale = gpd_fit["scale"],
+    shape = gpd_fit["shape"]
+  )
 ) |>
   gg_density() +
   geom_rug(data = df, aes(x = y))

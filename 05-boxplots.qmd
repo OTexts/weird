@@ -120,7 +120,8 @@ cricket_batting |>
   pull(Average) |>
   boxplot(
     horizontal = TRUE,
-    ylab = "", xlab = "Career batting average"
+    ylab = "",
+    xlab = "Career batting average"
   )
 ```
 
@@ -204,7 +205,11 @@ tibble(n = exp(seq(log(3), log(1e6), l = 100))) |>
     Barbato1 = 2 * (1 - pnorm(q3 + 1.5 * iqr * (1 + 0.1 * log(n / 10)))),
     Barbato2 = 2 * (1 - pnorm(q3 + 3 * iqr * (1 + 0.1 * log(n / 10))))
   ) |>
-  tidyr::pivot_longer(Tukey1:Barbato2, names_to = "method", values_to = "probability") |>
+  tidyr::pivot_longer(
+    Tukey1:Barbato2,
+    names_to = "method",
+    values_to = "probability"
+  ) |>
   mutate(
     level = stringr::str_extract(method, "\\d"),
     level = if_else(level == "1", "Regular outlier", "Extreme outlier"),
@@ -402,9 +407,15 @@ The depth region $D_k$ is the set of all points $\bm{z}$ with Tukey depth at lea
 #| label: fig-depthregions
 #| fig-cap: The depth regions for the 10 bivariate observations from @fig-tukeydepth. The depth median is shown as the yellow point in the centre. The 10 observations are shown in black. These lie at the outer edges of the depth regions.
 median <- aplpack::compute.bagplot(n01[1:10, 1:2])
-z <- tidyr::expand_grid(v1 = seq(-0.9, 1.6, l = 200), v2 = seq(-1.95, 1.15, l = 200)) |>
+z <- tidyr::expand_grid(
+  v1 = seq(-0.9, 1.6, l = 200),
+  v2 = seq(-1.95, 1.15, l = 200)
+) |>
   bind_rows(n01[1:10, 1:2])
-z$depth <- round(as.numeric(DepthProc::depthTukey(as.matrix(z), as.matrix(n01[1:10, 1:2]))) * 10)
+z$depth <- round(
+  as.numeric(DepthProc::depthTukey(as.matrix(z), as.matrix(n01[1:10, 1:2]))) *
+    10
+)
 regions <- list()
 depths <- sort(unique(z$depth))
 depths <- depths[depths > 0]
@@ -418,13 +429,21 @@ p <- n01 |>
   head(10) |>
   ggplot(aes(x = v1, y = v2))
 for (i in depths) {
-  p <- p + geom_polygon(aes(x = v1, y = v2), data = regions[[i]], fill = cols[i], alpha = 0.8)
+  p <- p +
+    geom_polygon(
+      aes(x = v1, y = v2),
+      data = regions[[i]],
+      fill = cols[i],
+      alpha = 0.8
+    )
 }
-p + geom_point() +
+p +
+  geom_point() +
   coord_fixed(xlim = c(-0.85, 1.6), ylim = c(-1.85, 1.1)) +
   geom_point(
     data = data.frame(v1 = median$center[1], v2 = median$center[2]),
-    col = "yellow", size = 2
+    col = "yellow",
+    size = 2
   )
 ```
 
@@ -529,9 +548,16 @@ Let's illustrate the idea with univariate data. In @sec-kde, we estimated the de
 #| fig.cap: "Kernel density estimate of the duration of Old Faithful eruptions between 2017 and 2023. Below the density estimate is shown an HDR boxplot of the same data, with the 50% and 99% highest density regions shown as shaded regions, and observations outside the 99% region shown as individual points."
 #| warning: false
 dist_kde(oldfaithful$duration, multiplier = 2) |>
-  gg_density(hdr = "fill", prob = c(0.5, 0.99), 
-    show_points = TRUE, jitter = TRUE, show_mode = TRUE) +
-  scale_y_continuous(breaks = NULL) + labs(y = "") + xlim(-10, 320)
+  gg_density(
+    hdr = "fill",
+    prob = c(0.5, 0.99),
+    show_points = TRUE,
+    jitter = TRUE,
+    show_mode = TRUE
+  ) +
+  scale_y_continuous(breaks = NULL) +
+  labs(y = "") +
+  xlim(-10, 320)
 ```
 
 The HDR shown here can also be produced using the `gg_hdrboxplot()` function.
@@ -540,7 +566,8 @@ The HDR shown here can also be produced using the `gg_hdrboxplot()` function.
 #| label: fig-of-hdrboxplot
 #| fig.cap: "HDR boxplot of the duration of Old Faithful eruptions between 2017 and 2023."
 #| fig.asp: 0.2
-oldfaithful |> gg_hdrboxplot(duration, show_anomalies = FALSE) +
+oldfaithful |>
+  gg_hdrboxplot(duration, show_anomalies = FALSE) +
   labs(x = "Duration (seconds)") +
   xlim(-10, 320)
 ```
@@ -556,7 +583,8 @@ The idea naturally extends to higher dimensions. @fig-hdr-faithful2 shows the bi
 #| fig.cap: "Bivariate kernel density estimate of the duration and waiting times of Old Faithful eruptions between 2017 and 2023."
 of <- oldfaithful |>
   select(duration, waiting)
-of |> gg_hdrboxplot(duration, waiting, show_anomalies = FALSE) +
+of |>
+  gg_hdrboxplot(duration, waiting, show_anomalies = FALSE) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 
@@ -567,7 +595,8 @@ As with bagplots, there is a variation that shows the individual points colored 
 ```{r}
 #| label: fig-hdr-faithful3
 #| fig.cap: "Bivariate HDR boxplot of the duration and waiting times of Old Faithful eruptions between 2017 and 2023. Individual points are colored according to the HDR region in which they fall."
-of |> gg_hdrboxplot(duration, waiting, show_anomalies = FALSE, scatterplot = TRUE) +
+of |>
+  gg_hdrboxplot(duration, waiting, show_anomalies = FALSE, scatterplot = TRUE) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 

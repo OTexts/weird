@@ -167,30 +167,44 @@ df <- df |>
   )
 df |>
   ggplot() +
-  ggforce::geom_circle(aes(x0 = x, y0 = y, r = d, col = c("N15", "N25"), fill = c("N15", "N25")),
-    alpha = 0.2, data = df[chosen, ]
+  ggforce::geom_circle(
+    aes(x0 = x, y0 = y, r = d, col = c("N15", "N25"), fill = c("N15", "N25")),
+    alpha = 0.2,
+    data = df[chosen, ]
   ) +
   geom_point(aes(x = x, y = y), size = 3) +
   # geom_point(aes(x=x, y=y), size=3, data=df[chosen,], col=cols) +
-  annotate("text",
-    x = df$x[chosen] + 0.3, y = df$y[chosen] + 0.3,
-    label = latex2exp::TeX(paste0("$y_", 1:2, "$"), bold = TRUE, output = "character"), 
+  annotate(
+    "text",
+    x = df$x[chosen] + 0.3,
+    y = df$y[chosen] + 0.3,
+    label = latex2exp::TeX(
+      paste0("$y_", 1:2, "$"),
+      bold = TRUE,
+      output = "character"
+    ),
     parse = TRUE,
     col = discrete_colors[1:2]
   ) +
-  annotate("text",
-    x = c(-0.5, 3.6), y = c(4.2, 6),
-    label = latex2exp::TeX(paste0("$N_{", 1:2, ",5}$"), output = "character"), 
+  annotate(
+    "text",
+    x = c(-0.5, 3.6),
+    y = c(4.2, 6),
+    label = latex2exp::TeX(paste0("$N_{", 1:2, ",5}$"), output = "character"),
     parse = TRUE,
     col = discrete_colors[1:2]
   ) +
-  geom_segment(aes(x = x, y = y, xend = c(7.75, 8.75), yend = y),
+  geom_segment(
+    aes(x = x, y = y, xend = c(7.75, 8.75), yend = y),
     arrow = arrow(length = unit(0.02, "npc")),
-    data = df[chosen, ], col = discrete_colors[1:2]
+    data = df[chosen, ],
+    col = discrete_colors[1:2]
   ) +
-  annotate("text",
-    x = c(4.7, 7), y = c(-0.8, 4.1),
-    label = latex2exp::TeX(paste0("$d_{", 1:2, ",5}$"), output = "character"), 
+  annotate(
+    "text",
+    x = c(4.7, 7),
+    y = c(-0.8, 4.1),
+    label = latex2exp::TeX(paste0("$d_{", 1:2, ",5}$"), output = "character"),
     parse = TRUE,
     col = discrete_colors[1:2]
   ) +
@@ -253,9 +267,7 @@ robustbase::covMcd
 
 @Rousseeuw2016-wm
 
-
 ## Stray and HDoutliers algorithms
-
 
 ```{r}
 #| label: fig-stray

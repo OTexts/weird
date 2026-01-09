@@ -60,7 +60,8 @@ Now we will plot pairwise scatterplots of the four variables, giving the bivaria
 #| code-fold: false
 #| warning: false
 #| message: false
-GGally::ggpairs(df[, 1:3],
+GGally::ggpairs(
+  df[, 1:3],
   lower = list(
     continuous = GGally::wrap("points"),
     mapping = aes(color = df$anomaly)
@@ -81,7 +82,8 @@ To visualise trivariate relationships, we need to use a 3d-scatterplot. It is ea
 #| webgl: true
 #| code-fold: false
 #| cache: false
-rgl::plot3d(df[, 1:3],
+rgl::plot3d(
+  df[, 1:3],
   size = 5,
   col = c(rep("#999999", 998), rep("#D55E00", 2))
 )
@@ -140,10 +142,7 @@ df <- tibble(
   within_sphere = (x^2 + y^2 + z^2) < 1,
   color = if_else(within_sphere, "#777777", "#D55E00")
 )
-rgl::plot3d(df[, 1:3],
-  size = 5,
-  col = df$color
-)
+rgl::plot3d(df[, 1:3], size = 5, col = df$color)
 ```
 
 :::
@@ -202,7 +201,10 @@ tibble(d = seq(20)) |>
   ggplot(aes(x = d, y = length)) +
   geom_line() +
   geom_point() +
-  labs(x = "Dimensions (d)", y = "Side length of hypercube containing 50% of points") +
+  labs(
+    x = "Dimensions (d)",
+    y = "Side length of hypercube containing 50% of points"
+  ) +
   scale_x_continuous(breaks = seq(2, 20, by = 2), minor_breaks = NULL) +
   ylim(1, 2)
 ```
@@ -273,7 +275,8 @@ Sigma <- matrix(c(1, 0.5, 0.5, 1), 2, 2)
 distributional::dist_multivariate_normal(list(mu), list(Sigma)) |>
   gg_density(hdr = "fill") +
   labs(
-    x = latex2exp::TeX("$y_1$"), y = latex2exp::TeX("$y_2$"),
+    x = latex2exp::TeX("$y_1$"),
+    y = latex2exp::TeX("$y_2$"),
     title = latex2exp::TeX("Contours of $f(y_1,y_2)$")
   )
 ```
@@ -296,7 +299,8 @@ mixture_density <- dist_mixture(
 mixture_plot <- mixture_density |>
   gg_density(hdr = "fill") +
   labs(
-    x = latex2exp::TeX("$y_1$"), y = latex2exp::TeX("$y_2$"),
+    x = latex2exp::TeX("$y_1$"),
+    y = latex2exp::TeX("$y_2$"),
     title = latex2exp::TeX("Contours of $f(y_1,y_2)$")
   )
 mixture_plot
@@ -394,8 +398,10 @@ of2021kde <- of2021 |>
   mutate(x = x + duration, y = y + waiting)
 ggplot() +
   geom_contour(
-    data = of2021kde, aes(x = x, y = y, group = eruption, z = z),
-    bins = 4, col = "gray"
+    data = of2021kde,
+    aes(x = x, y = y, group = eruption, z = z),
+    bins = 4,
+    col = "gray"
   ) +
   geom_point(data = of2021, mapping = aes(x = duration, y = waiting)) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
@@ -498,15 +504,22 @@ plot1 <- mixture_plot +
   guides(fill = "none") +
   scale_y_continuous(breaks = y2_slice, minor_breaks = NULL) +
   coord_cartesian(xlim = c(-2.6, 5.5), ylim = c(-2.6, 3.6)) +
-  geom_hline(aes(yintercept = y2), data = tibble(y2 = y2_slice), color = "#4c93bb")
+  geom_hline(
+    aes(yintercept = y2),
+    data = tibble(y2 = y2_slice),
+    color = "#4c93bb"
+  )
 # Conditional density plots
 plot2 <- df |>
   ggplot(aes(x = y1, y = density + y2, group = y2)) +
-  geom_ribbon(aes(ymin = y2, ymax = density + y2, xmin = -2, xmax = 4),
-    col = "#4c93bb", fill = "#4c93bb"
+  geom_ribbon(
+    aes(ymin = y2, ymax = density + y2, xmin = -2, xmax = 4),
+    col = "#4c93bb",
+    fill = "#4c93bb"
   ) +
   labs(
-    x = latex2exp::TeX("$y_1$"), y = latex2exp::TeX("$y_2$"),
+    x = latex2exp::TeX("$y_1$"),
+    y = latex2exp::TeX("$y_2$"),
     title = latex2exp::TeX("Conditional densities: $f(y_1|y_2)$")
   ) +
   scale_y_continuous(minor_breaks = NULL, breaks = y2_slice) +
@@ -564,7 +577,8 @@ p2 <- mvscale(oldfaithful, warning = FALSE) |>
   geom_point(alpha = 0.2) +
   labs(
     title = "Scaled data",
-    x = latex2exp::TeX("$z_1$"), y = latex2exp::TeX("$z_2$")
+    x = latex2exp::TeX("$z_1$"),
+    y = latex2exp::TeX("$z_2$")
   )
 patchwork::wrap_plots(p1, p2, nrow = 1)
 ```

@@ -23,11 +23,14 @@ tscv_plot <- function(.init, .step, h = 1) {
     geom_segment(
       aes(x = 0, xend = 27, y = .id, yend = .id),
       arrow = arrow(length = unit(0.015, "npc")),
-      col = "black", linewidth = .25
+      col = "black",
+      linewidth = .25
     ) +
     geom_point(aes(col = observation), size = 2) +
     scale_y_reverse() +
-    scale_color_manual(values = c(train = "#0072B2", test = "#c14b14", unused = "gray")) +
+    scale_color_manual(
+      values = c(train = "#0072B2", test = "#c14b14", unused = "gray")
+    ) +
     guides(col = "none") +
     labs(x = "time", y = "") +
     theme_void() +
@@ -200,13 +203,17 @@ fr_anomalies_plot_male2 <- fr_anomalies |>
   ) +
   geom_vline(
     xintercept = unique(yrs$Year[yrs$Sex == "Male"]),
-    alpha = 0.5, color = "grey"
+    alpha = 0.5,
+    color = "grey"
   ) +
   geom_point(col = "#478cb2") +
   ggrepel::geom_text_repel(
     data = yrs |>
       filter(Sex == "Male", !Year %in% 1915:1918),
-    aes(y = 75, label = Year), col = "#478cb2", size = 3, seed = 1967
+    aes(y = 75, label = Year),
+    col = "#478cb2",
+    size = 3,
+    seed = 1967
   ) +
   ylim(4, 85)
 fr_anomalies_plot_female2 <- fr_anomalies |>
@@ -219,13 +226,17 @@ fr_anomalies_plot_female2 <- fr_anomalies |>
   ) +
   geom_vline(
     xintercept = unique(yrs$Year[yrs$Sex == "Female"]),
-    alpha = 0.5, color = "grey"
+    alpha = 0.5,
+    color = "grey"
   ) +
   labs(title = "French mortality anomalies") +
   geom_point(col = "#c1653a") +
   ggrepel::geom_text_repel(
     data = yrs[yrs$Sex == "Female", ],
-    aes(y = 75, label = Year), col = "#c1653a", size = 3, seed = 1967
+    aes(y = 75, label = Year),
+    col = "#c1653a",
+    size = 3,
+    seed = 1967
   ) +
   ylim(4, 85)
 patchwork::wrap_plots(
@@ -256,7 +267,7 @@ We will apply this idea to find unusual observations in US weekly mortality data
 us_stmf <- "https://www.mortality.org/File/GetDocument/Public/STMF/Outputs/USAstmfout.csv" |>
   read.csv(header = TRUE) |>
   # Create time index varaible
-  mutate(Week = yearweek(paste0(Year,"-W",Week))) |>
+  mutate(Week = yearweek(paste0(Year, "-W", Week))) |>
   # Consider only data to 2024, sexes combined, and omit last week due to reporting delays
   filter(Week < yearweek("2025 W01"), Sex == "b", Week < max(Week) - 1) |>
   # Fix column names
@@ -322,7 +333,9 @@ At this point, we could identify a point as an anomaly if $|e_t|$ is greater tha
 #| code-fold: false
 #| dependson: stmf_scores1
 stmf_scores <- stmf_scores |>
-  mutate(prob = surprisals(e, distribution = dist_normal(), approximation = "gpd")) |>
+  mutate(
+    prob = surprisals(e, distribution = dist_normal(), approximation = "gpd")
+  ) |>
   filter(prob < 0.02)
 stmf_scores |> arrange(prob)
 ```
@@ -343,10 +356,11 @@ us_stmf |>
 ```{r}
 #| label: check_stmf_scores
 #| include: false
-low_mortality <- stmf_scores |>  filter(e < 0)
+low_mortality <- stmf_scores |> filter(e < 0)
 n_low_mortality <- NROW(low_mortality)
-if(n_low_mortality != 1L)
+if (n_low_mortality != 1L) {
   stop("Problem here")
+}
 ```
 
 A total of `r NROW(stmf_scores)` observations have surprisal probabilities less than 0.02, with the most extreme being in weeks 15--16 of 2020, in the elderly age groups. Although the test can pick up unusually low or unusually high mortality rates, only `r n_low_mortality` of the `r NROW(stmf_scores)` identified anomalies is for low mortality, and that is for 85+ year olds in Week 3 of 2020. It is possible that the elderly were taking precautions against COVID-19, resulting in restricted movements, and therefore lower mortality rates.
@@ -373,7 +387,11 @@ First we convert the series to logs as they are on vastly different scales, then
 us_wide <- us_stmf |>
   as_tibble() |>
   mutate(logm = log(Mortality)) |>
-  tidyr::pivot_wider(id_cols = Week, names_from = `Age group`, values_from = logm)
+  tidyr::pivot_wider(
+    id_cols = Week,
+    names_from = `Age group`,
+    values_from = logm
+  )
 # Compute 1 principal component from mortality rates
 pcs <- us_wide |>
   select(-Week) |>
@@ -392,7 +410,13 @@ pc_anomalies <- pcs |>
   model(stl = STL(.fittedPC1)) |>
   augment() |>
   select(-.model, -.innov) |>
-  mutate(prob = surprisals(.resid, distribution = dist_normal(), approximation = "gpd")) |>
+  mutate(
+    prob = surprisals(
+      .resid,
+      distribution = dist_normal(),
+      approximation = "gpd"
+    )
+  ) |>
   filter(prob < 0.05)
 pc_anomalies
 ```
@@ -453,7 +477,9 @@ There are two series which are clearly separated from the rest, with principal c
 #| label: weirdseries_kde
 #| code-fold: false
 PBS_prcomp <- PBS_prcomp |>
-  mutate(prob = surprisals(PBS_prcomp |> select(.fittedPC1,.fittedPC2), loo = TRUE)) |>
+  mutate(
+    prob = surprisals(PBS_prcomp |> select(.fittedPC1, .fittedPC2), loo = TRUE)
+  ) |>
   select(Concession, Type, ATC2, .fittedPC1, .fittedPC2, prob) |>
   arrange(prob)
 PBS_prcomp
@@ -557,9 +583,13 @@ To illustrate, let's apply this to the `pbs` data. Starting with $I=36$ (3 years
 #| fig-cap: Rolling origin forecasts, with the training sets expanding by one observation at each iteration, and one-step forecasts computed for each training set.
 #| echo: false
 tscv_plot(.init = 8, .step = 1, h = 1) +
-  annotate("text",
-    x = 9, y = 0, label = "h = 1",
-    color = "#c14b14", family = "Fira Sans"
+  annotate(
+    "text",
+    x = 9,
+    y = 0,
+    label = "h = 1",
+    color = "#c14b14",
+    family = "Fira Sans"
   )
 ```
 
@@ -615,8 +645,9 @@ pbs_compare
 ```{r}
 #| include: false
 s01 <- pbs_compare |> pull(ATC2) |> head(1)
-if(s01 != "S01")
+if (s01 != "S01") {
   stop("Problem here")
+}
 ```
 
 
@@ -626,7 +657,7 @@ The lowest probabilities indicate possible anomalies. Let's look at the most lik
 #| label: s01plot0
 s01 <- pbs |> filter(ATC2 == "S01", t <= 37)
 pbs_fc |>
-  filter(ATC2 == "S01")  |>
+  filter(ATC2 == "S01") |>
   autoplot(s01) +
   geom_point(data = s01 |> filter(t == 37), aes(x = Month, y = Scripts)) +
   labs(

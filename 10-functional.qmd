@@ -22,10 +22,12 @@ fr_mortality |>
   scale_color_gradientn(colors = rainbow(100)[1:80]) +
   labs(y = "Log (base 10) mortality rate") +
   scale_y_continuous(
-    sec.axis = sec_axis(~ 10^(.),
+    sec.axis = sec_axis(
+      ~ 10^(.),
       breaks = 10^(-(0:4)),
       labels = format(10^(-(0:4)), scientific = FALSE),
-      name = "Mortality rate")
+      name = "Mortality rate"
+    )
   )
 ```
 
@@ -65,8 +67,10 @@ fr_mortality |>
   filter(Year == 1999, Sex == "Male") |>
   ggplot(aes(x = Age, y = Mortality)) +
   geom_point() +
-  geom_line(data = fr_smooth |> filter(Year == 1999, Sex == "Male"),
-    aes(y = .smooth)) +
+  geom_line(
+    data = fr_smooth |> filter(Year == 1999, Sex == "Male"),
+    aes(y = .smooth)
+  ) +
   scale_y_log10(
     breaks = 10^(-(0:4)),
     labels = format(10^(-(0:4)), scientific = FALSE)
@@ -86,10 +90,12 @@ fr_smooth |>
   scale_color_gradientn(colors = rainbow(100)[1:80]) +
   labs(y = "Log mortality rate") +
   scale_y_continuous(
-    sec.axis = sec_axis(~ 10^(.),
+    sec.axis = sec_axis(
+      ~ 10^(.),
       breaks = 10^(-(0:4)),
       labels = format(10^(-(0:4)), scientific = FALSE),
-      name = "Mortality rate")
+      name = "Mortality rate"
+    )
   )
 
 ```
@@ -130,7 +136,11 @@ frmort_wide <- fr_mortality |>
   filter(Sex == "Male") |>
   mutate(logmx = log(Mortality)) |>
   select(-Mortality, -Sex) |>
-  tidyr::pivot_wider(names_from = Age, values_from = logmx, names_prefix = "Age")
+  tidyr::pivot_wider(
+    names_from = Age,
+    values_from = logmx,
+    names_prefix = "Age"
+  )
 
 # Compute first two principal components
 pca <- frmort_wide |>
@@ -159,8 +169,11 @@ pca_scores <- broom::augment(pca, frmort_wide[, "Year"]) |>
   select(-.rownames)
 # Time series plot of scores
 pca_scores |>
-  tidyr::pivot_longer(-Year,
-    names_to = "PC", values_to = "value", names_prefix = ".fittedPC"
+  tidyr::pivot_longer(
+    -Year,
+    names_to = "PC",
+    values_to = "value",
+    names_prefix = ".fittedPC"
   ) |>
   ggplot(aes(x = Year, y = value)) +
   geom_line(aes(colour = PC))
