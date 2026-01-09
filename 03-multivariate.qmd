@@ -582,3 +582,118 @@ p2 <- mvscale(oldfaithful, warning = FALSE) |>
   )
 patchwork::wrap_plots(p1, p2, nrow = 1)
 ```
+
+## Topological data analysis {#sec-tda}
+
+Topological data analysis (TDA) uses tools from topology to study data. We will use it here as an alternative way to choose the bandwidth in kernel density estimation.
+
+### Simplicial complexes {-}
+
+Suppose we have a set of observations. These observations can be used to construct a graph (i.e., a network, not a plot) where the individual observations are considered vertices and the edges are determined by the distance between them. Given a proximity parameter $\delta$, two vertices are connected by an edge if the distance between these two points is less than or equal to $\delta$. 
+
+Starting from this graph, we can construct $k$-simplices, where $k$ denotes the dimension. For example, a point is a 0-simplex, an edge a 1-simplex, a triangle a 2-simplex, a tetrahedron a 3-simplex, and so on. A collection of these $k$-simplices is known as a *simplicial complex*. 
+
+The *Vietoris-Rips* complex is one type of $k$-simplicial complex, based on pairwise distances between points. Given a set of points and a proximity parameter $\delta > 0$, $k+1$ points within a distance of $\delta$ to each other form a $k$-simplex. For example, consider the eight points labelled $A$ to $H$ shown in @fig-tetrahedron, and suppose we choose $\delta=1.4$. The blue disks centred on each point have radius $\delta/2$; so overlapping disks indicate that their central points are within $\delta$ of each other.
+
+Points $B$ and $H$ form an edge, but are disconnected from all other points because they are further than $\delta$ from the other points. The pair $A$ and $F$ also form an edge, and $F$ is connected to them via $D$. They don't form a triangle because $A$ and $D$ are too far apart. The points $CEG$ form a connected triangle.
+
+```{r}
+#| label: fig-tetrahedron
+#| fig.cap: "An example of a Vietoris-Rips complex. Eight points with $\\delta=1.4$. The blue disks have radius $\\delta/2$, so overlapping disks indicate that their central points are within $\\delta$ of each other. The resulting complex consists of three connected components."
+#| message: false
+#| warning: false
+#| echo: false
+library(ggtda)
+set.seed(18)
+X <- tibble(
+  x = rnorm(8),
+  y = rnorm(8),
+  point = LETTERS[1:8]
+)
+prox <- 1.4
+ggplot(X, aes(x = x, y = y)) +
+  coord_fixed() +
+  geom_disk(radius = prox / 2, fill = "#56B4E9") +
+  stat_simplicial_complex(dimension_max = 0, diameter = prox) +
+  stat_simplicial_complex(dimension_max = 1, diameter = prox, col = "#D55e00") +
+  stat_simplicial_complex(
+    dimension_max = 2,
+    diameter = prox,
+    fill = "#D55E00"
+  ) +
+  geom_text(aes(label = point), nudge_x = -0.1, nudge_y = 0.1)
+```
+
+
+### Persistent homologies {-}
+
+A useful concept from topology is "persistent homology": a method for computing topological features of a space at different spatial resolutions. Features that persist for a wide range of spatial resolutions represent important, intrinsic features of the data, while features that sporadically change are more likely due to random noise. 
+
+For example, as we increase $\delta$, topological features of the Vietoris-Rips complex change --- connected components merge, simplexes increase in dimension, holes are filled, and so on. Taking the small example of @fig-tetrahedron, we explore what happens as $\delta$ increases from 0.4 to 3.4. With a small value of $\delta$, all points are disconnected, and the Vietoris-Rips complex consists of 8 vertices. As $\delta$ increases, more points are connected to each other, and eventually, the complex will consist of a single component containing all possible connections up to the 8-simplex.
+
+```{r}
+#| label: fig-persistence
+#| fig.cap: "Vietoris-Rips complexes resulting from different $\\delta$ values."
+#| echo: false
+#| warning: false
+#| fig-width: 8
+#| fig-asp: 1
+#| out-width: "100%"
+#| dependson: fig-tetrahedron
+prox <- 0.4 + 0:3
+p <- list()
+for (i in seq_along(prox)) {
+  p[[i]] <- ggplot(X, aes(x = x, y = y)) +
+    coord_fixed() +
+    geom_disk(radius = prox[i] / 2, fill = "#56B4E9") +
+    stat_simplicial_complex(dimension_max = 0, radius = 0.01)
+  if (prox[i] > 0.5) {
+    p[[i]] <- p[[i]] +
+      stat_simplicial_complex(
+        dimension_max = 1,
+        diameter = prox[i],
+        col = "#D55e00"
+      )
+  }
+  p[[i]] <- p[[i]] +
+    stat_simplicial_complex(
+      dimension_max = 2,
+      diameter = prox[i],
+      fill = "#D55E00"
+    ) +
+    geom_text(aes(label = point), nudge_x = -0.1, nudge_y = 0.1) +
+    labs(subtitle = latex2exp::TeX(sprintf("$\\delta$ = %.1f", prox[i]))) +
+    xlim(-2.5, 2.5) +
+    ylim(-2.5, 2.5)
+}
+patchwork::wrap_plots(p, nrow = 2)
+```
+
+The appearances and disappearances of these topological features are referred to as births and deaths. A feature is "born" when the feature appears as $\delta$ increases; for example, edges or triangles are formed. A feature "dies" when existing features merge together, or when holes are filled in. The difference between the birth and death diameters is known as the *persistence* of the feature. Births and deaths can be illustrated using a *barcode* diagram.
+
+```{r}
+#| label: fig-barcode
+#| echo: false
+#| fig-cap: "Barcode of the point cloud in @fig-tetrahedron. Each line denotes a connected component, and spans from its birth diameter to its death diameter. The length of the line indicates the persistence of the connected component." 
+#| fig-width: 8
+#| fig-height: 1.6
+#| fig-asp: 0.2
+#| out-width: "100%"
+#| warning: false
+#| dependson: fig-tetrahedron
+library(TDAstats)
+# compute the persistent homology
+ph1 <- calculate_homology(as.matrix(X[,1:2]), dim = 0)
+# plot topological barcode
+plot_barcode(ph1) + guides(col = "none")
+```
+
+@fig-barcode shows the barcode of the point cloud shown in @fig-tetrahedron, comprising a set of horizontal line segments, each denoting a connected component that starts at its birth diameter and ends at its death diameter. For example, the shortest diameter corresponds to when $A$ and $F$ joined to form an edge --- each of the separate vertex components died, and a new edge was born. The largest diameter corresponds to when all points became connected, when the $BH$ edge component died and joined the rest of the complex. 
+
+If there are $n$ observations, then there $n$ connected components, each born at diameter 0, and which die when the corresponding observation is connected to one or more other observations. The first death occurs when the closest two points merge, so the corresponding two features have the same birth and the same death diameters. Rather than have a repeated bar, only $n-1$ bars are shown. As $\delta$ increases, the connected components disappear one by one, as they merge with neighbouring components, and eventually the number of connected components decreases to 1 when all observations are connected.
+
+Features that continue for a large range of $\delta$ represent structural properties of the data that are of interest to us. These are denoted by the longest lines in @fig-barcode, while short lines are probably perturbations related to noise. 
+
+### Kernel bandwidth selection using TDA {-}
+
+These topological concepts can be used to determine a bandwidth for a kernel density estimate designed for anomaly detection. First we construct the barcode of the data cloud using Vietoris-Rips complexes with increasing diameter $\delta$. From the barcode we obtain the sequence of death diameters $\{d_i\}_{i=1}^n$ for the connected components.
