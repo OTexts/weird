@@ -585,7 +585,7 @@ patchwork::wrap_plots(p1, p2, nrow = 1)
 
 ## Topological data analysis {#sec-tda}
 
-Topological data analysis (TDA) uses tools from topology to study data. We will use it here as an alternative way to choose the bandwidth in kernel density estimation.
+Topological data analysis (TDA) uses tools from topology to study data. We will use it here as an alternative way to choose the bandwidth in kernel density estimation. There is a lot more to TDA than what is discussed here --- we only cover what is needed for the purposes of this book. For more information, see @ghrist2014elementary or @carlsson2021topological.
 
 ### Simplicial complexes {-}
 
