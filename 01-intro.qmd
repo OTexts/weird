@@ -254,7 +254,7 @@ oldfaithful |>
   labs(y = "Waiting time to next eruption (seconds)", x = "Duration (seconds)")
 ```
 
-In @fig-oldfaithful3, we have plotted the duration of each eruption and the waiting time to the next eruption. This shows some anomalies that occur due to the *combination* of the two variables, although they do not appear anomalous within the data on any one of the variables. For example, there are two eruptions of 110--120 seconds, followed by waiting times of over 6000 seconds. Neither the waiting time nor the duration are unusual on their own, but the combination is anomalous. Similarly, there is one eruption of about 240 seconds, followed by a waiting time of about 3000 seconds. The waiting time is the second-smallest overall, but appears even more extraordinary given the long duration of the previous eruption. All other eruptions of similar duration had waiting times nearly twice as long.
+In @fig-oldfaithful3, we have plotted the duration of each eruption and the waiting time to the next eruption. This shows some anomalies that occur due to the *combination* of the two variables, although they do not appear anomalous within the data on any one of the variables. For example, there are two eruptions of 110--120 seconds, followed by waiting times of over 6000 seconds. Neither the waiting time nor the duration are unusual on their own, but the combination is anomalous. Similarly, there is one eruption of about 240 seconds, followed by a waiting time of about 3000 seconds. The waiting time is the second-smallest overall, but appears even more extraordinary given the long duration of the previous eruption. All other eruptions of similar duration had waiting times about twice as long.
 
 ### Example: Wine prices and quality {-}
 

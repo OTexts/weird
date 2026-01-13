@@ -664,7 +664,7 @@ of_density |>
 h <- kde_bandwidth(oldfaithful$duration)
 ```
 
-As this is a much bigger data set (with `r NROW(oldfaithful)` observations), the selected bandwidth is smaller and is now $h = `r round(h, 2)`$. Here the estimate has clearly identified the two groups of eruptions, one much larger than the other. The extreme observation of 1 second, and the unusual observations between 140 and 180 seconds are in the areas of low density. Later we will use density estimates at each observation to identify anomalous points.
+As this is a much bigger data set (with `r NROW(oldfaithful)` observations), the selected bandwidth is smaller and is now $h = `r round(h, 2)`$. Here the estimated density has clearly identified the two groups of eruptions, one much larger than the other. The extreme observations of 1 minute or less, and the unusual observations between 140 and 180 seconds are in the areas of low density. Later we will use density estimates at each observation to identify anomalous points.
 
 ### Statistical properties {-}
 
