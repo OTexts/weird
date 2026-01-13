@@ -706,13 +706,11 @@ Replacing $\sigma$ by the sample standard deviation gives us the normal referenc
 
 Several other related bandwidth selection methods are widely used. For example, instead of using $Q_n$ to estimate $s$, we might use the minimum of the sample standard deviation and the robust estimate based on the IQR, giving
 $$
-  h = 1.06 \min(s, 0.7413\text{IQR}) n^{-1/5}.
+  h = 1.06 \min(s, 0.7413*\text{IQR}) n^{-1/5}.
 $$ {#eq-nrd}
 This is what is computed by the `bw.nrd()` function, and is available in `geom_density()` or `density()` by setting `bw = "nrd"`.
 
 Silverman's "rule-of-thumb" is similar, but it replaces 1.06 in @eq-nrd by 0.9, because Silverman argued that most densities are not as smooth as a Normal density, and so a smaller bandwidth is required. This variation is computed using the `bw.nrd0()` function, and is the default bandwidth used by `geom_density()` and `density()`.
-
-Another popular bandwidth choice is the "plug-in" bandwidth [@SJ91], obtained by replacing $R(f'')$ in @eq-opth by an estimate based on the data. This is computed by `bw.SJ()` and can be used with `geom_density()` and `density()` by setting `bw = "SJ"`. For most data sets, this will give a smaller value than @eq-nrr.
 
 Bandwidths obtained in this way are designed to give a good overall estimate of the underlying density, but may not be optimal for any particular point of the density. Our goal is to find anomalies in the data, rather than find a good representation for the rest of the data, and so we are interested in the regions of low density.
 
@@ -720,7 +718,7 @@ If we optimized MSE (@eq-mse) rather than MISE (@eq-mise), we would obtain
 $$
 h = \left(\frac{f(y)R(K)}{n[f''(y)]^2}\right)^{1/5}.
 $$
-This shows that larger bandwidths are required when $f(y)/[f''(y)]^2$ is relatively large, which often occurs in the extreme tails of a distribution. So bandwidths for anomaly detection tend to be larger than bandwidths for other purposes. For that reason, we will sometimes use twice the value of $h$ given by @eq-rnrr, which is available in the `kde_bandwidth()` function using `multiplier = 2`.
+This shows that larger bandwidths are required when $f(y)/[f''(y)]^2$ is relatively large, which often occurs in the extreme tails of a distribution. So bandwidths for anomaly detection tend to be larger than bandwidths for other purposes. For that reason, we will sometimes use twice the value of $h$ given by @eq-rnrr, which is available in the `kde_bandwidth()` function using `multiplier = 2`. 
 
 ### Highest kernel density regions
 
