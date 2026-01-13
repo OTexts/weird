@@ -7,6 +7,7 @@ source("before-each-chapter.R")
 # Set up for using rgl
 options(rgl.useNULL = TRUE)
 rgl::setupKnitr()
+source("vr_complex.R")
 ```
 
 While we will cover anomaly detection in univariate data, most of the methods we will discuss are for multivariate data. We will therefore need to understand some basic concepts of multivariate probability distributions.
@@ -323,7 +324,7 @@ $$
 $$ {#eq-cov}
 However, it is sensitive to outliers, and so is not suitable for our purposes. There have been many robust estimators of covariance proposed in the literature, but we will discuss only one, relatively simple, estimator known as the "orthogonalized Gnanadesikan/Kettenring" (OGK) estimator [@GK72;@MZ02].
 
-Suppose we have two random variables  $X$ and $Y$. Then the variance of their sum and difference is given by
+Suppose we have two random variables $X$ and $Y$. Then the variance of their sum and difference is given by
 \begin{align*}
   \text{Var}(X+Y) &= \text{Var}(X) + \text{Var}(Y) + 2\text{Cov}(X,Y) \\
   \text{Var}(X-Y) &= \text{Var}(X) + \text{Var}(Y) - 2\text{Cov}(X,Y).
@@ -336,24 +337,178 @@ so that the covariance can be expressed as
 $$
 \text{Cov}(X,Y) = \frac{1}{4} \left[ \text{Var}(X+Y) - \text{Var}(X-Y)\right].
 $$
-Now we can use a robust estimate of variance, such as the one based on Qn (@sec-robust-univariate), to estimate the two variances on the right hand side, giving
+Now we can use a robust estimate of variance, such as the one based on $Q_n$ (@sec-robust-univariate), to estimate the two variances on the right-hand side, giving
 $$
 \hat{s}(X,Y) = \frac{1}{4} \left[ s_{\text{Qn}}^2(X+Y) - s_{\text{Qn}}^2(X-Y)\right].
 $$
 We can repeat this for each pair of variables, to obtain a robust estimate of the covariance matrix, $\bm{S}^*$. The diagonals can be obtained using the same robust measure of variance. This is known as the Gnanadesikan-Kettenring estimator. The resulting matrix is symmetric, but not necessarily positive definite, which is a requirement of a covariance matrix. So some additional iterative steps are applied to "orthogonalize" it.
 
-1. Compute the eigenvector decomposition of $\bm{S^*}$, so that $\bm{S}^* = \bm{U}\bm{\Lambda}\bm{U}^{-1}$.
-2. Project the data onto the basis eigenvectors
+1. Compute the eigenvector decomposition of $\bm{S^*}$, so that $\bm{S}^* = \bm{Q}\bm{\Lambda}\bm{Q}^{-1}$.
+2. Project the data onto the basis eigenvectors.
 3. Estimate the variances (robustly) in the coordinate directions.
 4. Then the robust covariance matrix is given by
   $$
-    \bm{S}_{\text{OGK}} = \bm{U}\bm{\Lambda}^*\bm{U}^{-1},
+    \bm{S}_{\text{OGK}} = \bm{Q}\bm{\Lambda}^*\bm{Q}^{-1},
   $$ {#eq-ogk}
   where $\bm{\Lambda}^*$ is a diagonal matrix with the robust variances on the diagonal.
 
 These orthogonalization steps are usually repeated one more time.
 
 This procedure is implemented in the `covOGK` function in the `robustbase` package [@robustbase].
+
+## Multivariate scaling {#sec-scaling}
+
+Some anomaly detection methods will require the data to have been scaled first, to prevent the variables with the largest ranges from dominating.
+
+### Z-scores
+
+One common approach is to apply univariate scaling on each variable, by subtracting its mean and dividing by its standard deviation. This gives $z$-scores.
+
+If our data are given by $y_1,\dots,y_n$, then their $z$ scores are given by
+$$z_i = (y_i - \bar{y})/s_y$$
+where $\bar{y}$ is the mean and $s_y$ is the standard deviation of the observations. These are easily computed using the `scale()` function.
+
+However, the mean and standard deviation may be affected by anomalies, and it would be better to use an approach that was robust to anomalies.
+
+### Robust z-scores
+
+The simplest way to make the scaling robust to anomalies is to use the median instead of the mean, and to use a robust estimate of the standard deviation such as $s_{\text{Qn}}$ (@sec-robust-univariate). Robust z-scores computed in this way can be obtained using the `mvscale()` function with the argument `cov = NULL`.
+
+### Multivariate z-scores
+
+It is sometimes useful to scale a set of multivariate data, so that the scaled variables are uncorrelated with each other, and have mean zero and unit variance.
+
+Suppose each observation is a vector $\bm{y}$, with most observations coming from a distribution with mean $\bm{\mu}$ and covariance matrix $\bm{\Sigma}$. Let $\bm{\Sigma}^{-1} = \bm{U}' \bm{U}$ be the Cholesky decomposition (see @sec-cholesky) of $\bm{\Sigma}^{-1}$. Then the data can be scaled by $\bm{U}$, giving $\bm{z} = \bm{U} (\bm{y} - \bm{\mu})$, so that the covariance matrix of the scaled data is the identity matrix. This can be thought of as both scaling and rotating the data, so that the variables are uncorrelated with mean zero and unit variance. It is the multivariate equivalent of calculating z-scores. They can be computed using the `mvscale()` function with the arguments `center = mean` and `cov = stats::cov`.
+
+### Robust multivariate z-scores
+
+When there may be anomalies in the data set, we can replace the mean by the pointwise median (i.e., the vector of medians for each variable), and estimate $\bm{\Sigma}$ using the robust covariance matrix $\bm{S}_{\text{OGK}}$ (@eq-ogk). The `mvscale()` function in the `weird` package will do this for us, by default.
+
+Let's consider the `oldfaithful` data again, where durations are much longer than waiting times. @fig-scaling shows the data before and after scaling. The scaling has rotated the data a little, and the variables are now less correlated, and centered on zero. The right plot still appears to show some positive relationship between the variables, because the covariance matrix used for scaling was computed robustly, and so was largely based on the upper cluster of points.
+
+```{r}
+#| label: fig-scaling
+#| warning: false
+#| fig.cap: "Old Faithful duration and waiting time data, before and after scaling."
+p1 <- oldfaithful |>
+  ggplot(aes(x = duration, y = waiting)) +
+  geom_point(alpha = 0.2) +
+  labs(
+    title = "Original data",
+    x = "Duration of eruption (seconds)",
+    y = "Waiting time to next eruption (seconds)"
+  )
+p2 <- mvscale(oldfaithful, warning = FALSE) |>
+  ggplot(aes(x = z1, y = z2)) +
+  geom_point(alpha = 0.2) +
+  labs(
+    title = "Scaled data",
+    x = latex2exp::TeX("$z_1$"),
+    y = latex2exp::TeX("$z_2$")
+  )
+patchwork::wrap_plots(p1, p2, nrow = 1)
+```
+
+## Topological data analysis {#sec-tda}
+
+Topological data analysis (TDA) uses tools from topology to study data. Here, we introduce a few of the simplest ideas from TDA, which will prove useful in some anomaly detection methods.
+
+### Simplicial complexes {-}
+
+Suppose we have a set of observations. These observations can be used to construct a graph (i.e., a network, not a plot) where the individual observations are considered vertices and the edges are determined by the distance between them. Given a proximity parameter $\delta$, two vertices are connected by an edge if the distance between these two points is less than or equal to $\delta$. 
+
+Starting from this graph, we can construct $k$-simplices, where $k$ denotes the dimension. For example, a point is a 0-simplex, an edge a 1-simplex, a triangle a 2-simplex, a tetrahedron a 3-simplex, and so on. A collection of these $k$-simplices is known as a *simplicial complex*. 
+
+The *Vietoris-Rips* complex is one type of $k$-simplicial complex, based on pairwise distances between points. Given a set of points and a proximity parameter $\delta > 0$, $k+1$ points within a distance of $\delta$ to each other form a $k$-simplex. For example, consider the eight points labelled $A$ to $H$ shown in @fig-tetrahedron, and suppose we choose $\delta=1.5$. The blue disks centred on each point have radius $\delta/2$; so overlapping disks indicate that their central points are within $\delta$ of each other.
+
+Points $B$ and $H$ form an edge, but are disconnected from all other points because they are further than $\delta$ from the other points. The pair $A$ and $F$ also form an edge, and $D$ is connected to them via $F$. They don't form a triangle because $A$ and $D$ are too far apart. The points $CEG$ form a connected triangle.
+
+```{r}
+#| label: fig-tetrahedron
+#| fig.cap: "An example of a Vietoris-Rips complex comprising eight points with $\\delta=1.4$. The blue disks have radius $\\delta/2$, so overlapping disks indicate that their central points are within $\\delta$ of each other. The resulting complex consists of three connected components."
+#| message: false
+#| warning: false
+#| echo: false
+X <- tribble(
+  ~x     , ~y      ,
+   0.926 ,  0.0638 ,
+   1.82  ,  1.55   ,
+  -1.61  , -1.88   ,
+  -0.285 ,  1.211  ,
+  -0.342 , -1.31   ,
+   0.366 ,  0.0421 ,
+  -1.33  , -0.785  ,
+   2.41  ,  1.21   ,
+)
+vr_complex(X, 1.5) +
+  coord_fixed() +
+  geom_text(
+    aes(x = x, y = y, label = LETTERS[1:8]),
+    nudge_x = -0.1,
+    nudge_y = 0.1
+  )
+```
+
+Points that are connected in some way form a "connected component". There are three connected components in @fig-tetrahedron.
+
+### Persistent homologies {-}
+
+A useful concept from topology is "persistent homology": a method for computing topological features of a space at different spatial resolutions. Features that persist for a wide range of spatial resolutions represent important, intrinsic features of the data, while features that sporadically change are more likely due to random noise. 
+
+For example, as we increase $\delta$, topological features of the Vietoris-Rips complex change --- connected components merge, simplexes increase in dimension, holes are filled, and so on. Taking the small example of @fig-tetrahedron, we explore what happens as $\delta$ increases from 0.5 to 2.0. With a small value of $\delta$, all points are disconnected, and the Vietoris-Rips complex consists of 8 vertices. As $\delta$ increases, more points are connected to each other, and eventually, the complex consists of a single connected component.
+
+```{r}
+#| label: fig-persistence
+#| fig.cap: "Vietoris-Rips complexes resulting from different $\\delta$ values."
+#| echo: false
+#| warning: false
+#| fig-width: 8
+#| fig-asp: 1
+#| out-width: "100%"
+#| dependson: fig-tetrahedron
+prox <- 0.5 + seq(0, 1.5, by = 0.5)
+p <- list()
+for (i in seq_along(prox)) {
+  p[[i]] <- vr_complex(X, delta = prox[i]) +
+    geom_text(
+      aes(x = x, y = y, label = LETTERS[1:8]),
+      nudge_x = -0.1,
+      nudge_y = 0.1
+    ) +
+    labs(subtitle = latex2exp::TeX(sprintf("$\\delta$ = %.1f", prox[i]))) +
+    coord_cartesian(xlim = c(-2.5, 2.5), ylim = c(-2.5, 2.5), ratio = 1)
+}
+patchwork::wrap_plots(p, nrow = 2)
+```
+
+The appearances and disappearances of these topological features are referred to as births and deaths. For example, a component is "born" at $\delta=0$, when it consists of a single point, and a component "dies" when existing components merge together. The death diameter of a connected component is known as the *persistence* of the feature. Births and deaths can be illustrated using a *barcode* diagram. 
+
+```{r}
+#| label: fig-barcode
+#| echo: false
+#| fig-cap: "Barcode of the point cloud in @fig-tetrahedron. Each line denotes a connected component, and spans from its birth diameter to its death diameter. The length of the line indicates the persistence of the connected component."
+#| fig-width: 8
+#| fig-height: 1.6
+#| fig-asp: 0.2
+#| out-width: "100%"
+#| warning: false
+#| dependson: fig-tetrahedron
+library(TDAstats)
+# compute the persistent homology
+ph1 <- calculate_homology(as.matrix(X[, 1:2]), dim = 0)
+# plot topological barcode
+plot_barcode(ph1) + guides(col = "none")
+```
+
+@fig-barcode contains the barcode of the point cloud shown in @fig-persistence, comprising a set of horizontal line segments, each denoting the birth and death of a connected component. For example, the shortest diameter corresponds to when $A$ and $F$ joined to form an edge --- when one of the separate vertex components died. The largest diameter corresponds to when all points became connected, when the $BH$ edge component died and joined the rest of the complex. 
+
+If there are $n$ observations, then there $n$ connected components, each born at diameter 0. The first death occurs when the closest two points merge, so the corresponding two features have the same death diameters. Rather than have a repeated bar, only $n-1$ bars are shown. As $\delta$ increases, the connected components disappear one by one, as they merge with neighbouring components, and eventually the number of connected components decreases to 1 when all observations are connected.
+
+Components that continue for a large range of $\delta$ represent structural properties of the data (clusters) that are of interest to us. These are denoted by the longest lines in @fig-barcode.
+
+### Further reading
+
+There is a lot more to TDA than what is discussed here --- we have covered only a small part of zero-dimensional topology. For a general introduction to TDA, see @carlsson2021topological.
 
 ## Multivariate kernel density estimation
 
@@ -435,9 +590,11 @@ oldfaithful |>
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 
-Here we see that the short durations tended to be followed by a short waiting time until the next duration, while the long durations tend to be followed by a long waiting time until the next duration. There are two anomalous eruptions: the one with the 1 second duration, and one where a short duration was followed by a long waiting time. The unusual durations between 150 and 180 seconds can be followed by either short or long durations.
+Here we see that the short durations tended to be followed by a short waiting time until the next duration, while the long durations tend to be followed by a long waiting time until the next duration. There are several anomalous eruptions including the one with the 1 second duration, and the one where a short duration was followed by a short waiting time. The unusual durations between 150 and 180 seconds can be followed by either short or long durations.
 
 ### Bandwidth matrix selection
+
+A common approach is to specify $\bm{H}$ to be diagonal, with elements equal to the squares of univariate bandwidth rules. (The univariate bandwidths are usually defined as the standard deviation of the kernel, while multivariate bandwidth matrices correspond to the covariance matrix of the kernel. Hence, the univariate bandwidths need to be squared if used in a bandwidth matrix.) That is, if $h_1,\dots,h_d$ are the univariate bandwidths for each of the variables, then the corresponding diagonal bandwidth matrix is given by $\bm{H} = \text{diag}(h_1^2,\dots,h_d^2)$. For example, `geom_density_2d()` uses a bivariate Gaussian kernel with diagonal bandwidth matrix where the diagonal values are given by the squares of @eq-nrd. However, this approach leads to bandwidths that are too small, as it ignores the convergence properties of the multivariate estimator. Additionally, any diagonal bandwidth matrix implicitly assumes that the variables are uncorrelated, and leads to more biased estimators.
 
 The optimal bandwidth matrix (minimizing the mean integrated squared error between the true density and its estimate) is of the order $n^{-2/(d+4)}$. If such a bandwidth matrix is used, then the estimator converges at rate $n^{-4/(d+4)}$, implying that kernel density estimation becomes increasingly difficult as the dimension $d$ increases. This is to be expected given the curse of dimensionality (@sec-curse), as the number of observations required to obtain a good estimate increases exponentially with the dimension. In practice, we rarely attempt to estimate a density in more than $d=3$ dimensions.
 
@@ -445,19 +602,19 @@ If the underlying density is Normal with mean $\bm{\mu}$ and variance $\bm{\Sigm
 $$
   \bm{H} = \left(\frac{4}{d+2}\right)^{2/(d+4)} n^{-2/(d+4)} \bm{\Sigma}.
 $$ {#eq-gaussianH}
-Notice that in the univariate case, when $d=1$, this rule gives the same bandwidth as the rule of thumb given by @eq-nrr.
+Notice that in the univariate case, when $d=1$, this rule gives the same bandwidth as the rule of thumb given by @eq-nrr ($h = \sqrt{H}$).
 
-Replacing $\bm{\Sigma}$ by the robust covariance matrix $\bm{S}_{\text{OGK}}$ (@eq-ogk), we obtain a robust normal reference rule, calculated by `kde_bandwidth()`. @fig-ofbivariate2 shows a bivariate kernel density estimate computed using this approach.
+Replacing $\bm{\Sigma}$ by the robust covariance matrix $\bm{S}_{\text{OGK}}$ (@eq-ogk), we obtain a robust normal reference rule, calculated by `kde_bandwidth()`. @fig-ofbivariate2 shows a bivariate kernel density estimate computed using this approach. 
 
-A more data-driven approach, is the "plug-in" estimator [@chacon2018multivariate] implemented by `ks::Hpi()`, which is a generalization of the plug-in bandwidths popular for univariate kernel density estimation [@sec-kde]. While this typically leads to better estimates of the density as a whole, it can lead to worse estimates in the tails of the distribution where anomalies tend to lie.
+As with univariate density estimation, when estimating the density in the tails of the distribution, it is usually better to have a larger bandwidth than those given by the rules above. When `multiplier = 2`, `kde_bandwidth()`  will return the matrix $\bm{H}$ from @eq-gaussianH multiplied by 4 (because it is a variance, doubling the scale increases the matrix by a factor of four).
 
-A common approach is to specify $\bm{H}$ to be diagonal, with elements equal to the squares of univariate bandwidth rules. (The univariate bandwidths are usually defined as the standard deviation of the kernel, while multivariate bandwidth matrices correspond to the covariance matrix of the kernel. Hence, the univariate bandwidths need to be squared if used in a bandwidth matrix.) That is, if $h_1,\dots,h_d$ are the univariate bandwidths for each of the variables, then the corresponding diagonal bandwidth matrix is given by $\bm{H} = \text{diag}(h_1^2,\dots,h_d^2)$. For example, `geom_density_2d()` uses a bivariate Gaussian kernel with diagonal bandwidth matrix where the diagonal values are given by the squares of @eq-nrd. However, this approach leads to bandwidths that are too small, as it ignores the convergence properties of the multivariate estimator. Additionally, any diagonal bandwidth matrix implicitly assumes that the variables are uncorrelated, and leads to more biased estimators.
-
-As with univariate density estimation, when estimating the density in the tails of the distribution, it is usually better to have a larger bandwidth than those given by the rules above. By default, the `kde_bandwidth()` function will return the bandwidth matrix given by the normal reference rule (@eq-gaussianH) with $\bm{\Sigma}$ estimated using @eq-ogk. When `method = "double"`, it will return the same matrix multiplied by 4 (because it is a variance, doubling the scale increases the matrix by a factor of four).
+An alternative approach to finding the bandwidth matrix uses ideas from topological data analysis (@sec-tda). First, we compute robust multivariate z-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \bm{m})$, $i=1,\dots,n$, where $\bm{m}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}$ is the Cholesky decomposition of $\bm{S}_{\text{OGK}}^{-1}$. Then we construct the barcode of the data cloud of z-scores using Vietoris-Rips complexes with increasing diameter $\delta$. From the barcode we obtain the sequence of death diameters $\{d_1,\dots,d_n\}$ for the connected components. Finally, we can set 
+$$\bm{H} = (d^*)^{2/m}\bm{S}_{\text{OGK}}$$
+where $d^*$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_n\}$ for a large value of $\gamma$. @lookout2 showed that this leads to a consistent density estimate, with good properties for anomaly detection, when $\gamma = 0.97$.
 
 ### Further reading
 
-There is a rich literature on multivariate kernel density estimation. Good starting points are @Scott2015 or @chacon2018multivariate.
+There is a rich literature on multivariate kernel density estimation. Good starting points are @Scott2015 or @chacon2018multivariate. The idea of using a TDA-based bandwidth matrix is due to @lookout and @lookout2.
 
 ## Conditional probability distributions
 
@@ -529,171 +686,3 @@ patchwork::wrap_plots(plot1, plot2, nrow = 1)
 ```
 
 Another neat property of Normal distributions is that the conditional distribution of a subset of variables is also Normal. For example, suppose $\bm{Y} = (Y_1,Y_2,Y_3)$ is a multivariate Normal random variable. Then the conditional distribution of $Y_1$ given $Y_2$ and $Y_3$ is also Normally distributed.
-
-## Multivariate scaling {#sec-scaling}
-
-Some anomaly detection methods will require the data to have been scaled first, to prevent the variables with the largest ranges from dominating.
-
-### Z-scores
-
-One common approach is to apply univariate scaling on each variable, by subtracting its mean and dividing by its standard deviation. This gives $z$-scores.
-
-If our data are given by $y_1,\dots,y_n$, then their $z$ scores are given by
-$$z_i = (y_i - \bar{y})/s_y$$
-where $\bar{y}$ is the mean and $s_y$ is the standard deviation of the observations. These are easily computed using the `scale()` function.
-
-However, the mean and standard deviation may be affected by anomalies, and it would be better to use an approach that was robust to anomalies.
-
-### Robust z-scores
-
-The simplest way to make the scaling robust to anomalies is to use the median instead of the mean, and to use a robust estimate of the standard deviation such as $s_{\text{Qn}}$ (@sec-robust-univariate). Robust z-scores computed in this way can be obtained using the `mvscale()` function with the argument `cov = NULL`.
-
-### Multivariate z-scores
-
-It is sometimes useful to scale a set of multivariate data, so that the scaled variables are uncorrelated with each other, and have mean zero and unit variance.
-
-Suppose each observation is a vector $\bm{y}$, with most observations coming from a distribution with mean $\bm{\mu}$ and covariance matrix $\bm{\Sigma}$. Let $\bm{\Sigma}^{-1} = \bm{U}' \bm{U}$ be the Cholesky decomposition (see @sec-cholesky) of $\bm{\Sigma}^{-1}$. Then the data can be scaled by $\bm{U}$, giving $\bm{z} = \bm{U} (\bm{y} - \bm{\mu})$, so that the covariance matrix of the scaled data is the identity matrix. This can be thought of as both scaling and rotating the data, so that the variables are uncorrelated with mean zero and unit variance. It is the multivariate equivalent of calculating z-scores. They can be computed using the `mvscale()` function with the arguments `center = mean` and `cov = stats::cov`.
-
-### Robust multivariate z-scores
-
-When there may be anomalies in the data set, we can replace the mean by the pointwise median (i.e., the vector of medians for each variable), and estimate $\bm{\Sigma}$ using the robust covariance matrix $\bm{S}_{\text{OGK}}$ (@eq-ogk). The `mvscale()` function in the `weird` package will do this for us, by default.
-
-Let's consider the `oldfaithful` data again, where durations are much longer than waiting times. @fig-scaling shows the data before and after scaling. The scaling has rotated the data a little, and the variables are now less correlated, and centered on zero. The right plot still appears to show some positive relationship between the variables, because the covariance matrix used for scaling was computed robustly, and so was largely based on the upper cluster of points.
-
-```{r}
-#| label: fig-scaling
-#| warning: false
-#| fig.cap: "Old Faithful duration and waiting time data, before and after scaling."
-p1 <- oldfaithful |>
-  ggplot(aes(x = duration, y = waiting)) +
-  geom_point(alpha = 0.2) +
-  labs(
-    title = "Original data",
-    x = "Duration of eruption (seconds)",
-    y = "Waiting time to next eruption (seconds)"
-  )
-p2 <- mvscale(oldfaithful, warning = FALSE) |>
-  ggplot(aes(x = z1, y = z2)) +
-  geom_point(alpha = 0.2) +
-  labs(
-    title = "Scaled data",
-    x = latex2exp::TeX("$z_1$"),
-    y = latex2exp::TeX("$z_2$")
-  )
-patchwork::wrap_plots(p1, p2, nrow = 1)
-```
-
-## Topological data analysis {#sec-tda}
-
-Topological data analysis (TDA) uses tools from topology to study data. We will use it here as an alternative way to choose the bandwidth in kernel density estimation. There is a lot more to TDA than what is discussed here --- we only cover what is needed for the purposes of this book. For more information, see @ghrist2014elementary or @carlsson2021topological.
-
-### Simplicial complexes {-}
-
-Suppose we have a set of observations. These observations can be used to construct a graph (i.e., a network, not a plot) where the individual observations are considered vertices and the edges are determined by the distance between them. Given a proximity parameter $\delta$, two vertices are connected by an edge if the distance between these two points is less than or equal to $\delta$. 
-
-Starting from this graph, we can construct $k$-simplices, where $k$ denotes the dimension. For example, a point is a 0-simplex, an edge a 1-simplex, a triangle a 2-simplex, a tetrahedron a 3-simplex, and so on. A collection of these $k$-simplices is known as a *simplicial complex*. 
-
-The *Vietoris-Rips* complex is one type of $k$-simplicial complex, based on pairwise distances between points. Given a set of points and a proximity parameter $\delta > 0$, $k+1$ points within a distance of $\delta$ to each other form a $k$-simplex. For example, consider the eight points labelled $A$ to $H$ shown in @fig-tetrahedron, and suppose we choose $\delta=1.4$. The blue disks centred on each point have radius $\delta/2$; so overlapping disks indicate that their central points are within $\delta$ of each other.
-
-Points $B$ and $H$ form an edge, but are disconnected from all other points because they are further than $\delta$ from the other points. The pair $A$ and $F$ also form an edge, and $F$ is connected to them via $D$. They don't form a triangle because $A$ and $D$ are too far apart. The points $CEG$ form a connected triangle.
-
-```{r}
-#| label: fig-tetrahedron
-#| fig.cap: "An example of a Vietoris-Rips complex. Eight points with $\\delta=1.4$. The blue disks have radius $\\delta/2$, so overlapping disks indicate that their central points are within $\\delta$ of each other. The resulting complex consists of three connected components."
-#| message: false
-#| warning: false
-#| echo: false
-library(ggtda)
-set.seed(18)
-X <- tibble(
-  x = rnorm(8),
-  y = rnorm(8),
-  point = LETTERS[1:8]
-)
-prox <- 1.4
-ggplot(X, aes(x = x, y = y)) +
-  coord_fixed() +
-  geom_disk(radius = prox / 2, fill = "#56B4E9") +
-  stat_simplicial_complex(dimension_max = 0, diameter = prox) +
-  stat_simplicial_complex(dimension_max = 1, diameter = prox, col = "#D55e00") +
-  stat_simplicial_complex(
-    dimension_max = 2,
-    diameter = prox,
-    fill = "#D55E00"
-  ) +
-  geom_text(aes(label = point), nudge_x = -0.1, nudge_y = 0.1)
-```
-
-
-### Persistent homologies {-}
-
-A useful concept from topology is "persistent homology": a method for computing topological features of a space at different spatial resolutions. Features that persist for a wide range of spatial resolutions represent important, intrinsic features of the data, while features that sporadically change are more likely due to random noise. 
-
-For example, as we increase $\delta$, topological features of the Vietoris-Rips complex change --- connected components merge, simplexes increase in dimension, holes are filled, and so on. Taking the small example of @fig-tetrahedron, we explore what happens as $\delta$ increases from 0.4 to 3.4. With a small value of $\delta$, all points are disconnected, and the Vietoris-Rips complex consists of 8 vertices. As $\delta$ increases, more points are connected to each other, and eventually, the complex will consist of a single component containing all possible connections up to the 8-simplex.
-
-```{r}
-#| label: fig-persistence
-#| fig.cap: "Vietoris-Rips complexes resulting from different $\\delta$ values."
-#| echo: false
-#| warning: false
-#| fig-width: 8
-#| fig-asp: 1
-#| out-width: "100%"
-#| dependson: fig-tetrahedron
-prox <- 0.4 + 0:3
-p <- list()
-for (i in seq_along(prox)) {
-  p[[i]] <- ggplot(X, aes(x = x, y = y)) +
-    coord_fixed() +
-    geom_disk(radius = prox[i] / 2, fill = "#56B4E9") +
-    stat_simplicial_complex(dimension_max = 0, radius = 0.01)
-  if (prox[i] > 0.5) {
-    p[[i]] <- p[[i]] +
-      stat_simplicial_complex(
-        dimension_max = 1,
-        diameter = prox[i],
-        col = "#D55e00"
-      )
-  }
-  p[[i]] <- p[[i]] +
-    stat_simplicial_complex(
-      dimension_max = 2,
-      diameter = prox[i],
-      fill = "#D55E00"
-    ) +
-    geom_text(aes(label = point), nudge_x = -0.1, nudge_y = 0.1) +
-    labs(subtitle = latex2exp::TeX(sprintf("$\\delta$ = %.1f", prox[i]))) +
-    xlim(-2.5, 2.5) +
-    ylim(-2.5, 2.5)
-}
-patchwork::wrap_plots(p, nrow = 2)
-```
-
-The appearances and disappearances of these topological features are referred to as births and deaths. A feature is "born" when the feature appears as $\delta$ increases; for example, edges or triangles are formed. A feature "dies" when existing features merge together, or when holes are filled in. The difference between the birth and death diameters is known as the *persistence* of the feature. Births and deaths can be illustrated using a *barcode* diagram.
-
-```{r}
-#| label: fig-barcode
-#| echo: false
-#| fig-cap: "Barcode of the point cloud in @fig-tetrahedron. Each line denotes a connected component, and spans from its birth diameter to its death diameter. The length of the line indicates the persistence of the connected component." 
-#| fig-width: 8
-#| fig-height: 1.6
-#| fig-asp: 0.2
-#| out-width: "100%"
-#| warning: false
-#| dependson: fig-tetrahedron
-library(TDAstats)
-# compute the persistent homology
-ph1 <- calculate_homology(as.matrix(X[,1:2]), dim = 0)
-# plot topological barcode
-plot_barcode(ph1) + guides(col = "none")
-```
-
-@fig-barcode shows the barcode of the point cloud shown in @fig-tetrahedron, comprising a set of horizontal line segments, each denoting a connected component that starts at its birth diameter and ends at its death diameter. For example, the shortest diameter corresponds to when $A$ and $F$ joined to form an edge --- each of the separate vertex components died, and a new edge was born. The largest diameter corresponds to when all points became connected, when the $BH$ edge component died and joined the rest of the complex. 
-
-If there are $n$ observations, then there $n$ connected components, each born at diameter 0, and which die when the corresponding observation is connected to one or more other observations. The first death occurs when the closest two points merge, so the corresponding two features have the same birth and the same death diameters. Rather than have a repeated bar, only $n-1$ bars are shown. As $\delta$ increases, the connected components disappear one by one, as they merge with neighbouring components, and eventually the number of connected components decreases to 1 when all observations are connected.
-
-Features that continue for a large range of $\delta$ represent structural properties of the data that are of interest to us. These are denoted by the longest lines in @fig-barcode, while short lines are probably perturbations related to noise. 
-
-### Kernel bandwidth selection using TDA {-}
-
-These topological concepts can be used to determine a bandwidth for a kernel density estimate designed for anomaly detection. First we construct the barcode of the data cloud using Vietoris-Rips complexes with increasing diameter $\delta$. From the barcode we obtain the sequence of death diameters $\{d_i\}_{i=1}^n$ for the connected components.
