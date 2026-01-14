@@ -297,12 +297,12 @@ For large $n$, the sample quantile should provide a good estimate of the true qu
 ```{r}
 #| label: fig-quantile-bias
 #| fig-cap: Bias of the sample quantile for a N(0,1) distribution. The orange line shows the bias of the default `type = 7` quantile method, while the blue line shows the bias of the preferred `type = 8` quantile method.
-avequantile <- function(n, p, m) {
+avequantile <- function(n, p, N) {
   Q7 <- Q8 <- numeric(length(p))
-  for (i in seq(m)) {
+  for (i in seq(N)) {
     random_sample <- rnorm(n)
-    Q7 <- Q7 + quantile(random_sample, prob = p, type = 7) / m
-    Q8 <- Q8 + quantile(random_sample, prob = p, type = 8) / m
+    Q7 <- Q7 + quantile(random_sample, prob = p, type = 7) / N
+    Q8 <- Q8 + quantile(random_sample, prob = p, type = 8) / N
   }
   tibble(n = n, p = p, Q7 = Q7, Q8 = Q8)
 }
@@ -311,7 +311,7 @@ qbias <- tibble(n = c(100, 1000)) |>
     ~ avequantile(
       n = .x,
       p = seq(0.002, 0.998, by = 0.001),
-      m = 10000
+      N = 10000
     )
   ) |>
   tidyr::pivot_longer(Q7:Q8, names_to = "type", values_to = "Q") |>

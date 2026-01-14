@@ -98,7 +98,7 @@ rgl::plot3d(
 
 This second anomaly is not particularly unusual in any combination of two variables, but it is unusual in the combination of all three variables.
 
-When looking for anomalies, it is important to consider all the variables together, rather than looking at each variable in isolation, or even looking at all the pairwise relationships. It is possible for an observation to be unusual in $d$ dimensions, but not unusual in any of the lower-dimensional subsets of variables. In other words, there are more places for anomalies to hide in higher dimensions.
+When looking for anomalies, it is important to consider all the variables together, rather than looking at each variable in isolation, or even looking at all the pairwise relationships. It is possible for an observation to be unusual in $m$ dimensions, but not unusual in any of the lower-dimensional subsets of variables. In other words, there are more places for anomalies to hide in higher dimensions.
 
 ## The curse of dimensionality {#sec-curse}
 
@@ -152,26 +152,26 @@ rgl::plot3d(df[, 1:3], size = 5, col = df$color)
 
 :::
 
-As the number of dimensions grows, it becomes increasingly likely that points will lie in the corners of the space. In fact, the proportion of points lying outside the unit sphere in $d$ dimensions is 1 minus the ratio of the volume of the unit sphere to the volume of the whole space. This is given by
+As the number of dimensions grows, it becomes increasingly likely that points will lie in the corners of the space. In fact, the proportion of points lying outside the unit sphere in $m$ dimensions is 1 minus the ratio of the volume of the unit sphere to the volume of the whole space. This is given by
 $$
-1 - \frac{\pi^{d/2}}{2^d\Gamma(d/2 + 1)}
+1 - \frac{\pi^{m/2}}{2^m\Gamma(m/2 + 1)}
 $$
 where $\Gamma$ is the gamma function, and is plotted in @fig-curse.
 
 ```{r}
 #| label: fig-curse
-#| fig-cap: For observations from a $d$-dimensional U(-1,1) distribution, the percentage of points lying outside the unit sphere in the corners of the space.
-tibble(d = seq(10)) |>
-  mutate(outside = 100 * (1 - (pi^(d / 2) / (2^d * gamma(d / 2 + 1))))) |>
-  ggplot(aes(x = d, y = outside)) +
+#| fig-cap: For observations from a $m$-dimensional U(-1,1) distribution, the percentage of points lying outside the unit sphere in the corners of the space.
+tibble(m = seq(10)) |>
+  mutate(outside = 100 * (1 - (pi^(m / 2) / (2^m * gamma(m / 2 + 1))))) |>
+  ggplot(aes(x = m, y = outside)) +
   geom_line() +
-  labs(x = "Dimensions (d)", y = "Percentage of points outside unit sphere") +
+  labs(x = "Dimensions (m)", y = "Percentage of points outside unit sphere") +
   scale_x_continuous(breaks = seq(10), minor_breaks = NULL)
 ```
 
 Remarkably, by 10 dimensions, almost all points lie outside the unit sphere, and live in the corners of the space. Almost no points are in the centre of the space. This occurs because, with enough variables, at least one of the univariate observations is going to lie in the tails of the distribution, and so the multivariate observation will not lie near the centre of the space.
 
-Another way to think about this is to consider hypercubes that contain 50% of the observations. These must have sides of length $2^{1-1/d}$, in order for the volume of the hypercube to be $2^{d-1}$, exactly half of the entire space. For $d=1$, the hypercube is a unit interval. For $d=2$, it is a square of side length $\sqrt{2} \approx 1.41$ as shown in @fig-hypercube. For $d=3$, the central cube must have side length $2^{2/3} \approx 1.59$, and so on.
+Another way to think about this is to consider hypercubes that contain 50% of the observations. These must have sides of length $2^{1-1/m}$, in order for the volume of the hypercube to be $2^{m-1}$, exactly half of the entire space. For $m=1$, the hypercube is a unit interval. For $m=2$, it is a square of side length $\sqrt{2} \approx 1.41$ as shown in @fig-hypercube. For $m=3$, the central cube must have side length $2^{2/3} \approx 1.59$, and so on.
 
 ```{r}
 #| label: fig-hypercube
@@ -191,19 +191,19 @@ tibble(
   guides(col = "none")
 ```
 
-As the dimension $d$ increases, the size of the hypercube containing 50% of the observations must also increase.
-@fig-hypercubes shows the side length of these hypercubes plotted against the dimension $d$.
+As the dimension $m$ increases, the size of the hypercube containing 50% of the observations must also increase.
+@fig-hypercubes shows the side length of these hypercubes plotted against the dimension $m$.
 
 ```{r}
 #| label: fig-hypercubes
-#| fig-cap: For observations from a $d$-dimensional U(-1,1) distribution, the side length of a hypercube which contains 50% of points.
-tibble(d = seq(20)) |>
-  mutate(length = 2^(1 - 1 / d)) |>
-  ggplot(aes(x = d, y = length)) +
+#| fig-cap: For observations from a $m$-dimensional U(-1,1) distribution, the side length of a hypercube which contains 50% of points.
+tibble(m = seq(20)) |>
+  mutate(length = 2^(1 - 1 / m)) |>
+  ggplot(aes(x = m, y = length)) +
   geom_line() +
   geom_point() +
   labs(
-    x = "Dimensions (d)",
+    x = "Dimensions (m)",
     y = "Side length of hypercube containing 50% of points"
   ) +
   scale_x_continuous(breaks = seq(2, 20, by = 2), minor_breaks = NULL) +
@@ -218,7 +218,7 @@ Now we have a sense of what it means to have data in many dimensions, let's cons
 
 ### Statistical definitions
 
-Suppose $\bm{Y} = [Y_1,\dots,Y_n]'$ is a random variable taking values in $\mathbb{R}^d$, the $d$-dimensional real numbers. Then the joint distribution of $\bm{Y}$ is defined by the joint cdf
+Suppose $\bm{Y} = [Y_1,\dots,Y_n]'$ is a random variable taking values in $\mathbb{R}^m$, the $m$-dimensional real numbers. Then the joint distribution of $\bm{Y}$ is defined by the joint cdf
 $$
 F(\bm{y}) = \text{Pr}(\bm{Y} \le \bm{y}),
 $$
@@ -227,19 +227,19 @@ $$
 f(\bm{y}) = \frac{\partial^n F(\bm{y})}{\partial y_1 \dots \partial y_d}.
 $$
 
-The marginal cdfs are defined by $F_i(y) = \text{Pr}(Y_i \le y)$, with corresponding marginal pdfs given by $f_i(y) = F_i'(y)$, $i=1,\dots,d$.
+The marginal cdfs are defined by $F_i(y) = \text{Pr}(Y_i \le y)$, with corresponding marginal pdfs given by $f_i(y) = F_i'(y)$, $i=1,\dots,m$.
 
-If the variables are independent, then the joint pdf is the product of the marginal pdfs, $f(\bm{y}) = \prod_{i=1}^d f_i(y_i)$.
+If the variables are independent, then the joint pdf is the product of the marginal pdfs, $f(\bm{y}) = \prod_{i=1}^m f_i(y_i)$.
 
 The expected value of $\bm{y}$ is given by
 $$
-\text{E}(\bm{Y}) = \int_{\mathbb{R}^d} \bm{y} f(\bm{y})d\bm{y},
+\text{E}(\bm{Y}) = \int_{\mathbb{R}^m} \bm{y} f(\bm{y})d\bm{y},
 $$
 and the covariance matrix is given by
 $$
 \text{Var}(\bm{Y}) = \text{E}[(\bm{Y}-\text{E}(\bm{Y}))(\bm{Y}-\text{E}(\bm{Y}))'].
 $$
-The covariance matrix is a $d\times d$ matrix, with $(i,j)$th element given by $\text{Cov}(Y_i,Y_j) = \text{E}[(Y_i-\text{E}(Y_i))(Y_j-\text{E}(Y_j))]$. The diagonal elements are the variances of the individual variables, while the off-diagonal elements are the covariances between the variables.
+The covariance matrix is a $m\times m$ matrix, with $(i,j)$th element given by $\text{Cov}(Y_i,Y_j) = \text{E}[(Y_i-\text{E}(Y_i))(Y_j-\text{E}(Y_j))]$. The diagonal elements are the variances of the individual variables, while the off-diagonal elements are the covariances between the variables.
 
 ### Multivariate Normal distribution
 
@@ -247,7 +247,7 @@ If random variable $\bm{Y}$ has a multivariate Normal distribution, we write $\b
 
 The multivariate Normal distribution has pdf given by
 $$
-f(\bm{y}; \bm{\mu}, \bm{\Sigma}) = (2\pi)^{-d/2}|\bm{\Sigma}|^{-1/2} \exp\left\{-\frac{1}{2}(\bm{y}-\bm{\mu})'\bm{\Sigma}^{-1}(\bm{y}-\bm{\mu})\right\}.
+f(\bm{y}; \bm{\mu}, \bm{\Sigma}) = (2\pi)^{-m/2}|\bm{\Sigma}|^{-1/2} \exp\left\{-\frac{1}{2}(\bm{y}-\bm{\mu})'\bm{\Sigma}^{-1}(\bm{y}-\bm{\mu})\right\}.
 $$
 The notation $|\bm{\Sigma}|$ denotes the determinant of the matrix $\bm{\Sigma}$.
 
@@ -512,13 +512,13 @@ There is a lot more to TDA than what is discussed here --- we have covered only 
 
 ## Multivariate kernel density estimation
 
-Suppose our observations are $d$-dimensional vectors, $\bm{y}_1,\dots,\bm{y}_n$. Then the multivariate version of @eq-kde is given by [@Scott2015]
+Suppose our observations are $m$-dimensional vectors, $\bm{y}_1,\dots,\bm{y}_n$. Then the multivariate version of @eq-kde is given by [@Scott2015]
 $$
   \hat{f}(\bm{y}) = \frac{1}{n} \sum_{i=1}^n K_H(\bm{y} - \bm{y}_i),
 $$ {#eq-mkde}
 where $K_H$ is a multivariate probability density with covariance matrix $\bm{H}$. In this book, we will use a multivariate Gaussian kernel given by
 $$
-  K_H(\bm{u}) = (2\pi)^{-d/2} |\bm{H}|^{-1/2} \exp \{-\textstyle\frac12 \bm{u}'\bm{H}^{-1}\bm{u} \}.
+  K_H(\bm{u}) = (2\pi)^{-m/2} |\bm{H}|^{-1/2} \exp \{-\textstyle\frac12 \bm{u}'\bm{H}^{-1}\bm{u} \}.
 $$
 
 ### Bivariate kernel density estimation
@@ -596,13 +596,13 @@ Here we see that the short durations tended to be followed by a short waiting ti
 
 A common approach is to specify $\bm{H}$ to be diagonal, with elements equal to the squares of univariate bandwidth rules. (The univariate bandwidths are usually defined as the standard deviation of the kernel, while multivariate bandwidth matrices correspond to the covariance matrix of the kernel. Hence, the univariate bandwidths need to be squared if used in a bandwidth matrix.) That is, if $h_1,\dots,h_d$ are the univariate bandwidths for each of the variables, then the corresponding diagonal bandwidth matrix is given by $\bm{H} = \text{diag}(h_1^2,\dots,h_d^2)$. For example, `geom_density_2d()` uses a bivariate Gaussian kernel with diagonal bandwidth matrix where the diagonal values are given by the squares of @eq-nrd. However, this approach leads to bandwidths that are too small, as it ignores the convergence properties of the multivariate estimator. Additionally, any diagonal bandwidth matrix implicitly assumes that the variables are uncorrelated, and leads to more biased estimators.
 
-The optimal bandwidth matrix (minimizing the mean integrated squared error between the true density and its estimate) is of the order $n^{-2/(d+4)}$. If such a bandwidth matrix is used, then the estimator converges at rate $n^{-4/(d+4)}$, implying that kernel density estimation becomes increasingly difficult as the dimension $d$ increases. This is to be expected given the curse of dimensionality (@sec-curse), as the number of observations required to obtain a good estimate increases exponentially with the dimension. In practice, we rarely attempt to estimate a density in more than $d=3$ dimensions.
+The optimal bandwidth matrix (minimizing the mean integrated squared error between the true density and its estimate) is of the order $n^{-2/(m+4)}$. If such a bandwidth matrix is used, then the estimator converges at rate $n^{-4/(m+4)}$, implying that kernel density estimation becomes increasingly difficult as the dimension $m$ increases. This is to be expected given the curse of dimensionality (@sec-curse), as the number of observations required to obtain a good estimate increases exponentially with the dimension. In practice, we rarely attempt to estimate a density in more than $m=3$ dimensions.
 
 If the underlying density is Normal with mean $\bm{\mu}$ and variance $\bm{\Sigma}$, then the optimal bandwidth matrix is given by
 $$
-  \bm{H} = \left(\frac{4}{d+2}\right)^{2/(d+4)} n^{-2/(d+4)} \bm{\Sigma}.
+  \bm{H} = \left(\frac{4}{m+2}\right)^{2/(m+4)} n^{-2/(m+4)} \bm{\Sigma}.
 $$ {#eq-gaussianH}
-Notice that in the univariate case, when $d=1$, this rule gives the same bandwidth as the rule of thumb given by @eq-nrr ($h = \sqrt{H}$).
+Notice that in the univariate case, when $m=1$, this rule gives the same bandwidth as the rule of thumb given by @eq-nrr ($h = \sqrt{H}$).
 
 Replacing $\bm{\Sigma}$ by the robust covariance matrix $\bm{S}_{\text{OGK}}$ (@eq-ogk), we obtain a robust normal reference rule, calculated by `kde_bandwidth()`. @fig-ofbivariate2 shows a bivariate kernel density estimate computed using this approach. 
 

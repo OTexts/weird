@@ -17,8 +17,8 @@ Suppose our observations are denoted by $\bm{y}_1,\dots,\bm{y}_n$. In univariate
 ### Euclidean distance
 
 Perhaps the most obvious way to define the distance between any two points $\bm{y}_i$ and $\bm{y}_j$ is to measure the length of the straight line between the points. This is commonly known as Euclidean distance, named after the famous Greek mathematician Euclid, and can be defined as
-$$\|\bm{y}_i - \bm{y}_j\|_2 = \sqrt{\sum_{k=1}^d (y_{ik}-y_{jk})^2}.$$
-This is also known as the $L_2$ distance. For $d=1$ or $d=2$, this is the physical distance between the points when plotted on a strip plot or a scatterplot (provided there is no jittering used).
+$$\|\bm{y}_i - \bm{y}_j\|_2 = \sqrt{\sum_{k=1}^m (y_{ik}-y_{jk})^2}.$$
+This is also known as the $L_2$ distance. For $m=1$ or $m=2$, this is the physical distance between the points when plotted on a strip plot or a scatterplot (provided there is no jittering used).
 
 The `dist()` function will return a distance matrix containing all pairwise distances between observations. The argument `method` specifies the type of distance to compute, with the default being Euclidean distance.
 
@@ -35,7 +35,7 @@ of |> dist()
 ### Manhattan distance
 
 The Manhattan distance (or absolute distance) between two observations is given by
-$$\|\bm{y}_i - \bm{y}_j\|_1 = \sum_{k=1}^d |y_{ik}-y_{jk}|.$$
+$$\|\bm{y}_i - \bm{y}_j\|_1 = \sum_{k=1}^m |y_{ik}-y_{jk}|.$$
 This is also known as the $L_1$ distance. It is called the Manhattan distance as it gives the shortest path between the corners of city blocks (denoted as points on a grid) when those blocks are rectangular, as they mostly are in Manhattan. For the same reason, it is also sometimes called the "taxicab" distance or the "city block" distance.
 
 Let's compute the Manhattan distances for the same five observations from the `oldfaithful` data set.
@@ -49,7 +49,7 @@ of |> dist(method = "manhattan")
 ### Minkowski distance
 
 This generalizes the Manhattan and Euclidean distances to use powers of $p$ to define the $L_p$ distance:
-$$\|\bm{y}_i - \bm{y}_j\|_p = \left(\sum_{k=1}^d (y_{ik}-y_{jk})^p\right)^{1/p}.$$
+$$\|\bm{y}_i - \bm{y}_j\|_p = \left(\sum_{k=1}^m (y_{ik}-y_{jk})^p\right)^{1/p}.$$
 It is named after the German mathematician, Hermann Minkowski. When $p=1$ this is the Manhattan distance, and when $p=2$ this is the Euclidean distance.
 
 Here is the Minkowsi distance with $p = 3$ for the same five observations from the `oldfaithful` data set.
@@ -73,7 +73,7 @@ of |> dist(method = "maximum")
 
 This is also known as chessboard distance, as it is the number of moves a king would have to travel on a chessboard to move between two squares. The Chebyshev distance is equivalent to the Minkowski distance with $p=\infty$.
 
-Notice that all four of the distances introduced so far are equal to the absolute difference between observations when $d=1$. The next distance does not have this property.
+Notice that all four of the distances introduced so far are equal to the absolute difference between observations when $m=1$. The next distance does not have this property.
 
 ### Mahalanobis distance
 

@@ -571,7 +571,7 @@ This needs to be done iteratively for each time period, updating the model as ne
 
 We can summarise the anomaly detection algorithm for surveillance as follows. First, we'll change the notation slightly to allow for more than one series. Let $y_{i,t}$ denote the observation of the $i$th series at time $t$.
 
-For each $t = I,I+1,\dots$, and for all series $i=1,\dots,m$:
+For each $t = I,I+1,\dots$, and for all series $i=1,\dots,M$:
 
 * Fit a time series model to the series $y_{i,1},\dots,y_{i,t}$, and estimate the one-step forecast density, $f_{i,t+1}(y \mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$.
 * Compute the surprisal: $s_{i,t+1} = -\log f_{i,t+1}(y_{i,t+1}\mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$, and the the surprisal probabilities: $P(S > s_{i,t+1})$.

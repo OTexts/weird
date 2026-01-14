@@ -54,11 +54,11 @@ $$
 
 ### Multivariate standard normal distribution
 
-The definition of a surprisal also works for multivariate distributions. For a $d$-dimensional N$(\bm{0}, \bm{\Sigma})$ distribution, a surprisal is given by
+The definition of a surprisal also works for multivariate distributions. For a $m$-dimensional N$(\bm{0}, \bm{\Sigma})$ distribution, a surprisal is given by
 $$
 s_i = -\log\left(
- (2\pi)^{-d/2}|\bm{\Sigma}|^{-1/2} \exp\Big\{-\frac{1}{2}\bm{y}_i'\bm{\Sigma}^{-1}\bm{y}\Big\} \right) =
-\frac{1}{2} \bm{y}_i'\bm{\Sigma}^{-1}\bm{y}_i + \frac{d}{2}\log(2\pi) + \frac{1}{2} \log|\bm{\Sigma}|
+ (2\pi)^{-m/2}|\bm{\Sigma}|^{-1/2} \exp\Big\{-\frac{1}{2}\bm{y}_i'\bm{\Sigma}^{-1}\bm{y}\Big\} \right) =
+\frac{1}{2} \bm{y}_i'\bm{\Sigma}^{-1}\bm{y}_i + \frac{m}{2}\log(2\pi) + \frac{1}{2} \log|\bm{\Sigma}|
 $$
 When $\bm{\Sigma} = \bm{I}$, this is simply the sum of surprisals computed on each of the marginal distributions.
 
@@ -647,9 +647,9 @@ $$
 $$
 The largest possible surprisal occurs when an observation has no other observations nearby. Then $f_i \approx K_H(\bm{0})/n$ because $K_H(\bm{y}_i-\bm{y}_j)\approx 0$ when $\|\bm{y}_i-\bm{y}_j\|$ is large. So the largest possible kde surprisal, when using a Gaussian kernel, is
 $$
-  -\log(K_H(\bm{0})/n) \approx \log(n) + \frac{d}{2}\log(2\pi) + \frac{1}{2}\text{log det}(\bm{H}),
+  -\log(K_H(\bm{0})/n) \approx \log(n) + \frac{m}{2}\log(2\pi) + \frac{1}{2}\text{log det}(\bm{H}),
 $$
-where $\bm{H}$ is now the bandwidth matrix. For univariate data, when $d=1$, this simplifies to
+where $\bm{H}$ is now the bandwidth matrix. For univariate data, when $m=1$, this simplifies to
 $$
   -\log(K_h(0)/n) \approx \log(nh\sqrt{2\pi}).
 $$
