@@ -8486,11 +8486,11 @@
       "Author": "Rob Hyndman [aut, cre, cph] (ORCID: <https://orcid.org/0000-0002-2140-5352>), RStudio [cph]",
       "Maintainer": "Rob Hyndman <Rob.Hyndman@monash.edu>",
       "RemoteType": "github",
+      "RemoteHost": "api.github.com",
       "RemoteUsername": "robjhyndman",
       "RemoteRepo": "weird-package",
       "RemoteRef": "main",
-      "RemoteSha": "5a0b21154df4adeed0dd41e7a1a5fae789ee2211",
-      "RemoteHost": "api.github.com",
+      "RemoteSha": "9ed4446213ec0db566b934732e75399d58233d00",
       "Remotes": "sevvandi/lookout"
     },
     "withr": {

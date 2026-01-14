@@ -582,7 +582,7 @@ Now we will apply the method to the full data set, using the `dist_kde()` functi
 ```{r}
 #| label: fig-ofbivariate2
 #| code-fold: false
-#| fig.cap: "Bivariate kernel density estimate with default bandwidths."
+#| fig.cap: "Bivariate kernel density estimate with default bandwidth matrix."
 oldfaithful |>
   select(duration, waiting) |>
   dist_kde() |>
@@ -610,7 +610,20 @@ As with univariate density estimation, when estimating the density in the tails 
 
 An alternative approach to finding the bandwidth matrix uses ideas from topological data analysis (@sec-tda). First, we compute robust multivariate z-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \bm{m})$, $i=1,\dots,n$, where $\bm{m}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}$ is the Cholesky decomposition of $\bm{S}_{\text{OGK}}^{-1}$. Then we construct the barcode of the data cloud of z-scores using Vietoris-Rips complexes with increasing diameter $\delta$. From the barcode we obtain the sequence of death diameters $\{d_1,\dots,d_n\}$ for the connected components. Finally, we can set 
 $$\bm{H} = (d^*)^{2/m}\bm{S}_{\text{OGK}}$$
-where $d^*$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_n\}$ for a large value of $\gamma$. @lookout2 showed that this leads to a consistent density estimate, with good properties for anomaly detection, when $\gamma = 0.97$.
+where $d^*$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_n\}$ for a large value of $\gamma$. @lookout2 showed that this leads to a consistent density estimate, with good properties for anomaly detection, when $\gamma = 0.97$. We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-lookout. The `kde_bandwidth()` function will return this bandwidth when the argument `lookout = TRUE`.
+
+```{r}
+#| label: fig-ofbivariate3
+#| code-fold: false
+#| fig.cap: "Bivariate kernel density estimate with a lookout bandwidth."
+oldfaithful |>
+  select(duration, waiting) |>
+  dist_kde(lookout = TRUE) |>
+  gg_density(show_points = TRUE) +
+  labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
+```
+
+Notice that the contours are larger and smoother than in @fig-ofbivariate2. In general, lookout bandwidths will be larger than bandwidths chosen using normal reference rules, making them particularly suitable for anomaly detection.
 
 ### Further reading
 
