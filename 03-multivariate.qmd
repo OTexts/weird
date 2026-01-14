@@ -169,7 +169,7 @@ tibble(m = seq(10)) |>
   scale_x_continuous(breaks = seq(10), minor_breaks = NULL)
 ```
 
-Remarkably, by 10 dimensions, almost all points lie outside the unit sphere, and live in the corners of the space. Almost no points are in the centre of the space. This occurs because, with enough variables, at least one of the univariate observations is going to lie in the tails of the distribution, and so the multivariate observation will not lie near the centre of the space.
+Remarkably, by 10 dimensions, almost all points lie outside the unit sphere, and live in the corners of the space; almost no points are in the centre of the space. This occurs because, with enough variables, at least one of the univariate observations is going to lie in the tails of the distribution, and so the multivariate observation will not lie near the centre of the space.
 
 Another way to think about this is to consider hypercubes that contain 50% of the observations. These must have sides of length $2^{1-1/m}$, in order for the volume of the hypercube to be $2^{m-1}$, exactly half of the entire space. For $m=1$, the hypercube is a unit interval. For $m=2$, it is a square of side length $\sqrt{2} \approx 1.41$ as shown in @fig-hypercube. For $m=3$, the central cube must have side length $2^{2/3} \approx 1.59$, and so on.
 
@@ -602,11 +602,11 @@ If the underlying density is Normal with mean $\bm{\mu}$ and variance $\bm{\Sigm
 $$
   \bm{H} = \left(\frac{4}{m+2}\right)^{2/(m+4)} n^{-2/(m+4)} \bm{\Sigma}.
 $$ {#eq-gaussianH}
-Notice that in the univariate case, when $m=1$, this rule gives the same bandwidth as the rule of thumb given by @eq-nrr ($h = \sqrt{H}$).
+Notice that in the univariate case, when $m=1$, this rule gives the same bandwidth as the rule of thumb given by @eq-nrr (where $h = \sqrt{H}$).
 
 Replacing $\bm{\Sigma}$ by the robust covariance matrix $\bm{S}_{\text{OGK}}$ (@eq-ogk), we obtain a robust normal reference rule, calculated by `kde_bandwidth()`. @fig-ofbivariate2 shows a bivariate kernel density estimate computed using this approach. 
 
-As with univariate density estimation, when estimating the density in the tails of the distribution, it is usually better to have a larger bandwidth than those given by the rules above. When `multiplier = 2`, `kde_bandwidth()`  will return the matrix $\bm{H}$ from @eq-gaussianH multiplied by 4 (because it is a variance, doubling the scale increases the matrix by a factor of four).
+As with univariate density estimation, when estimating the density in the tails of the distribution, it is usually better to have a larger bandwidth than those given by the rules above. When `multiplier = 2`, `kde_bandwidth()` will return the matrix $\bm{H}$ from @eq-gaussianH multiplied by 4 (because it is a variance, doubling the scale increases the matrix by a factor of four).
 
 An alternative approach to finding the bandwidth matrix uses ideas from topological data analysis (@sec-tda). First, we compute robust multivariate z-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \bm{m})$, $i=1,\dots,n$, where $\bm{m}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}$ is the Cholesky decomposition of $\bm{S}_{\text{OGK}}^{-1}$. Then we construct the barcode of the data cloud of z-scores using Vietoris-Rips complexes with increasing diameter $\delta$. From the barcode we obtain the sequence of death diameters $\{d_1,\dots,d_n\}$ for the connected components. Finally, we can set 
 $$\bm{H} = (d^*)^{2/m}\bm{S}_{\text{OGK}}$$
