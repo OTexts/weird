@@ -69,7 +69,7 @@ chisq4 <- tibble(y = rchisq(1000, df = 4))
 
 All of the methods considered in this chapter assume the underlying data follow a Normal distribution. In our examples, only #4 is from a Normal distribution, so the methods should work well in that case, but perhaps not in the other cases.
 
-Good anomaly detection methods should pick up one anomaly in the cricket batting example, at least two anomalies in the Old Faithful example, and the two anomalies in the `n01b` example. They should identify no anomalies in the remaining examples.
+Good anomaly detection methods should pick up one anomaly in the cricket batting example, at least three anomalies in the Old Faithful example, and the two anomalies in the `n01b` example. They should identify no anomalies in the remaining examples.
 
 
 ```{r}
@@ -95,7 +95,7 @@ nanomalies <- tibble(
   ),
   `Expected anomalies` = c(
     1,
-    2,
+    3,
     2,
     0,
     0,
@@ -147,7 +147,7 @@ chisq4 |>
 ```
 
  1. Don Bradman is correctly identified as the only outlier in the cricket batting averages.
- 2. Only the extreme 2-hour duration is identified. We already know there was an additional strange 1-second eruption, plus several unusual eruptions between 140 and 180 seconds in length.
+ 2. The three obvious anomalies in the Old Faithful data have been identified, but none of the unusual eruptions between 140 and 180 seconds in length.
  3. Neither of the two anomalies added to the 18 N(0,1) observations has been correctly identified.
  4. One spurious anomaly has been identified in the 1000 N(0,1) observations.
  5. Eighteen spurious anomalies have been identified in the 1000 $\text{t}_3$ observations.
@@ -392,7 +392,7 @@ stopifnot(nanomalies$Peirce == c(0, 2, 2, 1, 10, 6))
 ```
 
 1. When applied to the test cricket batting averages, it doesn't even find the obvious anomaly of Don Bradman.
-2. When applied to the Old Faithful eruption durations, it finds only the most extreme duration.
+2. When applied to the Old Faithful eruption durations, it finds only the two most extreme durations.
 3. Both anomalies have been correctly spotted amongst the 18 N(0,1) observations.
 4. One spurious anomaly is identified in the 1000 N(0,1) observations.
 5. Ten spurious anomalies have been identified in the 1000 $\text{t}_3$ observations.
@@ -418,8 +418,7 @@ nanomalies <- nanomalies |>
       chisq4 |> filter(chauvenet_anomalies(y)) |> NROW()
     )
   )
-
-stopifnot(nanomalies$Chauvenet == c(0, 2, 2, 1, 12, 7))
+stopifnot(nanomalies$Chauvenet == nanomalies$Peirce + c(0,0,0,0,2,1))
 ```
 
 ## Grubbs' test
@@ -753,7 +752,7 @@ nanomalies <- nanomalies |>
 stopifnot(nanomalies$Dixon == c(1, 0, 0, 0, 1, 0))
 ```
 
-For these examples, the test has worked relatively well apart from `n01b`, where it is failed to identify either anomaly, and `t3` where it has identified a spurious anomaly.
+For these examples, the test has failed to identify any of the anomalies in `oldfaithful` and `n01b`, and it has identified a spurious anomaly in `t3`.
 
 ## Summary
 
@@ -763,6 +762,8 @@ We can summarise the results of the various tests used here in the following tab
 #| label: tbl-nanomalies
 #| echo: false
 #| tbl-cap: "Number of anomalies detected by each test. Cells in red indicate that the test has failed to identify all known anomalies (i.e., it has some false negatives), or it has identified some spurious anomalies (i.e., it has some false positives)."
+#| dependson: check_numbers
+#| cache: false
 library(kableExtra)
 nanomalies$Example[5] <- "<span class='math inline'>\\text{t}_3</span>"
 nanomalies$Example[6] <- "<span class='math inline'>\\chi^2_4</span>"
@@ -814,7 +815,7 @@ nanomalies |>
   )
 ```
 
-None of the tests found the two clear anomalies in the Old Faithful data, and most failed to find either of the artificial anomalies in `n01b`. All tests found at least one spurious anomaly in the large simulated data sets with no real anomalies.
+Only Z scores found the three clear anomalies in the Old Faithful data, and most failed to find either of the artificial anomalies in `n01b`. All tests found at least one spurious anomaly in the large simulated data sets with no real anomalies.
 
 As noted at the start of this chapter, anomaly detection methods based on assumed data distributions are unreliable. Until about 1975, they were the only viable methods given the lack of computing facilities available, because they could be implemented using tables and hand calculations. However, there is really no justifiable reason for continuing to use such methods.
 
@@ -822,4 +823,4 @@ They are particularly sensitive to the assumed data distribution, and the probab
 
 These tests are sometimes applied iteratively, where observations are removed from the data if determined to be anomalies, and the test re-applied to the remaining data. This process continues until no more anomalies are found. However, this procedure will clearly change the size of the test due to the problem of multiple comparisons.
 
-Next, we will turn out attention to methods that arose in the latter part of the 20th century which were based on quantiles and data depth rather than on any underlying parametric data distribution.
+Next, we will turn our attention to methods that arose in the latter part of the 20th century which were based on quantiles and data depth rather than on any underlying parametric data distribution.
