@@ -8406,7 +8406,7 @@
     },
     "warp": {
       "Package": "warp",
-      "Version": "0.2.2",
+      "Version": "0.2.3",
       "Source": "Repository",
       "Title": "Group Dates",
       "Authors@R": "c( person(\"Davis\", \"Vaughan\", , \"davis@posit.co\", role = c(\"aut\", \"cre\")), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"), comment = c(ROR = \"03wc8by49\")) )",
@@ -8486,11 +8486,11 @@
       "Author": "Rob Hyndman [aut, cre, cph] (ORCID: <https://orcid.org/0000-0002-2140-5352>), RStudio [cph]",
       "Maintainer": "Rob Hyndman <Rob.Hyndman@monash.edu>",
       "RemoteType": "github",
-      "RemoteHost": "api.github.com",
       "RemoteUsername": "robjhyndman",
       "RemoteRepo": "weird-package",
       "RemoteRef": "main",
-      "RemoteSha": "9ed4446213ec0db566b934732e75399d58233d00",
+      "RemoteSha": "f9ae933684ae3ca037336e1c961b15d2c71fcfeb",
+      "RemoteHost": "api.github.com",
       "Remotes": "sevvandi/lookout"
     },
     "withr": {

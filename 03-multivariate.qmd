@@ -282,7 +282,7 @@ distributional::dist_multivariate_normal(list(mu), list(Sigma)) |>
   )
 ```
 
-Similarly, we can obtain HDRs for a mixture distribution. Suppose we had two bivariate Normal distributions with means $(0,0)$ and $(3,1)$, and covariance matrices equal to  $\begin{bmatrix} 1 & 0.5 \\ 0.5 & 1 \end{bmatrix}$ and the identity matrix $\bm{I}_2$ respectively. Then the HDRs for an equal mixture of these two distributions is shown in @fig-bivariate-mixture.
+Similarly, we can obtain HDRs for a mixture distribution. Suppose we had two bivariate Normal distributions with means $(0,0)$ and $(3,1)$, and covariance matrices equal to $\begin{bmatrix} 1 & 0.5 \\ 0.5 & 1 \end{bmatrix}$ and the identity matrix $\bm{I}_2$ respectively. Then the HDRs for an equal mixture of these two distributions is shown in @fig-bivariate-mixture.
 
 ```{r}
 #| label: fig-bivariate-mixture
@@ -637,11 +637,11 @@ Almost all statistical modelling involves the estimation of conditional distribu
 
 The conditional cdf of $Y$ given $X_1,\dots,X_n$ is defined by the conditional cdf
 $$
- F(y\mid x_1,\dots,x_n) = \text{Pr}(Y \le y \mid  X_1 = x_1,\dots,X_n = x_n).
+ F(y\mid x_1,\dots,x_n) = \text{Pr}(Y \le y \mid X_1 = x_1,\dots,X_n = x_n).
 $$
 The conditional pdf is given by
 $$
-f(y \mid  x_1, \dots, x_n) = \frac{f(y,x_1,\dots,x_n)}{f(x_1,\dots,x_n)}.
+f(y \mid x_1, \dots, x_n) = \frac{f(y,x_1,\dots,x_n)}{f(x_1,\dots,x_n)}.
 $$
 The conditional pdf can be thought of as slices of the joint pdf, with the values of $x_1,\dots,x_n$ fixed, rescaled to ensure the conditional pdfs integrate to 1. For example, $f(y_1 | y_2)$ is equal to a scaled slice of the joint pdf $f(y_1,y_2)$ at $y_2$. @fig-conditional shows some examples for the distribution shown at @fig-bivariate-mixture at several values of $y_2$. The left plot shows the joint density, with horizontal lines indicating where conditioning (or slicing) occurs at different values of $y_2$. The right plot shows the resulting conditional density functions.
 

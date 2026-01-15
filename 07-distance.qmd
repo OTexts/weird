@@ -82,7 +82,7 @@ When the variables have different scales, the variables with the largest ranges 
 Suppose we scale the data using the robust multivariate approach described in @sec-scaling, so that the scaled data are given by
 $\bm{z}_i = \bm{U} (\bm{y}_i - \bm{m})$, where $\bm{m}$ is the pointwise median, and $\bm{U}'\bm{U} = \bm{S}_{\text{OGK}}^{-1}$ is the Cholesky decomposition of the inverse of $\bm{S}_{\text{OGK}}$, a robust estimate of the covariance matrix of the data. Then the Euclidean distance between $\bm{z}_i$ and $\bm{z}_j$ is given by
 $$
-  \| \bm{z}_i - \bm{z}_j\|_2 = \sqrt{(\bm{y}_i - \bm{y}_j)' \bm{U}' \bm{U} (\bm{y}_i - \bm{y}_j)} =  \sqrt{(\bm{y}_i - \bm{y}_j)' \bm{S}_{\text{OGK}}^{-1} (\bm{y}_i - \bm{y}_j)}
+  \| \bm{z}_i - \bm{z}_j\|_2 = \sqrt{(\bm{y}_i - \bm{y}_j)' \bm{U}' \bm{U} (\bm{y}_i - \bm{y}_j)} = \sqrt{(\bm{y}_i - \bm{y}_j)' \bm{S}_{\text{OGK}}^{-1} (\bm{y}_i - \bm{y}_j)}
 $$
 This is known as the Mahalanobis distance, named after the Indian statistician Prasanta Chandra Mahalanobis (although he wasn't using a robust measure of covariance). It is a multivariate generalization of the number of standard deviations between any two observations.
 
@@ -123,7 +123,7 @@ oldfaithful[1, ]
 oldfaithful[knn$id[1, ], ]
 ```
 
-For large data sets, approximations are available which speed up the computation even more, but are less accurate in finding the $k$ nearest neighbours. The `approx` argument specifies a distance tolerance which makes the process faster for large data sets, although the neighbours returned may not be the exact nearest  neighbours.
+For large data sets, approximations are available which speed up the computation even more, but are less accurate in finding the $k$ nearest neighbours. The `approx` argument specifies a distance tolerance which makes the process faster for large data sets, although the neighbours returned may not be the exact nearest neighbours.
 
 ```{r}
 #| label: ann

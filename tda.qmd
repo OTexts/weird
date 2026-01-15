@@ -25,7 +25,7 @@ execute:
 source("before-each-chapter.R")
 ```
 
-Topological data analysis (TDA) uses tools from topology to study data. Using TDA, we can infer high-dimensional structure from low-dimensional representations of data such as individual points. For example, one concept from topology is "persistent homology": a method for computing  topological features of a space at different spatial resolutions. Features that persist for a wider range of spatial resolutions represent important, intrinsic features of the data, while features that sporadically change are more likely due to random noise.
+Topological data analysis (TDA) uses tools from topology to study data. Using TDA, we can infer high-dimensional structure from low-dimensional representations of data such as individual points. For example, one concept from topology is "persistent homology": a method for computing topological features of a space at different spatial resolutions. Features that persist for a wider range of spatial resolutions represent important, intrinsic features of the data, while features that sporadically change are more likely due to random noise.
 
 ### Simplicial complexes {-}
 
@@ -71,7 +71,7 @@ p2 <- ggplot(X, aes(x = x, y = y)) +
 patchwork::wrap_plots(p1, p2, ncol = 2)
 ```
 
-A second example is shown on the right of @fig-tetrahedron, where there are eight points, and  $\varepsilon=1.3$. Here, $f$ is a vertex, disconnected from all other points because it is further than $\varepsilon$ from any point. The pair $g$ and $b$ are connected to each other, but not to any other points. The points $ade$ and $adc$ form connected triangles (but not a tetrahedron), while $h$ is connected to them via $c$.
+A second example is shown on the right of @fig-tetrahedron, where there are eight points, and $\varepsilon=1.3$. Here, $f$ is a vertex, disconnected from all other points because it is further than $\varepsilon$ from any point. The pair $g$ and $b$ are connected to each other, but not to any other points. The points $ade$ and $adc$ form connected triangles (but not a tetrahedron), while $h$ is connected to them via $c$.
 
 ### Persistent homologies {-}
 
@@ -218,9 +218,7 @@ g3 <- plot_barcode(tail(phom, 20)) +
 patchwork::wrap_plots(g1, g2, g3, nrow = 1)
 ```
 
-The plot on the right in @fig-tdaknn shows the largest 20 death diameters (out of the `r NROW(phom)` diameters shown in the centre panel). A vertical dashed line is drawn at diameter $h^* = `r sprintf("%.3f",top2[1])`$, the second largest death diameter. The largest death diameter is `r sprintf("%.3f",top2[2])`. Any diameter between these two values gives the same number of connected components. For this data set, $(`r sprintf("%.3f",top2[1])`, `r sprintf("%.3f",top2[2])`)$ is the largest diameter range for which the number of components stays the same. Thus, it signifies a global structural property of the point cloud, and we want a bandwidth that will help us detect this structure. In this example, an appropriate choice would be $\bm{H} = h_*^2\bm{I}$, which ensures that points within a distance of $h_*$  contribute to the kernel density estimate.
+The plot on the right in @fig-tdaknn shows the largest 20 death diameters (out of the `r NROW(phom)` diameters shown in the centre panel). A vertical dashed line is drawn at diameter $h^* = `r sprintf("%.3f",top2[1])`$, the second largest death diameter. The largest death diameter is `r sprintf("%.3f",top2[2])`. Any diameter between these two values gives the same number of connected components. For this data set, $(`r sprintf("%.3f",top2[1])`, `r sprintf("%.3f",top2[2])`)$ is the largest diameter range for which the number of components stays the same. Thus, it signifies a global structural property of the point cloud, and we want a bandwidth that will help us detect this structure. In this example, an appropriate choice would be $\bm{H} = h_*^2\bm{I}$, which ensures that points within a distance of $h_*$ contribute to the kernel density estimate.
 
 From $\bm{Y}^*$, we can compute the Vietoris-Rips death diameters, $d_1,\dots,d_n$. These are then ordered to give $d_{(1)},\dots,d_{(n)}$, and we find the largest interval by computing successive differences
 $\Delta_i = d_{(i+1)} - d_{(i)}$, for $i=1,\dots,n-1$. Following @lookout2021, we choose $h_* = d_{(i)}$ to be the diameter corresponding to the largest $\Delta_i$. 
-
-

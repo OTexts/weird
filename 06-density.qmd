@@ -275,7 +275,7 @@ norm_prob |>
 ```
 
 In summary, even when we don't know the distribution of the data, we can use some
-incorrect assumed distribution to compute the surprisals, and then apply either a GPD or the empirical distribution to obtain good estimates of the surprisal  probabilities.
+incorrect assumed distribution to compute the surprisals, and then apply either a GPD or the empirical distribution to obtain good estimates of the surprisal probabilities.
 
 ## Linear regression surprisals {#sec-regression-log-scores}
 
@@ -349,7 +349,7 @@ surprisals(fit, probability = FALSE)
 
 The leave-one-out residual for the $i$th observation is defined as the difference between $\bm{y}_i$ and the predicted value obtained using a model fitted to all observations except the $i$th observation. In this context, LOO residuals are often called PRESS (prediction error sum of squares) residuals. At first, it appears that calculating LOO residuals involves a lot of computation --- estimating $n$ separate models. However, the leave-one-out residuals are easily obtained without actually having to re-estimate the model many times. It can be shown [@Montgomery2012, Appendix C.7] that the leave-one-out (LOO) residuals are given by
 $$
-  e_{-i}  = e_{i}/(1-h_{i}),
+  e_{-i} = e_{i}/(1-h_{i}),
 $$ {#eq-loo-residuals}
 where $e_{i}$ is the residual obtained from fitting the model to *all* observations.
 

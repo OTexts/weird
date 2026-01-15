@@ -6,7 +6,7 @@
 source("before-each-chapter.R")
 ```
 
-The early history of anomaly detection method involved statistical tests and assumptions about the distribution of the data. There are much better methods available these days, but these old methods are still widely used. So they are included here for historical interest, and to point out their flaws to those still using them. There is nothing in later chapters that assumes knowledge of this chapter, so if you want to skip on to more useful methods, head to @sec-boxplots.
+The early history of anomaly detection method involved statistical tests and assumptions about the distribution of the data. There are much better methods available now, but these old methods are still widely used. So they are included here for historical interest, and to point out their flaws to those still using them. There is nothing in later chapters that assumes knowledge of this chapter, so if you want to skip on to more useful methods, head to @sec-boxplots.
 
 We will only consider univariate methods in this chapter. There have been multivariate parametric methods for anomaly detection, but they are much less widely used and are also best avoided.
 
@@ -16,7 +16,7 @@ We will test the methods using six examples: two involving real data, and four i
 
 1. The cricket batting averages from the `cricket_batting` data set. As discussed in @sec-scatterplots, these appear to contain one genuine anomaly, the batter Don Bradman.
 2. Old Faithful eruption durations between 2017 and 2023, also discussed in @sec-scatterplots. For these data, there were three extreme anomalies --- with durations up to 1 minute --- and several "inliers" in a area of low density between 140 and 180 seconds.
-3. The first 18 rows of the second variable in the `n01` data, along with the values 4.0 and 4.5. The latter two are anomalies as they are unlikely to arise from the N(0,1) distribution. We save  this data set as `n01b`. The plot below shows the data for this example.
+3. The first 18 rows of the second variable in the `n01` data, along with the values 4.0 and 4.5. The latter two are anomalies as they are unlikely to arise from the N(0,1) distribution. We save this data set as `n01b`. The plot below shows the data for this example.
 
 ```{r}
 #| label: fig-n01b
@@ -429,7 +429,7 @@ Egon Pearson and Chandra Sekar proposed [@Pearson1936] that an observation be co
 $$
 c_\alpha = t_{\alpha/n, n-2} \sqrt{\frac{n-1}{n-2+t^2_{\alpha/n, n-2}}}
 $$
-and $t_{p, k}$ is the $1-p$ quantile of the t distribution with $k$ degrees of freedom. Later, this was extended by Frank Grubbs [@Grubbs1950] who proposed  using
+and $t_{p, k}$ is the $1-p$ quantile of the t distribution with $k$ degrees of freedom. Later, this was extended by Frank Grubbs [@Grubbs1950] who proposed using
 $$
 c_\alpha = \frac{(n-1)t_{\alpha/2n, n-2}}{\sqrt{n(n-2 + t^2_{\alpha/2n, n-2})}}.
 $$
@@ -570,7 +570,6 @@ pgrubbsdf |>
     y = "Probability of at least one spurious anomaly",
     x = "Sample size (n)"
   ) +
-  #  guides(col = "none") +
   theme(axis.text.x = element_text(size = 8)) +
   scale_color_discrete(
     breaks = c("t(3)", "Chi-squared(4)", "Normal"),

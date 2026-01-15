@@ -28,7 +28,7 @@ $$
 $$
 Rather than label these using integers ($L_2,L_3,\dots$), Tukey proposed using letters ($L_F,L_E,L_D,\dots$) where $F=$ fourths, $E=$ eighths, $D=$ sixteenths, and so on.
 
-Because each depth is roughly half the previous depth, the lower letter values provide estimates of the quantiles with probabilities $p=\frac{1}{2},\frac14,\frac18,\dots$, while the upper letter values provide estimates of the quantiles with probabilities $p=\frac{1}{2},\frac34,\frac78,\dots$. @hoaglin1983letter [p44], showed that  $\hat{Q}(p)$ with `type = 8` gives approximately the same result as the corresponding letter value.
+Because each depth is roughly half the previous depth, the lower letter values provide estimates of the quantiles with probabilities $p=\frac{1}{2},\frac14,\frac18,\dots$, while the upper letter values provide estimates of the quantiles with probabilities $p=\frac{1}{2},\frac34,\frac78,\dots$. @hoaglin1983letter [p44], showed that $\hat{Q}(p)$ with `type = 8` gives approximately the same result as the corresponding letter value.
 
 ```{r}
 #| label: battinglv
@@ -50,12 +50,12 @@ $$
 and the corresponding letter values are given by
 \begin{align*}
  L_1 &= U_1 = (y_{(`r trunc(d[1])`)}+ y_{(`r trunc(d[1]+1)`)})/2 = `r sprintf("%2.2f", lv[4,"LV"])` &\\
- L_F &= y_{(`r trunc(d[2])`)}  = `r sprintf("%2.2f", lv[3,"LV"])` \qquad
+ L_F &= y_{(`r trunc(d[2])`)} = `r sprintf("%2.2f", lv[3,"LV"])` \qquad
  &U_F &= y_{(`r trunc(n-d[2]+1)`)} = `r sprintf("%2.2f", lv[5,"LV"])` \\
  L_E &= y_{(`r trunc(d[3])`)} = `r sprintf("%2.2f", lv[2,"LV"])` \qquad
  &U_E &= y_{(`r trunc(n-d[3]+1)`)} = `r sprintf("%2.2f", lv[6,"LV"])` \\
- L_D &= y_{(`r trunc(d[4])`)}  = `r sprintf("%2.2f", lv[1,"LV"])` \qquad
- &U_D &= y_{(`r trunc(n-d[4]+1)`)}  = `r sprintf("%2.2f", lv[7,"LV"])`
+ L_D &= y_{(`r trunc(d[4])`)} = `r sprintf("%2.2f", lv[1,"LV"])` \qquad
+ &U_D &= y_{(`r trunc(n-d[4]+1)`)} = `r sprintf("%2.2f", lv[7,"LV"])`
 \end{align*}
 We can compute the letter values using the `lvtable()` function from the `lvplot` package.
 
@@ -239,8 +239,8 @@ Let's apply this approach to the six examples we introduced in @sec-examples. Fi
 #| code-fold: false
 barbato_anomaly <- function(y, extreme = FALSE) {
   n <- length(y)
-  q1 <- quantile(y, 0.25, na.rm = TRUE)
-  q3 <- quantile(y, 0.75, na.rm = TRUE)
+  q1 <- quantile(y, 0.25, na.rm = TRUE, type = 8)
+  q3 <- quantile(y, 0.75, na.rm = TRUE, type = 8)
   threshold <- (1.5 + 1.5 * extreme) * (q3 - q1) * (1 + log(n / 10))
   return(y > q3 + threshold | y < q1 - threshold)
 }
@@ -324,7 +324,7 @@ The stopping rule used in the letter value plot is to show the boxes up to lette
 $$
   0.5\sqrt{2d_k} z_{1-\alpha/2} > d_{k+1}
 $$
-and $z_{1-\alpha/2}$ is the $1-\alpha/2$ quantile of a standard Normal distribution. This choice is based on the idea that the edges of the boxes are quantile estimates, and the confidence interval for each  quantile estimate that is displayed should not overlap the subsequent quantile estimate. The Normal distribution arises because the quantile estimate has an approximate Normal distribution (@eq-sample-quantile-distribution). This stopping rule means that, on average, there should be fewer than $2z^2_{1-\alpha/2}$ legitimate observations in the tails. By default, $\alpha=0.05$, so that, on average, there should be fewer than $2 \times (`r qnorm(1-0.05/2)`)^2 = `r round(2* qnorm(1-0.05/2)^2,1)`$ legitimate observations in the tails, regardless of the size of the data set.
+and $z_{1-\alpha/2}$ is the $1-\alpha/2$ quantile of a standard Normal distribution. This choice is based on the idea that the edges of the boxes are quantile estimates, and the confidence interval for each quantile estimate that is displayed should not overlap the subsequent quantile estimate. The Normal distribution arises because the quantile estimate has an approximate Normal distribution (@eq-sample-quantile-distribution). This stopping rule means that, on average, there should be fewer than $2z^2_{1-\alpha/2}$ legitimate observations in the tails. By default, $\alpha=0.05$, so that, on average, there should be fewer than $2 \times (`r qnorm(1-0.05/2)`)^2 = `r round(2* qnorm(1-0.05/2)^2,1)`$ legitimate observations in the tails, regardless of the size of the data set.
 
 Letter value plots were not designed to detect anomalies, but to be a useful data visualization tool for univariate distributions with large numbers of observations. So the display of legitimate observations in the tails of the distribution is by design, not a flaw.
 
@@ -380,7 +380,7 @@ There are numerous ways to define depth for multivariate data, nicely summarised
 
 ### Tukey depth
 
-The first approach to this problem was (again) due to John Tukey [@Tukey75] who defined the depth of a point $\bm{z}$ in a data set $\{\bm{y}_1,\dots,\bm{y}_n\}$ as the smallest number of $\bm{y}_i$ contained in any  halfspace that contains $\bm{z}$. This is often called the "Tukey depth" of the point. (The point $\bm{z}$ does not have to be one of the observations.)
+The first approach to this problem was (again) due to John Tukey [@Tukey75] who defined the depth of a point $\bm{z}$ in a data set $\{\bm{y}_1,\dots,\bm{y}_n\}$ as the smallest number of $\bm{y}_i$ contained in any halfspace that contains $\bm{z}$. This is often called the "Tukey depth" of the point. (The point $\bm{z}$ does not have to be one of the observations.)
 
 For bivariate data, a half space is either of the two parts formed by splitting the plane with a straight line.
 A diagram will help illustrate the idea. Suppose we have the observations shown in @fig-tukeydepth. These are the first 10 observations from the first two variables of `n01`. The red line divides the plane into two sections which are called "half spaces". We are interested in the depth of the orange point (which is not one of the observations).
@@ -452,39 +452,6 @@ p +
 A simple way to define a multivariate median is the "centre of gravity" of all points of maximum depth [@bivariatemedian]. The **centre of gravity** (or "centroid") of a shape is the average of all points within the shape. If the shape is convex, it is the point where the shape could be perfectly balanced on the tip of a pin if it were made of a uniform material. For example, the centre of gravity of a rectangle is the point in the middle of the rectangle, and the centre of gravity of a circle is the centre of the circle.
 
 In @fig-depthregions, the points of maximum depth are shown in the central green region. The centre of gravity of this region is the yellow point in the middle.
-
-<!-- ### Convex hull peeling depths -->
-
-<!-- Imagine that each of the observations shown in @fig-tukeydepth is a nail hammered into a board and we are looking at it from above. An elastic band wrapped around all observations will form a "convex hull" as shown on the left of @fig-convexhull. -->
-
-<!-- ```{r} -->
-<!-- #| label: fig-convexhull -->
-<!-- #| fig-cap: "Left: The convex hull containing the 10 bivariate observations from @fig-tukeydepth. Right: The second convex layer formed with the same points." -->
-<!-- hull <- chull(n01[1:10, 1:2]) -->
-<!-- hull <- c(hull, hull[1]) -->
-<!-- df <- n01[1:10, 1:2] |> -->
-<!--   mutate(hull = row_number() %in% hull) -->
-<!-- p1 <- df |> -->
-<!--   ggplot(aes(x = v1, y = v2)) + -->
-<!--   geom_point() + -->
-<!--   geom_path(data = n01[hull, 1:2], col = "red") + -->
-<!--   coord_fixed(xlim = c(-0.85, 1.6), ylim = c(-1.85, 1.1)) -->
-<!-- hull2 <- chull(df[!df$hull, 1:2]) -->
-<!-- hull2 <- c(hull2, hull2[1]) -->
-<!-- p2 <- df |> -->
-<!--   ggplot(aes(x = v1, y = v2, col = hull)) + -->
-<!--   geom_point() + -->
-<!--   scale_color_manual(values = c(`TRUE` = "gray", `FALSE` = "black")) + -->
-<!--   geom_path(data = (df[!df$hull, ])[hull2, ], col = "red") + -->
-<!--   guides(col = "none") + -->
-<!--   coord_fixed(xlim = c(-0.85, 1.6), ylim = c(-1.85, 1.1)) -->
-<!-- patchwork::wrap_plots(p1, p2, nrow = 1) -->
-<!-- ``` -->
-
-<!-- This is the first convex layer. If the points on the perimeter are removed, and the convex hull of the remaining points is constructed, we obtain the second convex layer, shown on the right of @fig-convexhull. The third convex layer will consist of the one remaining point that is within the second convex hull. -->
-
-<!-- The "convex hull peeling depth" [@barnett1976ordering] is the level of the convex layer that an observation belongs to. In this data set, points have convex hull peeling depths of 1, 2 or 3. -->
-
 
 ## Bagplots
 
