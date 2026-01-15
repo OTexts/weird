@@ -618,7 +618,7 @@ where $d^*$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,
 #| fig.cap: "Bivariate kernel density estimate with a lookout bandwidth."
 oldfaithful |>
   select(duration, waiting) |>
-  dist_kde(lookout = TRUE) |>
+  dist_kde(method = "lookout") |>
   gg_density(show_points = TRUE) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
