@@ -274,7 +274,7 @@ The **sample quantiles** of a data set are estimates of the quantiles of the und
 
 ### The `quantile()` function
 
-The R function `quantile()` includes nine variations, based on @HF96. Which variation you use makes little difference except for tiny data sets where $n$ is small, or when you are interested in the tails when $p$ is close to 0 or 1. However, for anomaly detection, we are usually interested in the tails, so we will need to use a method that works well for extreme values of $p$.
+The R function `quantile()` includes nine variations when applied to numerical inputs, based on @HF96. Which variation you use makes little difference except for tiny data sets where $n$ is small, or when you are interested in the tails when $p$ is close to 0 or 1. However, for anomaly detection, we are usually interested in the tails, so we will need to use a method that works well for extreme values of $p$.
 
 Let's compare two of the possible variations available in `quantile()`: `type = 7` which is the default method, and `type = 8` which was the recommendation of @HF96 due to it having smaller bias.
 
@@ -718,7 +718,7 @@ If we optimized MSE (@eq-mse) rather than MISE (@eq-mise), we would obtain
 $$
 h = \left(\frac{f(y)R(K)}{n[f''(y)]^2}\right)^{1/5}.
 $$
-This shows that larger bandwidths are required when $f(y)/[f''(y)]^2$ is relatively large, which often occurs in the extreme tails of a distribution. So bandwidths for anomaly detection tend to be larger than bandwidths for other purposes. For that reason, we will sometimes use twice the value of $h$ given by @eq-rnrr, which is available in the `kde_bandwidth()` function using `multiplier = 2`. 
+This shows that larger bandwidths are required when $f(y)/[f''(y)]^2$ is relatively large, which often occurs in the extreme tails of a distribution. So bandwidths for anomaly detection tend to be larger than bandwidths for other purposes. For that reason, we will sometimes use twice the value of $h$ given by @eq-rnrr, which is available in the `kde_bandwidth()` function using `multiplier = 2`.
 
 ### Highest kernel density regions
 
@@ -831,7 +831,7 @@ $$
   H(y) = P\left \{Y \leq u + y \mid Y > u \right \}
   = \frac{ F(u+y) - F(u)}{1 - F(u)}.
 $$ {#eq-POT3}
-When the distribution $F$ satisfies the FTG theorem, then [@coles2001introduction, p75] $H$ is a  **Generalized Pareto Distribution** (GPD) defined by
+When the distribution $F$ satisfies the FTG theorem, then [@coles2001introduction, p75] $H$ is a **Generalized Pareto Distribution** (GPD) defined by
   $$
     H(y) \approx 1 - \Big( 1 + \frac{\xi y}{\sigma_u} \Big)^{-1/\xi} ,
   $$ {#eq-POT}
