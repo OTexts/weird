@@ -415,9 +415,9 @@ Topological data analysis (TDA) uses tools from topology to study data. Here, we
 
 ### Simplicial complexes {-}
 
-Suppose we have a set of observations. These observations can be used to construct a graph (i.e., a network, not a plot) where the individual observations are considered vertices and the edges are determined by the distance between them. Given a proximity parameter $\delta$, two vertices are connected by an edge if the distance between these two points is less than or equal to $\delta$. 
+Suppose we have a set of observations. These observations can be used to construct a graph (i.e., a network, not a plot) where the individual observations are considered vertices and the edges are determined by the distance between them. Given a proximity parameter $\delta$, two vertices are connected by an edge if the distance between these two points is less than or equal to $\delta$.
 
-Starting from this graph, we can construct $k$-simplices, where $k$ denotes the dimension. For example, a point is a 0-simplex, an edge a 1-simplex, a triangle a 2-simplex, a tetrahedron a 3-simplex, and so on. A collection of these $k$-simplices is known as a *simplicial complex*. 
+Starting from this graph, we can construct $k$-simplices, where $k$ denotes the dimension. For example, a point is a 0-simplex, an edge a 1-simplex, a triangle a 2-simplex, a tetrahedron a 3-simplex, and so on. A collection of these $k$-simplices is known as a *simplicial complex*.
 
 The *Vietoris-Rips* complex is one type of $k$-simplicial complex, based on pairwise distances between points. Given a set of points and a proximity parameter $\delta > 0$, $k+1$ points within a distance of $\delta$ to each other form a $k$-simplex. For example, consider the eight points labelled $A$ to $H$ shown in @fig-tetrahedron, and suppose we choose $\delta=1.5$. The blue disks centred on each point have radius $\delta/2$; so overlapping disks indicate that their central points are within $\delta$ of each other.
 
@@ -453,7 +453,7 @@ Points that are connected in some way form a "connected component". There are th
 
 ### Persistent homologies {-}
 
-A useful concept from topology is "persistent homology": a method for computing topological features of a space at different spatial resolutions. Features that persist for a wide range of spatial resolutions represent important, intrinsic features of the data, while features that sporadically change are more likely due to random noise. 
+A useful concept from topology is "persistent homology": a method for computing topological features of a space at different spatial resolutions. Features that persist for a wide range of spatial resolutions represent important, intrinsic features of the data, while features that sporadically change are more likely due to random noise.
 
 For example, as we increase $\delta$, topological features of the Vietoris-Rips complex change --- connected components merge, simplexes increase in dimension, holes are filled, and so on. Taking the small example of @fig-tetrahedron, we explore what happens as $\delta$ increases from 0.5 to 2.0. With a small value of $\delta$, all points are disconnected, and the Vietoris-Rips complex consists of 8 vertices. As $\delta$ increases, more points are connected to each other, and eventually, the complex consists of a single connected component.
 
@@ -481,7 +481,7 @@ for (i in seq_along(prox)) {
 patchwork::wrap_plots(p, nrow = 2)
 ```
 
-The appearances and disappearances of these topological features are referred to as births and deaths. For example, a component is "born" at $\delta=0$, when it consists of a single point, and a component "dies" when existing components merge together. The death diameter of a connected component is known as the *persistence* of the feature. Births and deaths can be illustrated using a *barcode* diagram. 
+The appearances and disappearances of these topological features are referred to as births and deaths. For example, a component is "born" at $\delta=0$, when it consists of a single point, and a component "dies" when existing components merge together. The death diameter of a connected component is known as the *persistence* of the feature. Births and deaths can be illustrated using a *barcode* diagram.
 
 ```{r}
 #| label: fig-barcode
@@ -500,7 +500,7 @@ ph1 <- calculate_homology(as.matrix(X[, 1:2]), dim = 0)
 plot_barcode(ph1) + guides(col = "none")
 ```
 
-@fig-barcode contains the barcode of the point cloud shown in @fig-persistence, comprising a set of horizontal line segments, each denoting the birth and death of a connected component. For example, the shortest diameter corresponds to when $A$ and $F$ joined to form an edge --- when one of the separate vertex components died. The largest diameter corresponds to when all points became connected, when the $BH$ edge component died and joined the rest of the complex. 
+@fig-barcode contains the barcode of the point cloud shown in @fig-persistence, comprising a set of horizontal line segments, each denoting the birth and death of a connected component. For example, the shortest diameter corresponds to when $A$ and $F$ joined to form an edge --- when one of the separate vertex components died. The largest diameter corresponds to when all points became connected, when the $BH$ edge component died and joined the rest of the complex.
 
 If there are $n$ observations, then there $n$ connected components, each born at diameter 0. The first death occurs when the closest two points merge, so the corresponding two features have the same death diameters. Rather than have a repeated bar, only $n-1$ bars are shown. As $\delta$ increases, the connected components disappear one by one, as they merge with neighbouring components, and eventually the number of connected components decreases to 1 when all observations are connected.
 
@@ -592,7 +592,7 @@ oldfaithful |>
 
 Here we see that the short durations tended to be followed by a short waiting time until the next duration, while the long durations tend to be followed by a long waiting time until the next duration. There are several anomalous eruptions including the one with the 1 second duration, and the one where a short duration was followed by a short waiting time. The unusual durations between 150 and 180 seconds can be followed by either short or long durations.
 
-### Bandwidth matrix selection
+### Bandwidth matrix selection {#sec-mvkdebw}
 
 A common approach is to specify $\bm{H}$ to be diagonal, with elements equal to the squares of univariate bandwidth rules. (The univariate bandwidths are usually defined as the standard deviation of the kernel, while multivariate bandwidth matrices correspond to the covariance matrix of the kernel. Hence, the univariate bandwidths need to be squared if used in a bandwidth matrix.) That is, if $h_1,\dots,h_d$ are the univariate bandwidths for each of the variables, then the corresponding diagonal bandwidth matrix is given by $\bm{H} = \text{diag}(h_1^2,\dots,h_d^2)$. For example, `geom_density_2d()` uses a bivariate Gaussian kernel with diagonal bandwidth matrix where the diagonal values are given by the squares of @eq-nrd. However, this approach leads to bandwidths that are too small, as it ignores the convergence properties of the multivariate estimator. Additionally, any diagonal bandwidth matrix implicitly assumes that the variables are uncorrelated, and leads to more biased estimators.
 
@@ -602,15 +602,15 @@ If the underlying density is Normal with mean $\bm{\mu}$ and variance $\bm{\Sigm
 $$
   \bm{H} = \left(\frac{4}{m+2}\right)^{2/(m+4)} n^{-2/(m+4)} \bm{\Sigma}.
 $$ {#eq-gaussianH}
-Notice that in the univariate case, when $m=1$, this rule gives the same bandwidth as the rule of thumb given by @eq-nrr (where $h = \sqrt{H}$).
+Notice that in the univariate case, when $m=1$, this rule gives the same bandwidth as the rule of thumb given by @eq-nrr (where $h = \sqrt{H}$). This is what is calculated by `kde_bandwidth()` when `method = "normal"`, where $\bm{\Sigma}$ is estimated using the sample covariance matrix @eq-cov.
 
-Replacing $\bm{\Sigma}$ by the robust covariance matrix $\bm{S}_{\text{OGK}}$ (@eq-ogk), we obtain a robust normal reference rule, calculated by `kde_bandwidth()`. @fig-ofbivariate2 shows a bivariate kernel density estimate computed using this approach. 
+Replacing $\bm{\Sigma}$ by the robust covariance matrix $\bm{S}_{\text{OGK}}$ (@eq-ogk), we obtain a robust normal reference rule, calculated by `kde_bandwidth()` when `method = "robust"` (the default setting). @fig-ofbivariate2 shows a bivariate kernel density estimate computed using this approach.
 
-As with univariate density estimation, when estimating the density in the tails of the distribution, it is usually better to have a larger bandwidth than those given by the rules above. When `multiplier = 2`, `kde_bandwidth()` will return the matrix $\bm{H}$ from @eq-gaussianH multiplied by 4 (because it is a variance, doubling the scale increases the matrix by a factor of four).
+A more data-driven approach, is the "plug-in" estimator [@chacon2018multivariate] calculated by `kde_bandwidth()` when `method = "plugin"`. This is a generalization of the plug-in bandwidths popular for univariate kernel density estimation [@sec-kde]. While this typically leads to better estimates of the density as a whole, it can lead to worse estimates in the tails of the distribution where anomalies tend to lie.
 
-An alternative approach to finding the bandwidth matrix uses ideas from topological data analysis (@sec-tda). First, we compute robust multivariate z-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \bm{m})$, $i=1,\dots,n$, where $\bm{m}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}$ is the Cholesky decomposition of $\bm{S}_{\text{OGK}}^{-1}$. Then we construct the barcode of the data cloud of z-scores using Vietoris-Rips complexes with increasing diameter $\delta$. From the barcode we obtain the sequence of death diameters $\{d_1,\dots,d_n\}$ for the connected components. Finally, we can set 
+An alternative approach to finding the bandwidth matrix uses ideas from topological data analysis (@sec-tda). First, we compute robust multivariate z-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \bm{m})$, $i=1,\dots,n$, where $\bm{m}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}$ is the Cholesky decomposition of $\bm{S}_{\text{OGK}}^{-1}$. Then we construct the barcode of the data cloud of z-scores using Vietoris-Rips complexes with increasing diameter $\delta$. From the barcode we obtain the sequence of death diameters $\{d_1,\dots,d_n\}$ for the connected components. Finally, we can set
 $$\bm{H} = (d^*)^{2/m}\bm{S}_{\text{OGK}}$$
-where $d^*$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_n\}$ for a large value of $\gamma$. @lookout2 showed that this leads to a consistent density estimate, with good properties for anomaly detection, when $\gamma = 0.97$. We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-lookout. The `kde_bandwidth()` function will return this bandwidth when the argument `lookout = TRUE`.
+where $d^*$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_n\}$ for a large value of $\gamma$. @lookout2 showed that this leads to a consistent density estimate, with good properties for anomaly detection, when $\gamma = 0.97$. We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-lookout. The `kde_bandwidth()` function will return this bandwidth when `method = "lookout"`. For univariate data, $\bm{S}_{\text{OGK}}$ is replaced by $s_{\text{Qn}}$.
 
 ```{r}
 #| label: fig-ofbivariate3

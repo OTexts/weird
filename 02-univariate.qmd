@@ -636,13 +636,15 @@ of2021 |>
 
 When $h$ is too small, the density estimate is too rough, with many peaks and troughs. When $h$ is too large, the density estimate is too smooth and we fail to see any features in the data. A popular choice for $h$ is the "normal reference rule" [@Silverman1986, p45] given by
 $$
-  h = 1.059 s n^{-1/5}
+  h = 1.059 s n^{-1/5}.
 $$ {#eq-nrr}
-but because we want our results to be robust to outliers, we will replace $s$ by the robust $Q_n$ estimate, resulting in
+This is implemented in the function `kde_bandwidth()` when `method = "normal"`.
+
+Because we want our results to be robust to outliers, it is usually better to replace $s$ by the robust $Q_n$ estimate, resulting in
 $$
   h = 1.059 Q_n n^{-1/5}.
 $$ {#eq-rnrr}
-We will call this the "robust normal reference rule"; it is implemented in the function `kde_bandwidth()`. For the 10 observations in the example above, it gives $h = `r round(h, 1)`$, which is the value we used.
+We will call this the "robust normal reference rule"; it is implemented in the function `kde_bandwidth()` when `method = "robust"` (which is the default setting). For the 10 observations in the example above, it gives $h = `r round(h, 1)`$, which is the value we used.
 
 This example using only 10 observations was purely to illustrate the method. Let's now estimate a kernel density estimate for the full data set. We will use the `dist_kde()` function, which uses the Gaussian kernel, and by default sets the bandwidth using the robust normal reference rule (@eq-rnrr) via the `kde_bandwidth()` function.
 
@@ -702,7 +704,7 @@ However, this value of $h$ depends on the underlying density $f$ which we don't 
 $$
   h = \sigma \left(\frac{4}{3n}\right)^{1/5}.
 $$ {#eq-opth}
-Replacing $\sigma$ by the sample standard deviation gives us the normal reference rule @eq-nrr; while replacing $\sigma$ by the robust estimate $Q_n$ gives use the robust normal reference rule @eq-rnrr.
+Replacing $\sigma$ by the sample standard deviation gives us the normal reference rule @eq-nrr. When $\sigma$ is replaced the robust estimate $Q_n$, we obtain the robust normal reference rule @eq-rnrr.
 
 Several other related bandwidth selection methods are widely used. For example, instead of using $Q_n$ to estimate $s$, we might use the minimum of the sample standard deviation and the robust estimate based on the IQR, giving
 $$
@@ -712,13 +714,17 @@ This is what is computed by the `bw.nrd()` function, and is available in `geom_d
 
 Silverman's "rule-of-thumb" is similar, but it replaces 1.06 in @eq-nrd by 0.9, because Silverman argued that most densities are not as smooth as a Normal density, and so a smaller bandwidth is required. This variation is computed using the `bw.nrd0()` function, and is the default bandwidth used by `geom_density()` and `density()`.
 
+Another popular bandwidth choice is the "plug-in" bandwidth [@SJ91], obtained by replacing $R(f'')$ in @eq-opth by an estimate based on the data. This is computed by `kde_bandwidth()` when `method = "plugin"`. For most data sets, this will give a smaller value than @eq-nrr.
+
 Bandwidths obtained in this way are designed to give a good overall estimate of the underlying density, but may not be optimal for any particular point of the density. Our goal is to find anomalies in the data, rather than find a good representation for the rest of the data, and so we are interested in the regions of low density.
 
 If we optimized MSE (@eq-mse) rather than MISE (@eq-mise), we would obtain
 $$
 h = \left(\frac{f(y)R(K)}{n[f''(y)]^2}\right)^{1/5}.
 $$
-This shows that larger bandwidths are required when $f(y)/[f''(y)]^2$ is relatively large, which often occurs in the extreme tails of a distribution. So bandwidths for anomaly detection tend to be larger than bandwidths for other purposes. For that reason, we will sometimes use twice the value of $h$ given by @eq-rnrr, which is available in the `kde_bandwidth()` function using `multiplier = 2`.
+This shows that larger bandwidths are required when $f(y)/[f''(y)]^2$ is relatively large, which often occurs in the extreme tails of a distribution. So bandwidths for anomaly detection tend to be larger than bandwidths for other purposes.
+
+A final option in `kde_bandwidth()` is `method = "lookout"`, which does tend to give larger bandwidths. We will defer a description of that method until @sec-mvkdebw.
 
 ### Highest kernel density regions
 

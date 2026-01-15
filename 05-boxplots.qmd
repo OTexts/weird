@@ -514,7 +514,7 @@ Let's illustrate the idea with univariate data. In @sec-kde, we estimated the de
 #| label: fig-hdr-faithful
 #| fig.cap: "Kernel density estimate of the duration of Old Faithful eruptions between 2017 and 2023. Below the density estimate is shown an HDR boxplot of the same data, with the 50% and 99% highest density regions shown as shaded regions, and observations outside the 99% region shown as individual points."
 #| warning: false
-dist_kde(oldfaithful$duration, multiplier = 2) |>
+dist_kde(oldfaithful$duration) |>
   gg_density(
     hdr = "fill",
     prob = c(0.5, 0.99),
