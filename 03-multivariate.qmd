@@ -606,11 +606,13 @@ Notice that in the univariate case, when $m=1$, this rule gives the same bandwid
 
 Replacing $\bm{\Sigma}$ by the robust covariance matrix $\bm{S}_{\text{OGK}}$ (@eq-ogk), we obtain a robust normal reference rule, calculated by `kde_bandwidth()` when `method = "robust"` (the default setting). @fig-ofbivariate2 shows a bivariate kernel density estimate computed using this approach.
 
-A more data-driven approach, is the "plug-in" estimator [@chacon2018multivariate] calculated by `kde_bandwidth()` when `method = "plugin"`. This is a generalization of the plug-in bandwidths popular for univariate kernel density estimation [@sec-kde]. While this typically leads to better estimates of the density as a whole, it can lead to worse estimates in the tails of the distribution where anomalies tend to lie.
+A generalization of the univariate plug-in bandwidth [@sec-kde] is the "plug-in" estimator of @chacon2018multivariate, calculated by `kde_bandwidth()` when `method = "plugin"`. While this typically leads to better estimates of the density as a whole, it can lead to worse estimates in the tails of the distribution where anomalies tend to lie.
 
 An alternative approach to finding the bandwidth matrix uses ideas from topological data analysis (@sec-tda). First, we compute robust multivariate z-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \bm{m})$, $i=1,\dots,n$, where $\bm{m}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}$ is the Cholesky decomposition of $\bm{S}_{\text{OGK}}^{-1}$. Then we construct the barcode of the data cloud of z-scores using Vietoris-Rips complexes with increasing diameter $\delta$. From the barcode we obtain the sequence of death diameters $\{d_1,\dots,d_n\}$ for the connected components. Finally, we can set
-$$\bm{H} = (d^*)^{2/m}\bm{S}_{\text{OGK}}$$
-where $d^*$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_n\}$ for a large value of $\gamma$. @lookout2 showed that this leads to a consistent density estimate, with good properties for anomaly detection, when $\gamma = 0.97$. We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-lookout. The `kde_bandwidth()` function will return this bandwidth when `method = "lookout"`. For univariate data, $\bm{S}_{\text{OGK}}$ is replaced by $s_{\text{Qn}}$.
+$$
+  \bm{H} = (d^*)^{2/m}\bm{S}_{\text{OGK}}
+$$ {#eq-lookoutH}
+where $d^*$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_n\}$ for a large value of $\gamma$. @lookout2 showed that this leads to a consistent density estimate, with good properties for anomaly detection, when $\gamma = 0.97$. We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-lookout. The `kde_bandwidth()` function will return this bandwidth when `method = "lookout"`. For univariate data, $\bm{S}_{\text{OGK}}$ is replaced by $s_{\text{Qn}}$ in @eq-lookoutH.
 
 ```{r}
 #| label: fig-ofbivariate3

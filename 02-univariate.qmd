@@ -710,9 +710,7 @@ Several other related bandwidth selection methods are widely used. For example, 
 $$
   h = 1.06 \min(s, 0.7413*\text{IQR}) n^{-1/5}.
 $$ {#eq-nrd}
-This is what is computed by the `bw.nrd()` function, and is available in `geom_density()` or `density()` by setting `bw = "nrd"`.
-
-Silverman's "rule-of-thumb" is similar, but it replaces 1.06 in @eq-nrd by 0.9, because Silverman argued that most densities are not as smooth as a Normal density, and so a smaller bandwidth is required. This variation is computed using the `bw.nrd0()` function, and is the default bandwidth used by `geom_density()` and `density()`.
+Silverman's "rule-of-thumb" is similar, but it replaces 1.06 in @eq-nrd by 0.9, because Silverman argued that most densities are not as smooth as a Normal density, and so a smaller bandwidth is required. This is the default bandwidth used by `geom_density()` and `density()`.
 
 Another popular bandwidth choice is the "plug-in" bandwidth [@SJ91], obtained by replacing $R(f'')$ in @eq-opth by an estimate based on the data. This is computed by `kde_bandwidth()` when `method = "plugin"`. For most data sets, this will give a smaller value than @eq-nrr.
 
