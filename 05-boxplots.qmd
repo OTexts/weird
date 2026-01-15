@@ -162,7 +162,7 @@ tibble(x = rnorm(10000)) |>
 
 Many anomalies are shown, but since all observations come from a simple distribution, none of them are actually anomalies. For this distribution, $Q(0.25) = `r sprintf("%.3f", q1)`$, $Q(0.75) = `r sprintf("%.3f", q3)`$, $\text{IQR} = `r sprintf("%.3f", iqr)`$, and so for a large sample size, the boxplot whiskers would be approximately $`r sprintf("%.3f", q1)` - 1.5\times `r sprintf("%.3f", iqr)` = `r sprintf("%.3f", whisker1)`$ and $`r sprintf("%.3f", q3)` + 1.5\times `r sprintf("%.3f", iqr)` = `r sprintf("%.3f", whisker2)`$. Any points outside the whiskers would be identified as "anomalous" by a boxplot and plotted as separate points. The probability of a standard normal observation being at least $`r sprintf("%.3f", whisker2)`$ in absolute value is $`r sprintf("%.5f", 1-pnorm(whisker2))`$. So with $10000$ observations, we would have about $`r round(10000*(1-pnorm(whisker2)))`$ anomalies identified, none of which would be a genuine anomaly.
 
-The second problem is demonstrated using the Old Faithful eruption duration data, shown in @fig-oldfaithful1. As before, we will omit the largest value so we can see the details in the remaining data.
+The second problem is demonstrated using the Old Faithful eruption duration data, shown in @fig-oldfaithful1.
 
 ```{r}
 #| label: fig-oldfaithful2a
@@ -177,7 +177,7 @@ oldfaithful |>
   labs(y = "", x = "Duration (seconds)")
 ```
 
-Quite a few anomalies are shown, including the one-second eruption we identified earlier. But the remaining "anomalies" are not particularly unusual observations. All the points below 180 seconds are identified as anomalies, even though we know that observations in the region between 100 and 140 are not unusual for this geyser. Because the boxplot does not allow for more than one mode, all the points in the second smaller cluster are identified as anomalies. The points around 300 seconds are also not really anomalies --- these are just values in the upper tail of the distribution for eruptions.
+Quite a few anomalies are shown, including the three abnormally short eruptions we identified earlier. But the remaining "anomalies" are not particularly unusual observations. All the points below 180 seconds are identified as anomalies, even though we know that observations in the region between 100 and 140 are not unusual for this geyser. Because the boxplot does not allow for more than one mode, all the points in the second smaller cluster are identified as anomalies. The points around 300 seconds are also not really anomalies --- these are just values in the upper tail of the distribution for eruptions.
 
 ## Modified IQR boxplots
 
@@ -382,8 +382,8 @@ There are numerous ways to define depth for multivariate data, nicely summarised
 
 The first approach to this problem was (again) due to John Tukey [@Tukey75] who defined the depth of a point $\bm{z}$ in a data set $\{\bm{y}_1,\dots,\bm{y}_n\}$ as the smallest number of $\bm{y}_i$ contained in any halfspace that contains $\bm{z}$. This is often called the "Tukey depth" of the point. (The point $\bm{z}$ does not have to be one of the observations.)
 
-For bivariate data, a half space is either of the two parts formed by splitting the plane with a straight line.
-A diagram will help illustrate the idea. Suppose we have the observations shown in @fig-tukeydepth. These are the first 10 observations from the first two variables of `n01`. The red line divides the plane into two sections which are called "half spaces". We are interested in the depth of the orange point (which is not one of the observations).
+For bivariate data, a halfspace is either of the two parts formed by splitting the plane with a straight line.
+A diagram will help illustrate the idea. Suppose we have the observations shown in @fig-tukeydepth. These are the first 10 observations from the first two variables of `n01`. The red line divides the plane into two sections which are called "halfspaces". We are interested in the depth of the orange point (which is not one of the observations).
 
 ```{r}
 #| label: fig-tukeydepth
@@ -397,7 +397,7 @@ n01 |>
   coord_fixed(xlim = c(-0.85, 1.6), ylim = c(-1.85, 1.1))
 ```
 
-There are an infinite number of ways of dividing the plane into half spaces, and the number of points in each half plane will vary depending on where the dividing line falls.
+There are an infinite number of ways of dividing the plane into halfspaces, and the number of points in each half plane will vary depending on where the dividing line falls.
 
 To find the depth of the orange point, we need to find the line which divides the plane into two sections where the half containing the orange point includes as few observations as possible. In fact, the red line is one such solution which has the orange point in a halfspace containing only 2 observations There are no dividing lines that would put the orange point in a halfspace on its own. So it has a Tukey depth of 2.
 
@@ -480,12 +480,11 @@ A more interesting example is obtained in @fig-oldfaithfulbagplot, showing a bag
 #| label: fig-oldfaithfulbagplot
 #| fig.cap: Bagplot of the durations and waiting times of Old Faithful eruptions between 2017 and 2023.
 oldfaithful |>
-  filter(duration < 7200, waiting < 7200) |>
   gg_bagplot(duration, waiting) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 
-This demonstrates the drawback of using a bagplot to identify anomalies. The plot has identified all the shorter duration eruptions as anomalous, along with a small number of other eruptions.
+This demonstrates the drawback of using a bagplot to identify anomalies. While the plot has identified all the genuine anomalies, it has also highlighted points on the edge of the data cloud which are probably not anomalies.
 
 A useful variation of the bagplot, especially for larger data sets, displays a scatterplot of the observations, but colored using the same colors as the bagplot, with the deepest observation in the strongest blue, the points within the bag in a lighter blue, and the points within the loop in the lightest color. Outliers are shown in black if any exist.
 
@@ -493,7 +492,6 @@ A useful variation of the bagplot, especially for larger data sets, displays a s
 #| label: fig-oldfaithfulbagplot2
 #| fig.cap: Bagplot of the durations and waiting times of Old Faithful eruptions between 2017 and 2023.
 oldfaithful |>
-  filter(duration < 7200, waiting < 7200) |>
   gg_bagplot(duration, waiting, scatterplot = TRUE) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
