@@ -8489,7 +8489,7 @@
       "RemoteUsername": "robjhyndman",
       "RemoteRepo": "weird-package",
       "RemoteRef": "main",
-      "RemoteSha": "f9ae933684ae3ca037336e1c961b15d2c71fcfeb",
+      "RemoteSha": "8112501560be948f95f5d0d74d5b5fee6c93d20b",
       "RemoteHost": "api.github.com",
       "Remotes": "sevvandi/lookout"
     },
