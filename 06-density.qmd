@@ -174,8 +174,6 @@ tibble(
 )
 ```
 
-The default value of the `probability` argument is `TRUE`.
-
 The value of $p_i$ is the probability of an observation being at least as anomalous as $\bm{y}_i$​ if the observations come from the distribution $f$. So if we label points as anomalous when $p_i < \alpha$, we will have a false positive rate of $\alpha$.
 
 ### Connection to Highest density regions
@@ -191,8 +189,6 @@ This shows that when $f$ is a Normal density, identifying anomalies as observati
 ### LOO surprisals
 
 If the density $f$ has been estimated from the data, then there is a problem of circular reasoning. Any genuine anomalies may affect the estimated density, and then they may not appear to be anomalies. Therefore, it is sometimes useful to consider the leave-one-out (LOO) estimate given by $f_{-i}$. That is, $f_{-i}$ is the density estimate using all observations other than the $i$th observation. Then an unusual observation can't influence the density estimate, giving us a better measure of how anomalous it really is. In this case, we will call the associated surprisal, a "LOO surprisal", given by $s_i = -\log f_{-i}(\bm{y}_i)$.
-
-The `surprisals()` and `surprisals_prob()` functions each have a `loo` argument for specifying whether we want LOO surprisals used in the computation.
 
 ### Approximate GPD surprisal probabilities {#sec-gpd-tails}
 
@@ -388,7 +384,7 @@ broom::augment(fit) |>
 More simply, we can just use the `surprisals()` function again:
 
 ```r
-surprisals(fit, type = "loo")
+surprisals(fit, loo = TRUE)
 ```
 
 ### Example: Shiraz reviews
@@ -521,7 +517,7 @@ The preceding analysis shows the calculations of surprisal probabilities in deta
 ```{r}
 #| code-fold: false
 shiraz <- shiraz |>
-  mutate(prob = surprisals_prob(fit_wine, approximation = "empirical"))
+  mutate(prob = surprisals_prob(fit_wine, loo = TRUE, approximation = "empirical"))
 shiraz |>
   select(country:winery, year, points, price, prob) |>
   arrange(prob)
@@ -666,7 +662,7 @@ The largest possible LOO kde surprisal is infinite, occuring when there are no o
 
 ### The lookout algorithm {#sec-lookout}
 
-The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2. It uses surprisal probabilities based on a GPD approximation. Probabilities obtained using this algorithm can be calculated using the `lookout_prob()` function.
+The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2. It uses surprisal probabilities based on a GPD approximation. Probabilities obtained using this algorithm can be calculated using the `surprisals_prob()` function applied to a data set with `loo = TRUE`, and `approximation = "gdp"`.
 
 ### Example: Old Faithful eruption durations
 
@@ -678,7 +674,7 @@ For the Old Faithful eruption duration data, we obtain the following results.
 of_surprisals <- oldfaithful |>
   mutate(
     loo_kde_surprisal = surprisals(duration, loo = TRUE),
-    prob = surprisals_prob(duration, loo = TRUE),
+    prob = surprisals_prob(duration, loo = TRUE, approximation = "gpd"),
   )
 of_surprisals |> arrange(desc(loo_kde_surprisal))
 ```
@@ -694,7 +690,7 @@ of_surprisals <- oldfaithful |>
   filter(duration > 60) |>
   mutate(
     loo_kde_surprisal = surprisals(duration, loo = TRUE),
-    prob = surprisals_prob(duration, loo = TRUE),
+    prob = surprisals_prob(duration, loo = TRUE, approximation = "gpd"),
   )
 of_surprisals |> arrange(desc(loo_kde_surprisal))
 ```
@@ -724,13 +720,13 @@ of <- oldfaithful |>
 of |>
   mutate(
     loo_scores = surprisals(of, loo = TRUE),
-    prob = surprisals_prob(of, loo = TRUE)
+    prob = surprisals_prob(of, loo = TRUE, approximation = "gpd")
   ) |>
   filter(prob < 0.005) |>
   arrange(prob, duration)
 ```
 
-Now, `r english::words(sum(surprisals_prob(of) < 0.001))` anomalies are identified, with both of them having infinite LOO surprisals. We can visualize them in an HDR scatterplot, shown in @fig-ofpot2.
+Now, `r english::words(sum(surprisals_prob(of, loo = TRUE, approximation = "gpd") < 0.001))` anomalies are identified, with both of them having infinite LOO surprisals. We can visualize them in an HDR scatterplot, shown in @fig-ofpot2.
 
 ```{r}
 #| label: fig-ofpot2
@@ -739,6 +735,7 @@ Now, `r english::words(sum(surprisals_prob(of) < 0.001))` anomalies are identifi
 of |>
   gg_hdrboxplot(duration, waiting, scatterplot = TRUE)
 ```
+
 ### More examples
 
 Let's apply the kde surprisals method to the six examples introduced in @sec-examples. For this purpose we will use a threshold of 0.001 for the surprisal probabilities.
@@ -748,13 +745,12 @@ Let's apply the kde surprisals method to the six examples introduced in @sec-exa
 #| code-fold: false
 cricket_batting |>
   filter(Innings > 20) |>
-  mutate(prob = surprisals_prob(Average, loo = TRUE)) |>
+  mutate(prob = surprisals_prob(Average, loo = TRUE, approximation = "gpd")) |>
   filter(prob < 0.001) |>
   select(Player, Average, prob)
 ```
 
 Here Bradman is a clear anomaly (with a very low surprisal probability), and no-one else is identified as a possible anomaly.
-
 
 Next we consider some artificial examples. First, we consider the first 48 rows of the second variable in the `n01` data, along with the values 4.0 and 4.5.
 
@@ -763,7 +759,7 @@ Next we consider some artificial examples. First, we consider the first 48 rows 
 #| code-fold: false
 n01b <- tibble(y = c(n01$v2[1:48], 4, 4.5))
 n01b |>
-  mutate(prob = surprisals_prob(y, loo = TRUE)) |>
+  mutate(prob = surprisals_prob(y, loo = TRUE, approximation = "gpd")) |>
   filter(prob < 0.05) |>
   arrange(prob)
 ```
@@ -777,20 +773,20 @@ Finally, we consider 1000 simulated observations from each of the distributions,
 #| code-fold: false
 n01 |>
   select(v1) |>
-  mutate(prob = surprisals_prob(v1, loo = TRUE)) |>
+  mutate(prob = surprisals_prob(v1, loo = TRUE, approximation = "gpd")) |>
   filter(prob < 0.001) |>
   arrange(prob, v1)
 set.seed(1)
 tibble(y = rt(1000, df = 3)) |>
-  mutate(prob = surprisals_prob(y, loo = TRUE)) |>
+  mutate(prob = surprisals_prob(y, loo = TRUE, approximation = "gpd")) |>
   filter(prob < 0.001) |>
   arrange(prob, y)
 tibble(y = rchisq(1000, df = 4)) |>
-  mutate(prob = surprisals_prob(y, loo = TRUE)) |>
+  mutate(prob = surprisals_prob(y, loo = TRUE, approximation = "gpd")) |>
   filter(prob < 0.001) |>
   arrange(prob, y)
 ```
 
-The algorithm has found a small number of spurious anomalies in each case, out of the 1000 observations included. Notably, the results do not appear to deteriorate with the heavier-tailed or skewed distributions.
+The algorithm has found a few spurious anomalies in each case, out of the 1000 observations included. Notably, the results do not appear to deteriorate with the heavier-tailed or skewed distributions.
 
 ## Other density-based methods
