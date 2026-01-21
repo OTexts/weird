@@ -260,11 +260,11 @@ patchwork::wrap_plots(
 
 The Hampel identifier worked well for the annual mortality series, but the local median approach will break down when there is seasonality or other systematic patterns in the data. However, the same idea can be adapted by replacing the local median with a more sophisticated way of modelling the signal in the data. One such method is STL (Seasonal Trend decomposition using Loess) due to @Cleveland1990, and extended by @mstl to handle multiple seasonal periods or series with no seasonality.
 
-We will apply this idea to find unusual observations in US weekly mortality data between 2015 and 2024, obtained from the @HMD. The following code downloads the data from the website, and wrangles it into a `tsibble` object (a special type of tibble designed for time series data).
+We will apply this idea to find unusual observations in US weekly mortality data between 2015 and 2024, obtained from the @HMD. The following code reads the data, and wrangles it into a `tsibble` object (a special type of tibble designed for time series data).
 
 ```{r}
 #| label: stmf
-us_stmf <- "https://www.mortality.org/File/GetDocument/Public/STMF/Outputs/USAstmfout.csv" |>
+us_stmf <- "https://github.com/OTexts/weird/raw/main/data/USAstmfout.csv" |>
   read.csv(header = TRUE) |>
   # Create time index varaible
   mutate(Week = yearweek(paste0(Year, "-W", Week))) |>
