@@ -6,21 +6,19 @@ This book is about tools and techniques for finding and understanding anomalies.
 
 The book is written for two audiences: (1)&nbsp;people finding themselves doing data analysis without having had formal training in anomaly detection; and (2)&nbsp;students studying statistics or data science.
 
-You will need a knowledge of statistics and probability at about second year undergraduate level. So if you've done a couple of statistics subjects, and are familiar with multiple regression, hypothesis tests and probability distributions, then you should be prepared for what follows. This book takes a probabilistic approach to anomaly detection, and so probability distributions are particularly important. This is the subject of Chapters [-@sec-univariate] and [-@sec-multivariate]. You will also need some knowledge of matrix algebra; the most important matrix results that we use are provided in @sec-appendix.
+You will need a knowledge of statistics and probability at about second year undergraduate level. So if you've done a couple of statistics subjects, and are familiar with multiple regression, hypothesis tests and probability distributions, then you should be prepared for what follows. This book takes a probabilistic approach to anomaly detection, and so probability distributions are particularly important. This is the subject of Chapters @sec-univariate and @sec-multivariate. You will also need some knowledge of matrix algebra; the most important matrix results that we use are provided in @sec-appendix.
 
 Finally, you will need to know how to use R and be familiar with the [tidyverse](https://tidyverse.org) packages such as `dplyr`, `tidyr` and `ggplot2`. There are many online resources that cover this material, including @r4ds and the [StartR](https://startr.numbat.space/) self-learning modules we have developed at Monash University.
 
-All R examples in the book assume that you have loaded the [`weird` package](https://pkg.robjhyndman.com/weird-package/) first. It is available [on CRAN](https://cran.r-project.org/package=weird), although many examples in the book use the latest dev version [available on GitHub](https://github.com/robjhyndman/weird-package).
+All R examples in the book assume that you have loaded the [`weird` package](https://pkg.robjhyndman.com/weird-package/) first. You will need to have version 2.0.0 or later. 
 
 ```{r}
 #| label: library
-#| eval: false
 #| code-fold: false
-# remotes::install_github("robjhyndman/weird-package")
 library(weird)
 ```
 
-This will load the relevant data sets, and various other packages needed to reproduce the examples.
+This loads the relevant data sets, and various other packages needed to reproduce the examples.
 
 &nbsp;<br>
 

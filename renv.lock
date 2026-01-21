@@ -8411,7 +8411,7 @@
     },
     "weird": {
       "Package": "weird",
-      "Version": "1.0.2.9000",
+      "Version": "2.0.0",
       "Source": "GitHub",
       "Title": "Functions and Data Sets for \"That's Weird: Anomaly Detection Using R\" by Rob J Hyndman",
       "Authors@R": "c(person(given = \"Rob\", family = \"Hyndman\", role = c(\"aut\", \"cre\", \"cph\"), email = \"Rob.Hyndman@monash.edu\", comment = c(ORCID = \"0000-0002-2140-5352\")), person(given = \"RStudio\", role = c(\"cph\")))",
@@ -8460,7 +8460,7 @@
       "RemoteUsername": "robjhyndman",
       "RemoteRepo": "weird",
       "RemoteRef": "main",
-      "RemoteSha": "f1f7530d318e1d7796b62fae4db9bc65ea0157dc",
+      "RemoteSha": "a394ecee81f55c2dda79ddb7cdeb5856b81a8d0d",
       "RemoteHost": "api.github.com"
     },
     "withr": {
