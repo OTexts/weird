@@ -85,7 +85,7 @@ df <- tibble(
   y = seq(0, 15, l = 501),
   fy = density(den, at = y)[[1]],
   s = -log(fy),
-  p = surprisals(y, distribution = den)
+  p = surprisals_prob(y, distribution = den)
 )
 palpha <- 0.1
 p1 <- df |>
@@ -162,15 +162,15 @@ p3 <- df |>
 patchwork::wrap_plots(p1, p2, p3, ncol = 1)
 ```
 
-The `surprisals()` function takes values of the data $\bm{y}_i$ and returns values of either $s_i$ or $p_i$ (depending on the `probability` argument), where the assumed density $f$ can be provided as a distribution object from the `distributional` package.
+The `surprisals()` function takes values of the data $\bm{y}_i$ and returns values of $s_i$, where the assumed density $f$ can be provided as a distribution object from the `distributional` package. The values of $p_i$ can be obtained using `surprisals_prob()`. 
 
 ```{r}
 #| label: surprisals_eg
 #| code-fold: false
 tibble(
   y = -5:5,
-  s = surprisals(y, distribution = dist_normal(), probability = FALSE),
-  p = surprisals(y, distribution = dist_normal(), probability = TRUE)
+  s = surprisals(y, distribution = dist_normal()),
+  p = surprisals_prob(y, distribution = dist_normal())
 )
 ```
 
@@ -192,7 +192,7 @@ This shows that when $f$ is a Normal density, identifying anomalies as observati
 
 If the density $f$ has been estimated from the data, then there is a problem of circular reasoning. Any genuine anomalies may affect the estimated density, and then they may not appear to be anomalies. Therefore, it is sometimes useful to consider the leave-one-out (LOO) estimate given by $f_{-i}$. That is, $f_{-i}$ is the density estimate using all observations other than the $i$th observation. Then an unusual observation can't influence the density estimate, giving us a better measure of how anomalous it really is. In this case, we will call the associated surprisal, a "LOO surprisal", given by $s_i = -\log f_{-i}(\bm{y}_i)$.
 
-The `surprisals()` function has a `loo` argument for specifying whether we want LOO surprisals used in the computation.
+The `surprisals()` and `surprisals_prob()` functions each have a `loo` argument for specifying whether we want LOO surprisals used in the computation.
 
 ### Approximate GPD surprisal probabilities {#sec-gpd-tails}
 
@@ -219,7 +219,7 @@ e.g., if the surprisal ranks under $f$ and $f^*$ are equal, I think this should 
 
 The approach does require a relatively large number of surprisals to be available, in order to adequately estimate the GPD from the top $\beta$ of the observations. So we would normally need at least a few hundred observations to start with.
 
-The `surprisals()` function has an approximation argument for specifying if we want to use the GPD approximation in computing surprisal probabilities. The argument `threshold_probability` is used to specify $\beta$, with the default value of 0.1.
+The `surprisals_prob()` function has an approximation argument for specifying if we want to use the GPD approximation in computing surprisal probabilities. The argument `threshold_probability` is used to specify $\beta$, with the default value of 0.1.
 
 ### Approximate empirical surprisal probabilities
 
@@ -235,11 +235,11 @@ If the surprisal ranks under $f$ and $f^*$ are equal, this is obviously ok. That
 Can we say anything else?
 :::
 
-The approximation argument of `surprisals()` can also be used to specify if we want to use the empirical surprisal probabilities.
+The approximation argument of `surprisals_prob()` can also be used to specify if we want to use the empirical surprisal probabilities.
 
 ### Example: Standard normal values
 
-For example, consider the 1000 values contained in the first column of `n01`. These were generated from a standard Normal distribution. We can use `surprisals()` to identify anomalies with probability less than 1%. This is equivalent to z-scores greater than `r sprintf("%.3f", qnorm(1-0.01/2))` in absolute value.
+For example, consider the 1000 values contained in the first column of `n01`. These were generated from a standard Normal distribution. We can use `surprisals_prob()` to identify anomalies with probability less than 1%. This is equivalent to z-scores greater than `r sprintf("%.3f", qnorm(1-0.01/2))` in absolute value.
 
 We will use all three methods described above, first using the correct density in computing the surprisals, and then repeating the calculation using an incorrect density. For the incorrect density, we will use a $t_3$ distribution, which has much longer tails than the true $N(0,1)$ distribution.
 
@@ -250,12 +250,12 @@ We will use all three methods described above, first using the correct density i
 # and a t4 distribution
 norm_prob <- tibble(
   y = n01$v1,
-  p =      surprisals(y, distribution = dist_normal()),
-  p_gpd =  surprisals(y, distribution = dist_normal(), approximation = "gpd"),
-  p_emp =  surprisals(y, distribution = dist_normal(), approximation = "empirical"),
-  pt =     surprisals(y, distribution = dist_student_t(4)),
-  pt_gpd = surprisals(y, distribution = dist_student_t(4), approximation = "gpd"),
-  pt_emp = surprisals(y, distribution = dist_student_t(4), approximation = "empirical")
+  p =      surprisals_prob(y, distribution = dist_normal()),
+  p_gpd =  surprisals_prob(y, distribution = dist_normal(), approximation = "gpd"),
+  p_emp =  surprisals_prob(y, distribution = dist_normal(), approximation = "empirical"),
+  pt =     surprisals_prob(y, distribution = dist_student_t(4)),
+  pt_gpd = surprisals_prob(y, distribution = dist_student_t(4), approximation = "gpd"),
+  pt_emp = surprisals_prob(y, distribution = dist_student_t(4), approximation = "empirical")
 )
 norm_prob |> arrange(p)
 ```
@@ -342,7 +342,7 @@ broom::augment(fit) |>
 Equivalently, the `surprisals()` function will compute them:
 
 ```r
-surprisals(fit, probability = FALSE)
+surprisals(fit)
 ```
 
 ### LOO residuals
@@ -388,7 +388,7 @@ broom::augment(fit) |>
 More simply, we can just use the `surprisals()` function again:
 
 ```r
-surprisals(fit, type = "loo", probability = FALSE)
+surprisals(fit, type = "loo")
 ```
 
 ### Example: Shiraz reviews
@@ -516,12 +516,12 @@ wine_aug |>
 
 Those with the ten smallest surprisal probabilities are all wines that appear to be over-priced given their points values.
 
-The preceding analysis shows the calculations of surprisal probabilities in detail. They can be more simply computed using `surprisals()` as follows.
+The preceding analysis shows the calculations of surprisal probabilities in detail. They can be more simply computed using `surprisals_prob()` as follows.
 
 ```{r}
 #| code-fold: false
 shiraz <- shiraz |>
-  mutate(prob = surprisals(fit_wine, approximation = "empirical"))
+  mutate(prob = surprisals_prob(fit_wine, approximation = "empirical"))
 shiraz |>
   select(country:winery, year, points, price, prob) |>
   arrange(prob)
@@ -620,8 +620,8 @@ Now we can use the fitted model to compute the surprisals from the Binomial dist
 #| warning: false
 notouts_aug <- notouts_aug |>
   mutate(
-    surprisals = surprisals(fit_notouts, probability = FALSE),
-    prob = surprisals(fit_notouts, approximation = "gpd")
+    surprisals = surprisals(fit_notouts),
+    prob = surprisals_prob(fit_notouts, approximation = "gpd")
   ) |>
   select(Player:Country, Innings:NotOuts, prop_no:.fitted, surprisals:prob) |>
   arrange(desc(surprisals))
@@ -677,8 +677,8 @@ For the Old Faithful eruption duration data, we obtain the following results.
 #| code-fold: false
 of_surprisals <- oldfaithful |>
   mutate(
-    loo_kde_surprisal = surprisals(duration, loo = TRUE, probability = FALSE),
-    prob = surprisals(duration, loo = TRUE),
+    loo_kde_surprisal = surprisals(duration, loo = TRUE),
+    prob = surprisals_prob(duration, loo = TRUE),
   )
 of_surprisals |> arrange(desc(loo_kde_surprisal))
 ```
@@ -693,8 +693,8 @@ If we omit the three extreme values, we obtain different results.
 of_surprisals <- oldfaithful |>
   filter(duration > 60) |>
   mutate(
-    loo_kde_surprisal = surprisals(duration, loo = TRUE, probability = FALSE),
-    prob = surprisals(duration, loo = TRUE),
+    loo_kde_surprisal = surprisals(duration, loo = TRUE),
+    prob = surprisals_prob(duration, loo = TRUE),
   )
 of_surprisals |> arrange(desc(loo_kde_surprisal))
 ```
@@ -723,14 +723,14 @@ of <- oldfaithful |>
   select(duration, waiting) 
 of |>
   mutate(
-    loo_scores = surprisals(of, loo = TRUE, probability = FALSE),
-    prob = surprisals(of, loo = TRUE)
+    loo_scores = surprisals(of, loo = TRUE),
+    prob = surprisals_prob(of, loo = TRUE)
   ) |>
   filter(prob < 0.005) |>
   arrange(prob, duration)
 ```
 
-Now, `r english::words(sum(surprisals(of) < 0.001))` anomalies are identified, with both of them having infinite LOO surprisals. We can visualize them in an HDR scatterplot, shown in @fig-ofpot2.
+Now, `r english::words(sum(surprisals_prob(of) < 0.001))` anomalies are identified, with both of them having infinite LOO surprisals. We can visualize them in an HDR scatterplot, shown in @fig-ofpot2.
 
 ```{r}
 #| label: fig-ofpot2
@@ -748,7 +748,7 @@ Let's apply the kde surprisals method to the six examples introduced in @sec-exa
 #| code-fold: false
 cricket_batting |>
   filter(Innings > 20) |>
-  mutate(prob = surprisals(Average, loo = TRUE)) |>
+  mutate(prob = surprisals_prob(Average, loo = TRUE)) |>
   filter(prob < 0.001) |>
   select(Player, Average, prob)
 ```
@@ -763,7 +763,7 @@ Next we consider some artificial examples. First, we consider the first 48 rows 
 #| code-fold: false
 n01b <- tibble(y = c(n01$v2[1:48], 4, 4.5))
 n01b |>
-  mutate(prob = surprisals(y, loo = TRUE)) |>
+  mutate(prob = surprisals_prob(y, loo = TRUE)) |>
   filter(prob < 0.05) |>
   arrange(prob)
 ```
@@ -777,16 +777,16 @@ Finally, we consider 1000 simulated observations from each of the distributions,
 #| code-fold: false
 n01 |>
   select(v1) |>
-  mutate(prob = surprisals(v1, loo = TRUE)) |>
+  mutate(prob = surprisals_prob(v1, loo = TRUE)) |>
   filter(prob < 0.001) |>
   arrange(prob, v1)
 set.seed(1)
 tibble(y = rt(1000, df = 3)) |>
-  mutate(prob = surprisals(y, loo = TRUE)) |>
+  mutate(prob = surprisals_prob(y, loo = TRUE)) |>
   filter(prob < 0.001) |>
   arrange(prob, y)
 tibble(y = rchisq(1000, df = 4)) |>
-  mutate(prob = surprisals(y, loo = TRUE)) |>
+  mutate(prob = surprisals_prob(y, loo = TRUE)) |>
   filter(prob < 0.001) |>
   arrange(prob, y)
 ```

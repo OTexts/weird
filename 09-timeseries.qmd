@@ -334,7 +334,7 @@ At this point, we could identify a point as an anomaly if $|e_t|$ is greater tha
 #| dependson: stmf_scores1
 stmf_scores <- stmf_scores |>
   mutate(
-    prob = surprisals(e, distribution = dist_normal(), approximation = "gpd")
+    prob = surprisals_prob(e, distribution = dist_normal(), approximation = "gpd")
   ) |>
   filter(prob < 0.02)
 stmf_scores |> arrange(prob)
@@ -411,7 +411,7 @@ pc_anomalies <- pcs |>
   augment() |>
   select(-.model, -.innov) |>
   mutate(
-    prob = surprisals(
+    prob = surprisals_prob(
       .resid,
       distribution = dist_normal(),
       approximation = "gpd"
@@ -478,7 +478,7 @@ There are two series which are clearly separated from the rest, with principal c
 #| code-fold: false
 PBS_prcomp <- PBS_prcomp |>
   mutate(
-    prob = surprisals(PBS_prcomp |> select(.fittedPC1, .fittedPC2), loo = TRUE)
+    prob = surprisals_prob(PBS_prcomp |> select(.fittedPC1, .fittedPC2), loo = TRUE)
   ) |>
   select(Concession, Type, ATC2, .fittedPC1, .fittedPC2, prob) |>
   arrange(prob)
@@ -637,7 +637,7 @@ Now we can compute the surprisal probabilities from the observed values (column 
 #| code-fold: false
 #| dependson: pbs_scores
 pbs_compare <- pbs_compare |>
-  mutate(prob = surprisals(Scripts, distribution = fcast)) |>
+  mutate(prob = surprisals_prob(Scripts, distribution = fcast)) |>
   arrange(prob)
 pbs_compare
 ```
@@ -691,7 +691,7 @@ compute_pbs_scores <- function(pbs) {
     pbs_scores <- pbs |>
       filter(t == i + 1) |>
       right_join(pbs_fc, by = c("Month", "ATC2")) |>
-      mutate(surprisal_prob = surprisals(Scripts, distribution = fcast)) |>
+      mutate(surprisal_prob = surprisals_prob(Scripts, distribution = fcast)) |>
       select(Month, ATC2, surprisal_prob)
     # Add probabilities to pbs data set
     pbs <- pbs |>
