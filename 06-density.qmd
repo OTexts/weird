@@ -666,7 +666,7 @@ The largest possible LOO kde surprisal is infinite, occuring when there are no o
 
 ### The lookout algorithm {#sec-lookout}
 
-The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout2021 and uses surprisal probabilities based on a GPD approximation. Unlike the KDE implementation used in this book, it uses a method of bandwidth selection based on topological data analysis. Probabilities obtained using this algorithm can be calculated using the `lookout_prob()` function.
+The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2. It uses surprisal probabilities based on a GPD approximation. Probabilities obtained using this algorithm can be calculated using the `lookout_prob()` function.
 
 ### Example: Old Faithful eruption durations
 
