@@ -28,7 +28,7 @@ Here is an example using only the first five observations of the `old_faithful` 
 #| label: dist-1
 #| code-fold: false
 head(oldfaithful, 5)
-of <- head(oldfaithful, 5) |> select(-time)
+of <- head(oldfaithful, 5) |> select(duration, waiting)
 of |> dist()
 ```
 

@@ -202,7 +202,7 @@ pca_scores |>
 # Find outliers in the PCs
 pca_no_year <- pca_scores |> select(-Year)
 pca_scores <- pca_scores |>
-  mutate(prob = surprisals_prob(pca_no_year))
+  mutate(prob = surprisals_prob(pca_no_year, approximation = "gpd"))
 outliers <- pca_scores |> filter(prob < 0.05)
 pca_scores |>
   ggplot(aes(x = .fittedPC1, y = .fittedPC2)) +

@@ -98,7 +98,7 @@ p1 <- fr_mortality |>
   geom_line() +
   facet_grid(paradigm ~ .) +
   theme(axis.title = element_blank()) +
-  scale_x_yearmonth(breaks = NULL)
+  scale_x_continuous(breaks = NULL)
 p2 <- fr_mortality |>
   filter(Age %in% c(2:6, 60), Sex == "Female") |>
   mutate(paradigm = "Weird series") |>
@@ -107,7 +107,7 @@ p2 <- fr_mortality |>
   guides(col = "none") +
   facet_grid(paradigm ~ .) +
   theme(axis.title = element_blank()) +
-  scale_x_yearmonth(breaks = NULL) +
+  scale_x_continuous(breaks = NULL) +
   scale_y_log10(breaks = NULL)
 p3 <- a12 |>
   autoplot(Scripts) +
@@ -334,7 +334,11 @@ At this point, we could identify a point as an anomaly if $|e_t|$ is greater tha
 #| dependson: stmf_scores1
 stmf_scores <- stmf_scores |>
   mutate(
-    prob = surprisals_prob(e, distribution = dist_normal(), approximation = "gpd")
+    prob = surprisals_prob(
+      e,
+      distribution = dist_normal(),
+      approximation = "gpd"
+    )
   ) |>
   filter(prob < 0.02)
 stmf_scores |> arrange(prob)
@@ -478,7 +482,11 @@ There are two series which are clearly separated from the rest, with principal c
 #| code-fold: false
 PBS_prcomp <- PBS_prcomp |>
   mutate(
-    prob = surprisals_prob(PBS_prcomp |> select(.fittedPC1, .fittedPC2), loo = TRUE)
+    prob = surprisals_prob(
+      PBS_prcomp |> select(.fittedPC1, .fittedPC2),
+      loo = TRUE,
+      approximation = "gpd"
+    )
   ) |>
   select(Concession, Type, ATC2, .fittedPC1, .fittedPC2, prob) |>
   arrange(prob)
