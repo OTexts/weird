@@ -152,7 +152,7 @@ Old Faithful data
 of <- oldfaithful |>
   select(duration, waiting)
 gg_hdrboxplot(of, duration, waiting,
-  scatterplot = TRUE, 
+  show_points = TRUE,
   H = kde_bandwidth(of, multiplier = 3)
 )
 ```
@@ -165,7 +165,7 @@ bat_ave <- cricket_batting |>
   filter(Innings > 20)
 bat_ave |>
   gg_hdrboxplot(Average,
-    scatterplot = TRUE,
+    show_points = TRUE,
     h = kde_bandwidth(bat_ave$Average, multiplier = 3)
   )
 ```

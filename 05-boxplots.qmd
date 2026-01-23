@@ -492,7 +492,7 @@ A useful variation of the bagplot, especially for larger data sets, displays a s
 #| label: fig-oldfaithfulbagplot2
 #| fig.cap: Bagplot of the durations and waiting times of Old Faithful eruptions between 2017 and 2023.
 oldfaithful |>
-  gg_bagplot(duration, waiting, scatterplot = TRUE) +
+  gg_bagplot(duration, waiting, show_points = TRUE) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 
@@ -561,7 +561,7 @@ As with bagplots, there is a variation that shows the individual points colored 
 #| label: fig-hdr-faithful3
 #| fig.cap: "Bivariate HDR boxplot of the duration and waiting times of Old Faithful eruptions between 2017 and 2023. Individual points are colored according to the HDR region in which they fall."
 of |>
-  gg_hdrboxplot(duration, waiting, show_anomalies = FALSE, scatterplot = TRUE) +
+  gg_hdrboxplot(duration, waiting, show_anomalies = FALSE, show_points = TRUE) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 

@@ -8409,8 +8409,11 @@
       "Version": "2.0.0",
       "Source": "GitHub",
       "Title": "Functions and Data Sets for \"That's Weird: Anomaly Detection Using R\" by Rob J Hyndman",
-      "Authors@R": "c(person(given = \"Rob\", family = \"Hyndman\", role = c(\"aut\", \"cre\", \"cph\"), email = \"Rob.Hyndman@monash.edu\", comment = c(ORCID = \"0000-0002-2140-5352\")), person(given = \"RStudio\", role = c(\"cph\")))",
       "Description": "All functions and data sets required for the examples in the book Hyndman (2026) \"That's Weird: Anomaly Detection Using R\" <https://OTexts.com/weird/>. All packages needed to run the examples are also loaded.",
+      "Authors@R": "c(person(given = \"Rob\", family = \"Hyndman\", role = c(\"aut\", \"cre\", \"cph\"), email = \"Rob.Hyndman@monash.edu\", comment = c(ORCID = \"0000-0002-2140-5352\")), person(given = \"RStudio\", role = c(\"cph\")))",
+      "Depends": [
+        "R (>= 4.1.0)"
+      ],
       "Imports": [
         "aplpack",
         "broom",
@@ -8426,36 +8429,33 @@
         "lookout (>= 2.0.0)",
         "mvtnorm",
         "purrr (>= 0.2.4)",
+        "RANN",
         "rlang",
         "robustbase",
         "rstudioapi (>= 0.7)",
         "stray",
         "vctrs"
       ],
+      "Suggests": [
+        "testthat (>= 3.0.0)",
+        "tidyr"
+      ],
+      "URL": "https://pkg.robjhyndman.com/weird/, https://github.com/robjhyndman/weird",
+      "BugReports": "https://github.com/robjhyndman/weird/issues",
       "License": "GPL-3",
       "Encoding": "UTF-8",
       "LazyData": "true",
       "LazyDataCompression": "xz",
       "Roxygen": "list(markdown = TRUE)",
       "RoxygenNote": "7.3.3",
-      "Depends": [
-        "R (>= 4.1.0)"
-      ],
-      "Suggests": [
-        "mgcv",
-        "testthat (>= 3.0.0)",
-        "tidyr"
-      ],
       "Config/testthat/edition": "3",
-      "URL": "https://pkg.robjhyndman.com/weird/, https://github.com/robjhyndman/weird",
-      "BugReports": "https://github.com/robjhyndman/weird/issues",
       "Author": "Rob Hyndman [aut, cre, cph] (ORCID: <https://orcid.org/0000-0002-2140-5352>), RStudio [cph]",
       "Maintainer": "Rob Hyndman <Rob.Hyndman@monash.edu>",
       "RemoteType": "github",
       "RemoteUsername": "robjhyndman",
       "RemoteRepo": "weird",
       "RemoteRef": "main",
-      "RemoteSha": "c169c3d8856699959a220f53be8f278a043b19f6",
+      "RemoteSha": "14ee3dfdcbb5abf83f1a07264a89b3a44fc0565e",
       "RemoteHost": "api.github.com"
     },
     "withr": {
