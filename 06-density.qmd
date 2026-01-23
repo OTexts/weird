@@ -85,7 +85,7 @@ df <- tibble(
   y = seq(0, 15, l = 501),
   fy = density(den, at = y)[[1]],
   s = -log(fy),
-  p = surprisals_prob(y, distribution = den, approximation = "none")
+  p = surprisals_prob(y, distribution = den)
 )
 palpha <- 0.1
 p1 <- df |>
@@ -170,7 +170,7 @@ The `surprisals()` function takes values of the data $\bm{y}_i$ and returns valu
 tibble(
   y = -5:5,
   s = surprisals(y, distribution = dist_normal()),
-  p = surprisals_prob(y, distribution = dist_normal(), approximation = "none")
+  p = surprisals_prob(y, distribution = dist_normal())
 )
 ```
 
@@ -215,7 +215,7 @@ e.g., if the surprisal ranks under $f$ and $f^*$ are equal, I think this should 
 
 The approach does require a relatively large number of surprisals to be available, in order to adequately estimate the GPD from the top $\beta$ of the observations. So we would normally need at least a few hundred observations to start with.
 
-The `surprisals_prob()` function has an approximation argument set to `"gpd"` by default, specifying if we want to use the GPD approximation in computing surprisal probabilities. The argument `threshold_probability` is used to specify $\beta$, with the default value of 0.1.
+The `surprisals_prob()` function uses this GPD approximation when `approximation = "gpd"`. The argument `threshold_probability` is used to specify $\beta$, with the default value of 0.1.
 
 ### Approximate rank-based surprisal probabilities
 
@@ -245,10 +245,10 @@ We will use all three methods described above, first using the correct density i
 # and a t4 distribution
 norm_prob <- tibble(
   y = n01$v1,
-  p =      surprisals_prob(y, distribution = dist_normal(), approximation = "none"),
+  p =      surprisals_prob(y, distribution = dist_normal()),
   p_gpd =  surprisals_prob(y, distribution = dist_normal(), approximation = "gpd"),
   p_emp =  surprisals_prob(y, distribution = dist_normal(), approximation = "rank"),
-  pt =     surprisals_prob(y, distribution = dist_student_t(4), approximation = "none"),
+  pt =     surprisals_prob(y, distribution = dist_student_t(4)),
   pt_gpd = surprisals_prob(y, distribution = dist_student_t(4), approximation = "gpd"),
   pt_emp = surprisals_prob(y, distribution = dist_student_t(4), approximation = "rank")
 )
@@ -660,7 +660,7 @@ The largest possible LOO kde surprisal is infinite, occuring when there are no o
 
 ### The lookout algorithm {#sec-lookout}
 
-The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2. It uses surprisal probabilities based on a GPD approximation. Probabilities obtained using this algorithm can be calculated using the `surprisals_prob()` function applied to a data set with `loo = TRUE`, and `approximation = "gdp"` (the latter is the default value if the `approximation` argument is omitted).
+The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2. It uses surprisal probabilities based on a GPD approximation. Probabilities obtained using this algorithm can be calculated using the `surprisals_prob()` function applied to a data set with `loo = TRUE`, and `approximation = "gdp"`.
 
 ### Example: Old Faithful eruption durations
 
@@ -672,7 +672,7 @@ For the Old Faithful eruption duration data, we obtain the following results.
 of_surprisals <- oldfaithful |>
   mutate(
     loo_kde_surprisal = surprisals(duration, loo = TRUE),
-    prob = surprisals_prob(duration, loo = TRUE),
+    prob = surprisals_prob(duration, loo = TRUE, approximation = "gpd"),
   )
 of_surprisals |> arrange(desc(loo_kde_surprisal))
 ```
@@ -688,7 +688,7 @@ of_surprisals <- oldfaithful |>
   filter(duration > 60) |>
   mutate(
     loo_kde_surprisal = surprisals(duration, loo = TRUE),
-    prob = surprisals_prob(duration, loo = TRUE),
+    prob = surprisals_prob(duration, loo = TRUE, approximation = "gpd"),
   )
 of_surprisals |> arrange(desc(loo_kde_surprisal))
 ```
@@ -724,7 +724,7 @@ of <- oldfaithful |>
 of |>
   mutate(
     loo_scores = surprisals(of, loo = TRUE),
-    prob = surprisals_prob(of, loo = TRUE)
+    prob = surprisals_prob(of, loo = TRUE, approximation = "gpd")
   ) |>
   filter(prob < 0.005) |>
   arrange(prob, duration)
@@ -749,7 +749,7 @@ Let's apply the kde surprisals method to the six examples introduced in @sec-exa
 #| code-fold: false
 cricket_batting |>
   filter(Innings > 20) |>
-  mutate(prob = surprisals_prob(Average, loo = TRUE)) |>
+  mutate(prob = surprisals_prob(Average, loo = TRUE, approximation = "gpd")) |>
   filter(prob < 0.001) |>
   select(Player, Average, prob)
 ```
@@ -763,7 +763,7 @@ Next we consider some artificial examples. First, we consider the first 48 rows 
 #| code-fold: false
 n01b <- tibble(y = c(n01$v2[1:48], 4, 4.5))
 n01b |>
-  mutate(prob = surprisals_prob(y, loo = TRUE)) |>
+  mutate(prob = surprisals_prob(y, loo = TRUE, approximation = "gpd")) |>
   filter(prob < 0.05) |>
   arrange(prob)
 ```
@@ -777,16 +777,16 @@ Finally, we consider 1000 simulated observations from each of the distributions,
 #| code-fold: false
 n01 |>
   select(v1) |>
-  mutate(prob = surprisals_prob(v1, loo = TRUE)) |>
+  mutate(prob = surprisals_prob(v1, loo = TRUE, approximation = "gpd")) |>
   filter(prob < 0.001) |>
   arrange(prob, v1)
 set.seed(1)
 tibble(y = rt(1000, df = 3)) |>
-  mutate(prob = surprisals_prob(y, loo = TRUE)) |>
+  mutate(prob = surprisals_prob(y, loo = TRUE, approximation = "gpd")) |>
   filter(prob < 0.001) |>
   arrange(prob, y)
 tibble(y = rchisq(1000, df = 4)) |>
-  mutate(prob = surprisals_prob(y, loo = TRUE)) |>
+  mutate(prob = surprisals_prob(y, loo = TRUE, approximation = "gpd")) |>
   filter(prob < 0.001) |>
   arrange(prob, y)
 ```
