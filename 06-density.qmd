@@ -186,13 +186,9 @@ For any symmetric univariate distribution, $p_i = 2[1 - F(c+|y_i-c|)]$, where $F
 
 This shows that when $f$ is a Normal density, identifying anomalies as observations with $p_i < \alpha$ is equivalent to a z-score test (@sec-zscores) with the threshold set to the $1-\alpha/2$ quantile of the standard Normal distribution.
 
-### LOO surprisals
-
-If the density $f$ has been estimated from the data, then there is a problem of circular reasoning. Any genuine anomalies may affect the estimated density, and then they may not appear to be anomalies. Therefore, it is sometimes useful to consider the leave-one-out (LOO) estimate given by $f_{-i}$. That is, $f_{-i}$ is the density estimate using all observations other than the $i$th observation. Then an unusual observation can't influence the density estimate, giving us a better measure of how anomalous it really is. In this case, we will call the associated surprisal, a "LOO surprisal", given by $s_i = -\log f_{-i}(\bm{y}_i)$.
-
 ### Approximate GPD surprisal probabilities {#sec-gpd-tails}
 
-If we do not know what the distribution of the data should be, or if we think our assumed distribution is incorrect for some reason, there are some ways to find approximate surprisal probabilities that are still accurate even when the assumed distribution is not.
+If we do not know what the distribution of the data should be, or if we think our assumed distribution is incorrect for some reason, there are some ways to find approximate surprisal probabilities that can still be accurate even when the assumed distribution is not.
 
 Let $f^*$ denote the assumed (and possibly incorrect) density function. It might be a poor estimate of the true density, or it might just be a density on the same sample space as the data. Using this assumed density, we can compute the surprisals, $s_i = -\log f^*(\bm{y}_i)$.
 
@@ -204,14 +200,7 @@ $$
 $$ {#eq-pi-gpd}
 where $\hat g()$ denotes the estimated GPD density function. This approximation only gives us surprisal probabilities for the surprisals above the threshold $u$. For any $s_i \le u$, all we can say is that $\hat{p}_i \ge \beta$.
 
-::: {.callout-important}
-# Need some theory here
-What can we say about the quality of the approximation for those surprisals above $u$?
-
-Is it true that the FTG theorem holds for all surprisal values, or do we need conditions on $f$?
-
-e.g., if the surprisal ranks under $f$ and $f^*$ are equal, I think this should work ok. That should be true for any distribution where $u$ is greater than the largest mode of $f$.
-:::
+@surprisals show that, under very general conditions on the true distribution $f$, this will lead to good estimates of the surprisal probabilities for the most extreme surprisal values (which correspond to the anomalies). That is, even if our assumed distribution $f^*$ is not correct, we can still fit a GPD to the largest surprisal values and use this to estimate the tail probabilities
 
 The approach does require a relatively large number of surprisals to be available, in order to adequately estimate the GPD from the top $\beta$ of the observations. So we would normally need at least a few hundred observations to start with.
 
@@ -219,7 +208,7 @@ The `surprisals_prob()` function uses this GPD approximation when `approximation
 
 ### Approximate rank-based surprisal probabilities
 
-An alternative approach that does not require a GPD is to estimate $p_i$ as the proportion of observations with surprisal values larger than $s_i$. That is $p_i = (\text{rank}(\bm{y}_i)-1)/n} For large $n$, this provides a quick and convenient estimate of $p_i$ that is accurate even when the assumed distribution $f^*$ is not. Suppose $f$ is the true (unknown) density, and $f^*$ is the assumed (possibly incorrect) density. This approach can work well for moderate values of $p_i$, but we need a large number of available surprisals in order to estimate small values of $p_i$.
+An alternative approach that does not require a GPD is to estimate $p_i$ as the proportion of observations with surprisal values larger than $s_i$. That is $p_i = (\text{rank}(\bm{y}_i)-1)/n$. For large $n$, this provides a quick and convenient estimate of $p_i$ that is accurate even when the assumed distribution $f^*$ is not. Suppose $f$ is the true (unknown) density, and $f^*$ is the assumed (possibly incorrect) density. This approach can work well for moderate values of $p_i$, but we need a large number of available surprisals in order to estimate small values of $p_i$.
 
 ::: {.callout-important}
 # Need some theory here
@@ -271,6 +260,10 @@ norm_prob |>
 
 In summary, even when we don't know the distribution of the data, we can use some
 incorrect assumed distribution to compute the surprisals, and then apply either a GPD or the empirical distribution to obtain good estimates of the surprisal probabilities.
+
+### LOO surprisals
+
+If the density $f$ has been estimated from the data, then there is a problem of circular reasoning. Any genuine anomalies may affect the estimated density, and then they may not appear to be anomalies. Therefore, it is sometimes useful to consider the leave-one-out (LOO) estimate given by $f_{-i}$. That is, $f_{-i}$ is the density estimate using all observations other than the $i$th observation. Then an unusual observation can't influence the density estimate, giving us a better measure of how anomalous it really is. In this case, we will call the associated surprisal, a "LOO surprisal", given by $s_i = -\log f_{-i}(\bm{y}_i)$.
 
 ## Linear regression surprisals {#sec-regression-log-scores}
 
@@ -537,7 +530,7 @@ shiraz |>
 #| include: false
 #| label: shiraz-check
 shiraz_surprise <- shiraz |> filter(prob < 0.002)
-if(NROW(shiraz_surprise) != 10L)
+if(NROW(shiraz_surprise) != 9L)
   stop("Something is wrong here.")
 ```
 
