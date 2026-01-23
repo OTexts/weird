@@ -170,7 +170,6 @@ The second problem is demonstrated using the Old Faithful eruption duration data
 #| fig.asp: 0.2
 #| fig.cap: "Boxplot of Old Faithful eruption durations between 2017 and 2023."
 oldfaithful |>
-  filter(duration < 6000) |>
   ggplot(aes(x = duration)) +
   geom_boxplot() +
   scale_y_discrete() +
@@ -541,7 +540,7 @@ Points outside the 99% region are shown separately and jittered vertically to re
 
 Of course, by definition, 1% of points will lie outside the 99% region, so the points shown are not necessarily anomalies, just observations that occur in the lower probability regions of the space. By setting `show_anomalies = TRUE`, some of the points are highlighted as potential anomalies, using the method described in @sec-kdescores.
 
-The idea naturally extends to higher dimensions. @fig-hdr-faithful2 shows the bivariate HDR boxplot of the duration and waiting times for the Old Faithful data. Here we have filtered out very long durations and waiting times first.
+The idea naturally extends to higher dimensions. @fig-hdr-faithful2 shows the bivariate HDR boxplot of the duration and waiting times for the Old Faithful data.
 
 ```{r}
 #| label: fig-hdr-faithful2
