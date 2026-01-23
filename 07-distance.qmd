@@ -139,7 +139,7 @@ In this case, the same five observations have been found.
 
 ## Local outlier factors
 
-A popular way of using $k$-nearest neighbours for anomaly detection is via local outlier factors [@lof]. This is similar to the idea discussed in @sec-kdescores of finding points with low probability density estimates, in that it is designed to find points in areas with few surrounding observations.
+A popular way of using $k$-nearest neighbours for anomaly detection is via local outlier factors [@lof]. This is similar to the idea discussed in @sec-kdesurprisals of finding points with low probability density estimates, in that it is designed to find points in areas with few surrounding observations.
 
 Suppose we write the distance between observations $\bm{y}_i$ and $\bm{y}_j$ as $\|\bm{y}_i - \bm{y}_j\|$, and let $d_{i,k}$ be the distance between observation $\bm{y}_i$ and its $k$th nearest neighbour.
 

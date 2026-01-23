@@ -629,8 +629,7 @@ The `.fitted` value is the expected proportion of not outs for each player given
 
 We have identified an anomaly that is not anomalous in the proportion of not-outs, or in the number of innings, and the difference between the actual proportion and the predicted proportion is not anomalous either compared to some of the other values. However, because we have used a statistical model, we have been able to account for the particular features of this data set, such as the discrete nature of the data, and the changing variance, to identify an observation that is anomalous in the context of the model.
 
-
-## KDE surprisals {#sec-kdescores}
+## KDE surprisals {#sec-kdesurprisals}
 
 Suppose, instead of a regression or a GAM, we estimate $f$ using a kernel density estimate. In fact, when the `surprisals()` functions is applied to data without specifying a probability distribution, a kernel density estimate of the data is used by default. The kernel density estimate at each observation is (@eq-mkde)
 $$

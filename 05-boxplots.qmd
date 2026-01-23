@@ -538,7 +538,7 @@ oldfaithful |>
 
 Points outside the 99% region are shown separately and jittered vertically to reduce overplotting. This type of boxplot has the advantage that it allows for multimodal distributions, and can identify "inliers" that occur in regions of low density between regions of high density.
 
-Of course, by definition, 1% of points will lie outside the 99% region, so the points shown are not necessarily anomalies, just observations that occur in the lower probability regions of the space. By setting `show_anomalies = TRUE`, some of the points are highlighted as potential anomalies, using the method described in @sec-kdescores.
+Of course, by definition, 1% of points will lie outside the 99% region, so the points shown are not necessarily anomalies, just observations that occur in the lower probability regions of the space. By setting `show_anomalies = TRUE`, some of the points are highlighted as potential anomalies, using the method described in @sec-kdesurprisals.
 
 The idea naturally extends to higher dimensions. @fig-hdr-faithful2 shows the bivariate HDR boxplot of the duration and waiting times for the Old Faithful data.
 
