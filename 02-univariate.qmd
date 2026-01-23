@@ -396,7 +396,6 @@ $$
 $$ {#eq-sample-quantile-distribution}
 where $f(y)$ is the density of the underlying distribution [@van2000asymptotic, p308]. This is an asymptotic result, which assumes $np$ is large, and holds for all types of sample quantiles.
 
-
 ## Highest density regions {#sec-hdr}
 
 A **highest density region** is defined as the region of the sample space where the density is higher than a given threshold [@HDR96]. It is commonly specified using the probability mass that the HDR contains. For example, a 95% HDR is the region of the sample space that contains 95% of the probability mass, and where every point inside the region has higher density than any point outside the region.
@@ -527,7 +526,6 @@ $$Q_n = d_n\Delta_{(k)},$$
 where $d_n$ is a constant that depends on $n$ and is designed to scale $Q_n$ so that it provides an estimate of the standard deviation for a Normal distribution. For large $n$, $d_n = 2.219$. While the IQR and MAD estimators are somewhat simpler and easier to understand, the $Q_n$ estimator has some useful properties [as discussed in @Rousseeuw1993-tq].
 
 All three of these robust estimators of the standard deviation can be computed using the `robustbase` package, with the functions `s_IQR()`, `s_mad()`, and `s_Qn()` respectively.
-
 
 ## Univariate kernel density estimation {#sec-kde}
 
@@ -787,7 +785,6 @@ The three types of limits correspond to different forms of the tail behaviour of
   * When $F$ has a finite upper bound, such as with a uniform distribution, then $G$ is a Weibull distribution.
   * When $F$ has exponential tails, such as with a Normal distribution or a Gamma distribution, then $G$ is a Gumbel distribution.
   * When $F$ has heavy tails including polynomial decay, then $G$ is a Fréchet distribution. One example is when $F$ itself is a Fréchet distribution with $F(y)= e^{-1/y}$, $y>0$.
-
 
 If we take the negative of the random variables $Y_1,\dots,Y_n$, it becomes clear that a similar result holds for the minimum.
 

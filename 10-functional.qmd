@@ -10,7 +10,6 @@ Functional data occur when the natural observational representation is a functio
 
 @fig-fr-mortality shows French male mortality rates between 1816 and 1999. Each line denotes the mortality rates as a function of age for one year, with the colors in rainbow order corresponding to the years of observation. Overall, we see a large decrease in mortality rates during early childhood years, then an increase during teenage years. After about age 30, the rates increase almost linearly on a log scale. Comparing the curves over time, we see that the rates have steadily fallen for all ages, with nearly a 100-fold reduction in mortality rates at around age 10. The noticeable gap between the curves occurred after World War II due to the effective use of antibiotics, and widespread vaccinations for polio, diptheria, tetanus, whooping cough, measles, mumps and rubella.
 
-
 ```{r}
 #| label: fig-fr-mortality
 #| fig-cap: French male mortality rates between 1816 and 1999.
@@ -179,7 +178,6 @@ pca_scores |>
   geom_line(aes(colour = PC))
 ```
 
-
 ```{r}
 #| echo: true
 #| code-fold: false
@@ -193,7 +191,6 @@ pca_scores |>
 ```
 
 ## Anomalies in the principal component space
-
 
 
 

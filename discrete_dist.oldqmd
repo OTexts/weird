@@ -7,7 +7,6 @@
 source("before-each-chapter.R")
 ```
 
-
 ## Univariate probability distributions
 
 We are interested in data obtained from a range of possible sample spaces, but let's start with the two simplest cases: univariate discrete and continuous random variables. A good introduction to such probability distributions is provided by @Forbes2011, with more advanced treatments in @JKunidiscrete, @JKunicontinuous1 and @JKunicontinuous2.
@@ -98,7 +97,6 @@ If both variables are discrete, we can define the joint pmf as $p(x,y) = \text{P
 If both variables are continuous, we can define the joint pdf as $f(x,y) = \frac{\partial^2 F(x,y)}{\partial x \partial y}$. The marginal pdfs are defined by $f_X(x) = \int_{-\infty}^\infty f(x,y) dy$ and $f_Y(y) = \int_{-\infty}^\infty f(x,y) dx$. If the two variables are independent, then the joint pdf is the product of the marginal pdfs, $f(x,y) = f_X(x) f_Y(y)$.
 
 When $X$ is discrete, and $Y$ is continuous, describing the joint distribution is more tricky, and we will skip that situation for now.
-
 
 ### Joint distributions
 

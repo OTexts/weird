@@ -315,7 +315,6 @@ Unlike the univariate case, there is no unique definition of a multivariate quan
 
 In this book, we are mostly concerned with sample multivariate quantiles, and one useful definition for sample quantiles is based on data depth. We will discuss this approach in @sec-depth.
 
-
 ## Robust covariance estimation
 
 The sample covariance matrix is a useful measure of the spread of a multivariate distribution, given by

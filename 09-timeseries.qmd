@@ -658,7 +658,6 @@ if (s01 != "S01") {
 }
 ```
 
-
 The lowest probabilities indicate possible anomalies. Let's look at the most likely anomaly (or least likely observation), from series `r s01`.
 
 ```{r}
@@ -737,7 +736,6 @@ pbs_anomalies
 
 Now let's look at the A12 series that we started with, and consider the times where anomalies occur.
 
-
 ```{r}
 #| label: pbs_scores4
 #| code-fold: false
@@ -748,7 +746,6 @@ pbs_plot(pbs, pbs_anomalies, "A12")
 One potential anomaly is identified in 2002, and the sudden drop at the start of 2006 causes several anomalies indicating a series of unusual observations. Eventually the "new normal" leads to fewer and fewer observations being labelled as anomalies.
 
 This process of model adjustment is much faster in this next example, where the first jump leads to two anomalies, and then the second much larger jump leads to two more anomalies. After that, the model has learned to allow for large jumps in the series, so the later jump is not seen as anomalous.
-
 
 ```{r}
 #| label: pbs_scores5

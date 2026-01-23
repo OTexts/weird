@@ -71,7 +71,6 @@ All of the methods considered in this chapter assume the underlying data follow 
 
 Good anomaly detection methods should pick up one anomaly in the cricket batting example, at least three anomalies in the Old Faithful example, and the two anomalies in the `n01b` example. They should identify no anomalies in the remaining examples.
 
-
 ```{r}
 #| label: check_numbers
 #| include: false
@@ -152,7 +151,6 @@ chisq4 |>
  4. One spurious anomaly has been identified in the 1000 N(0,1) observations.
  5. Eighteen spurious anomalies have been identified in the 1000 $\text{t}_3$ observations.
  6. Fifteen spurious anomalies have been identified in the 1000 $\chi^2_4$ observations.
-
 
 ```{r}
 #| label: check2
@@ -436,7 +434,6 @@ $$
 
 @fig-zscoretests shows the critical values at $\alpha=0.05$ for these tests, along with the corresponding value from @Chauvenet1863 for comparison.
 
-
 ```{r}
 #| label: fig-zscoretests
 #| echo: false
@@ -525,7 +522,6 @@ pzscoredf |>
 
 However, when we allow for different data distributions, Grubbs' test also gives poor results, showing it is sensitive to the assumed data distribution.
 
-
 ```{r}
 #| label: fig-pgrubbs
 #| echo: false
@@ -604,7 +600,6 @@ t3 |>
 chisq4 |>
   filter(grubbs_anomalies(y))
 ```
-
 
 ```{r}
 #| label: checkgrubbs
@@ -728,7 +723,6 @@ t3 |>
 chisq4 |>
   filter(dixon_anomalies(y))
 ```
-
 
 ```{r}
 #| label: checkdixon

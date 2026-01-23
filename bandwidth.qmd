@@ -12,7 +12,6 @@ include-in-header: preamble.tex
 source("before-each-chapter.R")
 ```
 
-
 # Robust covariance estimation
 
 The sample covariance matrix is a useful measure of the spread of a multivariate distribution, given by
@@ -85,7 +84,6 @@ $$
 $$
 where $k_n$ is determined by controlling the false anomaly rate for a multivariate Gaussian distribution.
 
-
 ```{r}
 library(weird)
 library(mvtnorm)
@@ -142,7 +140,6 @@ sim_kn |>
   geom_line(aes(col = kn, group = kn)) +
   scale_y_log10()
 ```
-
 
 ## Some examples
 

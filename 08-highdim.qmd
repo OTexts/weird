@@ -26,5 +26,4 @@ source("before-each-chapter.R")
 
 @Kandanaarachchi2020-lo
 
-
 ## Comparisons using the O3 plot

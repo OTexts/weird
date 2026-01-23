@@ -248,7 +248,6 @@ of_scores |>
 
 Again, the two large scores correspond to ??. The value of $k=150$ has been chosen after experimenting with various values.
 
-
 ## Stahel-Donoho outlyingness
 
 The Stahel-Donoho outlyingness is a robust measure of outlyingness
@@ -300,7 +299,6 @@ Anomaly score inversely proportional to average depth of isolation trees.
 isotree package
 
 @Liu2008-dp
-
 
 ## Clustering methods
 
