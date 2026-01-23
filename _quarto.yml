@@ -44,7 +44,7 @@ biblio-style: authoryear-comp
 fig-width: 8
 fig-height: 5
 fig-align: center
-fig-dpi: 1200
+fig-dpi: 150
 output-width: 100%
 highlight-style: tango
 
