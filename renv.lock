@@ -267,7 +267,7 @@
       "Title": "Read Human Mortality Database and Human Fertility Database Data from the Web",
       "Date": "2025-10-02",
       "Authors@R": "c( person(\"Tim\", \"Riffe\", role = c(\"aut\", \"cre\"),  email = \"tim.riffe@gmail.com\"), person(\"Carl\", \"Boe\", role = \"aut\"), person(\"Jason\", \"Hilton\", role = \"aut\"), person(\"Josh\", \"Goldstein\", role = \"ctb\"), person(\"Stephen\", \"Holzman\", role = \"ctb\"), person(\"Sam\", \"Hyun Yoo\", role = \"ctb\"))",
-      "Description": "Utilities for reading data from the Human Mortality Database (<https://www.mortality.org>), Human Fertility Database (<https://www.humanfertility.org>), and similar databases from the web or locally into an R session as data.frame objects. These are the two most widely used sources of demographic data to study basic demographic change, trends, and develop new demographic methods. Other supported databases at this time include the Human Fertility Collection (<https://www.fertilitydata.org>), The Japanese Mortality Database (<https://www.ipss.go.jp/p-toukei/JMD/index-en.html>), and the Canadian Human Mortality Database (<http://www.bdlc.umontreal.ca/chmd/>). Arguments and data are standardized.",
+      "Description": "Utilities for reading data from the Human Mortality Database (<https://www.mortality.org>), Human Fertility Database (<https://www.humanfertility.org>), and similar databases from the web or locally into an R session as data.frame objects. These are the two most widely used sources of demographic data to study basic demographic change, trends, and develop new demographic methods. Other supported databases at this time include the Human Fertility Collection (<https://www.fertilitydata.org>), The Japanese Mortality Database (<https://www.ipss.go.jp/p-toukei/JMD/index-en.html>), and the Canadian Human Mortality Database (<http://www.bdlc.umontreal.ca/chmd/>). Arguments and data are standardised.",
       "URL": "https://github.com/timriffe/HMDHFDplus",
       "BugReports": "https://github.com/timriffe/HMDHFDplus/issues",
       "License": "GPL-2",
@@ -2508,7 +2508,7 @@
     },
     "fable": {
       "Package": "fable",
-      "Version": "0.4.1",
+      "Version": "0.5.0",
       "Source": "Repository",
       "Title": "Forecasting Models for Tidy Time Series",
       "Description": "Provides a collection of commonly used univariate and multivariate time series forecasting models including automatically selected exponential  smoothing (ETS) and autoregressive integrated moving average (ARIMA) models. These models work within the 'fable' framework provided by the 'fabletools' package, which provides the tools to evaluate, visualise, and combine models  in a workflow consistent with the tidyverse.",
@@ -2529,19 +2529,22 @@
         "tibble",
         "tidyr",
         "utils",
-        "distributional"
+        "distributional",
+        "cli"
       ],
       "Suggests": [
         "covr",
         "feasts",
         "forecast",
+        "fracdiff",
         "knitr",
         "MTS",
         "nnet",
         "rmarkdown",
         "spelling",
         "testthat",
-        "tsibbledata (>= 0.2.0)"
+        "tsibbledata (>= 0.2.0)",
+        "urca"
       ],
       "LinkingTo": [
         "Rcpp (>= 0.11.0)"
@@ -2550,11 +2553,11 @@
       "ByteCompile": "true",
       "Encoding": "UTF-8",
       "Language": "en-GB",
-      "RoxygenNote": "7.3.2",
+      "RoxygenNote": "7.3.3",
       "NeedsCompilation": "yes",
-      "Author": "Mitchell O'Hara-Wild [aut, cre], Rob Hyndman [aut], Earo Wang [aut], Gabriel Caceres [ctb] (NNETAR implementation), Christoph Bergmeir [ctb] (<https://orcid.org/0000-0002-3665-9021>), Tim-Gunnar Hensel [ctb], Timothy Hyndman [ctb]",
+      "Author": "Mitchell O'Hara-Wild [aut, cre], Rob Hyndman [aut], Earo Wang [aut], Gabriel Caceres [ctb] (NNETAR implementation), Christoph Bergmeir [ctb] (ORCID: <https://orcid.org/0000-0002-3665-9021>), Tim-Gunnar Hensel [ctb], Timothy Hyndman [ctb]",
       "Maintainer": "Mitchell O'Hara-Wild <mail@mitchelloharawild.com>",
-      "Repository": "RSPM"
+      "Repository": "CRAN"
     },
     "fabletools": {
       "Package": "fabletools",
@@ -2619,30 +2622,34 @@
     },
     "fanplot": {
       "Package": "fanplot",
-      "Version": "4.0.0",
+      "Version": "4.0.1",
       "Source": "Repository",
       "Type": "Package",
       "Title": "Visualisation of Sequential Probability Distributions Using Fan Charts",
       "Authors@R": "c(person(c(\"Guy\", \"J.\"), \"Abel\", role = c(\"aut\", \"cre\"), email = \"g.j.abel@gmail.com\", comment = c(ORCID = \"0000-0002-4893-5687\")))",
       "Maintainer": "Guy J. Abel <g.j.abel@gmail.com>",
       "Description": "Visualise sequential distributions using a range of plotting styles. Sequential distribution data can be input as either simulations or values corresponding to percentiles over time. Plots are added to existing graphic devices using the fan function. Users can choose from four different styles, including fan chart type plots, where a set of coloured polygon, with shadings corresponding to the percentile values are layered to represent different uncertainty levels. Full details in R Journal article; Abel (2015) <doi:10.32614/RJ-2015-002>.",
-      "License": "GPL-2",
+      "License": "GPL-3",
+      "Encoding": "UTF-8",
       "URL": "http://guyabel.github.io/fanplot/",
       "BugReports": "https://github.com/guyabel/fanplot/issues/",
-      "Imports": [
-        "methods"
-      ],
       "Depends": [
         "R (>= 2.10)"
       ],
+      "Imports": [
+        "methods"
+      ],
       "Suggests": [
-        "shiny"
+        "shiny",
+        "RColorBrewer",
+        "colorspace",
+        "zoo"
       ],
       "LazyData": "true",
+      "RoxygenNote": "7.3.3",
       "NeedsCompilation": "no",
-      "Author": "Guy J. Abel [aut, cre] (<https://orcid.org/0000-0002-4893-5687>)",
-      "Repository": "RSPM",
-      "Encoding": "UTF-8"
+      "Author": "Guy J. Abel [aut, cre] (ORCID: <https://orcid.org/0000-0002-4893-5687>)",
+      "Repository": "CRAN"
     },
     "fansi": {
       "Package": "fansi",
@@ -8155,10 +8162,10 @@
     },
     "uuid": {
       "Package": "uuid",
-      "Version": "1.2-1",
+      "Version": "1.2-2",
       "Source": "Repository",
       "Title": "Tools for Generating and Handling of UUIDs",
-      "Author": "Simon Urbanek [aut, cre, cph] (https://urbanek.org, <https://orcid.org/0000-0003-2297-1732>), Theodore Ts'o [aut, cph] (libuuid)",
+      "Author": "Simon Urbanek [aut, cre, cph] (https://urbanek.org, ORCID: <https://orcid.org/0000-0003-2297-1732>), Theodore Ts'o [aut, cph] (libuuid)",
       "Maintainer": "Simon Urbanek <Simon.Urbanek@r-project.org>",
       "Authors@R": "c(person(\"Simon\", \"Urbanek\", role=c(\"aut\",\"cre\",\"cph\"), email=\"Simon.Urbanek@r-project.org\", comment=c(\"https://urbanek.org\", ORCID=\"0000-0003-2297-1732\")), person(\"Theodore\",\"Ts'o\", email=\"tytso@thunk.org\", role=c(\"aut\",\"cph\"), comment=\"libuuid\"))",
       "Depends": [
@@ -8169,12 +8176,11 @@
       "URL": "https://www.rforge.net/uuid",
       "BugReports": "https://github.com/s-u/uuid/issues",
       "NeedsCompilation": "yes",
-      "Repository": "RSPM",
-      "Encoding": "UTF-8"
+      "Repository": "CRAN"
     },
     "vctrs": {
       "Package": "vctrs",
-      "Version": "0.7.0",
+      "Version": "0.7.1",
       "Source": "Repository",
       "Title": "Vector Helpers",
       "Authors@R": "c( person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = \"aut\"), person(\"Lionel\", \"Henry\", , \"lionel@posit.co\", role = \"aut\"), person(\"Davis\", \"Vaughan\", , \"davis@posit.co\", role = c(\"aut\", \"cre\")), person(\"data.table team\", role = \"cph\", comment = \"Radix sort based on data.table's forder() and their contribution to R's order()\"), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")) )",
@@ -8219,7 +8225,7 @@
       "NeedsCompilation": "yes",
       "Author": "Hadley Wickham [aut], Lionel Henry [aut], Davis Vaughan [aut, cre], data.table team [cph] (Radix sort based on data.table's forder() and their contribution to R's order()), Posit Software, PBC [cph, fnd]",
       "Maintainer": "Davis Vaughan <davis@posit.co>",
-      "Repository": "RSPM"
+      "Repository": "CRAN"
     },
     "viridisLite": {
       "Package": "viridisLite",
@@ -8455,7 +8461,7 @@
       "RemoteUsername": "robjhyndman",
       "RemoteRepo": "weird",
       "RemoteRef": "main",
-      "RemoteSha": "28f06ccc7998023914ebdcfff19b4f285b10c399",
+      "RemoteSha": "1d6372a76be82d9d0c955a810e01ab88b033b471",
       "RemoteHost": "api.github.com"
     },
     "withr": {
