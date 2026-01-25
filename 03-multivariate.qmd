@@ -171,7 +171,7 @@ tibble(m = seq(10)) |>
 
 Remarkably, by 10 dimensions, almost all points lie outside the unit sphere, and live in the corners of the space; almost no points are in the centre of the space. This occurs because, with enough variables, at least one of the univariate observations is going to lie in the tails of the distribution, and so the multivariate observation will not lie near the centre of the space.
 
-Another way to think about this is to consider hypercubes that contain 50% of the observations. These must have sides of length $2^{1-1/m}$, in order for the volume of the hypercube to be $2^{m-1}$, exactly half of the entire space. For $m=1$, the hypercube is a unit interval. For $m=2$, it is a square of side length $\sqrt{2} \approx 1.41$ as shown in @fig-hypercube. For $m=3$, the central cube must have side length $2^{2/3} \approx 1.59$, and so on.
+Another way to think about this is to consider hypercubes that contain 50% of the observations. These must have sides of length $2^{1-1/m}$, in order for the volume of the hypercube to be $2^{m-1}$, exactly half of the entire space. For $m=1$, the hypercube is a unit interval; for $m=2$, it is a square of side length $\sqrt{2} \approx 1.41$ as shown in @fig-hypercube; for $m=3$, the central cube must have side length $2^{2/3} \approx 1.59$; and so on.
 
 ```{r}
 #| label: fig-hypercube
@@ -231,7 +231,7 @@ The marginal cdfs are defined by $F_i(y) = \text{Pr}(Y_i \le y)$, with correspon
 
 If the variables are independent, then the joint pdf is the product of the marginal pdfs, $f(\bm{y}) = \prod_{i=1}^m f_i(y_i)$.
 
-The expected value of $\bm{y}$ is given by
+The expected value of $\bm{Y}$ is given by
 $$
 \text{E}(\bm{Y}) = \int_{\mathbb{R}^m} \bm{y} f(\bm{y})d\bm{y},
 $$
@@ -325,8 +325,8 @@ However, it is sensitive to outliers, and so is not suitable for our purposes. T
 
 Suppose we have two random variables $X$ and $Y$. Then the variance of their sum and difference is given by
 \begin{align*}
-  \text{Var}(X+Y) &= \text{Var}(X) + \text{Var}(Y) + 2\text{Cov}(X,Y) \\
-  \text{Var}(X-Y) &= \text{Var}(X) + \text{Var}(Y) - 2\text{Cov}(X,Y).
+  \text{Var}(X+Y) &= \text{Var}(X) + \text{Var}(Y) + 2\text{Cov}(X, Y) \\
+  \text{Var}(X-Y) &= \text{Var}(X) + \text{Var}(Y) - 2\text{Cov}(X, Y).
 \end{align*}
 The difference between these two expressions is
 $$
@@ -377,7 +377,7 @@ The simplest way to make the scaling robust to anomalies is to use the median in
 
 It is sometimes useful to scale a set of multivariate data, so that the scaled variables are uncorrelated with each other, and have mean zero and unit variance.
 
-Suppose each observation is a vector $\bm{y}$, with most observations coming from a distribution with mean $\bm{\mu}$ and covariance matrix $\bm{\Sigma}$. Let $\bm{\Sigma}^{-1} = \bm{U}' \bm{U}$ be the Cholesky decomposition (see @sec-cholesky) of $\bm{\Sigma}^{-1}$. Then the data can be scaled by $\bm{U}$, giving $\bm{z} = \bm{U} (\bm{y} - \bm{\mu})$, so that the covariance matrix of the scaled data is the identity matrix. This can be thought of as both scaling and rotating the data, so that the variables are uncorrelated with mean zero and unit variance. It is the multivariate equivalent of calculating z-scores. They can be computed using the `mvscale()` function with the arguments `center = mean` and `cov = stats::cov`.
+Suppose each observation is a vector $\bm{y}_i$, coming from a distribution with mean $\bm{\mu}$ and covariance matrix $\bm{\Sigma}$. Let $\bm{\Sigma}^{-1} = \bm{U}' \bm{U}$ be the Cholesky decomposition (see @sec-cholesky) of $\bm{\Sigma}^{-1}$. Then the data can be scaled by $\bm{U}$, giving $\bm{z}_i = \bm{U} (\bm{y}_i - \bm{\mu})$, so that the covariance matrix of the scaled data is the identity matrix. This can be thought of as both scaling and rotating the data, so that the variables are uncorrelated with mean zero and unit variance. It is the multivariate equivalent of calculating z-scores. They can be computed using the `mvscale()` function with the arguments `center = mean` and `cov = stats::cov`.
 
 ### Robust multivariate z-scores
 
@@ -638,11 +638,11 @@ Almost all statistical modelling involves the estimation of conditional distribu
 
 The conditional cdf of $Y$ given $X_1,\dots,X_n$ is defined by the conditional cdf
 $$
- F(y\mid x_1,\dots,x_n) = \text{Pr}(Y \le y \mid X_1 = x_1,\dots,X_n = x_n).
+ F(y\mid x_1, \dots, x_n) = \text{Pr}(Y \le y \mid X_1 = x_1, \dots, X_n = x_n).
 $$
 The conditional pdf is given by
 $$
-f(y \mid x_1, \dots, x_n) = \frac{f(y,x_1,\dots,x_n)}{f(x_1,\dots,x_n)}.
+f(y \mid x_1, \dots, x_n) = \frac{f(y, x_1, \dots, x_n)}{f(x_1, \dots, x_n)}.
 $$
 The conditional pdf can be thought of as slices of the joint pdf, with the values of $x_1,\dots,x_n$ fixed, rescaled to ensure the conditional pdfs integrate to 1. For example, $f(y_1 | y_2)$ is equal to a scaled slice of the joint pdf $f(y_1,y_2)$ at $y_2$. @fig-conditional shows some examples for the distribution shown at @fig-bivariate-mixture at several values of $y_2$. The left plot shows the joint density, with horizontal lines indicating where conditioning (or slicing) occurs at different values of $y_2$. The right plot shows the resulting conditional density functions.
 

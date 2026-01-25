@@ -52,7 +52,7 @@ This generalises the Manhattan and Euclidean distances to use powers of $p$ to d
 $$\|\bm{y}_i - \bm{y}_j\|_p = \left(\sum_{k=1}^m (y_{ik}-y_{jk})^p\right)^{1/p}.$$
 It is named after the German mathematician, Hermann Minkowski. When $p=1$ this is the Manhattan distance, and when $p=2$ this is the Euclidean distance.
 
-Here is the Minkowsi distance with $p = 3$ for the same five observations from the `oldfaithful` data set.
+Here is the Minkowski distance with $p = 3$ for the same five observations from the `oldfaithful` data set.
 
 ```{r}
 #| label: dist-3

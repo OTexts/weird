@@ -56,8 +56,7 @@ $$
 
 The definition of a surprisal also works for multivariate distributions. For a $m$-dimensional N$(\bm{0}, \bm{\Sigma})$ distribution, a surprisal is given by
 $$
-s_i = -\log\left(
- (2\pi)^{-m/2}|\bm{\Sigma}|^{-1/2} \exp\Big\{-\frac{1}{2}\bm{y}_i'\bm{\Sigma}^{-1}\bm{y}\Big\} \right) =
+s_i = -\log\left((2\pi)^{-m/2}|\bm{\Sigma}|^{-1/2} \exp\Big\{-\frac{1}{2}\bm{y}_i'\bm{\Sigma}^{-1}\bm{y}_i\Big\} \right) =
 \frac{1}{2} \bm{y}_i'\bm{\Sigma}^{-1}\bm{y}_i + \frac{m}{2}\log(2\pi) + \frac{1}{2} \log|\bm{\Sigma}|
 $$
 When $\bm{\Sigma} = \bm{I}$, this is simply the sum of surprisals computed on each of the marginal distributions.
@@ -552,7 +551,7 @@ p <- sum(df_no$NotOuts) / sum(df_no$Innings)
 
 Consider the number of "not outs" for each batter in the `cricket_batting` data set. A "not out" occurs when a batsman has not been dismissed at the end of the team's innings. Let's consider if there are some batters who have an unusually high proportion of not outs. The data set contains results from `r sum(df_no$Innings)` innings, of which `r sum(df_no$NotOuts)` were not outs. So the overall proportion of not outs is $`r sum(df_no[["NotOuts"]])` / `r sum(df_no[["Innings"]])` = `r sprintf("%.3f", p)`$.
 
-@fig-notouts shows the proportion of not outs for each batter as a function of the number of innings they played. The unusual patterns on the left of each plot is due to the discrete nature of the data --- both the number of not outs and the number of innings must be integers. There is some overplotting that occurs due to batters having the same numbers of not-outs and innings, which results in the higher color density of the corresponding plotted points. Batters who have played only a few innings tend to have a higher proportion of not outs on average, and a higher variance, than those who have played a large number of innings.
+@fig-notouts shows the proportion of not outs for each batter as a function of the number of innings they played. The unusual patterns on the left of each plot is due to the discrete nature of the data --- both the number of not outs and the number of innings must be integers. There is some overplotting that occurs due to batters having the same numbers of not-outs and innings, which results in the higher colour density of the corresponding plotted points. Batters who have played only a few innings tend to have a higher proportion of not outs on average, and a higher variance, than those who have played many innings.
 
 ```{r}
 #| label: fig-notouts
@@ -616,7 +615,7 @@ notouts_aug <- notouts_aug |>
 notouts_aug
 ```
 
-The most anomalous batters are all "tail-enders" (i.e., not skilled batters) who played for a long time (so they have a large number of innings). Because they batted last, or nearly last, they are more likely to be not out at the end of the team's innings.
+The most anomalous batters are all "tail-enders" (i.e., not skilled batters) who played for a long time (so they have many innings). Because they batted last, or nearly last, they are more likely to be not out at the end of the team's innings.
 
 The `.fitted` value is the expected proportion of not outs for each player given the number of innings they have played, while `prop_no` gives the actual proportion of not outs they have had. The largest surprisal is for English batter Jimmy Anderson, who has had `r notouts_aug$NotOuts[1]` not outs in `r notouts_aug$Innings[1]` innings, which is much higher than the expected number of not outs of $`r notouts_aug[["Innings"]][1]` \times `r sprintf("%.3f", notouts_aug[[".fitted"]][1])` = `r sprintf("%.1f", notouts_aug[[".fitted"]][1]*notouts_aug[["Innings"]][1])`$. This anomaly is also seen in @fig-notouts-gam, as being somewhat unusual for that part of the data. Although Jimmy Anderson was not a great batter, he was good at defence, and was able to bat for a long time without being dismissed, leaving the other batter time to score runs.
 
@@ -624,7 +623,7 @@ We have identified an anomaly that is not anomalous in the proportion of not-out
 
 ## KDE surprisals {#sec-kdesurprisals}
 
-Suppose, instead of a regression or a GAM, we estimate $f$ using a kernel density estimate. In fact, when the `surprisals()` functions is applied to data without specifying a probability distribution, a kernel density estimate of the data is used by default. The kernel density estimate at each observation is (@eq-mkde)
+Suppose, instead of a regression or a GAM, we estimate $f$ using a kernel density estimate. In fact, when the `surprisals()` or `surprisals_prob()` functions are applied to data without specifying a probability distribution, a kernel density estimate of the data is used by default. The kernel density estimate at each observation is (@eq-mkde)
 $$
   f_i = \hat{f}(\bm{y}_i) = \frac{1}{n} \sum_{j=1}^n K_H(\bm{y}_i-\bm{y}_j),
 $$ {#eq-kdescores}
@@ -649,11 +648,11 @@ $$
 $$ {#eq-lookkde}
 where $f_i$ is the kde estimate at $\bm{y}_i$ using all data. Thus, we can compute the leave-one-out kernel surprisals without needing to re-estimate the density many times.
 
-The largest possible LOO kde surprisal is infinite, occuring when there are no observations nearby, so that $nf_i = K_H(\bm{0})$.
+The largest possible LOO kde surprisal is infinite, occurring when there are no observations nearby, so that $nf_i = K_H(\bm{0})$.
 
 ### The lookout algorithm {#sec-lookout}
 
-The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2. It uses surprisal probabilities based on a GPD approximation. Probabilities obtained using this algorithm can be calculated using the `surprisals_prob()` function applied to a data set with `loo = TRUE`, and `approximation = "gdp"`.
+The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2. It uses surprisal probabilities based on a GPD approximation. Probabilities obtained using this algorithm can be calculated using the `surprisals_prob()` function applied to a data set with `loo = TRUE`, and `approximation = "gpd"`.
 
 ### Example: Old Faithful eruption durations
 
@@ -723,13 +722,13 @@ of |>
   arrange(prob, duration)
 ```
 
-Now, `r english::words(sum(surprisals_prob(of, loo = TRUE) < 0.001))` anomalies are identified, with both of them having infinite LOO surprisals. We can visualize them in an HDR scatterplot, shown in @fig-ofpot2.
+Now, `r english::words(sum(surprisals_prob(of, loo = TRUE) < 0.001))` anomalies are identified, with both of them having infinite LOO surprisals. We can visualise them in an HDR scatterplot, shown in @fig-ofpot2.
 
 ```{r}
 #| label: fig-ofpot2
 #| code-fold: false
 #| fig.cap: "HDR scatterplot of the Old Faithful eruption durations and waiting times, with the surprisal anomalies highlighted in black."
-of |>
+oldfaithful |>
   gg_hdrboxplot(duration, waiting, show_points = TRUE)
 ```
 

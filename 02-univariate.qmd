@@ -146,7 +146,7 @@ dist_gamma(c(1, 1, 2), c(1, 2, 1)) |>
 
 A **mixture distribution** is a distribution that is formed by mixing together other distributions. That is, a sample value is drawn from a mixture distribution by first randomly selecting one of the component distributions with some specified probability, and then sampling from the selected component distribution.
 
-The pdf of a mixture distribution is given by the weighted sum of the pdfs of the component distributions, where the weights correspond to the probability of sampling from each component. For example, suppose $Y$ is a mixture of two Normal distributions, with parameters $(\mu_1,\sigma_1^2)$ and $(\mu_2,\sigma_2^2$), where the first distribution has weight $p$ and the second has weight $1-p$. Then the resulting pdf of the mixture distribution is given by
+The pdf of a mixture distribution is given by the weighted sum of the pdfs of the component distributions, where the weights correspond to the probability of sampling from each component. For example, suppose $Y$ is a mixture of two Normal distributions, with parameters $(\mu_1,\sigma_1^2)$ and $(\mu_2,\sigma_2^2)$, where the first distribution has weight $p$ and the second has weight $1-p$. Then the resulting pdf of the mixture distribution is given by
 $$
   f(y) = pf(y;\mu_1,\sigma_1^2) + (1-p)f(y;\mu_2,\sigma_2^2).
 $$
@@ -184,7 +184,7 @@ A good introduction to other probability distributions on real sample spaces is 
 
 ## Central limit theorem {#sec-clt}
 
-The central limit theorem (CLT) is one of the most important results in statistics. There are several variations of the theorem; the simplest version states that the sum of a large number of iid random variables, with finite mean and variance, is approximately Normally distributed.
+The central limit theorem (CLT) is one of the most important results in statistics. There are several variations of the theorem; the simplest version states that the sum of many iid random variables, with finite mean and variance, is approximately Normally distributed.
 
 ::: {.callout-tip}
 ## Central Limit Theorem {-}
@@ -408,7 +408,7 @@ where $P(Y \in R_\alpha) = 1-\alpha$.
 
 A useful property of the HDR is that it is the smallest region containing $1-\alpha$ of the probability mass.
 
-For a symmetric unimodal distribution such as the Normal or t distributions, the HDR is an interval centred on the mean (which is equal to the median), with the ends given by the $\alpha/2$ and $1-\alpha/2$ quantiles. For a skewed unimodal distribution such as the $\chi^2$ or Gamma distributions, the HDR is also an interval, but it is not centred on the mean (or median), and the ends are not given by symmetric quantiles. For example, @fig-hdr shows two 90% regions for a $\chi^2_5$ distribution. The one shown in blue is based on the 0.05 and 0.95 quantiles, while the orange region is the 90% HDR. Notice that both are intervals, and that the orange interval is smaller than the blue interval. The value of the density at the ends of the HDR is the same, and is given by $f_\alpha$.
+For a symmetric unimodal distribution such as the Normal or t distributions, the HDR is an interval centred on the mean (which is equal to the median), with the ends given by the $\alpha/2$ and $1-\alpha/2$ quantiles. For a skewed unimodal distribution such as the $\chi^2$ or Gamma distributions, the HDR is also an interval, but it is not centred on the mean (or median), and the ends are not given by symmetric quantiles. An example is shown in @fig-hdr, with two 90% regions for a $\chi^2_5$ distribution. The one shown in blue is based on the 0.05 and 0.95 quantiles, while the orange region is the 90% HDR. Notice that both are intervals, and that the orange interval is smaller than the blue interval. The value of the density at the ends of the HDR is the same, and is given by $f_\alpha$.
 
 ```{r}
 #| label: fig-hdr
@@ -673,7 +673,7 @@ The statistical properties of the kernel density estimator (@eq-kde) have been e
 An important asymptotic result is that the mean square error (MSE) of $\hat{f}(y)$ is
 $$
   \text{E}\left[(\hat{f}(y) - f(y))^2\right] \approx
-  \frac{1}{4}h^4[f''(y)]^2 + \frac{f(y)R(K)}{nh} ,
+  \frac{1}{4}h^4[f''(y)]^2 + \frac{f(y)R(K)}{nh},
 $$ {#eq-mse}
 where $R(K) = \int K^2(u)du$ is the "roughness" of the kernel function. An estimator is "consistent" if the MSE goes to zero as the sample size $n$ goes to infinity. So @eq-kde gives a consistent estimator of the underlying density $f$ when both terms in @eq-mse go to zero. That is,
 $$
@@ -686,7 +686,7 @@ and so $h$ should decrease slowly as $n$ increases. Note that these conditions h
 If we integrate the MSE given by @eq-mse over $y$ (assuming $f$ is sufficiently smooth for the integral to exist), we obtain the mean integrated squared error (MISE) given by
 $$
   \text{E}\int \left[(\hat{f}(y) - f(y))^2\right] dy \approx
-  \frac{1}{4}h^4R(f'') + \frac{R(K)}{nh} ,
+  \frac{1}{4}h^4R(f'') + \frac{R(K)}{nh},
 $$ {#eq-mise}
 where $R(f'') = \int [f''(y)]^2 dy$ is the roughness of the second derivative of the underlying density. This gives us the average squared error over the whole range of $y$.
 
@@ -790,7 +790,7 @@ If we take the negative of the random variables $Y_1,\dots,Y_n$, it becomes clea
 
 These three families of distributions can be further combined into a single family by using the following cdf known as the Generalized Extreme Value (GEV) distribution,
 $$
-  G(z) = \exp\left\{ -\left[ 1 + \xi\Big(\frac{z - \mu}{\sigma} \Big)\right]^{-1/\xi} \right\} ,
+  G(z) = \exp\left\{ -\left[ 1 + \xi\Big(\frac{z - \mu}{\sigma} \Big)\right]^{-1/\xi} \right\},
 $$ {#eq-EVT4}
 where the domain of the function is $\{z: 1 + \xi (z - \mu)/\sigma >0 \}$. The location parameter is $\mu\in\mathbb{R}$, $\sigma>0$ is the scale parameter, while $\xi\in\mathbb{R}$ is the shape parameter. When $\xi = 0$ we obtain a Gumbel distribution with exponentially decaying tails. When $\xi < 0$ we get a Weibull distribution with a finite upper end, and when $\xi > 0$ we get a Fréchet family of distributions with heavy tails including polynomial tails.
 

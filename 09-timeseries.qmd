@@ -130,7 +130,7 @@ We will discuss each of these paradigms in turn.
 
 ## Weird times
 
-As a vehicle of illustration, we will consider French mortality rates, disaggregated by age and sex. These are obtained from the @HMD. We will consider male and female data from `r min(fr_mortality$Year)` to `r max(fr_mortality$Year)` over ages `r min(fr_mortality$Age)` to `r max(fr_mortality$Age)`, giving `r fr_mortality |> select(Age, Sex) |> distinct() |> NROW()` separate time series, each of length `r max(fr_mortality$Year) - min(fr_mortality$Year) + 1`. In fact, the top plot in @fig-tsparadigms shows the male mortality rates for 25 year olds over this time period.
+As a vehicle of illustration, we will consider French mortality rates, disaggregated by age and sex. These are obtained from the @HMD. We will consider male and female data from `r min(fr_mortality$Year)` to `r max(fr_mortality$Year)` over ages `r min(fr_mortality$Age)` to `r max(fr_mortality$Age)`, giving `r fr_mortality |> select(Age, Sex) |> distinct() |> NROW()` separate time series, each of length `r max(fr_mortality$Year) - min(fr_mortality$Year) + 1`. In fact, the top plot in @fig-tsparadigms shows the male mortality rates for 25-year-olds over this time period.
 
 ```{r}
 #| label: fr_mortality
@@ -582,7 +582,7 @@ We can summarise the anomaly detection algorithm for surveillance as follows. Fi
 For each $t = I,I+1,\dots$, and for all series $i=1,\dots,M$:
 
 * Fit a time series model to the series $y_{i,1},\dots,y_{i,t}$, and estimate the one-step forecast density, $f_{i,t+1}(y \mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$.
-* Compute the surprisal: $s_{i,t+1} = -\log f_{i,t+1}(y_{i,t+1}\mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$, and the the surprisal probabilities: $P(S > s_{i,t+1})$.
+* Compute the surprisal: $s_{i,t+1} = -\log f_{i,t+1}(y_{i,t+1}\mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$, and the surprisal probabilities: $P(S > s_{i,t+1})$.
 
 To illustrate, let's apply this to the `pbs` data. Starting with $I=36$ (3 years of data), we will fit ETS models to all available series [Ch 8, @fpp3], and forecast one step ahead in each case. Then we repeat the exercise using 37 observations, then 38 observations, and so on. This is known as a "rolling origin forecast" because the forecast rolls forward by one period each iteration. The process can be illustrated as in @fig-tscvplots.
 
@@ -734,7 +734,7 @@ pbs_anomalies <- pbs_scores |> filter(prob < 0.001)
 pbs_anomalies
 ```
 
-Now let's look at the A12 series that we started with, and consider the times where anomalies occur.
+Now let's look at the A12 series that we started with, and consider the times when anomalies occur.
 
 ```{r}
 #| label: pbs_scores4
@@ -763,4 +763,4 @@ The next example shows less dramatic anomalies that would be harder to identify 
 pbs_plot(pbs, pbs_anomalies, "R05")
 ```
 
-The first anomaly in 1994 has an unusually large peak compared to the preceding years; the next two in 1997 precede an unusally low trough compared to the previous years; and the final two in 2004 coincide with a disruption to the seasonal pattern in that year.
+The first anomaly in 1994 has an unusually large peak compared to the preceding years; the next two in 1997 precede an unusually low trough compared to the previous years; and the final two in 2004 coincide with a disruption to the seasonal pattern in that year.

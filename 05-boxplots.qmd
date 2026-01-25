@@ -51,11 +51,11 @@ and the corresponding letter values are given by
 \begin{align*}
  L_1 &= U_1 = (y_{(`r trunc(d[1])`)}+ y_{(`r trunc(d[1]+1)`)})/2 = `r sprintf("%2.2f", lv[4,"LV"])` &\\
  L_F &= y_{(`r trunc(d[2])`)} = `r sprintf("%2.2f", lv[3,"LV"])` \qquad
- &U_F &= y_{(`r trunc(n-d[2]+1)`)} = `r sprintf("%2.2f", lv[5,"LV"])` \\
+ & U_F &= y_{(`r trunc(n-d[2]+1)`)} = `r sprintf("%2.2f", lv[5,"LV"])` \\
  L_E &= y_{(`r trunc(d[3])`)} = `r sprintf("%2.2f", lv[2,"LV"])` \qquad
- &U_E &= y_{(`r trunc(n-d[3]+1)`)} = `r sprintf("%2.2f", lv[6,"LV"])` \\
+ & U_E &= y_{(`r trunc(n-d[3]+1)`)} = `r sprintf("%2.2f", lv[6,"LV"])` \\
  L_D &= y_{(`r trunc(d[4])`)} = `r sprintf("%2.2f", lv[1,"LV"])` \qquad
- &U_D &= y_{(`r trunc(n-d[4]+1)`)} = `r sprintf("%2.2f", lv[7,"LV"])`
+ & U_D &= y_{(`r trunc(n-d[4]+1)`)} = `r sprintf("%2.2f", lv[7,"LV"])`
 \end{align*}
 We can compute the letter values using the `lvtable()` function from the `lvplot` package.
 
@@ -79,7 +79,7 @@ batave |> quantile(prob = c(0.5^(4:1), 1 - 0.5^(2:4)), type = 8)
 
 ## Tukey's boxplots
 
-Boxplots were invented by John Tukey as a quick summary of medium sized data sets [@Tukey75;@Tukey1977-xd;@wickhamboxplots]. They are widely used to identify anomalies, which are shown as separate points in the plot.
+Boxplots were invented by John Tukey as a quick summary of medium-sized data sets [@Tukey75;@Tukey1977-xd;@wickhamboxplots]. They are widely used to identify anomalies, which are shown as separate points in the plot.
 
 @fig-cricketbox shows a boxplot of the cricket batting average data.
 
@@ -392,7 +392,7 @@ n01 |>
   ggplot(aes(x = v1, y = v2)) +
   geom_point() +
   geom_abline(aes(intercept = -0.8, slope = -1.8), col = "red") +
-  geom_point(data = data.frame(v1 = 0, v2 = -1), col = discrete_colors[1]) +
+  geom_point(data = data.frame(v1 = 0, v2 = -1), col = "#D55E00") +
   coord_fixed(xlim = c(-0.85, 1.6), ylim = c(-1.85, 1.1))
 ```
 
@@ -423,7 +423,7 @@ for (i in depths) {
   hull <- chull(tmp)
   regions[[i]] <- tmp[c(hull, hull[1]), ]
 }
-cols <- discrete_colors[c(2, 1, 4, 3)]
+cols <- c("#0072B2", "#D55E00", "#CC79A7", "#009E73")
 p <- n01 |>
   head(10) |>
   ggplot(aes(x = v1, y = v2))
@@ -545,21 +545,19 @@ The idea naturally extends to higher dimensions. @fig-hdr-faithful2 shows the bi
 ```{r}
 #| label: fig-hdr-faithful2
 #| fig.cap: "Bivariate kernel density estimate of the duration and waiting times of Old Faithful eruptions between 2017 and 2023."
-of <- oldfaithful |>
-  select(duration, waiting)
-of |>
+oldfaithful |>
   gg_hdrboxplot(duration, waiting, show_anomalies = FALSE) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 
-There are `r NROW(of)` observations used to compute this density estimate, and even with that many observations, computing the 99% HDR contour is difficult, as shown by the rather jagged boundary of the HDR region. This is simply a consequence of the sparsity of points in multidimensional space and in the tails of a distribution.
+There are `r NROW(oldfaithful)` observations used to compute this density estimate, and even with that many observations, computing the 99% HDR contour is difficult, as shown by the rather jagged boundary of the HDR region. This is simply a consequence of the sparsity of points in multidimensional space and in the tails of a distribution.
 
-As with bagplots, there is a variation that shows the individual points colored according to the HDR region in which they fall.
+As with bagplots, there is a variation that shows the individual points coloured according to the HDR region in which they fall.
 
 ```{r}
 #| label: fig-hdr-faithful3
-#| fig.cap: "Bivariate HDR boxplot of the duration and waiting times of Old Faithful eruptions between 2017 and 2023. Individual points are colored according to the HDR region in which they fall."
-of |>
+#| fig.cap: "Bivariate HDR boxplot of the duration and waiting times of Old Faithful eruptions between 2017 and 2023. Individual points are coloured according to the HDR region in which they fall."
+oldfaithful |>
   gg_hdrboxplot(duration, waiting, show_anomalies = FALSE, show_points = TRUE) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```

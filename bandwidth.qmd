@@ -146,9 +146,8 @@ sim_kn |>
 Old Faithful data
 
 ```{r}
-of <- oldfaithful |>
-  select(duration, waiting)
-gg_hdrboxplot(of, duration, waiting,
+oldfaithful |>
+  gg_hdrboxplot(duration, waiting,
   show_points = TRUE,
   H = kde_bandwidth(of, multiplier = 3)
 )

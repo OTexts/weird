@@ -30,7 +30,7 @@ fr_mortality |>
   )
 ```
 
-As we are interested in anomalies, we will mostly focus on the unusual curves. There are about 10--15 years where the mortality rate for 20--40 year olds is much higher than in other years. These are the war years. Any anomaly detection method for functional data should identify these years as unusual.
+As we are interested in anomalies, we will mostly focus on the unusual curves. There are about 10--15 years when the mortality rate for 20--40 year olds is much higher than in other years. These are the war years. Any anomaly detection method for functional data should identify these years as unusual.
 
 We will denote the functional data as $y_i(x)$. Here, $i$ is a discrete index over all observations, and $x$ is the continuous variable over which each function is defined. For the mortality data, $y_{i}(x)$ represent the mortality rate for age $x$ in year $i$.
 
@@ -42,7 +42,7 @@ The distinguishing feature of functional data is that we think of the data as sm
 
 It is common to form continuous functions using some kind of interpolation or smoothing of the raw data. Smoothing is used if the underlying curve has been observed with measurement error.
 
-The data shown in @fig-fr-mortality are observed with error, as the "wiggliness" of the curves shows. The mortality rate (or central death rate) at age $x$ and year $t$ is defined as the number of people who died at age $x$ in year $t$ divided by the number of people who were aged $x$ in the middle of year $t$. We can smooth the data to obtain the mortality rates at non-integer values of $x$.
+The data shown in @fig-fr-mortality are observed with error, as the "wiggliness" of the curves shows. The mortality rate (or central death rate) at age $x$ and year $t$ is defined as the number of people who died at age $x$ in year $t$ divided by the number of people who were aged $x$ in the middle of year $t$. We can smooth the data to obtain the mortality rates at noninteger values of $x$.
 
 In the following code, we use a smoothing method proposed by @HU07, that takes account of the characteristics of mortality rates.
 
