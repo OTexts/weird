@@ -325,7 +325,7 @@ $$
 $$
 and $z_{1-\alpha/2}$ is the $1-\alpha/2$ quantile of a standard Normal distribution. This choice is based on the idea that the edges of the boxes are quantile estimates, and the confidence interval for each quantile estimate that is displayed should not overlap the subsequent quantile estimate. The Normal distribution arises because the quantile estimate has an approximate Normal distribution (@eq-sample-quantile-distribution). This stopping rule means that, on average, there should be fewer than $2z^2_{1-\alpha/2}$ legitimate observations in the tails. By default, $\alpha=0.05$, so that, on average, there should be fewer than $2 \times (`r qnorm(1-0.05/2)`)^2 = `r round(2* qnorm(1-0.05/2)^2,1)`$ legitimate observations in the tails, regardless of the size of the data set.
 
-Letter value plots were not designed to detect anomalies, but to be a useful data visualization tool for univariate distributions with large numbers of observations. So the display of legitimate observations in the tails of the distribution is by design, not a flaw.
+Letter value plots were not designed to detect anomalies, but to be a useful data visualisation tool for univariate distributions with large numbers of observations. So the display of legitimate observations in the tails of the distribution is by design, not a flaw.
 
 In this cricketing example, it looks like there is one true anomaly (Don Bradman) and the remaining 8 observations displayed directly are simply in the tails of the distribution of the remaining data.
 
@@ -485,7 +485,7 @@ oldfaithful |>
 
 This demonstrates the drawback of using a bagplot to identify anomalies. While the plot has identified all the genuine anomalies, it has also highlighted points on the edge of the data cloud which are probably not anomalies.
 
-A useful variation of the bagplot, especially for larger data sets, displays a scatterplot of the observations, but colored using the same colors as the bagplot, with the deepest observation in the strongest blue, the points within the bag in a lighter blue, and the points within the loop in the lightest color. Outliers are shown in black if any exist.
+A useful variation of the bagplot, especially for larger data sets, displays a scatterplot of the observations, but coloured using the same colours as the bagplot, with the deepest observation in the strongest blue, the points within the bag in a lighter blue, and the points within the loop in the lightest colour. Outliers are shown in black if any exist.
 
 ```{r}
 #| label: fig-oldfaithfulbagplot2
@@ -499,7 +499,7 @@ oldfaithful |>
 
 ### General comments
 
-The idea of depth regions and the depth median can be easily generalized to data with more than two dimensions [@rousseeuw1998computing]. Consequently, it would be possible to define a higher-dimensional version of the bagplot, although it would be difficult to plot it in four or more dimensions. In any case, we will consider approaches to handle high-dimensional data in [Chapter -@sec-highdim].
+The idea of depth regions and the depth median can be easily generalised to data with more than two dimensions [@rousseeuw1998computing]. Consequently, it would be possible to define a higher-dimensional version of the bagplot, although it would be difficult to plot it in four or more dimensions. In any case, we will consider approaches to handle high-dimensional data in [Chapter -@sec-highdim].
 
 ## HDR boxplots
 

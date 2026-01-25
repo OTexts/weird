@@ -67,7 +67,7 @@ ozone <- bind_rows(
   )
 ozone |>
   filter(Instrument %in% c("Halley", "TOMS")) |>
-  ggplot(aes(x = Year, y = Ozone, color = Instrument)) +
+  ggplot(aes(x = Year, y = Ozone, colour = Instrument)) +
   geom_point() +
   geom_hline(aes(yintercept = 180), col = "gray") +
   labs(y = "Total Ozone (DU)") +

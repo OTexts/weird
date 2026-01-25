@@ -45,7 +45,7 @@ The density functions for these three distributions are shown in @fig-testdist.
 c(t3 = dist_student_t(3), X4 = dist_chisq(4), N01 = dist_normal()) |>
   gg_density() +
   labs(y = "Probability density") +
-  scale_color_discrete(
+  scale_colour_discrete(
     breaks = c("t3", "X4", "N01"),
     labels = c(
       latex2exp::TeX("$t_{~3}$"),
@@ -300,7 +300,7 @@ zspurious2df |>
     y = "Probability of at least one spurious anomaly",
     x = "Sample size (n)"
   ) +
-  scale_color_discrete(
+  scale_colour_discrete(
     breaks = c("t(3)", "Chi-squared(4)", "Normal"),
     labels = c(
       latex2exp::TeX("$t_{~3}$"),
@@ -567,7 +567,7 @@ pgrubbsdf |>
     x = "Sample size (n)"
   ) +
   theme(axis.text.x = element_text(size = 8)) +
-  scale_color_discrete(
+  scale_colour_discrete(
     breaks = c("t(3)", "Chi-squared(4)", "Normal"),
     labels = c(
       latex2exp::TeX("$t_{~3}$"),
@@ -690,7 +690,7 @@ dixondf |>
     y = "Probability of at least one spurious anomaly",
     x = "Sample size (n)"
   ) +
-  scale_color_discrete(
+  scale_colour_discrete(
     breaks = c("t(3)", "Chi-squared(4)", "Normal"),
     labels = c(
       latex2exp::TeX("$t_{~3}$"),

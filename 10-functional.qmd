@@ -8,7 +8,7 @@ source("before-each-chapter.R")
 
 Functional data occur when the natural observational representation is a function. The most commonly occurring examples are where observations are taken of functions over one or two dimensions. For example, mortality rates are naturally represented as 1-dimensional functions of age, and surface temperatures are naturally represented as functions over the 2-dimensional plane of latitude and longitude.
 
-@fig-fr-mortality shows French male mortality rates between 1816 and 1999. Each line denotes the mortality rates as a function of age for one year, with the colors in rainbow order corresponding to the years of observation. Overall, we see a large decrease in mortality rates during early childhood years, then an increase during teenage years. After about age 30, the rates increase almost linearly on a log scale. Comparing the curves over time, we see that the rates have steadily fallen for all ages, with nearly a 100-fold reduction in mortality rates at around age 10. The noticeable gap between the curves occurred after World War II due to the effective use of antibiotics, and widespread vaccinations for polio, diptheria, tetanus, whooping cough, measles, mumps and rubella.
+@fig-fr-mortality shows French male mortality rates between 1816 and 1999. Each line denotes the mortality rates as a function of age for one year, with the colours in rainbow order corresponding to the years of observation. Overall, we see a large decrease in mortality rates during early childhood years, then an increase during teenage years. After about age 30, the rates increase almost linearly on a log scale. Comparing the curves over time, we see that the rates have steadily fallen for all ages, with nearly a 100-fold reduction in mortality rates at around age 10. The noticeable gap between the curves occurred after World War II due to the effective use of antibiotics, and widespread vaccinations for polio, diphtheria, tetanus, whooping cough, measles, mumps and rubella.
 
 ```{r}
 #| label: fig-fr-mortality
@@ -16,9 +16,9 @@ Functional data occur when the natural observational representation is a functio
 fr_mortality |>
   filter(Sex == "Male") |>
   ggplot() +
-  aes(x = Age, y = log10(Mortality), color = Year, group = Year) +
+  aes(x = Age, y = log10(Mortality), colour = Year, group = Year) +
   geom_line() +
-  scale_color_gradientn(colors = rainbow(100)[1:80]) +
+  scale_colour_gradientn(colours = rainbow(100)[1:80]) +
   labs(y = "Log (base 10) mortality rate") +
   scale_y_continuous(
     sec.axis = sec_axis(
@@ -84,9 +84,9 @@ fr_mortality |>
 fr_smooth |>
   filter(Sex == "Male") |>
   ggplot() +
-  aes(x = Age, y = log10(.smooth), color = Year, group = Year) +
+  aes(x = Age, y = log10(.smooth), colour = Year, group = Year) +
   geom_line() +
-  scale_color_gradientn(colors = rainbow(100)[1:80]) +
+  scale_colour_gradientn(colours = rainbow(100)[1:80]) +
   labs(y = "Log mortality rate") +
   scale_y_continuous(
     sec.axis = sec_axis(
@@ -109,18 +109,18 @@ where $b_0(x)$ is a constant function, $\{b_1(x),\dots,b_J(x)\}$ are a set of ba
 
 The number of basis functions $J$ is usually much smaller than the number of observations, with larger $J$ corresponding to a more flexible approximation.
 
-Given a set of basis functions, we can estimate the coefficients $\beta_{ij}$ by minimizing the sum of squared errors between the observed data $y_i(x)$ and the approximated data $\hat{y}_i(x)$.
+Given a set of basis functions, we can estimate the coefficients $\beta_{ij}$ by minimising the sum of squared errors between the observed data $y_i(x)$ and the approximated data $\hat{y}_i(x)$.
 
 Alternatively, we can use functional principal component analysis to find the empirical basis functions that explain the most variance in the data. Then $b_0(x)$ is set to be the mean function,
 $$b_0(x) = \frac{1}{n} \sum_{i=1}^n y_i(x),$$
-and the first principal component, $b_1(x)$, is the function that minimizes
+and the first principal component, $b_1(x)$, is the function that minimises
 $$\big[y_i(x) - b_0(x) - \beta_{i1}b_1(x)\big]^2$$
 subject to the constraint that $\int b_1^2(x)dx = 1$.
-The second principal component, $b_2(x)$, is the function that minimizes
+The second principal component, $b_2(x)$, is the function that minimises
 $$\big[y_i(x) - b_0(x) - \beta_{i1}b_1(x) - \beta_{i2}b_2(x)\big]^2$$
 subject to the constraints that $\int b_2^2(x)dx = 1$ and $\int b_1(x)b_2(x)dx = 0$. And so on.
 
-If the functions are discretized on a fine grid over $x$, we can use regular principal component decomposition to get approximately the same results as functional principal components.
+If the functions are discretised on a fine grid over $x$, we can use regular principal component decomposition to get approximately the same results as functional principal components.
 
 In the following example, we find the first few principal components (empirical basis functions) using the French male mortality data.
 
@@ -153,7 +153,7 @@ pca_bases <- broom::tidy(pca, "loadings") |>
   )
 pca_bases |>
   ggplot() +
-  aes(x = Age, y = value, group = PC, color = PC) +
+  aes(x = Age, y = value, group = PC, colour = PC) +
   geom_line()
 ```
 
@@ -204,7 +204,7 @@ outliers <- pca_scores |> filter(prob < 0.05)
 pca_scores |>
   ggplot(aes(x = .fittedPC1, y = .fittedPC2)) +
   geom_point() +
-  geom_point(data = outliers, color = "red") +
+  geom_point(data = outliers, colour = "red") +
   ggrepel::geom_label_repel(data = outliers, aes(label = Year), )
 ```
 

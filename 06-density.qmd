@@ -21,7 +21,7 @@ $$
 $$ {#eq-surprisal}
 measuring the surprise in seeing the observation. So it is a measure of how anomalous (or surprising) that observation is, given the density $f$. A large value of $s_i$ indicates that $\bm{y}_i$ is not a likely value, and so is a potential anomaly. On the other hand, typical values will have low surprisals. In information theory, the average surprisal is known as the entropy of a random variable [@Cover2006;@Stone2022], and provides a measure of uncertainty.
 
-Although the term "surprisal" may not be in common use amongst statisticians and other data scientists, the underlying idea is widely used. For example, if $f$ is obtained from a model with parameters that need to be estimated from the data, then the sum of the surprisals is equal to minus the log likelihood of the data. Therefore, finding parameters that minimize the sum of the surprisals is equivalent to maximum likelihood estimation.
+Although the term "surprisal" may not be in common use amongst statisticians and other data scientists, the underlying idea is widely used. For example, if $f$ is obtained from a model with parameters that need to be estimated from the data, then the sum of the surprisals is equal to minus the log likelihood of the data. Therefore, finding parameters that minimise the sum of the surprisals is equivalent to maximum likelihood estimation.
 
 Surprisals are also commonly used in forecasting and prediction problems (where they are called log scores) to assess whether an estimated distribution $f$ provides a good description of the future data values $y$ [@Gneiting2014]. In that context, the data are thought to be a reliable reflection of the underlying processes, and once the data are observed, the surprisal is used to assess how well the estimated distribution $f$ matches what actually happened. In this book, we are using surprisals in reverse --- we assume $f$ is a good description of the underlying processes, and then we use the surprisals to identify observations that are unlikely to have come from that distribution.
 
@@ -182,7 +182,7 @@ Surprisal probabilities are related to highest density regions discussed in @sec
 
 ### Connection to $z$-scores
 
-For any symmetric univariate distribution, $p_i = 2[1 - F(c+|y_i-c|)]$, where $F$ is the corresponding distribution function centered at $c$. Therefore, under the Normal distribution $N(\mu, \sigma^2)$, $p_i = 2[1-\Phi(|y_i-\mu|/\sigma)]$, where $\Phi$ is the standard Normal distribution function.
+For any symmetric univariate distribution, $p_i = 2[1 - F(c+|y_i-c|)]$, where $F$ is the corresponding distribution function centred at $c$. Therefore, under the Normal distribution $N(\mu, \sigma^2)$, $p_i = 2[1-\Phi(|y_i-\mu|/\sigma)]$, where $\Phi$ is the standard Normal distribution function.
 
 This shows that when $f$ is a Normal density, identifying anomalies as observations with $p_i < \alpha$ is equivalent to a z-score test (@sec-zscores) with the threshold set to the $1-\alpha/2$ quantile of the standard Normal distribution.
 
@@ -192,7 +192,7 @@ If we do not know what the distribution of the data should be, or if we think ou
 
 Let $f^*$ denote the assumed (and possibly incorrect) density function. It might be a poor estimate of the true density, or it might just be a density on the same sample space as the data. Using this assumed density, we can compute the surprisals, $s_i = -\log f^*(\bm{y}_i)$.
 
-Then we can fit a Generalized Pareto Distribution (GPD) to the largest surprisals using the POT approach discussed in @sec-evt. Even when $f^*$ is incorrect or poorly estimated, the extreme surprisals will still follow a Generalized Pareto Distribution.
+Then we can fit a Generalised Pareto Distribution (GPD) to the largest surprisals using the POT approach discussed in @sec-evt. Even when $f^*$ is incorrect or poorly estimated, the extreme surprisals will still follow a Generalised Pareto Distribution.
 
 Let $\beta$ denote the tail probability used in the GPD threshold, and let $u$ denote the $1-\beta$ sample quantile of the surprisal values. For example, $\beta = 0.1$ is a common choice, and then $u$ is the $90^{\text{th}}$ percentile of the $s_i$ values. We estimate a GPD distribution using the surprisals above $u$, and then compute the approximate surprisal probability of each observation with $s_i>u$ by
 $$
@@ -305,7 +305,7 @@ The residuals from the model are given by
 $$
   \bm{e} = \bm{y} - \hat{\bm{y}} = (\bm{I} - \bm{H})\bm{y}.
 $$ {#eq-residual-distribution}
-Note that the residuals have the distribution $\bm{e}\mid\bm{X} \sim N(\bm{0}, \sigma^2(\bm{I} - \bm{H}))$, which is not quite the same as the distribution of the errors given by @eq-error-distribution. However, as $n\rightarrow\infty$, $\bm{H}\rightarrow\bm{I}$, so the two distributions are asymptotically equivalent. Often, we need standardized residuals, which are obtained by dividing each residual by its estimated standard deviation, giving
+Note that the residuals have the distribution $\bm{e}\mid\bm{X} \sim N(\bm{0}, \sigma^2(\bm{I} - \bm{H}))$, which is not quite the same as the distribution of the errors given by @eq-error-distribution. However, as $n\rightarrow\infty$, $\bm{H}\rightarrow\bm{I}$, so the two distributions are asymptotically equivalent. Often, we need standardised residuals, which are obtained by dividing each residual by its estimated standard deviation, giving
 $$ r_i = \frac{e_i}{\hat{\sigma}\sqrt{1-h_i}}, \qquad i = 1,\dots, n,
 $$
 where
@@ -314,9 +314,9 @@ $$
 $$ {#eq-residual-variance}
 is the estimated residual variance.
 
-A linear model can be estimated in R using the `stats::lm()` function. The `broom::augment()` function will compute the residuals (named `.resid`), the standardized residuals (named `.std.resid`), and the leverage values (names `.hat`).
+A linear model can be estimated in R using the `stats::lm()` function. The `broom::augment()` function will compute the residuals (named `.resid`), the standardised residuals (named `.std.resid`), and the leverage values (names `.hat`).
 
-The surprisals under the Gaussian linear regression model [@eq-gaussian-regression] can be estimated using these standardized residuals, giving
+The surprisals under the Gaussian linear regression model [@eq-gaussian-regression] can be estimated using these standardised residuals, giving
 $$
   s_i = -\log\phi(r_i),
 $$ {#eq-regression-log-score}
@@ -345,7 +345,7 @@ The variance of $e_{-i}$ is given by
 $$
   \frac{\text{Var}(e_i)}{(1-h_i)^2} = \frac{\sigma^2}{1-h_i},
 $$
-so we can standardize each LOO residual to obtain
+so we can standardise each LOO residual to obtain
 $$
  \frac{e_i / (1-h_i)}{\sigma/\sqrt{1-h_i}} = \frac{e_i}{\sigma \sqrt{1-h_i}}
 $$
@@ -354,7 +354,7 @@ $$
   \hat\sigma_{-i}^2 = \frac{1}{n-p-2}\left[(n-p-1)\hat\sigma^2 - e_{i}^2/(1-h_i)\right],
 $$ {#eq-loo-residual-variance}
 where $\hat\sigma^2$ is given by @eq-residual-variance. These are computed by `broom::augment()` and are returned in the column `.sigma`.
-Thus the standardized LOO residuals (also known as "externally studentized residuals") are given by
+Thus the standardised LOO residuals (also known as "externally studentized residuals") are given by
 $$
  r_{-i} = \frac{e_i}{\hat\sigma_{-i} \sqrt{1-h_i}}.
 $$
@@ -407,7 +407,7 @@ and is depicted in @fig-shiraz-regression with 95% prediction intervals.
 ```{r}
 #| label: fig-shiraz-regression
 #| warning: false
-#| fig.cap: Log price of Shiraz as a function of points, with 95% prediction intervals. The points are horizontally jitted to reduce overplotting. Points outside the prediction intervals are colored.
+#| fig.cap: Log price of Shiraz as a function of points, with 95% prediction intervals. The points are horizontally jitted to reduce overplotting. Points outside the prediction intervals are coloured.
 wine_aug <- broom::augment(fit_wine, data = shiraz, interval = "prediction") |>
   mutate(
     lwr = exp(.lower),
@@ -422,17 +422,17 @@ wine_aug |>
   ggplot(aes(y = price, x = points, col = location)) +
   geom_jitter(height = 0, width = 0.1, alpha = 0.5) +
   geom_ribbon(aes(ymin = lwr, ymax = upr), fill = "#cccccc", alpha = 0.25) +
-  geom_line(aes(y = exp(.fitted)), color = "#666666") +
+  geom_line(aes(y = exp(.fitted)), colour = "#666666") +
   scale_y_log10() +
   guides(fill = "none", col = "none") +
-  scale_color_manual(values = c("#0072B2", "#D55E00", "#AAAAAA"))
+  scale_colour_manual(values = c("#0072B2", "#D55E00", "#AAAAAA"))
 ```
 
-The LOO surprisals obtained from this model are shown in @fig-shiraz-regression-scores, using the same colors as @fig-shiraz-regression to indicate whether the observation is below, within, or above, the 95% prediction interval.
+The LOO surprisals obtained from this model are shown in @fig-shiraz-regression-scores, using the same colours as @fig-shiraz-regression to indicate whether the observation is below, within, or above, the 95% prediction interval.
 
 ```{r}
 #| label: fig-shiraz-regression-scores
-#| fig.cap: Residuals and surprisals for the Shiraz data using a linear regression model. Points are colored to match the 95% prediction intervals in @fig-shiraz-regression.
+#| fig.cap: Residuals and surprisals for the Shiraz data using a linear regression model. Points are coloured to match the 95% prediction intervals in @fig-shiraz-regression.
 #| fig.height: 6
 #| fig.asp: 0.8
 wine_aug <- wine_aug |>
@@ -446,15 +446,15 @@ wine_aug |>
   tidyr::pivot_longer(c(std_loo_res, loo_surprisals), names_to = "variable", values_to = "value") |>
   mutate(variable = factor(variable,
     levels = c("std_loo_res", "loo_surprisals"),
-    label = c("Standardized LOO residuals", "LOO surprisals")
+    label = c("Standardised LOO residuals", "LOO surprisals")
   )) |>
   ggplot(aes(x = points, y = value, col = location)) +
   facet_grid(variable ~ ., scales = "free_y") +
   geom_jitter(height = 0, width = 0.1, alpha = 0.5) +
-  geom_hline(yintercept = 0, color = "#666666") +
+  geom_hline(yintercept = 0, colour = "#666666") +
   labs(x = "Points", y = "") +
   guides(fill = "none", col = "none") +
-  scale_color_manual(values = c("#0072B2", "#D55E00", "#AAAAAA"))
+  scale_colour_manual(values = c("#0072B2", "#D55E00", "#AAAAAA"))
 ```
 
 ```{r}
@@ -469,7 +469,7 @@ good_buy <- wine_aug |>
   filter(std_loo_res == min(std_loo_res))
 ```
 
-The over-priced wines under this model are shown in blue, while the under-priced wines are shown in orange. This shows that the most anomalous observations are the two with LOO surprisals above 17, and studentized residuals close to 6. The largest LOO surprisal is for the most over-priced wine (under this model), a 2009 Shiraz from the Henschke winery in the Eden Valley region of South Australia, with `r most_anomalous$points[1]` points and a price of $`r most_anomalous$price[1]`.
+The over-priced wines under this model are shown in blue, while the under-priced wines are shown in orange. This shows that the most anomalous observations are the two with LOO surprisals above 17, and studentised residuals close to 6. The largest LOO surprisal is for the most over-priced wine (under this model), a 2009 Shiraz from the Henschke winery in the Eden Valley region of South Australia, with `r most_anomalous$points[1]` points and a price of $`r most_anomalous$price[1]`.
 
 ```{r}
 #| code-fold: false
@@ -515,13 +515,13 @@ shiraz |>
   arrange(prob)
 ```
 
-@fig-shiraz-surprisal shows the relationship between points and price, with the points colored according to the surprisal probability. The ten blue points are observations with surprisal probabilities less than 0.002 (two are almost overlapping).
+@fig-shiraz-surprisal shows the relationship between points and price, with the points coloured according to the surprisal probability. The ten blue points are observations with surprisal probabilities less than 0.002 (two are almost overlapping).
 
 ```{r}
 #| label: fig-shiraz-surprisal
-#| fig.cap: Price vs points for Shiraz wines. Points are colored according to the surprisal probability. The eight blue points are observations with surprisal probabilities less than 0.002.
+#| fig.cap: Price vs points for Shiraz wines. Points are coloured according to the surprisal probability. The eight blue points are observations with surprisal probabilities less than 0.002.
 shiraz |>
-  ggplot(aes(x = points, y = price, color = prob < 0.002)) +
+  ggplot(aes(x = points, y = price, colour = prob < 0.002)) +
   geom_jitter(height = 0, width = 0.2) +
   scale_y_log10()
 ```
@@ -536,7 +536,7 @@ if(NROW(shiraz_surprise) != 9L)
 
 ## GAM surprisals
 
-In some applications, it is not appropriate to assume the conditional density is Gaussian, or that the relationships are linear. One useful model that allows for non-Gaussian densities, and non-linear relationships, is a generalized additive model or GAM. Under this model, the conditional density is given by [@Wood2017gam]
+In some applications, it is not appropriate to assume the conditional density is Gaussian, or that the relationships are linear. One useful model that allows for non-Gaussian densities, and non-linear relationships, is a generalised additive model or GAM. Under this model, the conditional density is given by [@Wood2017gam]
 $$
   y\mid\bm{x} \sim f(\mu), \qquad \ell(\mu) = \sum_{k=1}^p g_k(x_{k}),
 $$
@@ -590,7 +590,7 @@ notouts_aug <- broom::augment(fit_notouts, data = df_no, type.predict = "respons
 notouts_aug |>
   ggplot(aes(x = Innings, y = prop_no)) +
   geom_point(alpha = 0.2) +
-  geom_line(aes(y = .fitted), color = "#0072B2") +
+  geom_line(aes(y = .fitted), colour = "#0072B2") +
   geom_ribbon(
     aes(
       ymin = .fitted - 2 * .se.fit,

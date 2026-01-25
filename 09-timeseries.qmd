@@ -28,7 +28,7 @@ tscv_plot <- function(.init, .step, h = 1) {
     ) +
     geom_point(aes(col = observation), size = 2) +
     scale_y_reverse() +
-    scale_color_manual(
+    scale_colour_manual(
       values = c(train = "#0072B2", test = "#c14b14", unused = "gray")
     ) +
     guides(col = "none") +
@@ -47,7 +47,7 @@ pbs_plot <- function(pbs, anomalies, series) {
     dplyr::filter(ATC2 == series) |>
     ggplot2::ggplot(ggplot2::aes(x = Month, y = Scripts)) +
     tsibble::scale_x_yearmonth(date_breaks = "2 years", date_labels = "%Y") +
-    ggplot2::geom_vline(xintercept = dates, color = "red", alpha = 0.4) +
+    ggplot2::geom_vline(xintercept = dates, colour = "red", alpha = 0.4) +
     ggplot2::geom_line() +
     ggplot2::labs(title = paste("Scripts for ATC group", series))
 }
@@ -102,7 +102,7 @@ p1 <- fr_mortality |>
 p2 <- fr_mortality |>
   filter(Age %in% c(2:6, 60), Sex == "Female") |>
   mutate(paradigm = "Weird series") |>
-  ggplot(aes(x = Year, y = Mortality, color = as.factor(Age))) +
+  ggplot(aes(x = Year, y = Mortality, colour = as.factor(Age))) +
   geom_line() +
   guides(col = "none") +
   facet_grid(paradigm ~ .) +
@@ -145,13 +145,13 @@ fr_mortality
 #| code-fold: false
 #| fig-cap: !expr sprintf("French mortality rates by sex and age from %d to %d. We use a log scale because the rates are vastly different for different age groups.", min(fr_mortality$Year), max(fr_mortality$Year))
 fr_mortality |>
-  ggplot(aes(x = Year, y = Mortality, color = Age, group = Age)) +
+  ggplot(aes(x = Year, y = Mortality, colour = Age, group = Age)) +
   geom_line() +
   facet_grid(. ~ Sex) +
   scale_y_log10(labels = scales::comma)
 ```
 
-Anomaly detection methods for identifying weird time anomalies are usually based on fitting a smooth function $m_t$ through the observations, estimating the spread in the series $a_t$, and computing the standardized residuals $e_t = (y_t - m_t)/a_t$. We then identify anomalies in the $e_t$ series using one of the methods discussed in @sec-density-methods or @sec-distance-methods. To illustrate, we will consider two such approaches, but many more are possible depending on how $m_t$ and $a_t$ are estimated, and how anomalies are identified in $e_t$.
+Anomaly detection methods for identifying weird time anomalies are usually based on fitting a smooth function $m_t$ through the observations, estimating the spread in the series $a_t$, and computing the standardised residuals $e_t = (y_t - m_t)/a_t$. We then identify anomalies in the $e_t$ series using one of the methods discussed in @sec-density-methods or @sec-distance-methods. To illustrate, we will consider two such approaches, but many more are possible depending on how $m_t$ and $a_t$ are estimated, and how anomalies are identified in $e_t$.
 
 ### Hampel identifier
 
@@ -204,7 +204,7 @@ fr_anomalies_plot_male2 <- fr_anomalies |>
   geom_vline(
     xintercept = unique(yrs$Year[yrs$Sex == "Male"]),
     alpha = 0.5,
-    color = "grey"
+    colour = "grey"
   ) +
   geom_point(col = "#478cb2") +
   ggrepel::geom_text_repel(
@@ -227,7 +227,7 @@ fr_anomalies_plot_female2 <- fr_anomalies |>
   geom_vline(
     xintercept = unique(yrs$Year[yrs$Sex == "Female"]),
     alpha = 0.5,
-    color = "grey"
+    colour = "grey"
   ) +
   labs(title = "French mortality anomalies") +
   geom_point(col = "#c1653a") +
@@ -349,7 +349,7 @@ stmf_scores |> arrange(prob)
 #| code-fold: false
 #| warning: false
 #| message: false
-#| fig-cap: US weekly mortality rates identified as anomalies using surprisal probabilities obtained from applying STL to each series, computing the surprisals from the standardized residuals, and using a GPD on the surprisals.
+#| fig-cap: US weekly mortality rates identified as anomalies using surprisal probabilities obtained from applying STL to each series, computing the surprisals from the standardised residuals, and using a GPD on the surprisals.
 #| dependson: stmf_scores2
 us_stmf |>
   autoplot(Mortality) +
@@ -434,7 +434,7 @@ pcs |>
   ggplot(aes(x = Week, y = .fittedPC1)) +
   geom_line() +
   labs(y = "First principal component scores") +
-  geom_point(data = pc_anomalies, color = "red")
+  geom_point(data = pc_anomalies, colour = "red")
 ```
 
 As expected, many of the same weeks identified earlier in an analysis of individual series have been returned. The probability of false positives increases with both the length of each series, and the number of each series. So we have used a larger probability threshold here than in the analysis of individual series. Conversely, some anomalies might appear to be marginal in the individual series, but when the series are combined like this, the anomalous periods may be clearer. This appears to be the case in weeks 3 and 4 of 2020, where unusually low mortality rates are seen, probably because of restricted movements due to growing uncertainty associated with the spread of COVID-19. (The earlier analysis only showed an anomaly in this period for 85+ year olds in 2020 W3.) Unusually low mortality rates have also been identified in Weeks 13 and 15 of 2021, probably also due to restricted movements, especially of older people.
@@ -596,7 +596,7 @@ tscv_plot(.init = 8, .step = 1, h = 1) +
     x = 9,
     y = 0,
     label = "h = 1",
-    color = "#c14b14",
+    colour = "#c14b14",
     family = "Fira Sans"
   )
 ```

@@ -86,7 +86,7 @@ dist_chisq(c(1, 2, 5)) |>
   gg_density() +
   labs(x = "y", y = "Probability Density Function: f(y)") +
   coord_cartesian(ylim = c(0, 1)) +
-  scale_color_discrete(
+  scale_colour_discrete(
     labels = c(
       latex2exp::TeX("$\\chi^{~2}_{~~1}$"),
       latex2exp::TeX("$\\chi^{~2}_{~~2}$"),
@@ -114,7 +114,7 @@ dist_student_t(c(1, 5, 99)) |>
   gg_density(ngrid = 10001) +
   coord_cartesian(xlim = c(-8, 8)) +
   labs(x = "y", y = "Probability Density Function: f(y)") +
-  scale_color_discrete(
+  scale_colour_discrete(
     labels = c(
       latex2exp::TeX("$t_{~1}$"),
       latex2exp::TeX("$t_{~5}$"),
@@ -126,7 +126,7 @@ dist_student_t(c(1, 5, 99)) |>
 
 ### $\Gamma$ distribution
 
-The $\Gamma$ (or **Gamma**) distribution is a generalization of the $\chi^2$ distribution, and is used in many statistical models. There are several parameterizations. Here, we use the shape/rate parameterization which uses the shape $\alpha$ and the rate $\beta$. The pdf is given by
+The $\Gamma$ (or **Gamma**) distribution is a generalisation of the $\chi^2$ distribution, and is used in many statistical models. There are several parameterisations. Here, we use the shape/rate parameterisation which uses the shape $\alpha$ and the rate $\beta$. The pdf is given by
 $$
   f(y; \alpha, \beta) = \frac{\beta^\alpha}{\Gamma(\alpha)} y^{\alpha-1}e^{-\beta y}.
 $$
@@ -258,7 +258,7 @@ c(dist_normal(0, 1), dist_student_t(5), dist_chisq(5)) |>
   ggplot(aes(x = p, y = Q, col = Distribution)) +
   geom_line() +
   labs(x = "p", y = "Quantile function: Q(p)") +
-  scale_color_discrete(
+  scale_colour_discrete(
     labels = c(
       latex2exp::TeX("N(0,1)"),
       latex2exp::TeX("$t_{~5}$"),
@@ -550,7 +550,7 @@ of2021 <- oldfaithful |>
 h <- kde_bandwidth(of2021$duration)
 ```
 
-Now we will apply @eq-kde to the first ten Old Faithful eruption durations from 2021 that are in the `oldfaithful` data set. The kernel density estimate can be visualized as a sum of kernel functions centred over each observation with width determined by $h$, and height given by $K_h(0)/n$.
+Now we will apply @eq-kde to the first ten Old Faithful eruption durations from 2021 that are in the `oldfaithful` data set. The kernel density estimate can be visualised as a sum of kernel functions centred over each observation with width determined by $h$, and height given by $K_h(0)/n$.
 
 Let's suppose $K_h$ is a Gaussian kernel and let $h = `r round(h, 1)`$ (I will explain this choice below). Then we get the following set of kernel functions.
 
@@ -692,7 +692,7 @@ where $R(f'') = \int [f''(y)]^2 dy$ is the roughness of the second derivative of
 
 ### Bandwidth selection
 
-The optimal overall bandwidth is obtained by minimizing the MISE. This can be calculated by differentiating @eq-mise with respect to $h$ and setting the derivative to zero, yielding
+The optimal overall bandwidth is obtained by minimising the MISE. This can be calculated by differentiating @eq-mise with respect to $h$ and setting the derivative to zero, yielding
 $$
   h = \left(\frac{R(K)}{R(f'')n}\right)^{1/5}.
 $$ {#eq-opth}
@@ -825,14 +825,14 @@ c(
   gg_density()
 ```
 
-### The Generalized Pareto Distribution {-}
+### The Generalised Pareto Distribution {-}
 
 The Peaks Over Threshold (POT) approach regards extremes as observations greater than a threshold $u$. The probability distribution of *exceedances* above a specified threshold $u$ can be expressed as the conditional distribution
 $$
   H(y) = P\left \{Y \leq u + y \mid Y > u \right \}
   = \frac{ F(u+y) - F(u)}{1 - F(u)}.
 $$ {#eq-POT3}
-When the distribution $F$ satisfies the FTG theorem, then [@coles2001introduction, p75] $H$ is a **Generalized Pareto Distribution** (GPD) defined by
+When the distribution $F$ satisfies the FTG theorem, then [@coles2001introduction, p75] $H$ is a **Generalised Pareto Distribution** (GPD) defined by
   $$
     H(y) \approx 1 - \Big( 1 + \frac{\xi y}{\sigma_u} \Big)^{-1/\xi} ,
   $$ {#eq-POT}

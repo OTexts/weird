@@ -48,7 +48,7 @@ of |> dist(method = "manhattan")
 
 ### Minkowski distance
 
-This generalizes the Manhattan and Euclidean distances to use powers of $p$ to define the $L_p$ distance:
+This generalises the Manhattan and Euclidean distances to use powers of $p$ to define the $L_p$ distance:
 $$\|\bm{y}_i - \bm{y}_j\|_p = \left(\sum_{k=1}^m (y_{ik}-y_{jk})^p\right)^{1/p}.$$
 It is named after the German mathematician, Hermann Minkowski. When $p=1$ this is the Manhattan distance, and when $p=2$ this is the Euclidean distance.
 
@@ -84,7 +84,7 @@ $\bm{z}_i = \bm{U} (\bm{y}_i - \bm{m})$, where $\bm{m}$ is the pointwise median,
 $$
   \| \bm{z}_i - \bm{z}_j\|_2 = \sqrt{(\bm{y}_i - \bm{y}_j)' \bm{U}' \bm{U} (\bm{y}_i - \bm{y}_j)} = \sqrt{(\bm{y}_i - \bm{y}_j)' \bm{S}_{\text{OGK}}^{-1} (\bm{y}_i - \bm{y}_j)}
 $$
-This is known as the Mahalanobis distance, named after the Indian statistician Prasanta Chandra Mahalanobis (although he wasn't using a robust measure of covariance). It is a multivariate generalization of the number of standard deviations between any two observations.
+This is known as the Mahalanobis distance, named after the Indian statistician Prasanta Chandra Mahalanobis (although he wasn't using a robust measure of covariance). It is a multivariate generalisation of the number of standard deviations between any two observations.
 
 Mahalanobis distance is not an option provided by the `dist()` function, so we will need to compute the scaled data first.
 
@@ -184,7 +184,7 @@ df |>
       output = "character"
     ),
     parse = TRUE,
-    col = discrete_colors[1:2]
+    col = discrete_colours[1:2]
   ) +
   annotate(
     "text",
@@ -192,13 +192,13 @@ df |>
     y = c(4.2, 6),
     label = latex2exp::TeX(paste0("$N_{", 1:2, ",5}$"), output = "character"),
     parse = TRUE,
-    col = discrete_colors[1:2]
+    col = discrete_colours[1:2]
   ) +
   geom_segment(
     aes(x = x, y = y, xend = c(7.75, 8.75), yend = y),
     arrow = arrow(length = unit(0.02, "npc")),
     data = df[chosen, ],
-    col = discrete_colors[1:2]
+    col = discrete_colours[1:2]
   ) +
   annotate(
     "text",
@@ -206,7 +206,7 @@ df |>
     y = c(-0.8, 4.1),
     label = latex2exp::TeX(paste0("$d_{", 1:2, ",5}$"), output = "character"),
     parse = TRUE,
-    col = discrete_colors[1:2]
+    col = discrete_colours[1:2]
   ) +
   coord_fixed(xlim = c(-4, 8.5), ylim = range(df$y)) +
   guides(col = "none", fill = "none") +
