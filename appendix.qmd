@@ -63,9 +63,9 @@ A **positive semi-definite** matrix is a symmetric matrix where all the eigenval
 
 ## Cholesky decomposition {#sec-cholesky}
 
-A Cholesky decomposition is like a square root for a matrix. It is a decomposition of a positive semi-definite matrix $\bm{A}$ into a product $\bm{A} = \bm{L}\bm{L}^T$, where $\bm{L}$ is a lower triangular matrix with non-negative diagonal entries. If $\bm{A}$ is positive definite, then the diagonal elements of $\bm{L}$ are positive.
+A Cholesky decomposition is like a square root for a matrix. It is a decomposition of a positive semi-definite matrix $\bm{A}$ into a product $\bm{A} = \bm{L}\bm{L}^\intercal$, where $\bm{L}$ is a lower triangular matrix with non-negative diagonal entries. If $\bm{A}$ is positive definite, then the diagonal elements of $\bm{L}$ are positive.
 
-Alternatively, it can be expressed using an upper triangular matrix, $\bm{U} = \bm{L}^T$, so that $\bm{A} = \bm{U}^T \bm{U}$. The `chol` function in R computes the upper triangular version of the Cholesky decomposition.
+Alternatively, it can be expressed using an upper triangular matrix, $\bm{U} = \bm{L}^\intercal$, so that $\bm{A} = \bm{U}^\intercal \bm{U}$. The `chol` function in R computes the upper triangular version of the Cholesky decomposition.
 
 ```{r}
 U <- chol(A)

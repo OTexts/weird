@@ -56,8 +56,8 @@ $$
 
 The definition of a surprisal also works for multivariate distributions. For a $m$-dimensional N$(\bm{0}, \bm{\Sigma})$ distribution, a surprisal is given by
 $$
-s_i = -\log\left((2\pi)^{-m/2}|\bm{\Sigma}|^{-1/2} \exp\Big\{-\frac{1}{2}\bm{y}_i'\bm{\Sigma}^{-1}\bm{y}_i\Big\} \right) =
-\frac{1}{2} \bm{y}_i'\bm{\Sigma}^{-1}\bm{y}_i + \frac{m}{2}\log(2\pi) + \frac{1}{2} \log|\bm{\Sigma}|
+s_i = -\log\left((2\pi)^{-m/2}|\bm{\Sigma}|^{-1/2} \exp\Big\{-\frac{1}{2}\bm{y}_i^\intercal\bm{\Sigma}^{-1}\bm{y}_i\Big\} \right) =
+\frac{1}{2} \bm{y}_i^\intercal\bm{\Sigma}^{-1}\bm{y}_i + \frac{m}{2}\log(2\pi) + \frac{1}{2} \log|\bm{\Sigma}|
 $$
 When $\bm{\Sigma} = \bm{I}$, this is simply the sum of surprisals computed on each of the marginal distributions.
 
@@ -272,9 +272,9 @@ By far the most common type of regression model assumes that $f$ is a Normal dis
 
 For a linear Normal regression model, with independent observations and homoscedastic errors, the conditional distribution is given by
 $$
-  y \mid \bm{x} \sim N(\bm{x}_+'\bm{\beta}, \sigma^2),
+  y \mid \bm{x} \sim N(\bm{x}_+^\intercal\bm{\beta}, \sigma^2),
 $$ {#eq-gaussian-regression}
-where $\bm{x}_+ = [1, \bm{x}]'$ is a $(p+1)$-dimensional vector containing a 1 in the first position and the predictors in the remaining positions, and $\bm{\beta}$ is a $(p+1)$-dimensional vector of regression coefficients.
+where $\bm{x}_+ = [1, \bm{x}]^\intercal$ is a $(p+1)$-dimensional vector containing a 1 in the first position and the predictors in the remaining positions, and $\bm{\beta}$ is a $(p+1)$-dimensional vector of regression coefficients.
 
 ### Model estimation
 
@@ -288,13 +288,13 @@ $$
 $$ {#eq-error-distribution}
 Provided $\bm{X}$ is of rank $p+1$, and the errors $\bm{\varepsilon}$ are independent of $\bm{X}$, the model can be estimated using ordinary least squares regression [@seberlee2003], resulting in the estimate
 $$
-  \hat{\bm{\beta}} = (\bm{X}'\bm{X})^{-1}\bm{X}'\bm{y}.
+  \hat{\bm{\beta}} = (\bm{X}^\intercal\bm{X})^{-1}\bm{X}^\intercal\bm{y}.
 $$
 The fitted values (i.e., predicted values for the training data) are given by
 $$
   \hat{\bm{y}} = \bm{X}\hat{\bm{\beta}} = \bm{H}\bm{y},
 $$
-where $\bm{H} = \bm{X}(\bm{X}'\bm{X})^{-1}\bm{X}'$ is known as the "hat"-matrix because it creates the "y-hat" values $\hat{\bm{y}}$ from the data $\bm{y}$.
+where $\bm{H} = \bm{X}(\bm{X}^\intercal\bm{X})^{-1}\bm{X}^\intercal$ is known as the "hat"-matrix because it creates the "y-hat" values $\hat{\bm{y}}$ from the data $\bm{y}$.
 
 The diagonals of $\bm{H}$, given by $h_1,\dots,h_n$, take values between 0 and 1. These are known as the "leverage" values [@faraway2004linear, p69], and measure how much each observation influences the corresponding fitted value. High leverage values (close to 1) correspond to observations that have a large influence on the estimated coefficients, and so leaving those observations out will lead to very different values for the fitted values and residuals. On the other hand, small leverage values (close to 0) correspond to observations that have little influence on the estimated coefficients, and so leaving those observations out will lead to similar values for the fitted values and residuals.
 

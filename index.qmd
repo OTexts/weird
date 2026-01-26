@@ -1,6 +1,6 @@
 # Preface {.unnumbered}
 
-> This book is under development, and the table of contents may change. 
+> This book is under development, and the table of contents may change.
 
 This book is about tools and techniques for finding and understanding anomalies. We will begin with some simple data sets containing only one variable, and build up slowly to much more complicated data. We will cover popular but inadvisable methods to identify anomalies (pointing out their shortcomings), as well as more reliable and recommended approaches.
 
@@ -10,7 +10,7 @@ You will need a knowledge of statistics and probability at about second year und
 
 Finally, you will need to know how to use R and be familiar with the [tidyverse](https://tidyverse.org) packages such as `dplyr`, `tidyr` and `ggplot2`. There are many online resources that cover this material, including @r4ds and the [StartR](https://startr.numbat.space/) self-learning modules we have developed at Monash University.
 
-All R examples in the book assume that you have loaded the [`weird` package](https://pkg.robjhyndman.com/weird-package/) first. You will need to have version 2.0.0 or later. 
+All R examples in the book assume that you have loaded the [`weird` package](https://pkg.robjhyndman.com/weird-package/) first. You will need to have version 2.0.0 or later.
 
 ```{r}
 #| label: library

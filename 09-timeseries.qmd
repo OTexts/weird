@@ -582,7 +582,7 @@ We can summarise the anomaly detection algorithm for surveillance as follows. Fi
 For each $t = I,I+1,\dots$, and for all series $i=1,\dots,M$:
 
 * Fit a time series model to the series $y_{i,1},\dots,y_{i,t}$, and estimate the one-step forecast density, $f_{i,t+1}(y \mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$.
-* Compute the surprisal: $s_{i,t+1} = -\log f_{i,t+1}(y_{i,t+1}\mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$, and the surprisal probabilities: $P(S > s_{i,t+1})$.
+* Compute the surprisal: $s_{i,t+1} = -\log f_{i,t+1}(y_{i,t+1}\mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$, and the surprisal probabilities: $\Pr(S > s_{i,t+1})$.
 
 To illustrate, let's apply this to the `pbs` data. Starting with $I=36$ (3 years of data), we will fit ETS models to all available series [Ch 8, @fpp3], and forecast one step ahead in each case. Then we repeat the exercise using 37 observations, then 38 observations, and so on. This is known as a "rolling origin forecast" because the forecast rolls forward by one period each iteration. The process can be illustrated as in @fig-tscvplots.
 

@@ -73,7 +73,7 @@ GGally::ggpairs(
 
 This shows that there are positive relationships between the variables, with the strongest between `V2` and `V3`. One of the anomalies is now clearly separate from the other observations in the plot of `V2` vs `V1` (the top left scatterplot). For this anomaly, the value of `V1` is -2, which is not particularly unusual compared to the other observations. Similarly, the value of `V2` is 3.4, which is also not particularly unusual. But because of their positive correlation, the combination of these two values is unusual, so it shows up in the 2-dimensional scatterplot. The other anomaly does not look particularly unusual in any of the plots.
 
-To visualise trivariate relationships, we need to use a 3d-scatterplot. It is easiest to see this if it can spin. Try dragging the plot around with your mouse to view if from different angles. See if you can find a viewpoint where the second anomaly is clearly separated from the other observations.
+To visualise trivariate relationships, we need to use a 3D scatterplot. It is easiest to see this if it can spin. Try dragging the plot around with your mouse to view it from different angles. See if you can find a viewpoint where the second anomaly is clearly separated from the other observations.
 
 ::: {#fig-rgl}
 
@@ -127,7 +127,7 @@ tibble(
 
 The proportion of points lying outside the circle in the corners of the space (shown in orange) is $`r sprintf("%.1f", 100*(1-pi/4))`$%.
 
-The equivalent plot in 3-dimensions is shown in @fig-curse3d. The unit sphere is now a ball sitting within a box, and $`r sprintf("%.1f", 100*(1-pi/6))`$% of points lie outside the ball.
+The equivalent plot in 3-dimensions is shown in @fig-curse3d. The unit sphere is now a ball of radius 1 sitting within a box, and $`r sprintf("%.1f", 100*(1-pi/6))`$% of points lie outside the ball.
 
 ::: {#fig-curse3d}
 
@@ -218,13 +218,13 @@ Now we have a sense of what it means to have data in many dimensions, let's cons
 
 ### Statistical definitions
 
-Suppose $\bm{Y} = [Y_1,\dots,Y_n]'$ is a random variable taking values in $\mathbb{R}^m$, the $m$-dimensional real numbers. Then the joint distribution of $\bm{Y}$ is defined by the joint cdf
+Suppose $\bm{Y} = [Y_1,\dots,Y_n]^\intercal$ is a random variable taking values in $\mathbb{R}^m$, the $m$-dimensional real numbers. Then the joint distribution of $\bm{Y}$ is defined by the joint cdf
 $$
 F(\bm{y}) = \text{Pr}(\bm{Y} \le \bm{y}),
 $$
 while the joint density function is given by
 $$
-f(\bm{y}) = \frac{\partial^n F(\bm{y})}{\partial y_1 \dots \partial y_d}.
+f(\bm{y}) = \frac{\partial^m F(\bm{y})}{\partial y_1 \dots \partial y_m}.
 $$
 
 The marginal cdfs are defined by $F_i(y) = \text{Pr}(Y_i \le y)$, with corresponding marginal pdfs given by $f_i(y) = F_i'(y)$, $i=1,\dots,m$.
@@ -237,17 +237,17 @@ $$
 $$
 and the covariance matrix is given by
 $$
-\text{Var}(\bm{Y}) = \text{E}[(\bm{Y}-\text{E}(\bm{Y}))(\bm{Y}-\text{E}(\bm{Y}))'].
+\text{Var}(\bm{Y}) = \text{E}[(\bm{Y}-\text{E}(\bm{Y}))(\bm{Y}-\text{E}(\bm{Y}))^\intercal].
 $$
 The covariance matrix is a $m\times m$ matrix, with $(i,j)$th element given by $\text{Cov}(Y_i,Y_j) = \text{E}[(Y_i-\text{E}(Y_i))(Y_j-\text{E}(Y_j))]$. The diagonal elements are the variances of the individual variables, while the off-diagonal elements are the covariances between the variables.
 
 ### Multivariate Normal distribution
 
-If random variable $\bm{Y}$ has a multivariate Normal distribution, we write $\bm{Y} \sim \text{N}(\bm{\mu}, \bm{\Sigma})$, where $\bm{\mu}$ is the mean and $\bm{\Sigma}$ is the covariance matrix.
+If random vector $\bm{Y}$ has a multivariate Normal distribution, we write $\bm{Y} \sim \text{N}(\bm{\mu}, \bm{\Sigma})$, where $\bm{\mu}$ is the mean and $\bm{\Sigma}$ is the covariance matrix.
 
 The multivariate Normal distribution has pdf given by
 $$
-f(\bm{y}; \bm{\mu}, \bm{\Sigma}) = (2\pi)^{-m/2}|\bm{\Sigma}|^{-1/2} \exp\left\{-\frac{1}{2}(\bm{y}-\bm{\mu})'\bm{\Sigma}^{-1}(\bm{y}-\bm{\mu})\right\}.
+f(\bm{y}; \bm{\mu}, \bm{\Sigma}) = (2\pi)^{-m/2}|\bm{\Sigma}|^{-1/2} \exp\left\{-\frac{1}{2}(\bm{y}-\bm{\mu})^\intercal\bm{\Sigma}^{-1}(\bm{y}-\bm{\mu})\right\}.
 $$
 The notation $|\bm{\Sigma}|$ denotes the determinant of the matrix $\bm{\Sigma}$.
 
@@ -263,7 +263,7 @@ As with univariate distributions, a **highest density region** for a multivariat
 $$
   R_\alpha = \{\bm{y}: f(\bm{y}) \ge f_\alpha\}
 $$ {#eq-mhdr}
-where $P(\bm{Y} \in R_\alpha) = 1-\alpha$.
+where $f_\alpha$ is the largest constant such that $\Pr(\bm{Y} \in R_\alpha) = 1-\alpha$.
 
 HDRs are equivalent to level sets of the density function, and so can be plotted as contours for bivariate density functions. For example, the bivariate Normal distribution with mean $(0,0)$ and covariance matrix $\Sigma = \begin{bmatrix} 1 & 0.5 \\ 0.5 & 1 \end{bmatrix}$ is shown in @fig-bivariate as a series of HDR contours, each containing an additional 10% of the probability mass.
 
@@ -319,7 +319,7 @@ In this book, we are mostly concerned with sample multivariate quantiles, and on
 
 The sample covariance matrix is a useful measure of the spread of a multivariate distribution, given by
 $$
-\bm{S} = \frac{1}{n-1} \sum_{i=1}^n (\bm{y}_i - \bar{\bm{y}})(\bm{y}_i - \bar{\bm{y}})',
+\bm{S} = \frac{1}{n-1} \sum_{i=1}^n (\bm{y}_i - \bar{\bm{y}})(\bm{y}_i - \bar{\bm{y}})^\intercal,
 $$ {#eq-cov}
 However, it is sensitive to outliers, and so is not suitable for our purposes. There have been many robust estimators of covariance proposed in the literature, but we will discuss only one, relatively simple, estimator known as the "orthogonalised Gnanadesikan/Kettenring" (OGK) estimator [@GK72;@MZ02].
 
@@ -377,7 +377,7 @@ The simplest way to make the scaling robust to anomalies is to use the median in
 
 It is sometimes useful to scale a set of multivariate data, so that the scaled variables are uncorrelated with each other, and have mean zero and unit variance.
 
-Suppose each observation is a vector $\bm{y}_i$, coming from a distribution with mean $\bm{\mu}$ and covariance matrix $\bm{\Sigma}$. Let $\bm{\Sigma}^{-1} = \bm{U}' \bm{U}$ be the Cholesky decomposition (see @sec-cholesky) of $\bm{\Sigma}^{-1}$. Then the data can be scaled by $\bm{U}$, giving $\bm{z}_i = \bm{U} (\bm{y}_i - \bm{\mu})$, so that the covariance matrix of the scaled data is the identity matrix. This can be thought of as both scaling and rotating the data, so that the variables are uncorrelated with mean zero and unit variance. It is the multivariate equivalent of calculating z-scores. They can be computed using the `mvscale()` function with the arguments `center = mean` and `cov = stats::cov`.
+Suppose each observation is a vector $\bm{y}_i$, coming from a distribution with mean $\bm{\mu}$ and covariance matrix $\bm{\Sigma}$. Let $\bm{\Sigma}^{-1} = \bm{U}^\intercal \bm{U}$ be the Cholesky decomposition (see @sec-cholesky) of $\bm{\Sigma}^{-1}$. Then the data can be scaled by $\bm{U}$, giving $\bm{z}_i = \bm{U} (\bm{y}_i - \bm{\mu})$, so that the covariance matrix of the scaled data is the identity matrix. This can be thought of as both scaling and rotating the data, so that the variables are uncorrelated with mean zero and unit variance. It is the multivariate equivalent of calculating z-scores. They can be computed using the `mvscale()` function with the arguments `center = mean` and `cov = stats::cov`.
 
 ### Robust multivariate z-scores
 
@@ -517,7 +517,7 @@ $$
 $$ {#eq-mkde}
 where $K_H$ is a multivariate probability density with covariance matrix $\bm{H}$. In this book, we will use a multivariate Gaussian kernel given by
 $$
-  K_H(\bm{u}) = (2\pi)^{-m/2} |\bm{H}|^{-1/2} \exp \{-\textstyle\frac12 \bm{u}'\bm{H}^{-1}\bm{u} \}.
+  K_H(\bm{u}) = (2\pi)^{-m/2} |\bm{H}|^{-1/2} \exp \{-\textstyle\frac12 \bm{u}^\intercal\bm{H}^{-1}\bm{u} \}.
 $$
 
 ### Bivariate kernel density estimation
@@ -593,7 +593,7 @@ Here we see that the short durations tended to be followed by a short waiting ti
 
 ### Bandwidth matrix selection {#sec-mvkdebw}
 
-A common approach is to specify $\bm{H}$ to be diagonal, with elements equal to the squares of univariate bandwidth rules. (The univariate bandwidths are usually defined as the standard deviation of the kernel, while multivariate bandwidth matrices correspond to the covariance matrix of the kernel. Hence, the univariate bandwidths need to be squared if used in a bandwidth matrix.) That is, if $h_1,\dots,h_d$ are the univariate bandwidths for each of the variables, then the corresponding diagonal bandwidth matrix is given by $\bm{H} = \text{diag}(h_1^2,\dots,h_d^2)$. For example, `geom_density_2d()` uses a bivariate Gaussian kernel with diagonal bandwidth matrix where the diagonal values are given by the squares of @eq-nrd. However, this approach leads to bandwidths that are too small, as it ignores the convergence properties of the multivariate estimator. Additionally, any diagonal bandwidth matrix implicitly assumes that the variables are uncorrelated, and leads to more biased estimators.
+A common approach is to specify $\bm{H}$ to be diagonal, with elements equal to the squares of univariate bandwidth rules. (The univariate bandwidths are usually defined as the standard deviation of the kernel, while multivariate bandwidth matrices correspond to the covariance matrix of the kernel. Hence, the univariate bandwidths need to be squared if used in a bandwidth matrix.) That is, if $h_1,\dots,h_m$ are the univariate bandwidths for each of the variables, then the corresponding diagonal bandwidth matrix is given by $\bm{H} = \text{diag}(h_1^2,\dots,h_m^2)$. For example, `geom_density_2d()` uses a bivariate Gaussian kernel with diagonal bandwidth matrix where the diagonal values are given by the squares of @eq-nrd. However, this approach leads to bandwidths that are too small, as it ignores the convergence properties of the multivariate estimator. Additionally, any diagonal bandwidth matrix implicitly assumes that the variables are uncorrelated, and leads to more biased estimators.
 
 The optimal bandwidth matrix (minimising the mean integrated squared error between the true density and its estimate) is of the order $n^{-2/(m+4)}$. If such a bandwidth matrix is used, then the estimator converges at rate $n^{-4/(m+4)}$, implying that kernel density estimation becomes increasingly difficult as the dimension $m$ increases. This is to be expected given the curse of dimensionality (@sec-curse), as the number of observations required to obtain a good estimate increases exponentially with the dimension. In practice, we rarely attempt to estimate a density in more than $m=3$ dimensions.
 
@@ -636,15 +636,15 @@ A fundamental concept in statistics is a **conditional probability distribution*
 
 Almost all statistical modelling involves the estimation of conditional distributions. For example, a regression is a model for the conditional distribution of a response variable given the values of a set of predictor variables. In its simplest form, we assume the conditional distribution is normal, with constant variance, and mean equal to a linear function of the predictor values. Generalized linear models allow for non-normal conditional distributions, while generalised additive models allow for non-linear relationships between the response and the predictors.
 
-The conditional cdf of $Y$ given $X_1,\dots,X_n$ is defined by the conditional cdf
+The conditional cdf of $Y$ given $X_1,\dots,X_p$ is defined by the conditional cdf
 $$
- F(y\mid x_1, \dots, x_n) = \text{Pr}(Y \le y \mid X_1 = x_1, \dots, X_n = x_n).
+ F(y\mid x_1, \dots, x_p) = \Pr(Y \le y \mid X_1 = x_1, \dots, X_p = x_p).
 $$
 The conditional pdf is given by
 $$
-f(y \mid x_1, \dots, x_n) = \frac{f(y, x_1, \dots, x_n)}{f(x_1, \dots, x_n)}.
+f(y \mid x_1, \dots, x_p) = \frac{f(y, x_1, \dots, x_p)}{f(x_1, \dots, x_p)}.
 $$
-The conditional pdf can be thought of as slices of the joint pdf, with the values of $x_1,\dots,x_n$ fixed, rescaled to ensure the conditional pdfs integrate to 1. For example, $f(y_1 | y_2)$ is equal to a scaled slice of the joint pdf $f(y_1,y_2)$ at $y_2$. @fig-conditional shows some examples for the distribution shown at @fig-bivariate-mixture at several values of $y_2$. The left plot shows the joint density, with horizontal lines indicating where conditioning (or slicing) occurs at different values of $y_2$. The right plot shows the resulting conditional density functions.
+The conditional pdf can be thought of as slices of the joint pdf, with the values of $x_1,\dots,x_p$ fixed, rescaled to ensure the conditional pdfs integrate to 1. For example, $f(y_1 | y_2)$ is equal to a scaled slice of the joint pdf $f(y_1,y_2)$ at $y_2$. @fig-conditional shows some examples for the distribution shown at @fig-bivariate-mixture at several values of $y_2$. The left plot shows the joint density, with horizontal lines indicating where conditioning (or slicing) occurs at different values of $y_2$. The right plot shows the resulting conditional density functions.
 
 ```{r}
 #| label: fig-conditional
