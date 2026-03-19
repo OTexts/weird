@@ -127,7 +127,9 @@ p2 <- df |>
   geom_hline(aes(yintercept = -log(falpha)), col = "#D55E00", linetype = "dashed") +
   geom_line(
     data = tibble(x = rep(hdr[2], 2), y = c(0, -log(falpha))),
-    aes(x = x, y = y), col = "#D55E00", linetype = "dashed"
+    aes(x = x, y = y),
+    col = "#D55E00",
+    linetype = "dashed"
   ) +
   scale_x_continuous(
     breaks = c(seq(0, 15, by = 5), hdr[2]),
@@ -146,7 +148,9 @@ p3 <- df |>
   geom_hline(aes(yintercept = palpha), col = "#D55E00", linetype = "dashed") +
   geom_line(
     data = tibble(x = rep(hdr[2], 2), y = c(0, palpha)),
-    aes(x = x, y = y), col = "#D55E00", linetype = "dashed"
+    aes(x = x, y = y),
+    col = "#D55E00",
+    linetype = "dashed"
   ) +
   scale_x_continuous(
     breaks = c(seq(0, 15, by = 5), hdr[2]),
@@ -233,10 +237,10 @@ We will use all three methods described above, first using the correct density i
 # and a t4 distribution
 norm_prob <- tibble(
   y = n01$v1,
-  p =      surprisals_prob(y, distribution = dist_normal()),
-  p_gpd =  surprisals_prob(y, distribution = dist_normal(), approximation = "gpd"),
-  p_emp =  surprisals_prob(y, distribution = dist_normal(), approximation = "rank"),
-  pt =     surprisals_prob(y, distribution = dist_student_t(4)),
+  p = surprisals_prob(y, distribution = dist_normal()),
+  p_gpd = surprisals_prob(y, distribution = dist_normal(), approximation = "gpd"),
+  p_emp = surprisals_prob(y, distribution = dist_normal(), approximation = "rank"),
+  pt = surprisals_prob(y, distribution = dist_student_t(4)),
   pt_gpd = surprisals_prob(y, distribution = dist_student_t(4), approximation = "gpd"),
   pt_emp = surprisals_prob(y, distribution = dist_student_t(4), approximation = "rank")
 )
@@ -442,11 +446,18 @@ wine_aug <- wine_aug |>
   )
 wine_aug |>
   select(points, std_loo_res, loo_surprisals, location) |>
-  tidyr::pivot_longer(c(std_loo_res, loo_surprisals), names_to = "variable", values_to = "value") |>
-  mutate(variable = factor(variable,
-    levels = c("std_loo_res", "loo_surprisals"),
-    label = c("Standardised LOO residuals", "LOO surprisals")
-  )) |>
+  tidyr::pivot_longer(
+    c(std_loo_res, loo_surprisals),
+    names_to = "variable",
+    values_to = "value"
+  ) |>
+  mutate(
+    variable = factor(
+      variable,
+      levels = c("std_loo_res", "loo_surprisals"),
+      label = c("Standardised LOO residuals", "LOO surprisals")
+    )
+  ) |>
   ggplot(aes(x = points, y = value, col = location)) +
   facet_grid(variable ~ ., scales = "free_y") +
   geom_jitter(height = 0, width = 0.1, alpha = 0.5) +
@@ -581,9 +592,11 @@ We can fit this model using the `mgcv` package.
 #| message: false
 #| code-fold: false
 #| fig.cap: "Proportion of not outs for each batter as a function of the number of innings they played, with a GAM fit using a Binomial distribution. The blue line shows the probability of a batter being not out as a function of the number of Innings they have played."
-fit_notouts <- mgcv::gam(prop_no ~ s(Innings),
+fit_notouts <- mgcv::gam(
+  prop_no ~ s(Innings),
   data = df_no,
-  family = binomial(link = logit), weights = Innings
+  family = binomial(link = logit),
+  weights = Innings
 )
 notouts_aug <- broom::augment(fit_notouts, data = df_no, type.predict = "response")
 notouts_aug |>
@@ -595,7 +608,8 @@ notouts_aug |>
       ymin = .fitted - 2 * .se.fit,
       ymax = .fitted + 2 * .se.fit
     ),
-    fill = "#0072B2", alpha = 0.2
+    fill = "#0072B2",
+    alpha = 0.2
   ) +
   labs(y = "Proportion of not outs")
 ```
