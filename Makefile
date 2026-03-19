@@ -6,6 +6,7 @@ default: all
 all: build launch
 
 build: $(qmd_files)
+	perl -i htmlreplace.pl _book/references.html
 
 $(qmd_files): _book/%.html: %.qmd $(rds_files) weird.bib before-each-chapter.R apa-single-spaced.csl otexts.scss _quarto.yml
 	quarto render $< --to html
