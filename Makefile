@@ -1,11 +1,11 @@
 qmd_files := $(patsubst %.qmd, _book/%.html, $(wildcard *.qmd))
 rds_files := $(wildcard *.rds)
 
-default: 
-	quarto preview
+default: all
 
-all:
-	quarto render
+all: build launch
+
+build: $(qmd_files)
 
 $(qmd_files): _book/%.html: %.qmd $(rds_files) weird.bib before-each-chapter.R apa-single-spaced.csl otexts.scss _quarto.yml
 	quarto render $< --to html
