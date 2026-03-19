@@ -211,16 +211,7 @@ The `surprisals_prob()` function uses this GPD approximation when `approximation
 
 ### Approximate rank-based surprisal probabilities
 
-An alternative approach that does not require a GPD is to estimate $p_i$ as the proportion of observations with surprisal values larger than $s_i$. That is $p_i = (\text{rank}(\bm{y}_i)-1)/n$. For large $n$, this provides a quick and convenient estimate of $p_i$ that is accurate even when the assumed distribution $f^*$ is not. Suppose $f$ is the true (unknown) density, and $f^*$ is the assumed (possibly incorrect) density. This approach can work well for moderate values of $p_i$, but we need a large number of available surprisals in order to estimate small values of $p_i$.
-
-::: {.callout-important}
-# Need some theory here
-What can we say about the quality of the approximation?
-
-If the surprisal ranks under $f$ and $f^*$ are equal, this is obviously ok. That should be true in the tails of any distribution --- i.e., when $y_i$ is greater than the largest mode of $f$, or less than the smallest mode of $f$.
-
-Can we say anything else?
-:::
+An alternative approach that does not require a GPD is to estimate $p_i$ as the proportion of observations with surprisal values at least as large as $s_i$. That is, $\hat{p}_i = 1 - \text{rank}(s_i)/n + 1/n$, where $\text{rank}(s_i)$ is the rank of $s_i$ among the $s_1,\dots,s_n$ values, with the smallest value having rank 1. For large $n$, this provides a quick and convenient estimate of $p_i$. @surprisals show that this approach works well when the ordering of the largest surprisal values under $f$ and $f^*$ is similar, which should be the case when $f^*$ is a reasonable approximation to $f$.
 
 The approximation argument of `surprisals_prob()` can be set to `"rank"`, to specify that we want to use these rank-based surprisal probabilities.
 
@@ -525,7 +516,7 @@ shiraz |>
   arrange(prob)
 ```
 
-@fig-shiraz-surprisal shows the relationship between points and price, with the points coloured according to the surprisal probability. The ten blue points are observations with surprisal probabilities less than 0.002 (two are almost overlapping).
+@fig-shiraz-surprisal shows the relationship between points and price, with the points coloured according to the surprisal probability. The eight blue points are observations with surprisal probabilities less than 0.002 (two are almost overlapping).
 
 ```{r}
 #| label: fig-shiraz-surprisal
@@ -540,8 +531,9 @@ shiraz |>
 #| include: false
 #| label: shiraz-check
 shiraz_surprise <- shiraz |> filter(prob < 0.002)
-if(NROW(shiraz_surprise) != 9L)
+if (NROW(shiraz_surprise) != 8L) {
   stop("Something is wrong here.")
+}
 ```
 
 ## GAM surprisals
