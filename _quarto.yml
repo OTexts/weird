@@ -76,3 +76,4 @@ format:
           <script>
             document.getElementById('current-year').textContent = new Date().getFullYear();
           </script>
+    csl: apa-single-spaced.csl
