@@ -416,7 +416,7 @@ nanomalies <- nanomalies |>
       chisq4 |> filter(chauvenet_anomalies(y)) |> NROW()
     )
   )
-stopifnot(nanomalies$Chauvenet == nanomalies$Peirce + c(0,0,0,0,2,1))
+stopifnot(nanomalies$Chauvenet == nanomalies$Peirce + c(0, 0, 0, 0, 2, 1))
 ```
 
 ## Grubbs' test
