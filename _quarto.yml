@@ -66,6 +66,7 @@ format:
     mainfont: "Noto Serif, Georgia, serif"
     html-math-method: katex
     code-link: false
+    link-external-icon: true
     fig-responsive: true
     code-fold: true
     embed-resources: false
