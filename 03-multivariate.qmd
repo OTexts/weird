@@ -408,23 +408,19 @@ p2 <- mvscale(oldfaithful, warning = FALSE) |>
 patchwork::wrap_plots(p1, p2, nrow = 1)
 ```
 
-## Topological data analysis {#sec-tda}
+## Clustering {#sec-clustering}
 
-Topological data analysis (TDA) uses tools from topology to study data. Here, we introduce a few of the simplest ideas from TDA, which will prove useful in some anomaly detection methods.
+Some anomaly detection methods use tools based on clustering, and so we will need to understand some basic concepts of clustering, including how to represent clusters using graphs and dendograms.
 
-### Simplicial complexes {-}
+### Graphs and clusters
 
-Suppose we have a set of observations. These observations can be used to construct a graph (i.e., a network, not a plot) where the individual observations are considered vertices and the edges are determined by the distance between them. Given a proximity parameter $\delta$, two vertices are connected by an edge if the distance between these two points is less than or equal to $\delta$.
+A set of observations can be used to construct a graph (i.e., a network, not a plot), where the individual observations are considered vertices and the edges are determined by the distances between them. We draw an edge between two vertices if the distance between the corresponding observations is at most $\delta$, and $\delta$ is a proximity parameter that we can choose. If $\delta$ is very small, there will be few (or no) edges; if $\delta$ is large, there will be many edges.
 
-Starting from this graph, we can construct $k$-simplices, where $k$ denotes the dimension. For example, a point is a 0-simplex, an edge a 1-simplex, a triangle a 2-simplex, a tetrahedron a 3-simplex, and so on. A collection of these $k$-simplices is known as a *simplicial complex*.
-
-The *Vietoris-Rips* complex is one type of $k$-simplicial complex, based on pairwise distances between points. Given a set of points and a proximity parameter $\delta > 0$, $k+1$ points within a distance of $\delta$ to each other form a $k$-simplex. For example, consider the eight points labelled $A$ to $H$ shown in @fig-tetrahedron, and suppose we choose $\delta=1.5$. The blue disks centred on each point have radius $\delta/2$; so overlapping disks indicate that their central points are within $\delta$ of each other.
-
-Points $B$ and $H$ form an edge, but are disconnected from all other points because they are further than $\delta$ from the other points. The pair $A$ and $F$ also form an edge, and $D$ is connected to them via $F$. They don't form a triangle because $A$ and $D$ are too far apart. The points $CEG$ form a connected triangle.
+For example, consider the eight points labelled $A$ to $H$ shown in @fig-graph, and suppose we choose $\delta=1.5$. The blue disks centred on each point have radius $\delta/2$; so overlapping disks indicate that their central points are within $\delta$ of each other. Points $B$ and $H$ form an edge, but are disconnected from all other points because they are further than $\delta$ from the other points. The pair $A$ and $F$ also form an edge, and $D$ is connected to them via $F$. They don't form a triangle because $A$ and $D$ are too far apart. The points $CEG$ form a connected triangle.
 
 ```{r}
-#| label: fig-tetrahedron
-#| fig.cap: "An example of a Vietoris-Rips complex comprising eight points with $\\delta=1.4$. The blue disks have radius $\\delta/2$, so overlapping disks indicate that their central points are within $\\delta$ of each other. The resulting complex consists of three connected components."
+#| label: fig-graph
+#| fig.cap: "An example of a graph based on eight observations (the nodes) which are joined by edges if the distance between them is at most $\\delta=1.4$. The blue disks have radius $\\delta/2$, so overlapping disks indicate that their central points are within $\\delta$ of each other. The resulting graph consists of three clusters."
 #| message: false
 #| warning: false
 #| echo: false
@@ -448,17 +444,15 @@ vr_complex(X, 1.5) +
   )
 ```
 
-Points that are connected in some way form a "connected component". There are three connected components in @fig-tetrahedron.
+Points that are connected in some way form a "cluster": a set of nodes where you can travel from any node in the set to any other node in the set by following edges. There are three clusters in @fig-graph.
 
-### Persistent homologies {-}
+Imagine slowly increasing $\delta$ from 0 upwards. At $\delta=0$, there are no edges, so every observation is its own cluster. As $\delta$ increases, more edges appear, and the clusters merge together. When an edge connects two clusters that were previously separate, those two clusters merge into one larger cluster. Eventually, all clusters merge into a single cluster.
 
-A useful concept from topology is "persistent homology": a method for computing topological features of a space at different spatial resolutions. Features that persist for a wide range of spatial resolutions represent important, intrinsic features of the data, while features that sporadically change are more likely due to random noise.
-
-For example, as we increase $\delta$, topological features of the Vietoris-Rips complex change --- connected components merge, simplexes increase in dimension, holes are filled, and so on. Taking the small example of @fig-tetrahedron, we explore what happens as $\delta$ increases from 0.5 to 2.0. With a small value of $\delta$, all points are disconnected, and the Vietoris-Rips complex consists of 8 vertices. As $\delta$ increases, more points are connected to each other, and eventually, the complex consists of a single connected component.
+Taking the small example of @fig-graph, we explore what happens as $\delta$ increases from 0.5 to 2.0. With a small value of $\delta$, all points are disconnected, and the graph consists of 8 vertices with no edges. As $\delta$ increases, more points are connected to each other, and eventually, the complex consists of a single cluster.
 
 ```{r}
-#| label: fig-persistence
-#| fig.cap: "Vietoris-Rips complexes resulting from different $\\delta$ values."
+#| label: fig-clusters
+#| fig.cap: "Clusters resulting from different $\\delta$ values."
 #| echo: false
 #| warning: false
 #| fig-width: 8
@@ -480,12 +474,14 @@ for (i in seq_along(prox)) {
 patchwork::wrap_plots(p, nrow = 2)
 ```
 
-The appearances and disappearances of these topological features are referred to as births and deaths. For example, a component is "born" at $\delta=0$, when it consists of a single point, and a component "dies" when existing components merge together. The death diameter of a connected component is known as the *persistence* of the feature. Births and deaths can be illustrated using a *barcode* diagram.
+When a cluster merges with another cluster, we say that one cluster "dies", while the other continues to exist, but now includes the points from both original clusters. The value of $\delta$ at which this happens is called the "death diameter" of the cluster that dies. With $n$ observations, there are $n$ initial clusters, but only $n - 1$ merges are needed to end up with one final cluster. So we get $n - 1$ finite death diameters.
+
+For our simple example, the death diameters are shown in @fig-deathdiameters.
 
 ```{r}
-#| label: fig-barcode
+#| label: fig-deathdiameters
 #| echo: false
-#| fig-cap: "Barcode of the point cloud in @fig-tetrahedron. Each line denotes a connected component, and spans from its birth diameter to its death diameter. The length of the line indicates the persistence of the connected component."
+#| fig-cap: "Death diameters of the point cloud in @fig-graph. Each line denotes a cluster, with length equal to its death diameter."
 #| fig-width: 8
 #| fig-height: 1.6
 #| fig-asp: 0.2
@@ -496,14 +492,34 @@ library(TDAstats)
 # compute the persistent homology
 ph1 <- calculate_homology(as.matrix(X[, 1:2]), dim = 0)
 # plot topological barcode
-plot_barcode(ph1) + guides(col = "none")
+plot_barcode(ph1) + xlab("Death Diameter") + guides(col = "none")
 ```
 
-@fig-barcode contains the barcode of the point cloud shown in @fig-persistence, comprising a set of horizontal line segments, each denoting the birth and death of a connected component. For example, the shortest diameter corresponds to when $A$ and $F$ joined to form an edge --- when one of the separate vertex components died. The largest diameter corresponds to when all points became connected, when the $BH$ edge component died and joined the rest of the complex.
+@fig-deathdiameters shows a bar plot of the cluster death diameters for the point cloud shown in @fig-graph. The shortest diameter corresponds to when $A$ and $F$ joined to form an edge --- when one of the separate vertex clusters died. The largest diameter corresponds to when all points became connected, when the $BH$ edge cluster died and joined the rest of the data.
 
-If there are $n$ observations, then there $n$ connected components, each born at diameter 0. The first death occurs when the closest two points merge, so the corresponding two features have the same death diameters. Rather than have a repeated bar, only $n-1$ bars are shown. As $\delta$ increases, the connected components disappear one by one, as they merge with neighbouring components, and eventually the number of connected components decreases to 1 when all observations are connected.
+Clusters that continue for a large range of $\delta$ represent interesting structural properties of the data that are of interest to us. These are denoted by the longest lines in @fig-deathdiameters.
 
-Components that continue for a large range of $\delta$ represent structural properties of the data (clusters) that are of interest to us. These are denoted by the longest lines in @fig-barcode.
+### Hierarchical clustering
+
+The above description of clusters and their merges as $\delta$ increases is exactly the same as the process of **hierarchical clustering**. In hierarchical clustering, we start with each observation as its own cluster, and then repeatedly merge the two closest clusters together until we have one final cluster. The distance between two clusters is defined as the smallest distance between any point in one cluster and any point in the other cluster. This is known as **single-linkage hierarchical clustering**.
+
+Hierarchical clustering is usually displayed as a **dendrogram**. In a dendrogram:
+
+- Each observation starts as a leaf.
+- Branches join when two clusters merge.
+- The vertical axis shows the distance (diameter) at which the merge occurs.
+
+So the heights of the joins in a single-linkage dendrogram are precisely the death diameters.
+
+If `X` is a matrix or data frame of scaled observations, you can compute the single-linkage dendrogram and the merge distances like this:
+
+```{r}
+d <- dist(X)
+hclust(d, method = "single") |> plot(ylab = "Death diameter", xlab = "Observation")
+```
+
+The vector `hc$height` contains the merge distances (one for each of the $n - 1$ merges). These are the death diameters. If you want the death diameters as an unordered set (to take quantiles, for example), you can work directly with `hc$height`.
+
 
 ### Further reading
 
@@ -607,11 +623,11 @@ Replacing $\bm{\Sigma}$ by the robust covariance matrix $\bm{S}_{\text{OGK}}$ (@
 
 A generalisation of the univariate plug-in bandwidth [@sec-kde] is the "plug-in" estimator of @chacon2018multivariate, calculated by `kde_bandwidth()` when `method = "plugin"`. While this typically leads to better estimates of the density as a whole, it can lead to worse estimates in the tails of the distribution where anomalies tend to lie.
 
-An alternative approach to finding the bandwidth matrix uses ideas from topological data analysis (@sec-tda). First, we compute robust multivariate z-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \bm{m})$, $i=1,\dots,n$, where $\bm{m}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}$ is the Cholesky decomposition of $\bm{S}_{\text{OGK}}^{-1}$. Then we construct the barcode of the data cloud of z-scores using Vietoris-Rips complexes with increasing diameter $\delta$. From the barcode we obtain the sequence of death diameters $\{d_1,\dots,d_n\}$ for the connected components. Finally, we can set
+An alternative approach to finding the bandwidth matrix uses ideas from clustering (@sec-clustering). First, we compute robust multivariate z-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \bm{m})$, $i=1,\dots,n$, where $\bm{m}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}$ is the Cholesky decomposition of $\bm{S}_{\text{OGK}}^{-1}$. Then we find the death diameters of the clusters obtained from the z-scores: $\{d_1,\dots,d_{n-1}\}$. Finally, we can set
 $$
   \bm{H} = d^*\bm{S}_{\text{OGK}}
 $$ {#eq-lookoutH}
-where $d^*$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_n\}$ for a large value of $\gamma$. @lookout2 showed that this leads to a consistent density estimate, with good properties for anomaly detection, when $\gamma = 0.98$. We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-lookout. The `kde_bandwidth()` function will return this bandwidth when `method = "lookout"`. For univariate data, $\bm{S}_{\text{OGK}}$ is replaced by $s_{\text{Qn}}$ in @eq-lookoutH.
+where $d^*$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_{n-1}\}$ for a large value of $\gamma$. @lookout2 showed that this leads to a consistent density estimate, with good properties for anomaly detection, when $\gamma = 0.98$. We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-lookout. The `kde_bandwidth()` function will return this bandwidth when `method = "lookout"`. For univariate data, $\bm{S}_{\text{OGK}}$ is replaced by $s_{\text{Qn}}$ in @eq-lookoutH.
 
 ```{r}
 #| label: fig-ofbivariate3
