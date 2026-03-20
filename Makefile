@@ -7,7 +7,7 @@ all: build launch
 
 build: $(qmd_files) $(rds_files) weird.bib before-each-chapter.R apa-single-spaced.csl otexts.scss _quarto.yml
 	quarto render --to html
-	perl -i htmlreplace.pl _book/references.html
+	perl -i htmlreplace.pl _book/*.html
 
 launch:
 	xdg-open _book/index.html

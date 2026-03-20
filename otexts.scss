@@ -313,3 +313,7 @@ button {
 .sidebar .chapter-number::before {
   content: none !important;
 }
+
+div.csl-entry a:has(i.fa-solid) {
+  text-indent: 0;
+}
