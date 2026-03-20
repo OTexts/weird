@@ -1781,12 +1781,12 @@
               <text macro="event"/>
               <text macro="publisher"/>
             </group>
-            <text macro="access"/>
             <text macro="publication-history"/>
+            <text variable="note" text-case="capitalize-first"/>
+            <text macro="access"/>
           </group>
         </else>
       </choose>
-      <text variable="note" text-case="capitalize-first" prefix=" "/>
     </layout>
   </bibliography>
 </style>
