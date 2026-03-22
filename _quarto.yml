@@ -28,7 +28,7 @@ book:
   appendices:
     - "appendix.qmd"
   page-footer:
-    left: "Published by OTexts using [Quarto](https://quarto.org). {{< fa regular copyright >}} [Rob J Hyndman](https://robjhyndman.com) []{#current-year}"
+    left: "Published by OTexts using [Quarto](https://quarto.org). <i class=\"fa-regular fa-copyright\"></i> [Rob J Hyndman](https://robjhyndman.com) []{#current-year}"
     border: false
     background: light
   sidebar:
