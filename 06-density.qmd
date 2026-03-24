@@ -19,7 +19,7 @@ The surprisal of an observation $\bm{y}_i$, is defined as
 $$
   s_i = -\log f(\bm{y}_i),
 $$ {#eq-surprisal}
-measuring the surprise in seeing the observation. So it is a measure of how anomalous (or surprising) that observation is, given the density $f$. A large value of $s_i$ indicates that $\bm{y}_i$ is not a likely value, and so is a potential anomaly. On the other hand, typical values will have low surprisals. In information theory, the average surprisal is known as the entropy of a random variable [@Cover2006;@Stone2022], and provides a measure of uncertainty.
+measuring the surprise in seeing the observation. So it is a measure of how surprising (or anomalous) that observation is, given the density $f$. A large value of $s_i$ indicates that $\bm{y}_i$ is not a likely value, and so is a potential anomaly. On the other hand, typical values will have low surprisals. In information theory, the average surprisal is known as the entropy of a random variable [@Cover2006;@Stone2022], and provides a measure of uncertainty.
 
 Although the term "surprisal" may not be in common use amongst statisticians and other data scientists, the underlying idea is widely used. For example, if $f$ is obtained from a model with parameters that need to be estimated from the data, then the sum of the surprisals is equal to minus the log likelihood of the data. Therefore, finding parameters that minimise the sum of the surprisals is equivalent to maximum likelihood estimation.
 
@@ -37,7 +37,7 @@ So the surprisals are simply equal to half the squared observations plus a const
 
 ### $\chi^2$ distribution
 
-Similarly, for a $\chi^2_k$ distribution, a surprisal is given by
+For a $\chi^2_k$ distribution, a surprisal is given by
 $$
   s_i = -\log\left(\frac{y_i^{k/2-1}e^{-y_i/2}}{2^{k/2}\Gamma(k/2)}\right)
       = \frac{1}{2} y_i - (k/2-1)\log(y_i) + c_k
@@ -54,7 +54,7 @@ $$
 
 ### Multivariate standard normal distribution
 
-The definition of a surprisal also works for multivariate distributions. For a $m$-dimensional N$(\bm{0}, \bm{\Sigma})$ distribution, a surprisal is given by
+The definition of a surprisal also works for multivariate distributions. For an $m$-dimensional N$(\bm{0}, \bm{\Sigma})$ distribution, a surprisal is given by
 $$
 s_i = -\log\left((2\pi)^{-m/2}|\bm{\Sigma}|^{-1/2} \exp\Big\{-\frac{1}{2}\bm{y}_i^\intercal\bm{\Sigma}^{-1}\bm{y}_i\Big\} \right) =
 \frac{1}{2} \bm{y}_i^\intercal\bm{\Sigma}^{-1}\bm{y}_i + \frac{m}{2}\log(2\pi) + \frac{1}{2} \log|\bm{\Sigma}|
@@ -63,9 +63,11 @@ When $\bm{\Sigma} = \bm{I}$, this is simply the sum of surprisals computed on ea
 
 ## Surprisal probabilities {#sec-surprisal-probabilities}
 
-We can use surprisals to compute the probability of an observation being at least as anomalous as $\bm{y}_i$ under the distribution $f$:
+The surprisal probability of an observation is the probability of observing a value that is at least as surprising as the observation, under the distribution $f$. This is a more interpretable measure of how anomalous an observation is, because it is on the familiar probability scale between 0 and 1. It also allows us to set a threshold for identifying anomalies in terms of a false positive rate.
+
+Specifically, for an observation $\bm{y}_i$ under the distribution $f$, its surprisal probability is given by
 $$
-p_i = \int f(\bm{u}) 𝟙(-\log f(\bm{u}) > s_i) d\bm{u} = \int f(\bm{u}) 𝟙(f(\bm{u}) < f(y_i)) d\bm{u},
+p_i = \int f(\bm{u}) 𝟙(-\log f(\bm{u}) \ge s_i) d\bm{u} = \int f(\bm{u}) 𝟙(f(\bm{u}) \le f(y_i)) d\bm{u},
 $$ {#eq-pi-density}
 where $𝟙(z)$ is an indicator function taking value 1 when $z$ is true and 0 otherwise.
 
@@ -73,9 +75,7 @@ where $𝟙(z)$ is an indicator function taking value 1 when $z$ is true and 0 o
 
 ```{r}
 #| label: fig-density-scores
-#| fig-cap: "Top: Density with one observation shown at $y_i$. The shaded area shows the area where $f(y) < f(y_i)$, corresponding to $p_i$. In this example, $p_i = 0.1$, so the region between the orange shaded segments is a 90% HDR. Middle: surprisals for different values of $y$. Bottom: surprisal probabilities for different values of $y$."#|
-#| fig-asp: 1.3
-#| out-width: "80%"
+#| fig-cap: "A $\\chi^2_5$ density function with one observation shown at $y_i$. The shaded area shows where $f(y) < f(y_i)$, corresponding to $p_i$. In this example, $p_i = 0.1$, so the region between the orange shaded segments is a 90% HDR."
 #| echo: false
 den <- dist_chisq(5)
 hdr <- hdr(den, size = 90) |> unlist() %>% `[`(c("lower", "upper"))
@@ -87,7 +87,7 @@ df <- tibble(
   p = surprisals_prob(y, distribution = den)
 )
 palpha <- 0.1
-p1 <- df |>
+df |>
   ggplot(aes(x = y, y = fy)) +
   geom_line() +
   labs(x = "y", y = "Probability Density Function: f(y)") +
@@ -120,49 +120,6 @@ p1 <- df |>
     labels = latex2exp::TeX(c(seq(0, 15, by = 5), "$f(y_i)$")),
     minor_breaks = NULL
   )
-p2 <- df |>
-  ggplot(aes(x = y, y = s)) +
-  geom_line() +
-  labs(x = "y", y = "Surprisal: -log f(y)") +
-  geom_hline(aes(yintercept = -log(falpha)), col = "#D55E00", linetype = "dashed") +
-  geom_line(
-    data = tibble(x = rep(hdr[2], 2), y = c(0, -log(falpha))),
-    aes(x = x, y = y),
-    col = "#D55E00",
-    linetype = "dashed"
-  ) +
-  scale_x_continuous(
-    breaks = c(seq(0, 15, by = 5), hdr[2]),
-    labels = latex2exp::TeX(c(seq(0, 15, by = 5), "$y_i$")),
-    minor_breaks = NULL
-  ) +
-  scale_y_continuous(
-    breaks = c(seq(0, 7, by = 2), -log(falpha)),
-    labels = latex2exp::TeX(c(seq(0, 7, by = 2), "$s_i$")),
-    minor_breaks = NULL
-  )
-p3 <- df |>
-  ggplot(aes(x = y, y = p)) +
-  geom_line() +
-  labs(x = "y", y = "Surprisal Probability: p") +
-  geom_hline(aes(yintercept = palpha), col = "#D55E00", linetype = "dashed") +
-  geom_line(
-    data = tibble(x = rep(hdr[2], 2), y = c(0, palpha)),
-    aes(x = x, y = y),
-    col = "#D55E00",
-    linetype = "dashed"
-  ) +
-  scale_x_continuous(
-    breaks = c(seq(0, 15, by = 5), hdr[2]),
-    labels = latex2exp::TeX(c(seq(0, 15, by = 5), "$y_i$")),
-    minor_breaks = NULL
-  ) +
-  scale_y_continuous(
-    breaks = c(seq(0, 1, by = .2), palpha),
-    labels = latex2exp::TeX(c(seq(0, 1, by = .2), "$p_i$")),
-    minor_breaks = NULL
-  )
-patchwork::wrap_plots(p1, p2, p3, ncol = 1)
 ```
 
 The `surprisals()` function takes values of the data $\bm{y}_i$ and returns values of $s_i$, where the assumed density $f$ can be provided as a distribution object from the `distributional` package. The values of $p_i$ can be obtained using `surprisals_prob()`.
@@ -177,17 +134,20 @@ tibble(
 )
 ```
 
-The value of $p_i$ is the probability of an observation being at least as anomalous as $\bm{y}_i$​ if the observations come from the distribution $f$. So if we label points as anomalous when $p_i < \alpha$, we will have a false positive rate of $\alpha$.
+The value of $p_i$ is the probability of an observation being at least as anomalous (or surprising) as $\bm{y}_i$​ if the observations come from the distribution $f$. So if we label points as anomalous when $p_i < \alpha$, we will have a false positive rate of $\alpha$.
 
-### Connection to Highest density regions
+This approach allows for anomalies to occur anywhere in the distribution, not just in the tails. For example, anomalies may lie between modes in a multimodal distribution, or in otherwise low-density regions of the distribution. The surprisal approach coverts the problem of working with a potentially complicated distribution into a problem of working with a simple univariate distribution on the surprisal scale, where large values correspond to anomalies.
 
-Surprisal probabilities are related to highest density regions discussed in @sec-hdr and @sec-mhdr. If $\bm{y}_i$ lies on the boundary of the $100(1-\alpha)\%$ highest density region, then $p_i = 1-\alpha$. This should be clear by comparing @eq-pi-density with @eq-mhdr.
+### Connection to highest density regions
+
+Surprisal probabilities are related to highest density regions (discussed in @sec-hdr and @sec-mhdr). If we identify anomalies as observations with $p_i < \alpha$, then the non-anomalous observations will lie in the $100(1-\alpha)\%$ highest density region, and all the anomalies will lie outside this region. This is a useful way to visualise the anomalies, by plotting the data with the highest density region superimposed. Some examples will be shown later in this chapter.
 
 ### Connection to $z$-scores
 
-For any symmetric univariate distribution, $p_i = 2[1 - F(c+|y_i-c|)]$, where $F$ is the corresponding distribution function centred at $c$. Therefore, under the Normal distribution $N(\mu, \sigma^2)$, $p_i = 2[1-\Phi(|y_i-\mu|/\sigma)]$, where $\Phi$ is the standard Normal distribution function.
+If $f$ is the Normal distribution $N(\mu, \sigma^2)$, then the points of lowest density are those furthest from $\mu$. In fact, $p_i = 2[1-\Phi(|y_i-\mu|/\sigma)]$, where $\Phi$ is the standard Normal distribution function. Therefore, identifying anomalies as observations with $p_i < \alpha$ is equivalent to a z-score test (@sec-zscores) with the threshold set to the $1-\alpha/2$ quantile of the standard Normal distribution.
 
-This shows that when $f$ is a Normal density, identifying anomalies as observations with $p_i < \alpha$ is equivalent to a z-score test (@sec-zscores) with the threshold set to the $1-\alpha/2$ quantile of the standard Normal distribution.
+This link can be extended to any symmetric distribution. If $f$ is a symmetric distribution centred at $c$, then the most anomalous observations will be those with the largest absolute distance from $c$. If $F$ is the distribution function corresponding to $f$, then $p_i = 2[1 - F(c+|y_i-c|)]$.
+
 
 ### Approximate GPD surprisal probabilities {#sec-gpd-tails}
 
@@ -238,13 +198,13 @@ norm_prob <- tibble(
 norm_prob |> arrange(p)
 ```
 
-The most accurate values are in column `p`, as this uses the correct distribution applied to the correct surprisals. Notice that `p_gpd` and `p_emp` are both relatively accurate: the GPD and empirical approximations work. For the probabilities calculated using the incorrect distribution, `pt` is relatively inaccurate, with much larger probabilities than they should be, especially in the extreme tails. But `pt_gpd` and `pt_emp` are both reasonable estimates, despite being based on an incorrect distribution for computing the surprisals. In fact, `p_emp` and `pt_emp` are identical, because the ordering of the surprisals is unchanged despite the incorrect distribution being used.
+The true values are in column `p`, as this uses the correct distribution applied to the correct surprisals. Notice that `p_gpd` and `p_emp` are both relatively accurate: the GPD and rank approximations work. The last three columns show the probabilities based on surprisals using the incorrect distribution. Here, `pt` is very inaccurate, with much larger probabilities than they should be, especially in the extreme tails. This is because the $t_4$ distribution has much heavier tails than the true $N(0,1)$ distribution, so the probability of observations more extreme than those observed is much larger than they should be. But `pt_gpd` and `pt_emp` are both reasonable estimates, despite being based on an incorrect distribution for computing the surprisals. In fact, `p_emp` and `pt_emp` are identical, because the ordering of the surprisals is unchanged despite the incorrect distribution being used.
 
 The various estimates are displayed in @fig-surprisal_prob for values of $y$ greater than 2.5, showing how the estimates (other than `pt`) are particularly accurate in the extreme tails, where we need them for anomaly detection.
 
 ```{r}
 #| label: fig-surprisal_prob
-#| fig-cap: Surprisal probabilities estimated using the correct N(0,1) distribution and using an incorrect $t_4$ distribution. The GPD and empirical estimates of surprisal probabilities are still accurate, even when the wrong distribution is used to compute the surprisal values.
+#| fig-cap: Surprisal probabilities estimated using the correct N(0,1) distribution and using an incorrect $t_4$ distribution. The GPD and rank estimates of surprisal probabilities are still accurate, even when the wrong distribution is used to compute the surprisal values.
 norm_prob |>
   filter(y > 2.5) |>
   tidyr::pivot_longer(p:pt_emp, names_to = "Estimate", values_to = "Probability") |>
@@ -253,7 +213,7 @@ norm_prob |>
 ```
 
 In summary, even when we don't know the distribution of the data, we can use some
-incorrect assumed distribution to compute the surprisals, and then apply either a GPD or the empirical distribution to obtain good estimates of the surprisal probabilities.
+incorrect assumed distribution to compute the surprisals, and then apply either a GPD or the rank approximation to obtain good estimates of the surprisal probabilities.
 
 ### LOO surprisals
 
@@ -308,7 +268,7 @@ $$
 $$ {#eq-residual-variance}
 is the estimated residual variance.
 
-A linear model can be estimated in R using the `stats::lm()` function. The `broom::augment()` function will compute the residuals (named `.resid`), the standardised residuals (named `.std.resid`), and the leverage values (names `.hat`).
+A linear model can be estimated in R using the `stats::lm()` function. The `broom::augment()` function will compute the residuals (named `.resid`), the standardised residuals (named `.std.resid`), and the leverage values (named `.hat`).
 
 The surprisals under the Gaussian linear regression model [@eq-gaussian-regression] can be estimated using these standardised residuals, giving
 $$
@@ -327,13 +287,15 @@ Equivalently, the `surprisals()` function will compute them:
 surprisals(fit)
 ```
 
+Note that `surprisals()` is a generic R function, which uses the appropriate method of calculation depending on what type of object is passed to it. So if we pass a fitted linear model, it will compute the regression surprisals using the standardised residuals and a Normal distribution. If we pass a vector of data and a distribution, it will compute the surprisals using the density function of the distribution.
+
 ### LOO residuals
 
 The leave-one-out residual for the $i$th observation is defined as the difference between $\bm{y}_i$ and the predicted value obtained using a model fitted to all observations except the $i$th observation. In this context, LOO residuals are often called PRESS (prediction error sum of squares) residuals. At first, it appears that calculating LOO residuals involves a lot of computation --- estimating $n$ separate models. However, the leave-one-out residuals are easily obtained without actually having to re-estimate the model many times. It can be shown [@Montgomery2012, Appendix C.7] that the leave-one-out (LOO) residuals are given by
 $$
   e_{-i} = e_{i}/(1-h_{i}),
 $$ {#eq-loo-residuals}
-where $e_{i}$ is the residual obtained from fitting the model to *all* observations.
+where $e_{i}$ is the residual obtained from fitting the model to *all* observations, and $h_i$ is the corresponding leverage value.
 
 The variance of $e_{-i}$ is given by
 $$
@@ -470,7 +432,7 @@ good_buy <- wine_aug |>
   filter(std_loo_res == min(std_loo_res))
 ```
 
-The over-priced wines under this model are shown in blue, while the under-priced wines are shown in orange. This shows that the most anomalous observations are the two with LOO surprisals above 17, and studentised residuals close to 6. The largest LOO surprisal is for the most over-priced wine (under this model), a 2009 Shiraz from the Henschke winery in the Eden Valley region of South Australia, with `r most_anomalous$points[1]` points and a price of $`r most_anomalous$price[1]`.
+The over-priced wines under this model are shown in blue, while the under-priced wines are shown in orange. This shows that the most anomalous observations are the two with LOO surprisals above 17, and standardised residuals close to 6. The largest LOO surprisal is for the most over-priced wine (under this model), a 2009 Shiraz from the Henschke winery in the Eden Valley region of South Australia, with `r most_anomalous$points[1]` points and a price of $`r most_anomalous$price[1]`.
 
 ```{r}
 #| code-fold: false
@@ -498,7 +460,7 @@ We will compute the surprisal probabilities using the rank approximation.
 ```{r}
 #| code-fold: false
 wine_aug |>
-  mutate(prob = 1 - rank(loo_surprisals) / NROW(wine_aug)) |>
+  mutate(prob = 1 - (rank(loo_surprisals) - 1) / NROW(wine_aug)) |>
   select(country:winery, year, points, price, loo_surprisals, prob) |>
   arrange(prob)
 ```
@@ -536,6 +498,8 @@ if (NROW(shiraz_surprise) != 8L) {
 }
 ```
 
+This shows the value of computing surprisal probabilities on the conditional distribution. The eight observations are not simply those with the highest prices, but those whose price is anomalous given their points values. There are three wines with prices above $300 that are not identified as anomalous, because they have corresponding high points values.
+
 ## GAM surprisals
 
 In some applications, it is not appropriate to assume the conditional density is Gaussian, or that the relationships are linear. One useful model that allows for non-Gaussian densities, and non-linear relationships, is a generalised additive model or GAM. Under this model, the conditional density is given by [@Wood2017gam]
@@ -554,7 +518,7 @@ p <- sum(df_no$NotOuts) / sum(df_no$Innings)
 
 Consider the number of "not outs" for each batter in the `cricket_batting` data set. A "not out" occurs when a batsman has not been dismissed at the end of the team's innings. Let's consider if there are some batters who have an unusually high proportion of not outs. The data set contains results from `r sum(df_no$Innings)` innings, of which `r sum(df_no$NotOuts)` were not outs. So the overall proportion of not outs is $`r sum(df_no[["NotOuts"]])` / `r sum(df_no[["Innings"]])` = `r sprintf("%.3f", p)`$.
 
-@fig-notouts shows the proportion of not outs for each batter as a function of the number of innings they played. The unusual patterns on the left of each plot is due to the discrete nature of the data --- both the number of not outs and the number of innings must be integers. There is some overplotting that occurs due to batters having the same numbers of not-outs and innings, which results in the higher colour density of the corresponding plotted points. Batters who have played only a few innings tend to have a higher proportion of not outs on average, and a higher variance, than those who have played many innings.
+@fig-notouts shows the proportion of not outs for each batter as a function of the number of innings they played. The unusual pattern on the left of each plot is due to the discrete nature of the data --- both the number of not outs and the number of innings must be integers. There is some overplotting that occurs due to batters having the same numbers of not-outs and innings, which results in the higher colour density of the corresponding plotted points. Batters who have played only a few innings tend to have a higher proportion of not outs on average, and a higher variance, than those who have played many innings.
 
 ```{r}
 #| label: fig-notouts
@@ -611,6 +575,7 @@ Now we can use the fitted model to compute the surprisals from the Binomial dist
 ```{r}
 #| code-fold: false
 #| warning: false
+#| label: notouts_aug
 notouts_aug <- notouts_aug |>
   mutate(
     surprisals = surprisals(fit_notouts),
@@ -658,7 +623,7 @@ The largest possible LOO kde surprisal is infinite, occurring when there are no 
 
 ### The lookout algorithm {#sec-lookout}
 
-The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2. It uses surprisal probabilities based on a GPD approximation. Probabilities obtained using this algorithm can be calculated using the `surprisals_prob()` function applied to a data set with `loo = TRUE`, and `approximation = "gpd"`.
+The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2. It uses surprisal probabilities based on a GPD approximation. Probabilities obtained using this algorithm can be calculated using the `surprisals_prob()` function applied to a data set with `loo = TRUE`, `approximation = "gpd"`, and `method = "lookout"`.
 
 ### Example: Old Faithful eruption durations
 
@@ -695,9 +660,13 @@ of_surprisals |> arrange(desc(loo_kde_surprisal))
 #| label: ofscores2b
 #| include: false
 no <- of_surprisals |> filter(prob < 0.005) |> NROW()
+no_above_300 <- of_surprisals |> filter(duration > 300, prob < 0.005) |> NROW()
+no_below_90 <- of_surprisals |> filter(duration < 90, prob < 0.005) |> NROW()
+no_between_155_and_165 <- of_surprisals |> filter(duration >= 155, duration <= 165, prob < 0.005) |> NROW()
+stopifnot(no == no_above_300 + no_below_90 + no_between_155_and_165)
 ```
 
-Now there are `r english::words(no)` points with probabilities less than 0.005, two at 155, and three above 300.
+Now there are `r english::words(no)` points with probabilities less than 0.005, `r english::words(no_above_300)` above 300, `r english::words(no_below_90)` below 90, and the rest between 155 and 165.
 
 @fig-ofpot shows an HDR boxplot of the data, with those points with surprisal probabilities less than 0.005 highlighted in black.
 
@@ -728,7 +697,7 @@ of |>
   arrange(prob, duration)
 ```
 
-Now, `r english::words(sum(surprisals_prob(of, loo = TRUE) < 0.001))` anomalies are identified, with both of them having infinite LOO surprisals. We can visualise them in an HDR scatterplot, shown in @fig-ofpot2.
+Now, `r english::words(sum(surprisals_prob(of, loo = TRUE, approximation = "gpd") < 0.001))` anomalies are identified, with both of them having infinite LOO surprisals. We can visualise them in an HDR scatterplot, shown in @fig-ofpot2.
 
 ```{r}
 #| label: fig-ofpot2
