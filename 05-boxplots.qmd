@@ -304,7 +304,7 @@ cricket_batting |>
   scale_x_discrete() +
   coord_flip() +
   labs(x = "", y = "Career batting average") +
-  theme(legend.key.height = unit(.2, "cm"))
+  theme(legend.key.height = unit(0.2, "cm"))
 ```
 
 ```{r}
@@ -341,7 +341,7 @@ oldfaithful |>
   scale_x_discrete() +
   coord_flip() +
   labs(x = "", y = "Eruption durations (seconds)") +
-  theme(legend.key.height = unit(.2, "cm"))
+  theme(legend.key.height = unit(0.2, "cm"))
 ```
 
 ```{r}
@@ -354,7 +354,7 @@ n01 |>
   scale_x_discrete() +
   coord_flip() +
   labs(x = "") +
-  theme(legend.key.height = unit(.2, "cm"))
+  theme(legend.key.height = unit(0.2, "cm"))
 ```
 
 ```{r}

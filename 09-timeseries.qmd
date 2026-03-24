@@ -24,7 +24,7 @@ tscv_plot <- function(.init, .step, h = 1) {
       aes(x = 0, xend = 27, y = .id, yend = .id),
       arrow = arrow(length = unit(0.015, "npc")),
       col = "black",
-      linewidth = .25
+      linewidth = 0.25
     ) +
     geom_point(aes(col = observation), size = 2) +
     scale_y_reverse() +

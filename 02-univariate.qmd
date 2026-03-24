@@ -633,9 +633,9 @@ of2021 |>
   labs(x = "y = Duration (seconds)", y = "Density") +
   xlim(120, 320) +
   ylim(0, 0.019) +
-  geom_label(x = 260, y = .018, label = "h = 5", col = "#D55E00") +
-  geom_label(x = 275, y = .01, label = "h = 15", col = "#0072B2") +
-  geom_label(x = 320, y = .004, label = "h = 40", col = "#009E73")
+  geom_label(x = 260, y = 0.018, label = "h = 5", col = "#D55E00") +
+  geom_label(x = 275, y = 0.01, label = "h = 15", col = "#0072B2") +
+  geom_label(x = 320, y = 0.004, label = "h = 40", col = "#009E73")
 ```
 
 When $h$ is too small, the density estimate is too rough, with many peaks and troughs. When $h$ is too large, the density estimate is too smooth and we fail to see any features in the data. A popular choice for $h$ is the "normal reference rule" [@Silverman1986, p45] given by
