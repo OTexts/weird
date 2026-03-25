@@ -499,7 +499,7 @@ ggplot() +
   labs(x = "Observation", y = "Merge distance")
 ```
 
-@fig-mergedistances shows a bar plot of the cluster merge distances for the point cloud shown in @fig-clusters. These correspond to the horizontal lines in the dendrogram in @fig-dendrogram. The shortest distance corresponds to when $A$ and $F$ joined to form an edge --- when one of the separate vertex clusters merged. The largest distance corresponds to when all points became connected, when the $BH$ edge cluster merged with the rest of the data. With $n$ observations, there are $n$ initial clusters, but only $n - 1$ merges are needed to end up with one final cluster. So we get $n - 1$ merge distances.
+@fig-mergedistances shows a bar plot of the cluster merge distances for the point cloud shown in @fig-graph. These correspond to the horizontal lines in the dendrogram in @fig-dendrogram. The shortest distance corresponds to when $A$ and $F$ joined to form an edge --- when one of the separate vertex clusters merged. The largest distance corresponds to when all points became connected, when the $BH$ edge cluster merged with the rest of the data. With $n$ observations, there are $n$ initial clusters, but only $n - 1$ merges are needed to end up with one final cluster. So we get $n - 1$ merge distances.
 
 ```{r}
 #| label: fig-mergedistances
@@ -511,11 +511,16 @@ ggplot() +
 #| out-width: "100%"
 #| warning: false
 #| dependson: fig-tetrahedron
-library(TDAstats)
-# compute the persistent homology
-ph1 <- calculate_homology(as.matrix(X[, 1:2]), dim = 0)
-# plot topological barcode
-plot_barcode(ph1) + xlab("Merge Distance") + guides(col = "none")
+data.frame(
+  row = seq_along(hc$height),
+  distance = hc$height
+) |>
+  ggplot(aes(x = row, y = distance)) +
+  geom_bar(stat = "identity", width=0.1, fill = "#C14b14") +
+  labs(y = "Merge distance", x = "") +
+  coord_flip() +
+  scale_x_continuous(breaks = NULL) +
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 ```
 
 ### Related ideas
