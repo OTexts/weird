@@ -1,4 +1,4 @@
-qmd_files := $(patsubst %.qmd, _book/%.html, $(wildcard *.qmd))
+qmd_files := $(wildcard *.qmd)
 rds_files := $(wildcard *.rds)
 
 default: all
