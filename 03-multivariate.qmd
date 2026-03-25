@@ -416,7 +416,7 @@ Clustering is a method of grouping observations together based on their similari
 
 A set of observations can be used to construct a graph (i.e., a network, not a plot), where the individual observations are considered vertices and the edges are determined by the distances between them. We draw an edge between two vertices if the distance between the corresponding observations is at most $\delta$, and $\delta$ is a proximity parameter that we can choose. If $\delta$ is very small, there will be few (or no) edges; if $\delta$ is large, there will be many edges.
 
-For example, consider the eight points labelled $A$ to $H$ shown in @fig-graph, and suppose we choose $\delta=1.5$. The blue disks centred on each point have radius $\delta/2$; so overlapping disks indicate that their central points are within $\delta$ of each other. Points $B$ and $H$ form an edge, but are disconnected from all other points because they are further than $\delta$ from the other points. The pair $A$ and $F$ also form an edge, and $D$ is connected to them via $F$. They don't form a triangle because $A$ and $D$ are too far apart. The points $CEG$ form a connected triangle.
+For example, consider the eight points labelled A to H shown in @fig-graph, and suppose we choose $\delta=1.5$. The blue disks centred on each point have radius $\delta/2$; so overlapping disks indicate that their central points are within $\delta$ of each other. Points B and H form an edge, but are disconnected from all other points because they are further than $\delta$ from the other points. The pair A and F also form an edge, and D is connected to them via F. They don't form a triangle because A and D are too far apart. The points CEG form a connected triangle.
 
 ```{r}
 #| label: fig-graph
@@ -480,9 +480,9 @@ Hierarchical clustering is usually displayed as a **dendrogram**, with the follo
 
 - Each observation starts as a leaf.
 - Branches join when two clusters merge.
-- The vertical axis shows the distance at which the merge occurs.
+- The horizontal axis shows the distance at which the merge occurs.
 
-The single-linkage dendrogram for the point cloud in @fig-graph is shown in @fig-dendrogram. The heights of the joins correspond to the merge distances.
+The single-linkage dendrogram for the point cloud in @fig-graph is shown in @fig-dendrogram.
 
 ```{r}
 #| label: fig-dendrogram
@@ -495,11 +495,12 @@ hc <- dist(X) |>
 hcdata <- dendro_data(hc, type = "rectangle")
 ggplot() +
   geom_segment(data = segment(hcdata), aes(x = x, y = y, xend = xend, yend = yend)) +
-  scale_x_continuous(breaks = seq(NROW(X)), labels = label(hcdata)$label) +
+  scale_x_continuous(breaks = seq_len(NROW(X)), labels = label(hcdata)$label) +
+  coord_flip() +
   labs(x = "Observation", y = "Merge distance")
 ```
 
-@fig-mergedistances shows a bar plot of the cluster merge distances for the point cloud shown in @fig-graph. These correspond to the horizontal lines in the dendrogram in @fig-dendrogram. The shortest distance corresponds to when $A$ and $F$ joined to form an edge --- when one of the separate vertex clusters merged. The largest distance corresponds to when all points became connected, when the $BH$ edge cluster merged with the rest of the data. With $n$ observations, there are $n$ initial clusters, but only $n - 1$ merges are needed to end up with one final cluster. So we get $n - 1$ merge distances.
+@fig-mergedistances shows a bar plot of the cluster merge distances for the point cloud shown in @fig-graph. These correspond to the vertical lines in the dendrogram in @fig-dendrogram. The shortest distance corresponds to when A and F joined to form an edge --- when the two separate vertex clusters merged. The largest distance corresponds to when all points became connected, when the BH edge cluster merged with the rest of the data. With $n$ observations, there are $n$ initial clusters, but only $n - 1$ merges are needed to end up with one final cluster. So we get $n - 1$ merge distances.
 
 ```{r}
 #| label: fig-mergedistances
@@ -631,7 +632,7 @@ An alternative approach to finding the bandwidth matrix uses ideas from clusteri
 $$
   \bm{H} = d^*\bm{S}_{\text{OGK}}
 $$ {#eq-lookoutH}
-where $d^*$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_{n-1}\}$ for a large value of $\gamma$. @lookout2 showed that this leads to a consistent density estimate, with good properties for anomaly detection, when $\gamma = 0.98$. We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-lookout. The `kde_bandwidth()` function will return this bandwidth when `method = "lookout"`. For univariate data, $\bm{S}_{\text{OGK}}$ is replaced by $s_{\text{Qn}}$ in @eq-lookoutH.
+where $d_\gamma$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_{n-1}\}$ for a large value of $\gamma$. @lookout2 showed that this leads to a consistent density estimate, with good properties for anomaly detection, when $\gamma = 0.98$. We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-kdesurprisals. The `kde_bandwidth()` function will return this bandwidth when `method = "lookout"`. For univariate data, $\bm{S}_{\text{OGK}}$ is replaced by $s_{\text{Qn}}$ in @eq-lookoutH.
 
 ```{r}
 #| label: fig-ofbivariate3
