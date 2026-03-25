@@ -410,7 +410,7 @@ patchwork::wrap_plots(p1, p2, nrow = 1)
 
 ## Clustering {#sec-clustering}
 
-Some anomaly detection methods use tools based on clustering, and so we will need to understand some basic concepts of clustering, including how to represent clusters using graphs and dendograms.
+Clustering is a method of grouping observations together based on their similarity. It is sometimes used for anomaly detection, as anomalies may form their own clusters that are separate from the vast majority of observations. Even if clustering is not used directly, some anomaly detection methods use tools based on clustering, and so we will need to understand some of the basic concepts, including how to represent clusters using graphs and dendrograms.
 
 ### Graphs and clusters
 
@@ -424,17 +424,11 @@ For example, consider the eight points labelled $A$ to $H$ shown in @fig-graph, 
 #| message: false
 #| warning: false
 #| echo: false
-X <- tribble(
-  ~x     , ~y      ,
-   0.926 ,  0.0638 ,
-   1.82  ,  1.55   ,
-  -1.61  , -1.88   ,
-  -0.285 ,  1.211  ,
-  -0.342 , -1.31   ,
-   0.366 ,  0.0421 ,
-  -1.33  , -0.785  ,
-   2.41  ,  1.21   ,
+X <- data.frame(
+  x = c(0.926, 1.82, -1.61, -0.285, -0.342, 0.366, -1.33, 2.41),
+  y = c(0.0638, 1.55, -1.88, 1.211, -1.31, 0.0421, -0.785, 1.21)
 )
+rownames(X) <- LETTERS[1:8]
 vr_complex(X, 1.5) +
   coord_fixed() +
   geom_text(
@@ -474,14 +468,43 @@ for (i in seq_along(prox)) {
 patchwork::wrap_plots(p, nrow = 2)
 ```
 
-When a cluster merges with another cluster, we say that one cluster "dies", while the other continues to exist, but now includes the points from both original clusters. The value of $\delta$ at which this happens is called the "death diameter" of the cluster that dies. With $n$ observations, there are $n$ initial clusters, but only $n - 1$ merges are needed to end up with one final cluster. So we get $n - 1$ finite death diameters.
+Anomalies are clusters of one observation (or perhaps a few observations) that don't join the rest of the data until a large value of $\delta$.
 
-For our simple example, the death diameters are shown in @fig-deathdiameters.
+### Hierarchical clustering
+
+The above description of clusters and their merging as $\delta$ increases is known as **single-linkage hierarchical clustering**. In this form of clustering, we start with each observation as its own cluster, and then repeatedly merge the two closest clusters together until we have one final cluster.
+
+The distance between two clusters when they merge is called the "merge distance", and in single-linkage hierarchical clustering it is defined as the minimum distance between any point in one cluster and any point in the other cluster. Other forms of hierarchical clustering are based on different measures of the distances between clusters. For example, complete-linkage is based on the maximum distance, while average-linkage is based on the average distance.
+
+Hierarchical clustering is usually displayed as a **dendrogram**, with the following properties:
+
+- Each observation starts as a leaf.
+- Branches join when two clusters merge.
+- The vertical axis shows the distance at which the merge occurs.
+
+The single-linkage dendrogram for the point cloud in @fig-graph is shown in @fig-dendrogram. The heights of the joins correspond to the merge distances.
 
 ```{r}
-#| label: fig-deathdiameters
+#| label: fig-dendrogram
 #| echo: false
-#| fig-cap: "Death diameters of the point cloud in @fig-graph. Each line denotes a cluster, with length equal to its death diameter."
+#| fig-asp: 0.5
+#| fig-cap: "Dendrogram of the point cloud in @fig-graph. The heights of the joins correspond to the merge distances."
+library(ggdendro)
+hc <- dist(X) |>
+  hclust(method = "single")
+hcdata <- dendro_data(hc, type = "rectangle")
+ggplot() +
+  geom_segment(data = segment(hcdata), aes(x = x, y = y, xend = xend, yend = yend)) +
+  scale_x_continuous(breaks = seq(NROW(X)), labels = label(hcdata)$label) +
+  labs(x = "Observation", y = "Merge distance")
+```
+
+@fig-mergedistances shows a bar plot of the cluster merge distances for the point cloud shown in @fig-clusters. These correspond to the horizontal lines in the dendrogram in @fig-dendrogram. The shortest distance corresponds to when $A$ and $F$ joined to form an edge --- when one of the separate vertex clusters merged. The largest distance corresponds to when all points became connected, when the $BH$ edge cluster merged with the rest of the data. With $n$ observations, there are $n$ initial clusters, but only $n - 1$ merges are needed to end up with one final cluster. So we get $n - 1$ merge distances.
+
+```{r}
+#| label: fig-mergedistances
+#| echo: false
+#| fig-cap: "Merge distances of the point cloud in @fig-graph. Each line denotes a cluster, with length equal to its merge distance."
 #| fig-width: 8
 #| fig-height: 1.6
 #| fig-asp: 0.2
@@ -492,38 +515,14 @@ library(TDAstats)
 # compute the persistent homology
 ph1 <- calculate_homology(as.matrix(X[, 1:2]), dim = 0)
 # plot topological barcode
-plot_barcode(ph1) + xlab("Death Diameter") + guides(col = "none")
+plot_barcode(ph1) + xlab("Merge Distance") + guides(col = "none")
 ```
 
-@fig-deathdiameters shows a bar plot of the cluster death diameters for the point cloud shown in @fig-graph. The shortest diameter corresponds to when $A$ and $F$ joined to form an edge --- when one of the separate vertex clusters died. The largest diameter corresponds to when all points became connected, when the $BH$ edge cluster died and joined the rest of the data.
+### Related ideas
 
-Clusters that continue for a large range of $\delta$ represent interesting structural properties of the data that are of interest to us. These are denoted by the longest lines in @fig-deathdiameters.
+The graph structure described above is related to the minimum spanning tree (MST) of the data, which is a tree that connects all observations together with the minimum total edge length. The merge distances are exactly the MST edge weights in the order they are added to the tree.
 
-### Hierarchical clustering
-
-The above description of clusters and their merges as $\delta$ increases is exactly the same as the process of **hierarchical clustering**. In hierarchical clustering, we start with each observation as its own cluster, and then repeatedly merge the two closest clusters together until we have one final cluster. The distance between two clusters is defined as the smallest distance between any point in one cluster and any point in the other cluster. This is known as **single-linkage hierarchical clustering**.
-
-Hierarchical clustering is usually displayed as a **dendrogram**. In a dendrogram:
-
-- Each observation starts as a leaf.
-- Branches join when two clusters merge.
-- The vertical axis shows the distance (diameter) at which the merge occurs.
-
-So the heights of the joins in a single-linkage dendrogram are precisely the death diameters.
-
-If `X` is a matrix or data frame of scaled observations, you can compute the single-linkage dendrogram and the merge distances like this:
-
-```{r}
-d <- dist(X)
-hclust(d, method = "single") |> plot(ylab = "Death diameter", xlab = "Observation")
-```
-
-The vector `hc$height` contains the merge distances (one for each of the $n - 1$ merges). These are the death diameters. If you want the death diameters as an unordered set (to take quantiles, for example), you can work directly with `hc$height`.
-
-
-### Further reading
-
-There is a lot more to TDA than what is discussed here --- we have covered only a small part of zero-dimensional topology. For a general introduction to TDA, see @carlsson2021topological.
+The graph structure is also related to topological data analysis (TDA), which is a method of summarising the shape of data. In TDA, a cluster is a "connected component" --- a 0-dimensional topological feature studied in persistent homology. When two clusters merge, one is described as "dying" and the other as "persisting". The merge distance is called the "death diameter", and the bar plot of merge distances is known as a "barcode". The longest bars in the barcode correspond to the most persistent clusters, which contain potential anomalies. For a general introduction to TDA, see @carlsson2021topological.
 
 ## Multivariate kernel density estimation
 
@@ -623,7 +622,7 @@ Replacing $\bm{\Sigma}$ by the robust covariance matrix $\bm{S}_{\text{OGK}}$ (@
 
 A generalisation of the univariate plug-in bandwidth [@sec-kde] is the "plug-in" estimator of @chacon2018multivariate, calculated by `kde_bandwidth()` when `method = "plugin"`. While this typically leads to better estimates of the density as a whole, it can lead to worse estimates in the tails of the distribution where anomalies tend to lie.
 
-An alternative approach to finding the bandwidth matrix uses ideas from clustering (@sec-clustering). First, we compute robust multivariate z-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \bm{m})$, $i=1,\dots,n$, where $\bm{m}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}$ is the Cholesky decomposition of $\bm{S}_{\text{OGK}}^{-1}$. Then we find the death diameters of the clusters obtained from the z-scores: $\{d_1,\dots,d_{n-1}\}$. Finally, we can set
+An alternative approach to finding the bandwidth matrix uses ideas from clustering (@sec-clustering). First, we compute robust multivariate z-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \bm{m})$, $i=1,\dots,n$, where $\bm{m}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}$ is the Cholesky decomposition of $\bm{S}_{\text{OGK}}^{-1}$. Then we find the merge distances of the clusters obtained from the z-scores: $\{d_1,\dots,d_{n-1}\}$. Finally, we can set
 $$
   \bm{H} = d^*\bm{S}_{\text{OGK}}
 $$ {#eq-lookoutH}
@@ -644,7 +643,7 @@ Notice that the contours are larger and smoother than in @fig-ofbivariate2. In g
 
 ### Further reading
 
-There is a rich literature on multivariate kernel density estimation. Good starting points are @Scott2015 or @chacon2018multivariate. The idea of using a TDA-based bandwidth matrix is due to @lookout and @lookout2.
+There is a rich literature on multivariate kernel density estimation. Good starting points are @Scott2015 or @chacon2018multivariate. The idea of using the cluster merge distances to compute the bandwidth matrix is due to @lookout and @lookout2, although they framed it in terms of topological data analysis rather than clustering.
 
 ## Conditional probability distributions
 
