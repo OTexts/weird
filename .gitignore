@@ -6,6 +6,7 @@ public
 _bookdown_files
 .vscode
 
+/.claude/
 /.quarto/
 *_cache/*
 *_files/*
