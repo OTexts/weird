@@ -17,7 +17,7 @@ $$F(y) = \text{Pr}(Y \le y).
 $$ {#eq-cdf}
 This function is monotonically increasing in $y$, and takes values between 0 and 1. Because $Y$ is a continuous random variable, $F(y)$ is a continuous function of $y$. The probability density function (pdf) is defined as the derivative of the cdf, so $f(y) = F'(y)$, assuming the derivative exists at $y$. The pdf is non-negative, and integrates to 1.
 
-The probability that $Y$ lies in the interval $[a,b]$ is given by $\text{Pr}(a \leq Y \leq b) = \int_a^b f(y)dy = F(b) - F(a)$.
+The probability that $Y$ lies in the interval $[a,b]$ is given by $\text{Pr}(a \le Y \le b) = \int_a^b f(y)dy = F(b) - F(a)$.
 
 The expected value (or mean) of $Y$ is given by
 $$
@@ -54,7 +54,7 @@ dist_uniform(0, 1) |>
 
 The most widely used continuous distribution is the **Normal** distribution, also known as the **Gaussian** distribution, named after the German mathematician Carl Friedrich Gauss. It takes two parameters, the mean $\mu$, and the variance, $\sigma^2$. The pdf is given by
 $$
-  f(y; \mu, \sigma) = \frac{1}{\sigma\sqrt{2\pi}} \exp\left(-\frac{(y-\mu)^2}{2\sigma^2}\right).
+  f(y; \mu, \sigma^2) = \frac{1}{\sigma\sqrt{2\pi}} \exp\left(-\frac{(y-\mu)^2}{2\sigma^2}\right).
 $$
 We refer to a Normal random variable with mean $\mu$ and variance $\sigma^2$ as $Y \sim \text{N}(\mu, \sigma^2)$. When $\mu=0$ and $\sigma^2=1$, we call it the **standard Normal** distribution N(0,1), and denote the pdf as $\phi(y)$ and the cdf as $\Phi(y)$.
 
@@ -136,7 +136,7 @@ Three $\Gamma$ distributions are shown in @fig-gamma.
 
 ```{r}
 #| label: fig-gamma
-#| fig-cap: Probability density functions for three $\Gamma$ distributions. As $\alpha$ increases, the distribution to a $N(\alpha/\beta, \alpha/\beta^2)$ distribution.
+#| fig-cap: Probability density functions for three $\Gamma$ distributions. As $\alpha$ increases, the distribution converges to a $N(\alpha/\beta, \alpha/\beta^2)$ distribution.
 dist_gamma(c(1, 1, 2), c(1, 2, 1)) |>
   gg_density() +
   labs(x = "y", y = "Probability Density Function: f(y)")
@@ -148,9 +148,9 @@ A **mixture distribution** is a distribution that is formed by mixing together o
 
 The pdf of a mixture distribution is given by the weighted sum of the pdfs of the component distributions, where the weights correspond to the probability of sampling from each component. For example, suppose $Y$ is a mixture of two Normal distributions, with parameters $(\mu_1,\sigma_1^2)$ and $(\mu_2,\sigma_2^2)$, where the first distribution has weight $p$ and the second has weight $1-p$. Then the resulting pdf of the mixture distribution is given by
 $$
-  f(y) = pf(y;\mu_1,\sigma_1^2) + (1-p)f(y;\mu_2,\sigma_2^2).
+  pf(y;\mu_1,\sigma_1^2) + (1-p)f(y;\mu_2,\sigma_2^2),
 $$
-The mean and variance of the mixture distribution are given by
+where $f(y;\mu_j,\sigma_j^2)$ is the pdf of the Normal distribution with mean $\mu_j$ and variance $\sigma_j^2$. The mean and variance of the mixture distribution are given by
 $$
   \text{E}(Y) = p\mu_1 + (1-p)\mu_2,
 $$
@@ -712,7 +712,7 @@ Replacing $\sigma$ by the sample standard deviation gives us the normal referenc
 
 Several other related bandwidth selection methods are widely used. For example, instead of using $Q_n$ to estimate $s$, we might use the minimum of the sample standard deviation and the robust estimate based on the IQR, giving
 $$
-  h = 1.06 \min(s, 0.7413*\text{IQR}) n^{-1/5}.
+  h = 1.06 \min(s, 0.7413\times\text{IQR}) n^{-1/5}.
 $$ {#eq-nrd}
 Silverman's "rule-of-thumb" is similar, but it replaces 1.06 in @eq-nrd by 0.9, because Silverman argued that most densities are not as smooth as a Normal density, and so a smaller bandwidth is required. This is the default bandwidth used by `geom_density()` and `density()`.
 
@@ -758,7 +758,7 @@ of_density |>
 
 ## Extreme value theory {#sec-evt}
 
-Extreme Value Theory is used to model rare, extreme events and is useful in anomaly detection. Suppose we have $n$ independent and identically distributed random variables $Y_1, \dots, Y_n$ with a cdf $F(y) = P\{Y \leq y\}$. Then the maximum of these $n$ random variables is $M_n = \max \{Y_1, \dots, Y_n\}$. If $F$ is known, the cdf of $M_n$ is given by $P\{M_n \leq z \} = P\{Y_1 \leq z, \dots, Y_n \leq z\} = \left(F(z)\right)^n$. However, $F$ is often not known in practice. This gap is filled by Extreme Value Theory, which studies approximate families of models for $F^n$ so that extremes can be modeled and their uncertainty quantified.
+Extreme Value Theory is used to model rare, extreme events and is useful in anomaly detection. Suppose we have $n$ independent and identically distributed random variables $Y_1, \dots, Y_n$ with a cdf $F(y) = \Pr(Y \le y)$. Then the maximum of these $n$ random variables is $M_n = \max \{Y_1, \dots, Y_n\}$. If $F$ is known, the cdf of $M_n$ is given by $\Pr(M_n \le z) = \Pr(Y_1 \le z, \dots, Y_n \le z) = \left(F(z)\right)^n$. However, $F$ is often not known in practice. This gap is filled by Extreme Value Theory, which studies approximate families of models for $F^n$ so that extremes can be modeled and their uncertainty quantified.
 
 It is well known, due to the [central limit theorem](02-tools.html#sec-clt), that the average of a set of iid random variables will converge to the Normal distribution if the mean and variance both exist and are finite. The Fisher-Tippett-Gnedenko (FTG) Theorem provides an analogous result for the maximum. It was developed in a series of papers by @Frechet1927, @Fisher1928, and @Gnedenko1943. Independently, @Mises1936 proposed a similar result. The FTG Theorem states that if the maximum can be scaled so that it converges, then the scaled maximum will converge to either a Gumbel, Fréchet or Weibull distribution [@coles2001introduction, p46]; no other limits are possible.
 
