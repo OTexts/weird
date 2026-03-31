@@ -240,7 +240,7 @@ barbato_anomaly <- function(y, extreme = FALSE) {
   n <- length(y)
   q1 <- quantile(y, 0.25, na.rm = TRUE, type = 8)
   q3 <- quantile(y, 0.75, na.rm = TRUE, type = 8)
-  threshold <- (1.5 + 1.5 * extreme) * (q3 - q1) * (1 + log(n / 10))
+  threshold <- (1.5 + 1.5 * extreme) * (q3 - q1) * (1 + 0.1*log(n / 10))
   return(y > q3 + threshold | y < q1 - threshold)
 }
 cricket_batting |>
@@ -257,7 +257,6 @@ chisq4 <- tibble(y = rchisq(1000, df = 4))
 chisq4 |> filter(barbato_anomaly(y))
 ```
 
-It misses all anomalies, even the obvious ones in the cricket batting data, the Old Faithful duration data, and in the `n01b` data set. In summary, while the modified IQR approach is an improvement on the original boxplot approach, it is not particularly good at finding genuine anomalies in data.
 
 ```{r}
 #| label: checkbarbato
@@ -282,8 +281,10 @@ n5 <- t3 |>
 n6 <- chisq4 |>
   filter(barbato_anomaly(y)) |>
   NROW()
-stopifnot(identical(c(n1, n2, n3, n4, n5, n6), c(0L, 0L, 0L, 0L, 0L, 0L)))
+stopifnot(identical(c(n1, n2, n3, n4, n5, n6), c(1L, 273L, 1L, 1L, 23L, 13L)))
 ```
+
+This is an improvement on the original boxplot approach, and it finds the true anomalies in the `cricket_batting` data and the `n01b` data. But it also identifies many false anomalies in the other data sets, especially those that are not Normally distributed. The assumption of Normality means that the method is not a good choice for most data sets.
 
 ## Letter value plots
 
