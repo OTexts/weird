@@ -131,7 +131,7 @@ Originally, Tukey proposed two levels of outliers --- those more than 1.5 IQR be
 
 In this cricket batting example, the boxplot works well because the data set is not too large or small, and the distribution of points other than the anomaly is unimodal.
 
-However, boxplots can be misleading, and are they are limited in at least two respects.
+However, boxplots can be misleading, and they are limited in at least two respects.
 
 1. For large data sets, boxplots show too many points as anomalies, and it is hard to distinguish them.
 2. Boxplots assume that the distribution of the data is unimodal.
@@ -160,7 +160,7 @@ tibble(x = rnorm(10000)) |>
   labs(y = "")
 ```
 
-Many anomalies are shown, but since all observations come from a simple distribution, none of them are actually anomalies. For this distribution, $Q(0.25) = `r sprintf("%.3f", q1)`$, $Q(0.75) = `r sprintf("%.3f", q3)`$, $\text{IQR} = `r sprintf("%.3f", iqr)`$, and so for a large sample size, the boxplot whiskers would be approximately $`r sprintf("%.3f", q1)` - 1.5\times `r sprintf("%.3f", iqr)` = `r sprintf("%.3f", whisker1)`$ and $`r sprintf("%.3f", q3)` + 1.5\times `r sprintf("%.3f", iqr)` = `r sprintf("%.3f", whisker2)`$. Any points outside the whiskers would be identified as "anomalous" by a boxplot and plotted as separate points. The probability of a standard normal observation being at least $`r sprintf("%.3f", whisker2)`$ in absolute value is $`r sprintf("%.5f", 1-pnorm(whisker2))`$. So with $10000$ observations, we would have about $`r round(10000*(1-pnorm(whisker2)))`$ anomalies identified, none of which would be a genuine anomaly.
+Many anomalies are shown, but since all observations come from a simple distribution, none of them are actually anomalies. For this distribution, $Q(0.25) = `r sprintf("%.3f", q1)`$, $Q(0.75) = `r sprintf("%.3f", q3)`$, $\text{IQR} = `r sprintf("%.3f", iqr)`$, and so for a large sample size, the boxplot whiskers would be approximately $`r sprintf("%.3f", q1)` - 1.5\times `r sprintf("%.3f", iqr)` = `r sprintf("%.3f", whisker1)`$ and $`r sprintf("%.3f", q3)` + 1.5\times `r sprintf("%.3f", iqr)` = `r sprintf("%.3f", whisker2)`$. Any points outside the whiskers would be identified as "anomalous" by a boxplot and plotted as separate points. The probability of a standard normal observation being at least $`r sprintf("%.3f", whisker2)`$ in absolute value (and therefore lying outside the boxplot whiskers) is $`r sprintf("%.5f", 2*(1-pnorm(whisker2)))`$. So with $10000$ observations, we would have about $`r round(10000*2*(1-pnorm(whisker2)))`$ anomalies identified, none of which would be a genuine anomaly.
 
 The second problem is demonstrated using the Old Faithful eruption duration data, shown in @fig-oldfaithful1.
 
@@ -398,7 +398,7 @@ n01 |>
 
 There are an infinite number of ways of dividing the plane into halfspaces, and the number of points in each half plane will vary depending on where the dividing line falls.
 
-To find the depth of the orange point, we need to find the line which divides the plane into two sections where the half containing the orange point includes as few observations as possible. In fact, the red line is one such solution which has the orange point in a halfspace containing only 2 observations There are no dividing lines that would put the orange point in a halfspace on its own. So it has a Tukey depth of 2.
+To find the depth of the orange point, we need to find the line which divides the plane into two sections where the half containing the orange point includes as few observations as possible. In fact, the red line is one such solution which has the orange point in a halfspace containing only 2 observations. There are no dividing lines that would put the orange point in a halfspace on its own. So it has a Tukey depth of 2.
 
 The depth region $D_k$ is the set of all points $\bm{z}$ with Tukey depth at least $k$. These form a series of nested convex hulls where $D_{k+1} \subseteq D_k$. The depth regions for our example are shown in @fig-depthregions. The blue region is depth 1, the orange region is depth 2, the pink region is depth 3, and the green region is depth 4.
 
