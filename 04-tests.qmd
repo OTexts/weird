@@ -6,7 +6,7 @@
 source("before-each-chapter.R")
 ```
 
-The early history of anomaly detection method involved statistical tests and assumptions about the distribution of the data. There are much better methods available now, but these old methods are still widely used. So they are included here for historical interest, and to point out their flaws to those still using them. There is nothing in later chapters that assumes knowledge of this chapter, so if you want to skip on to more useful methods, head to @sec-boxplots.
+The early history of anomaly detection methods involved statistical tests and assumptions about the distribution of the data. There are much better methods available now, but these old methods are still widely used. So they are included here for historical interest, and to point out their flaws to those still using them. There is nothing in later chapters that assumes knowledge of this chapter, so if you want to skip on to more useful methods, head to @sec-boxplots.
 
 We will only consider univariate methods in this chapter. There have been multivariate parametric methods for anomaly detection, but they are much less widely used and are also best avoided.
 
@@ -15,7 +15,7 @@ We will only consider univariate methods in this chapter. There have been multiv
 We will test the methods using six examples: two involving real data, and four involving simulated data.
 
 1. The cricket batting averages from the `cricket_batting` data set. As discussed in @sec-scatterplots, these appear to contain one genuine anomaly, the batter Don Bradman.
-2. Old Faithful eruption durations between 2017 and 2023, also discussed in @sec-scatterplots. For these data, there were three extreme anomalies --- with durations up to 1 minute --- and several "inliers" in a area of low density between 140 and 180 seconds.
+2. Old Faithful eruption durations between 2017 and 2023, also discussed in @sec-scatterplots. For these data, there were three extreme anomalies --- with durations up to 1 minute --- and several "inliers" in an area of low density between 140 and 180 seconds.
 3. The first 18 rows of the second variable in the `n01` data, along with the values 4.0 and 4.5. The latter two are anomalies as they are unlikely to arise from the N(0,1) distribution. We save this data set as `n01b`. The plot below shows the data for this example.
 
 ```{r}
@@ -105,7 +105,7 @@ nanomalies <- tibble(
 
 ## Z scores {#sec-zscores}
 
-Many parametric methods are based on $z$-scores (@sec-scaling) and assume that the data come from a Normal distribution. Recall that if our data are given by $y_1,\dots,y_n$, then their $z$ scores are given by
+Many parametric methods are based on $z$-scores (@sec-scaling) and assume that the data come from a Normal distribution. Recall that if our data are given by $y_1,\dots,y_n$, then their $z$-scores are given by
 $$z_i = (y_i - \bar{y})/s_y$$
 where $\bar{y}$ is the mean and $s_y$ is the standard deviation of the observations.
 
@@ -192,7 +192,7 @@ stopifnot(nanomalies$Zscore == c(1, 3, 0, 1, 18, 15))
 
 Even if the data did come from a Normal distribution, the probability of an observation being more than 3 standard deviations from the mean is $`r round(2*pnorm(-3),4)`$, so we would expect to see 1 in every $1/ `r round(2*pnorm(-3),4)` = `r round(.5/pnorm(-3))`$ regular observations being identified as an anomaly using this approach.
 
-In fact, we can be more accurate than this. If our $n$ observations come from a Normal distribution, then the z-scores follow (approximately) a $\text{t}_{n-1}$ distribution. (The approximation arises because we replace the mean and standard deviations by their sample estimate.) When we identify anomalies as those points with $|z|>c$, then the probability of finding at least one spurious anomaly is the probability of the maximum being above $c$ or the minimum being below $-c$. Since the distribution is symmetric, these probabilities are the same. Let $M_n$ be the maximum of $n$ z-scores computed from the data; then $\Pr(M_n \le c) = (F_{t}(c; n-1))^n$ where $F_{t}(y; n-1)$ is the cumulative distribution function of a $t$ distribution with $n-1$ degrees of freedom. So the probability of at least one spurious anomaly is
+In fact, we can be more accurate than this. If our $n$ observations come from a Normal distribution, then the z-scores follow (approximately) a $\text{t}_{n-1}$ distribution. (The approximation arises because we replace the mean and standard deviation by their sample estimates.) When we identify anomalies as those points with $|z|>c$, then the probability of finding at least one spurious anomaly is the probability of the maximum being above $c$ or the minimum being below $-c$. Since the distribution is symmetric, these probabilities are the same. Let $M_n$ be the maximum of $n$ z-scores computed from the data; then $\Pr(M_n \le c) = (F_{t}(c; n-1))^n$ where $F_{t}(y; n-1)$ is the cumulative distribution function of a $t$ distribution with $n-1$ degrees of freedom. So the probability of at least one spurious anomaly is
 $$
   1 - (F_{t}(c; n-1))^{2n}.
 $$ {#eq-spuriousz}
@@ -400,7 +400,7 @@ stopifnot(nanomalies$Peirce == c(0, 2, 2, 1, 10, 6))
 
 Peirce's proposal was largely superseded by an alternative proposed by the astrophysicist William Chauvenet, which was much simpler to describe. He suggested [@Chauvenet1863] replacing the threshold $c$ by the $1-0.25/n$ quantile from the standard Normal distribution. This threshold is also shown in @fig-zscorecriteria. A consequence of this choice is that Chauvenet's criterion will reject, on average, half an observation of genuine data from a Normal distribution regardless of the value of $n$. However, for non-normal data, there is no such guarantee that genuine observations will not be detected as anomalies. Despite its flaws, the method is still widely used in some disciplines, especially engineering.
 
-The `chauvenet_anomalies()` function can be used to implement this test. For our six examples, it gives similar results to those above for `peirce_anomalies()` (with two additional spurious anomalies for the $t_2$ example, and one additional spurious anomaly for the $\chi^2_4$ example.)
+The `chauvenet_anomalies()` function can be used to implement this test. For our six examples, it gives similar results to those above for `peirce_anomalies()` (with two additional spurious anomalies for the $\text{t}_3$ example, and one additional spurious anomaly for the $\chi^2_4$ example.)
 
 ```{r}
 #| label: checkchauvenet
@@ -607,7 +607,10 @@ chisq4 |>
 nanomalies <- nanomalies |>
   mutate(
     Grubbs = c(
-      cricket_batting |> filter(grubbs_anomalies(Average)) |> NROW(),
+      cricket_batting |>
+        filter(Innings > 20) |>
+        filter(grubbs_anomalies(Average)) |>
+        NROW(),
       oldfaithful |> filter(grubbs_anomalies(duration)) |> NROW(),
       n01b |> filter(grubbs_anomalies(y)) |> NROW(),
       n01 |> filter(grubbs_anomalies(v1)) |> NROW(),
@@ -616,7 +619,7 @@ nanomalies <- nanomalies |>
     )
   )
 
-stopifnot(nanomalies$Grubbs == c(0, 1, 0, 0, 6, 1))
+stopifnot(nanomalies$Grubbs == c(1, 1, 0, 0, 6, 1))
 ```
 
 The clear failure is with the $\text{t}_3$ distribution which has no real anomalies. A spurious anomaly is also detected in the $\chi^2_4$ example, and real anomalies are missed in the Old Faithful data and in `n01b`.
