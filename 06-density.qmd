@@ -67,7 +67,7 @@ The surprisal probability of an observation is the probability of observing a va
 
 Specifically, for an observation $\bm{y}_i$ under the distribution $f$, its surprisal probability is given by
 $$
-p_i = \int f(\bm{u}) 𝟙(-\log f(\bm{u}) \ge s_i) d\bm{u} = \int f(\bm{u}) 𝟙(f(\bm{u}) \le f(y_i)) d\bm{u},
+p_i = \int f(\bm{u}) 𝟙(-\log f(\bm{u}) \ge s_i) d\bm{u} = \int f(\bm{u}) 𝟙(f(\bm{u}) \le f(\bm{y}_i)) d\bm{u},
 $$ {#eq-pi-density}
 where $𝟙(z)$ is an indicator function taking value 1 when $z$ is true and 0 otherwise.
 
@@ -163,7 +163,7 @@ $$
 $$ {#eq-pi-gpd}
 where $\hat g()$ denotes the estimated GPD density function. This approximation only gives us surprisal probabilities for the surprisals above the threshold $u$. For any $s_i \le u$, all we can say is that $\hat{p}_i \ge \beta$.
 
-@surprisals show that, under very general conditions on the true distribution $f$, this will lead to good estimates of the surprisal probabilities for the most extreme surprisal values (which correspond to the anomalies). That is, even if our assumed distribution $f^*$ is not correct, we can still fit a GPD to the largest surprisal values and use this to estimate the tail probabilities
+@surprisals show that, under very general conditions on the true distribution $f$, this will lead to good estimates of the surprisal probabilities for the most extreme surprisal values (which correspond to the anomalies). That is, even if our assumed distribution $f^*$ is not correct, we can still fit a GPD to the largest surprisal values and use this to estimate the tail probabilities.
 
 The approach does require a relatively large number of surprisals to be available, in order to adequately estimate the GPD from the top $\beta$ of the observations. So we would normally need at least a few hundred observations to start with.
 
@@ -179,7 +179,7 @@ The approximation argument of `surprisals_prob()` can be set to `"rank"`, to spe
 
 For example, consider the 1000 values contained in the first column of `n01`. These were generated from a standard Normal distribution. We can use `surprisals_prob()` to identify anomalies with probability less than 1%. This is equivalent to z-scores greater than `r sprintf("%.3f", qnorm(1-0.01/2))` in absolute value.
 
-We will use all three methods described above, first using the correct density in computing the surprisals, and then repeating the calculation using an incorrect density. For the incorrect density, we will use a $t_3$ distribution, which has much longer tails than the true $N(0,1)$ distribution.
+We will use all three methods described above, first using the correct density in computing the surprisals, and then repeating the calculation using an incorrect density. For the incorrect density, we will use a $t_4$ distribution, which has much longer tails than the true $N(0,1)$ distribution.
 
 ```{r}
 #| label: surprisal_prob
@@ -274,7 +274,7 @@ The surprisals under the Gaussian linear regression model [@eq-gaussian-regressi
 $$
   s_i = -\log\phi(r_i),
 $$ {#eq-regression-log-score}
-where $\phi(u) = (2\pi)^{-1/2}e^{-u^2}$ is the standard normal density. This can be computed as follows, assuming that `fit` is the output from `stats::lm()`.
+where $\phi(u) = (2\pi)^{-1/2}e^{-u^2/2}$ is the standard normal density. This can be computed as follows, assuming that `fit` is the output from `stats::lm()`.
 
 ```r
 broom::augment(fit) |>
@@ -325,7 +325,7 @@ If `fit` is the output from `stats::lm()`, then these quantities can be computed
 broom::augment(fit) |>
   mutate(
     std_loo_res = .resid / (.sigma * sqrt(1 - .hat)),
-    loo_surprisals = -log(dnorm(std_loo_res, log = TRUE))
+    loo_surprisals = -dnorm(std_loo_res, log = TRUE)
   )
 ```
 
@@ -506,7 +506,7 @@ In some applications, it is not appropriate to assume the conditional density is
 $$
   y\mid\bm{x} \sim f(\mu), \qquad \ell(\mu) = \sum_{k=1}^p g_k(x_{k}),
 $$
-where $\mu = \text{E}(y | \bm{x})$ denotes the conditional mean, $\ell()$ is a link function, and each $g_k$ function is smooth. If $f$ is Normal, $\ell$ is the identity, and $g_i(u) = \beta_i u$, then this reduces to the linear Gaussian model (@eq-gaussian-regression).
+where $\mu = \text{E}(y | \bm{x})$ denotes the conditional mean, $\ell()$ is a link function, and each $g_k$ function is smooth. If $f$ is Normal, $\ell$ is the identity, and $g_k(u) = \beta_k u$, then this reduces to the linear Gaussian model (@eq-gaussian-regression).
 
 ```{r}
 #| include: false
@@ -598,13 +598,13 @@ Suppose, instead of a regression or a GAM, we estimate $f$ using a kernel densit
 $$
   f_i = \hat{f}(\bm{y}_i) = \frac{1}{n} \sum_{j=1}^n K_H(\bm{y}_i-\bm{y}_j),
 $$ {#eq-kdescores}
-and so the "**kde surprisal**" at each observation as
+and so we define the "**kde surprisal**" at each observation as
 $$
-  p_i = -\log(f_i).
+  s_i = -\log(f_i).
 $$
 The largest possible surprisal occurs when an observation has no other observations nearby. Then $f_i \approx K_H(\bm{0})/n$ because $K_H(\bm{y}_i-\bm{y}_j)\approx 0$ when $\|\bm{y}_i-\bm{y}_j\|$ is large. So the largest possible kde surprisal, when using a Gaussian kernel, is
 $$
-  -\log(K_H(\bm{0})/n) \approx \log(n) + \frac{m}{2}\log(2\pi) + \frac{1}{2}\text{log det}(\bm{H}),
+  -\log(K_H(\bm{0})/n) \approx \log(n) + \frac{m}{2}\log(2\pi) + \frac{1}{2}\log|\bm{H}|,
 $$
 where $\bm{H}$ is now the bandwidth matrix. For univariate data, when $m=1$, this simplifies to
 $$
