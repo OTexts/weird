@@ -53,7 +53,7 @@ df |>
 
 The only obvious feature of these graphs is that the variance increases in successive panels. This is because the variance of the sum of independent random variables is the sum of their variances. The two anomalies are plotted in each panel, but they are not obviously different from the other observations.
 
-Now we will plot pairwise scatterplots of the four variables, giving the bivariate perspective.
+Now we will plot pairwise scatterplots of the three variables, giving the bivariate perspective.
 
 ```{r}
 #| label: fig-demo-pairs
@@ -218,16 +218,16 @@ Now we have a sense of what it means to have data in many dimensions, let's cons
 
 ### Statistical definitions
 
-Suppose $\bm{Y} = [Y_1,\dots,Y_n]^\intercal$ is a random variable taking values in $\mathbb{R}^m$, the $m$-dimensional real numbers. Then the joint distribution of $\bm{Y}$ is defined by the joint cdf
+Suppose $\bm{Y} = [Y_1,\dots,Y_m]^\intercal$ is a random variable taking values in $\mathbb{R}^m$, the $m$-dimensional real numbers. Then the joint distribution of $\bm{Y}$ is defined by the joint cdf
 $$
-F(\bm{y}) = \text{Pr}(\bm{Y} \le \bm{y}),
+F(\bm{y}) = \Pr(\bm{Y} \le \bm{y}),
 $$
 while the joint density function is given by
 $$
 f(\bm{y}) = \frac{\partial^m F(\bm{y})}{\partial y_1 \dots \partial y_m}.
 $$
 
-The marginal cdfs are defined by $F_i(y) = \text{Pr}(Y_i \le y)$, with corresponding marginal pdfs given by $f_i(y) = F_i'(y)$, $i=1,\dots,m$.
+The marginal cdfs are defined by $F_i(y) = \Pr(Y_i \le y)$, with corresponding marginal pdfs given by $f_i(y) = F_i'(y)$, $i=1,\dots,m$.
 
 If the variables are independent, then the joint pdf is the product of the marginal pdfs, $f(\bm{y}) = \prod_{i=1}^m f_i(y_i)$.
 
@@ -265,12 +265,12 @@ $$
 $$ {#eq-mhdr}
 where $f_\alpha$ is the largest constant such that $\Pr(\bm{Y} \in R_\alpha) = 1-\alpha$.
 
-HDRs are equivalent to level sets of the density function, and so can be plotted as contours for bivariate density functions. For example, the bivariate Normal distribution with mean $(0,0)$ and covariance matrix $\Sigma = \begin{bmatrix} 1 & 0.5 \\ 0.5 & 1 \end{bmatrix}$ is shown in @fig-bivariate as a series of HDR contours, each containing an additional 10% of the probability mass.
+HDRs are equivalent to level sets of the density function, and so can be plotted as contours for bivariate density functions. For example, the bivariate Normal distribution with mean $(0,0)$ and covariance matrix $\bm{\Sigma} = \begin{bmatrix} 1 & 0.5 \\ 0.5 & 1 \end{bmatrix}$ is shown in @fig-bivariate as a series of HDR contours, each containing an additional 10% of the probability mass.
 
 ```{r}
 #| label: fig-bivariate
 #| message: false
-#| fig-cap: Bivariate Normal distribution with mean $(0,0)$ and covariance matrix $\Sigma = \begin{bmatrix} 1 & 0.5 \\ 0.5 & 1 \end{bmatrix}$. The HDR contours cover 10%, 20%, $\dots$, 90% of the probability mass.
+#| fig-cap: Bivariate Normal distribution with mean $(0,0)$ and covariance matrix $\bm{\Sigma} = \begin{bmatrix} 1 & 0.5 \\ 0.5 & 1 \end{bmatrix}$. The HDR contours cover 10%, 20%, $\dots$, 90% of the probability mass.
 mu <- c(0, 0)
 Sigma <- matrix(c(1, 0.5, 0.5, 1), 2, 2)
 distributional::dist_multivariate_normal(list(mu), list(Sigma)) |>
@@ -282,12 +282,12 @@ distributional::dist_multivariate_normal(list(mu), list(Sigma)) |>
   )
 ```
 
-Similarly, we can obtain HDRs for a mixture distribution. Suppose we had two bivariate Normal distributions with means $(0,0)$ and $(3,1)$, and covariance matrices equal to $\begin{bmatrix} 1 & 0.5 \\ 0.5 & 1 \end{bmatrix}$ and the identity matrix $\bm{I}_2$ respectively. Then the HDRs for an equal mixture of these two distributions is shown in @fig-bivariate-mixture.
+Similarly, we can obtain HDRs for a mixture distribution. Suppose we had two bivariate Normal distributions with means $(0,0)$ and $(3,1)$, and covariance matrices equal to $\bm{\Sigma} = \begin{bmatrix} 1 & 0.5 \\ 0.5 & 1 \end{bmatrix}$ and the identity matrix $\bm{I}_2$ respectively. Then the HDRs for an equal mixture of these two distributions is shown in @fig-bivariate-mixture.
 
 ```{r}
 #| label: fig-bivariate-mixture
 #| message: false
-#| fig-cap: Bivariate mixture distribution of two equally weighted Normal components with means $(0,0)$ and $(3,1)$, and covariance matrices $\Sigma = \begin{bmatrix} 1 & 0.5 \\ 0.5 & 1 \end{bmatrix}$ and $\bm{I}_2$ respectively. The HDR contours cover 10%, 20%, $\dots$, 90% of the probability mass.
+#| fig-cap: Bivariate mixture distribution of two equally weighted Normal components with means $(0,0)$ and $(3,1)$, and covariance matrices $\bm{\Sigma} = \begin{bmatrix} 1 & 0.5 \\ 0.5 & 1 \end{bmatrix}$ and $\bm{I}_2$ respectively. The HDR contours cover 10%, 20%, $\dots$, 90% of the probability mass.
 mu1 <- c(0, 0)
 mu2 <- c(3, 1)
 Sigma1 <- rbind(c(1, 0.5), c(0.5, 1))
@@ -342,7 +342,7 @@ $$
 $$
 We can repeat this for each pair of variables, to obtain a robust estimate of the covariance matrix, $\bm{S}^*$. The diagonals can be obtained using the same robust measure of variance. This is known as the Gnanadesikan-Kettenring estimator. The resulting matrix is symmetric, but not necessarily positive definite, which is a requirement of a covariance matrix. So some additional iterative steps are applied to "orthogonalise" it.
 
-1. Compute the eigenvector decomposition of $\bm{S^*}$, so that $\bm{S}^* = \bm{Q}\bm{\Lambda}\bm{Q}^{-1}$.
+1. Compute the eigenvector decomposition of $\bm{S}^*$, so that $\bm{S}^* = \bm{Q}\bm{\Lambda}\bm{Q}^{-1}$.
 2. Project the data onto the basis eigenvectors.
 3. Estimate the variances (robustly) in the coordinate directions.
 4. Then the robust covariance matrix is given by
@@ -420,7 +420,7 @@ For example, consider the eight points labelled A to H shown in @fig-graph, and 
 
 ```{r}
 #| label: fig-graph
-#| fig.cap: "An example of a graph based on eight observations (the nodes) which are joined by edges if the distance between them is at most $\\delta=1.4$. The blue disks have radius $\\delta/2$, so overlapping disks indicate that their central points are within $\\delta$ of each other. The resulting graph consists of three clusters."
+#| fig.cap: "An example of a graph based on eight observations (the nodes) which are joined by edges if the distance between them is at most $\\delta=1.5$. The blue disks have radius $\\delta/2$, so overlapping disks indicate that their central points are within $\\delta$ of each other. The resulting graph consists of three clusters."
 #| message: false
 #| warning: false
 #| echo: false
@@ -630,7 +630,7 @@ A generalisation of the univariate plug-in bandwidth [@sec-kde] is the "plug-in"
 
 An alternative approach to finding the bandwidth matrix uses ideas from clustering (@sec-clustering). First, we compute robust multivariate z-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \bm{m})$, $i=1,\dots,n$, where $\bm{m}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}$ is the Cholesky decomposition of $\bm{S}_{\text{OGK}}^{-1}$. Then we find the merge distances of the clusters obtained from the z-scores: $\{d_1,\dots,d_{n-1}\}$. Finally, we can set
 $$
-  \bm{H} = d^*\bm{S}_{\text{OGK}}
+  \bm{H} = d_\gamma\bm{S}_{\text{OGK}}
 $$ {#eq-lookoutH}
 where $d_\gamma$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_{n-1}\}$ for a large value of $\gamma$. @lookout2 showed that this leads to a consistent density estimate, with good properties for anomaly detection, when $\gamma = 0.98$. We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-kdesurprisals. The `kde_bandwidth()` function will return this bandwidth when `method = "lookout"`. For univariate data, $\bm{S}_{\text{OGK}}$ is replaced by $s_{\text{Qn}}$ in @eq-lookoutH.
 
@@ -665,13 +665,13 @@ The conditional pdf is given by
 $$
 f(y \mid x_1, \dots, x_p) = \frac{f(y, x_1, \dots, x_p)}{f(x_1, \dots, x_p)}.
 $$
-The conditional pdf can be thought of as slices of the joint pdf, with the values of $x_1,\dots,x_p$ fixed, rescaled to ensure the conditional pdfs integrate to 1. For example, $f(y_1 | y_2)$ is equal to a scaled slice of the joint pdf $f(y_1,y_2)$ at $y_2$. @fig-conditional shows some examples for the distribution shown at @fig-bivariate-mixture at several values of $y_2$. The left plot shows the joint density, with horizontal lines indicating where conditioning (or slicing) occurs at different values of $y_2$. The right plot shows the resulting conditional density functions.
+The conditional pdf can be thought of as slices of the joint pdf, with the values of $x_1,\dots,x_p$ fixed, rescaled to ensure the conditional pdfs integrate to 1. For example, $f(y_1 | y_2)$ is equal to a scaled slice of the joint pdf $f(y_1,y_2)$ at $y_2$. @fig-conditional shows some examples for the distribution shown in @fig-bivariate-mixture at several values of $y_2$. The left plot shows the joint density, with horizontal lines indicating where conditioning (or slicing) occurs at different values of $y_2$. The right plot shows the resulting conditional density functions.
 
 ```{r}
 #| label: fig-conditional
 #| message: false
 #| depends: fig-bivariate-mixture
-#| fig-cap: Conditional distribution of $Y_2|Y_1$, where $(Y_1,Y_2)$ has the joint distribution plotted in @fig-bivariate-mixture. The left plot shows the joint density with the values of $y_2$ where we will condition, while the right plot shows conditional density functions at different values of $y_2$.
+#| fig-cap: Conditional distribution of $Y_1|Y_2$, where $(Y_1,Y_2)$ has the joint distribution plotted in @fig-bivariate-mixture. The left plot shows the joint density with the values of $y_2$ where we will condition, while the right plot shows conditional density functions at different values of $y_2$.
 # Conditioning points
 y2_slice <- -2:3
 # Compute bivariate density over a grid
