@@ -759,5 +759,3 @@ tibble(y = rchisq(1000, df = 4)) |>
 ```
 
 The algorithm has found a few spurious anomalies in each case, out of the 1000 observations included. Notably, the results do not appear to deteriorate with the heavier-tailed or skewed distributions.
-
-## Other density-based methods
