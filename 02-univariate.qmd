@@ -726,7 +726,7 @@ h = \left(\frac{f(y)R(K)}{n[f''(y)]^2}\right)^{1/5}.
 $$
 This shows that larger bandwidths are required when $f(y)/[f''(y)]^2$ is relatively large, which often occurs in the extreme tails of a distribution. So bandwidths for anomaly detection tend to be larger than bandwidths for other purposes.
 
-A final option in `kde_bandwidth()` is `method = "lookout"`, which does tend to give larger bandwidths. We will defer a description of that method until @sec-mvkdebw.
+A final option in `kde_bandwidth()` is `method = "lookout"`. We will defer a description of that method until @sec-mvkdebw.
 
 ### Highest kernel density regions
 

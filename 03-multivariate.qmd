@@ -632,7 +632,7 @@ An alternative approach to finding the bandwidth matrix uses ideas from clusteri
 $$
   \bm{H} = d_\gamma\bm{S}_{\text{OGK}}
 $$ {#eq-lookoutH}
-where $d_\gamma$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_{n-1}\}$ for a large value of $\gamma$. @lookout2 showed that this leads to a consistent density estimate, with good properties for anomaly detection, when $\gamma = 0.98$. We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-kdesurprisals. The `kde_bandwidth()` function will return this bandwidth when `method = "lookout"`. For univariate data, $\bm{S}_{\text{OGK}}$ is replaced by $s_{\text{Qn}}$ in @eq-lookoutH.
+where $d_\gamma$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_{n-1}\}$ for a large value of $\gamma$. @lookout2 showed that this leads to a consistent density estimate, with good properties for anomaly detection, when $\gamma = 0.98$. We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-kdesurprisals. The `kde_bandwidth()` function will return this bandwidth when `method = "lookout"`. For univariate data, $h = d_\gamma s_{\text{Qn}}$.
 
 ```{r}
 #| label: fig-ofbivariate3
@@ -645,7 +645,7 @@ oldfaithful |>
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 
-Notice that the contours are larger and smoother than in @fig-ofbivariate2. In general, lookout bandwidths will be larger than bandwidths chosen using normal reference rules, making them particularly suitable for anomaly detection.
+Notice that the contours are larger and smoother than in @fig-ofbivariate2. In general, multivariate lookout bandwidths will be larger than bandwidths chosen using normal reference rules, making them particularly suitable for anomaly detection.
 
 ### Further reading
 

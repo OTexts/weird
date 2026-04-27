@@ -67,7 +67,7 @@ The surprisal probability of an observation is the probability of observing a va
 
 Specifically, for an observation $\bm{y}_i$ under the distribution $f$, its surprisal probability is given by
 $$
-p_i = \int f(\bm{u}) 𝟙(-\log f(\bm{u}) \ge s_i) d\bm{u} = \int f(\bm{u}) 𝟙(f(\bm{u}) \le f(\bm{y}_i)) d\bm{u},
+p_i = \int f(\bm{u}) 𝟙(-\log f(\bm{u}) \ge s_i) d\bm{u} = \int f(\bm{u}) 𝟙(f(\bm{u}) \leq f(\bm{y}_i)) d\bm{u},
 $$ {#eq-pi-density}
 where $𝟙(z)$ is an indicator function taking value 1 when $z$ is true and 0 otherwise.
 
@@ -613,17 +613,17 @@ $$
 
 ### Leave-one-out kde surprisals
 
-The contribution of the $i$th point to the kernel density estimate at that point is $K_H(\bm{0})/n$. Therefore, we can compute leave-one-out kde surprisals as
+The contribution of the $i$th point to the kernel density estimate at that point is $K_H(\bm{0})/n$. Therefore, the leave-one-out kde surprisals are given by
 $$
   f_{-i} = \left[nf_i - K_H(\bm{0})\right]/(n-1),
 $$ {#eq-lookkde}
-where $f_i$ is the kde estimate at $\bm{y}_i$ using all data. Thus, we can compute the leave-one-out kernel surprisals without needing to re-estimate the density many times.
+where $f_i$ is the kde estimate at $\bm{y}_i$ using all data. Thus, we can compute the leave-one-out kde surprisals without needing to re-estimate the density many times.
 
 The largest possible LOO kde surprisal is infinite, occurring when there are no observations nearby, so that $nf_i = K_H(\bm{0})$.
 
 ### The lookout algorithm {#sec-lookout}
 
-The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2. It uses surprisal probabilities based on a GPD approximation. Probabilities obtained using this algorithm can be calculated using the `surprisals_prob()` function applied to a data set with `loo = TRUE`, `approximation = "gpd"`, and `method = "lookout"`.
+The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2. It uses surprisal probabilities based on a GPD approximation applied to the leave-one-out kde estimates where the bandwidth is chosen using the "lookout" method. Probabilities obtained using this algorithm can be calculated using the `surprisals_prob()` function with `loo = TRUE`, `approximation = "gpd"`, and `method = "lookout"`.
 
 ### Example: Old Faithful eruption durations
 
