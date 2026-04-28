@@ -49,3 +49,4 @@ cache <- function(command, name) {
   }
   return(object)
 }
+wine_reviews <- fetch_wine_reviews() |> cache("wine_reviews")

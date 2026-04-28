@@ -4,7 +4,6 @@
 #| include: false
 #| cache: false
 source("before-each-chapter.R")
-wine_reviews <- fetch_wine_reviews() |> cache("wine_reviews")
 ```
 
 Data analysis is about finding the stories hidden in the mass of information that make up a data set. Usually we are interested in understanding the major patterns --- the relationships that hold true for most of the data. But sometimes we need to look at the weird observations --- those that don't follow the crowd and behave differently. We call these weird observations "anomalies". They are the mavericks in the data, and in this book, they are what we find interesting.
