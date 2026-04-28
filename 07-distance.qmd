@@ -135,7 +135,7 @@ kann <- dbscan::kNN(z, k = 5, approx = 2)
 oldfaithful[kann$id[1, ], ]
 ```
 
-In this case, the same five observations have been found.
+In this case, four of the same five observations have been found, with the last being different.
 
 ## Local outlier factors
 
@@ -235,18 +235,28 @@ Another problem is that it can be difficult to determine an appropriate value fo
 
 ### Example: Old Faithful data
 
+Let's apply the idea to the `duration` variable in the Old Faithful data set. We will use the `lof_scores()` function to compute the local outlier factors for each eruption, with $k=120$ nearest neighbours. The value of $k=120$ has been chosen after experimenting with various values.
+
 ```{r}
-#| label: fig-ofscores
-#| fig-cap: TBC
+#| label: ofscores
 of_scores <- oldfaithful |>
-  mutate(lof = lof_scores(duration, k = 150))
+  mutate(lof = lof_scores(duration, k = 100))
 of_scores |> arrange(desc(lof))
-of_scores |>
-  ggplot(aes(x = duration, y = lof)) +
-  geom_point()
 ```
 
-Again, the two large scores correspond to ??. The value of $k=150$ has been chosen after experimenting with various values.
+Here the three shortest eruptions (which we have previously identified as genuine anomalies) are those with the highest local outlier factors. Next there is a group of eruptions with durations above 300 seconds.
+
+```{r}
+#| label: fig-ofscores
+#| fig-cap: Local outlier factors for each eruption plotted against the duration.
+#| dependson: ofscores
+of_scores |>
+  ggplot(aes(x = duration, y = lof)) +
+  geom_point() +
+  labs(x = "Duration (seconds)", y = "Local outlier factor")
+```
+
+@fig-ofscores shows a scatterplot of the local outlier factors for each eruption plotted against the eruption duration. The three short eruptions clearly stand out. The bimodal distribution of eruption durations is also evident here, with the peak in local outlier factors around 150 seconds, indicating a low density of eruptions at that duration.
 
 
 
