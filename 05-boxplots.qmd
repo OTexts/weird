@@ -6,7 +6,9 @@
 source("before-each-chapter.R")
 ```
 
-Most readers will have first come across anomaly detection using boxplots. In this chapter, we will describe the original boxplot method, along with some variations that have been developed to address some of the limitations of the original approach.
+Most readers will have first come across anomaly detection using boxplots, invented by John Tukey as a quick summary of medium-sized data sets [@Tukey75;@Tukey1977-xd;@wickhamboxplots]. Tukey never proposed that boxplots be a generic anomaly detection method, but they have become widely used for this purpose, and are often the first method that people think of when they want to identify anomalies in univariate data.
+
+In this chapter, we will describe the original boxplot method, along with some variations that have been developed to address some of the limitations of the original approach.
 
 ## Univariate data depth
 
@@ -79,8 +81,6 @@ batave |> quantile(prob = c(0.5^(4:1), 1 - 0.5^(2:4)), type = 8)
 
 ## Tukey's boxplots
 
-Boxplots were invented by John Tukey as a quick summary of medium-sized data sets [@Tukey75;@Tukey1977-xd;@wickhamboxplots]. They are widely used to identify anomalies, which are shown as separate points in the plot.
-
 @fig-cricketbox shows a boxplot of the cricket batting average data.
 
 ```{r}
@@ -105,7 +105,7 @@ cricket_batting |>
   labs(y = "", x = "Career batting average")
 ```
 
-In the `ggplot2` version of the boxplot shown here, the middle line in the box shows the median, and the ends of the box are the quartiles computed using `type = 7`. The base R version is computed using the `boxplot()` function, which uses the fourths to delineate the box.
+In Tukey's original version, the ends of the box were determined by the letter values corresponding to the fourths, and the middle line within the box showed the median. This is what is produced by the base R function `boxplot()`. In the `ggplot2` version of the boxplot shown here, the ends of the box are the quartiles computed using `type = 7`.
 
 ```{r}
 #| label: fig-cricketbox2
@@ -125,9 +125,9 @@ cricket_batting |>
   )
 ```
 
-Whichever variation is used, roughly half of all observations lie within the box. The width of the box is an estimate of the "interquartile range" (IQR). Any points more than 1.5 IQR outside the box are shown as anomalies and appear as separate points in the plot. The "whiskers" that extend out each side of the box show the range of the remaining points.
+Whichever variation is used, roughly half of all observations lie within the box. The length of the box is an estimate of the "interquartile range" (IQR). Any points more than 1.5 IQR outside the box are shown as separate points in the plot. The "whiskers" that extend out each side of the box show the range of the remaining points.
 
-Originally, Tukey proposed two levels of outliers --- those more than 1.5 IQR beyond the box were labelled "outside" values, while those more than 3 IQR beyond the box were labelled "far out" values. Most software implementations of boxplots do not distinguish between these groups.
+Originally, Tukey proposed two levels of outliers --- those more than 1.5 IQR beyond the box were labelled "outside" values, while those more than 3 IQR beyond the box were labelled "far out" values. Most software implementations of boxplots do not distinguish between these groups. When a boxplot is used for anomaly detection, all points outside the whiskers are called "anomalies" or "outliers", even though they may not be genuine anomalies.
 
 In this cricket batting example, the boxplot works well because the data set is not too large or small, and the distribution of points other than the anomaly is unimodal.
 
@@ -160,7 +160,7 @@ tibble(x = rnorm(10000)) |>
   labs(y = "")
 ```
 
-Many anomalies are shown, but since all observations come from a simple distribution, none of them are actually anomalies. For this distribution, $Q(0.25) = `r sprintf("%.3f", q1)`$, $Q(0.75) = `r sprintf("%.3f", q3)`$, $\text{IQR} = `r sprintf("%.3f", iqr)`$, and so for a large sample size, the boxplot whiskers would be approximately $`r sprintf("%.3f", q1)` - 1.5\times `r sprintf("%.3f", iqr)` = `r sprintf("%.3f", whisker1)`$ and $`r sprintf("%.3f", q3)` + 1.5\times `r sprintf("%.3f", iqr)` = `r sprintf("%.3f", whisker2)`$. Any points outside the whiskers would be identified as "anomalous" by a boxplot and plotted as separate points. The probability of a standard normal observation being at least $`r sprintf("%.3f", whisker2)`$ in absolute value (and therefore lying outside the boxplot whiskers) is $`r sprintf("%.5f", 2*(1-pnorm(whisker2)))`$. So with $10000$ observations, we would have about $`r round(10000*2*(1-pnorm(whisker2)))`$ anomalies identified, none of which would be a genuine anomaly.
+Many "anomalies" are shown, but since all observations come from a simple distribution, none of them are actually anomalies. For this distribution, $Q(0.25) = `r sprintf("%.3f", q1)`$, $Q(0.75) = `r sprintf("%.3f", q3)`$, $\text{IQR} = `r sprintf("%.3f", iqr)`$, and so for a large sample size, the boxplot whiskers would be approximately $`r sprintf("%.3f", q1)` - 1.5\times `r sprintf("%.3f", iqr)` = `r sprintf("%.3f", whisker1)`$ and $`r sprintf("%.3f", q3)` + 1.5\times `r sprintf("%.3f", iqr)` = `r sprintf("%.3f", whisker2)`$. Any points outside the whiskers would be identified as "anomalous" by a boxplot and plotted as separate points. The probability of a standard normal observation being at least $`r sprintf("%.3f", whisker2)`$ in absolute value (and therefore lying outside the boxplot whiskers) is $`r sprintf("%.5f", 2*(1-pnorm(whisker2)))`$. So with $10000$ observations, we would have about $`r round(10000*2*(1-pnorm(whisker2)))`$ anomalies identified, none of which would be a genuine anomaly.
 
 The second problem is demonstrated using the Old Faithful eruption duration data, shown in @fig-oldfaithful1.
 
@@ -176,7 +176,7 @@ oldfaithful |>
   labs(y = "", x = "Duration (seconds)")
 ```
 
-Quite a few anomalies are shown, including the three abnormally short eruptions we identified earlier. But the remaining "anomalies" are not particularly unusual observations. All the points below 180 seconds are identified as anomalies, even though we know that observations in the region between 100 and 140 are not unusual for this geyser. Because the boxplot does not allow for more than one mode, all the points in the second smaller cluster are identified as anomalies. The points around 300 seconds are also not really anomalies --- these are just values in the upper tail of the distribution for eruptions.
+Quite a few "anomalies" are shown, including the three abnormally short eruptions we identified earlier. But the remaining "anomalies" are not particularly unusual observations. All the points below 180 seconds are identified as anomalies, even though we know that observations in the region between 100 and 140 are not unusual for this geyser. Because the boxplot does not allow for more than one mode, all the points in the second smaller cluster are identified as anomalies. The points around 300 seconds are also not really anomalies --- these are just values in the upper tail of the distribution for eruptions.
 
 ## Modified IQR boxplots
 
@@ -399,7 +399,7 @@ n01 |>
 
 There are an infinite number of ways of dividing the plane into halfspaces, and the number of points in each half plane will vary depending on where the dividing line falls.
 
-To find the depth of the orange point, we need to find the line which divides the plane into two sections where the half containing the orange point includes as few observations as possible. In fact, the red line is one such solution which has the orange point in a halfspace containing only 2 observations. There are no dividing lines that would put the orange point in a halfspace on its own. So it has a Tukey depth of 2.
+To find the depth of the orange point, we need to find the line which divides the plane into two sections where the half containing the orange point includes as few observations as possible. In fact, the red line is one such solution which has the orange point in a halfspace containing only two observations. There are no dividing lines that would put the orange point in a halfspace on its own, or in a halfspace containing only one observation. So it has a Tukey depth of 2.
 
 The depth region $D_k$ is the set of all points $\bm{z}$ with Tukey depth at least $k$. These form a series of nested convex hulls where $D_{k+1} \subseteq D_k$. The depth regions for our example are shown in @fig-depthregions. The blue region is depth 1, the orange region is depth 2, the pink region is depth 3, and the green region is depth 4.
 
