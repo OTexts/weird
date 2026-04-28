@@ -248,13 +248,9 @@ of_scores |>
 
 Again, the two large scores correspond to ??. The value of $k=150$ has been chosen after experimenting with various values.
 
-## Stahel-Donoho outlyingness
 
-The Stahel-Donoho outlyingness is a robust measure of outlyingness
 
-@Stahel81, @Donoho81, @Brys2005-pc
 
-robustbase::adjOutlyingness
 
 ## CovMCD
 

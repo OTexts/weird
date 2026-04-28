@@ -6,9 +6,31 @@
 source("before-each-chapter.R")
 ```
 
+## Projections
+
+
+
 ## Principal component analysis
 
 ## Multi-dimensional scaling
+
+## Stahel-Donoho outlyingness
+
+Stahel-Donoho outlyingness is a robust projection-based measure of how far each
+observation is from the main body of the data [@Stahel81;@Donoho81].
+
+For any unit
+vector $\bm{a}$, project the data to one dimension via $\bm{a}^\intercal\bm{y}_i$, then
+standardise the distance from a robust centre using a robust scale estimate. The
+outlyingness of $\bm{y}_i$ is the largest standardised distance over all directions,
+so an observation is flagged when it looks extreme in at least one projection.
+
+This approach is useful in multivariate settings because it is affine equivariant and
+less sensitive to masking than classical Mahalanobis-distance methods. In practice,
+the optimisation over all directions is approximated using many candidate
+projections, and skewness-adjusted variants are often preferred [@Brys2005-pc]. In
+R, `robustbase::adjOutlyingness()` provides an efficient implementation for computing
+these scores.
 
 ## PCout
 
