@@ -258,16 +258,27 @@ of_scores |>
 
 @fig-ofscores shows a scatterplot of the local outlier factors for each eruption plotted against the eruption duration. The three short eruptions clearly stand out. The bimodal distribution of eruption durations is also evident here, with the peak in local outlier factors around 150 seconds, indicating a low density of eruptions at that duration.
 
-
-
-
-
-
-
-
 ## Detect deviating cells algorithm
 
-@Rousseeuw2016-wm
+So far, we have treated each multivariate observation as a single point in the multivariate space, and have computed distances between those points. Under this perspective, the observations are the rows of the data matrix, and the columns are the variables. So an anomaly is a row that is far from other rows. That may be because of the values in one or more columns, or the unusual combination of values across columns. Almost all robust multivariate methods require at least half the observations to be non-anomalous, so that the main body of the data can be identified. But sometimes many rows (observations) each have a few contaminated cell values, and it is not possible to identify "normal" rows. In that case, it may be possible to identify the anomalous cells instead of the anomalous rows. This is the idea behind the "detect deviating cells" (DDC) algorithm of @Rousseeuw2016-wm.
+
+Suppose a fraction $\varepsilon$ of cells are contaminated, and that the contaminated cells are randomly distributed across the data matrix. Then, on average, each row will have $\varepsilon m$ contaminated cells. The expected fraction of contaminated rows is $1-(1-\varepsilon)^m$, which is close to 1 when $m\varepsilon$ is large.
+
+Rather than treating each row as a point, the DDC algorithm treats each cell in the data matrix as a point, and detects anomalous cells. It does this by checking whether each cell value is consistent with what would be predicted from the other variables in the same row (observation), following these steps.
+
+1. Non-numerical columns, and discrete columns taking a few distinct values, are omitted.
+2. Optionally, numerical columns can be transformed to be closer to normality, for example by applying a log transformation to positive-valued columns.
+3. All numerical columns are standardised using robust location and scale estimates.
+4. Cell values that are outliers in their column are flagged.
+5. Robust pairwise correlations are computed between all pairs of columns. Only pairs of columns whose absolute correlation exceeds a threshold (0.5 by default) are considered "connected"; for each such pair, a robust bivariate slope is also estimated.
+6. Each cell value is predicted using a weighted combination of connected columns, ignoring flagged cells. The weights are based on the absolute correlations between the columns.
+7. Cells for which the observed value differs substantially from the predicted value are flagged as anomalous.
+
+Entire rows that contain an unusual accumulation of large cell residuals can additionally be flagged as rowwise outliers.
+
+This method is implemented in the `cellWise::DDC()` function.
+
+
 
 ## Stray and HDoutliers algorithms
 
