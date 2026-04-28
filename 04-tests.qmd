@@ -190,7 +190,7 @@ stopifnot(nanomalies$Zscore == c(1, 3, 0, 1, 18, 15))
 
 ### Probability of spurious anomalies
 
-Even if the data did come from a Normal distribution, the probability of an observation being more than 3 standard deviations from the mean is $`r round(2*pnorm(-3),4)`$, so we would expect to see 1 in every $1/ `r round(2*pnorm(-3),4)` = `r round(.5/pnorm(-3))`$ regular observations being identified as an anomaly using this approach.
+Even if the data did come from a Normal distribution, the probability of an observation being more than 3 standard deviations from the mean is $`r round(2*pnorm(-3),4)`$, so we would expect to see approximately 1 in every $1/ `r round(2*pnorm(-3),4)` = `r round(.5/pnorm(-3))`$ regular observations being identified as an anomaly using this approach.
 
 In fact, we can be more accurate than this. If our $n$ observations come from a Normal distribution, then the z-scores follow (approximately) a $\text{t}_{n-1}$ distribution. (The approximation arises because we replace the mean and standard deviation by their sample estimates.) When we identify anomalies as those points with $|z|>c$, then the probability of finding at least one spurious anomaly is the probability of the maximum being above $c$ or the minimum being below $-c$. Since the distribution is symmetric, these probabilities are the same. Let $M_n$ be the maximum of $n$ z-scores computed from the data; then $\Pr(M_n \le c) = (F_{t}(c; n-1))^n$ where $F_{t}(y; n-1)$ is the cumulative distribution function of a $t$ distribution with $n-1$ degrees of freedom. So the probability of at least one spurious anomaly is
 $$
@@ -321,7 +321,7 @@ Even if we were prepared to believe that the data come from a Normal distributio
 
 ### Peirce's criterion {-}
 
-Benjamin Peirce was a Harvard mathematician in the mid 1800s who worked with astronomical data which were prone to anomalous observations. He proposed the first known test based on what are now called $z$-scores [@Peirce1852]. His criterion was that any observations with $|z| > c$ should be "rejected", where $c$ is a complicated function depending on the sample size $n$ and the number of suspected anomalies.
+Benjamin Peirce was a Harvard mathematician in the mid 1800s who worked with astronomical data that were prone to anomalous observations. He proposed the first known test based on what are now called $z$-scores [@Peirce1852]. His criterion was that any observations with $|z| > c$ should be "rejected", where $c$ is a complicated function depending on the sample size $n$ and the number of suspected anomalies.
 
 @fig-zscorecriteria shows the value of $c$ as a function of sample size, when there is only one suspected anomaly.
 
