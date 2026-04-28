@@ -63,7 +63,7 @@ When $\bm{\Sigma} = \bm{I}$, this is simply the sum of surprisals computed on ea
 
 ## Surprisal probabilities {#sec-surprisal-probabilities}
 
-The surprisal probability of an observation is the probability of observing a value that is at least as surprising as the observation, under the distribution $f$. This is a more interpretable measure of how anomalous an observation is, because it is on the familiar probability scale between 0 and 1. It also allows us to set a threshold for identifying anomalies in terms of a false positive rate.
+The surprisal probability of an observation is the probability of observing a value that is at least as surprising as the observation, under the distribution $f$. This is a more interpretable measure of how anomalous an observation is compared to the surprisal itself, because it is on the familiar probability scale between 0 and 1. It also allows us to set a threshold for identifying anomalies in terms of a false positive rate.
 
 Specifically, for an observation $\bm{y}_i$ under the distribution $f$, its surprisal probability is given by
 $$
