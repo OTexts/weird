@@ -262,11 +262,8 @@ of_scores |>
 
 
 
-## CovMCD
 
-@Rousseeuw1999-jt
 
-robustbase::covMcd
 
 ## Detect deviating cells algorithm
 
