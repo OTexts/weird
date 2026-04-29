@@ -1502,6 +1502,55 @@
       "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
       "Repository": "https://packagemanager.posit.co/cran/__linux__/noble/latest"
     },
+    "cellWise": {
+      "Package": "cellWise",
+      "Version": "2.5.7",
+      "Source": "Repository",
+      "Type": "Package",
+      "Date": "2026-02-25",
+      "Title": "Analyzing Data with Cellwise Outliers",
+      "Authors@R": "c( person(given=\"Jakob\",family=\"Raymaekers\", role = c(\"aut\",\"cre\"), email=\"jakob.raymaekers@uantwerpen.be\"), person(given=\"Peter\",family=\"Rousseeuw\", role = c(\"aut\")), person(given=\"Wannes\",family=\"Van den Bossche\", role = c(\"ctb\")), person(given=\"Mia\",family=\"Hubert\", role = c(\"ctb\"))  )",
+      "Depends": [
+        "R (>= 4.0.0)"
+      ],
+      "Suggests": [
+        "knitr",
+        "robustHD",
+        "MASS",
+        "ellipse",
+        "markdown",
+        "rospca",
+        "GSE"
+      ],
+      "Imports": [
+        "reshape2",
+        "scales",
+        "ggplot2",
+        "matrixStats",
+        "gridExtra",
+        "robustbase",
+        "rrcov",
+        "svd",
+        "stats",
+        "utils",
+        "shape",
+        "Rcpp (>= 0.12.10.14)"
+      ],
+      "LinkingTo": [
+        "Rcpp",
+        "RcppArmadillo (>= 0.7.600.1.0)"
+      ],
+      "Description": "Tools for detecting cellwise outliers and robust methods to analyze data which may contain them. Contains the implementation of the algorithms described in Rousseeuw and Van den Bossche (2018) <doi:10.1080/00401706.2017.1340909> (open access) Hubert et al. (2019) <doi:10.1080/00401706.2018.1562989> (open access), Raymaekers and Rousseeuw (2021) <doi:10.1080/00401706.2019.1677270> (open access), Raymaekers and Rousseeuw (2021) <doi:10.1007/s10994-021-05960-5> (open access), Raymaekers and Rousseeuw (2021) <doi:10.52933/jdssv.v1i3.18> (open access), Raymaekers and Rousseeuw (2022) <doi:10.1080/01621459.2023.2267777> (open access) Rousseeuw (2022) <doi:10.1016/j.ecosta.2023.01.007> (open access). Examples can be found in the vignettes: \"DDC_examples\", \"MacroPCA_examples\", \"wrap_examples\", \"transfo_examples\", \"DI_examples\", \"cellMCD_examples\" , \"Correspondence_analysis_examples\", and \"cellwise_weights_examples\".",
+      "License": "GPL (>= 2)",
+      "LazyData": "No",
+      "Author": "Jakob Raymaekers [aut, cre], Peter Rousseeuw [aut], Wannes Van den Bossche [ctb], Mia Hubert [ctb]",
+      "Maintainer": "Jakob Raymaekers <jakob.raymaekers@uantwerpen.be>",
+      "VignetteBuilder": "knitr",
+      "RoxygenNote": "7.1.2",
+      "NeedsCompilation": "yes",
+      "Repository": "binary",
+      "Encoding": "UTF-8"
+    },
     "cellranger": {
       "Package": "cellranger",
       "Version": "1.1.0",
@@ -3727,6 +3776,37 @@
       "Maintainer": "Jennifer Bryan <jenny@posit.co>",
       "Repository": "https://packagemanager.posit.co/cran/__linux__/noble/latest"
     },
+    "gridExtra": {
+      "Package": "gridExtra",
+      "Version": "2.3",
+      "Source": "Repository",
+      "Authors@R": "c(person(\"Baptiste\", \"Auguie\", email = \"baptiste.auguie@gmail.com\", role = c(\"aut\", \"cre\")), person(\"Anton\", \"Antonov\", email = \"tonytonov@gmail.com\", role = c(\"ctb\")))",
+      "License": "GPL (>= 2)",
+      "Title": "Miscellaneous Functions for \"Grid\" Graphics",
+      "Type": "Package",
+      "Description": "Provides a number of user-level functions to work with \"grid\" graphics, notably to arrange multiple grid-based plots on a page, and draw tables.",
+      "VignetteBuilder": "knitr",
+      "Imports": [
+        "gtable",
+        "grid",
+        "grDevices",
+        "graphics",
+        "utils"
+      ],
+      "Suggests": [
+        "ggplot2",
+        "egg",
+        "lattice",
+        "knitr",
+        "testthat"
+      ],
+      "RoxygenNote": "6.0.1",
+      "NeedsCompilation": "no",
+      "Author": "Baptiste Auguie [aut, cre], Anton Antonov [ctb]",
+      "Maintainer": "Baptiste Auguie <baptiste.auguie@gmail.com>",
+      "Repository": "https://packagemanager.posit.co/all/latest",
+      "Encoding": "UTF-8"
+    },
     "gtable": {
       "Package": "gtable",
       "Version": "0.3.6",
@@ -4959,6 +5039,39 @@
       "Repository": "https://packagemanager.posit.co/all/latest",
       "Author": "Richard A. Becker [aut] (Original S code), Allan R. Wilks [aut] (Original S code), Ray Brownrigg [trl, aut] (R version), Thomas P. Minka [aut] (Enhancements), Alex Deckmyn [aut, cre] (ORCID: <https://orcid.org/0009-0002-2010-8310>)",
       "Maintainer": "Alex Deckmyn <alex.deckmyn@meteo.be>",
+      "Encoding": "UTF-8"
+    },
+    "matrixStats": {
+      "Package": "matrixStats",
+      "Version": "1.5.0",
+      "Source": "Repository",
+      "Depends": [
+        "R (>= 3.4.0)"
+      ],
+      "Suggests": [
+        "utils",
+        "base64enc",
+        "ggplot2",
+        "knitr",
+        "markdown",
+        "microbenchmark",
+        "R.devices",
+        "R.rsp"
+      ],
+      "VignetteBuilder": "R.rsp",
+      "Title": "Functions that Apply to Rows and Columns of Matrices (and to Vectors)",
+      "Authors@R": "c( person(\"Henrik\", \"Bengtsson\", role=c(\"aut\", \"cre\", \"cph\"), email=\"henrikb@braju.com\"), person(\"Constantin\", \"Ahlmann-Eltze\", role = \"ctb\"), person(\"Hector\", \"Corrada Bravo\", role=\"ctb\"), person(\"Robert\", \"Gentleman\", role=\"ctb\"), person(\"Jan\", \"Gleixner\", role=\"ctb\"), person(\"Peter\", \"Hickey\", role=\"ctb\"), person(\"Ola\", \"Hossjer\", role=\"ctb\"), person(\"Harris\", \"Jaffee\", role=\"ctb\"), person(\"Dongcan\", \"Jiang\", role=\"ctb\"), person(\"Peter\", \"Langfelder\", role=\"ctb\"), person(\"Brian\", \"Montgomery\", role=\"ctb\"), person(\"Angelina\", \"Panagopoulou\", role=\"ctb\"), person(\"Hugh\", \"Parsonage\", role=\"ctb\"), person(\"Jakob Peder\", \"Pettersen\", role=\"ctb\"))",
+      "Author": "Henrik Bengtsson [aut, cre, cph], Constantin Ahlmann-Eltze [ctb], Hector Corrada Bravo [ctb], Robert Gentleman [ctb], Jan Gleixner [ctb], Peter Hickey [ctb], Ola Hossjer [ctb], Harris Jaffee [ctb], Dongcan Jiang [ctb], Peter Langfelder [ctb], Brian Montgomery [ctb], Angelina Panagopoulou [ctb], Hugh Parsonage [ctb], Jakob Peder Pettersen [ctb]",
+      "Maintainer": "Henrik Bengtsson <henrikb@braju.com>",
+      "Description": "High-performing functions operating on rows and columns of matrices, e.g. col / rowMedians(), col / rowRanks(), and col / rowSds().  Functions optimized per data type and for subsetted calculations such that both memory usage and processing time is minimized.  There are also optimized vector-based methods, e.g. binMeans(), madDiff() and weightedMedian().",
+      "License": "Artistic-2.0",
+      "LazyLoad": "TRUE",
+      "NeedsCompilation": "yes",
+      "ByteCompile": "TRUE",
+      "URL": "https://github.com/HenrikBengtsson/matrixStats",
+      "BugReports": "https://github.com/HenrikBengtsson/matrixStats/issues",
+      "RoxygenNote": "7.3.2",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Encoding": "UTF-8"
     },
     "mclust": {
@@ -7081,6 +7194,27 @@
       "Repository": "https://packagemanager.posit.co/cran/__linux__/noble/latest",
       "Encoding": "UTF-8"
     },
+    "shape": {
+      "Package": "shape",
+      "Version": "1.4.6.1",
+      "Source": "Repository",
+      "Title": "Functions for Plotting Graphical Shapes, Colors",
+      "Author": "Karline Soetaert <karline.soetaert@nioz.nl>",
+      "Maintainer": "Karline Soetaert <karline.soetaert@nioz.nl>",
+      "Depends": [
+        "R (>= 2.01)"
+      ],
+      "Imports": [
+        "stats",
+        "graphics",
+        "grDevices"
+      ],
+      "Description": "Functions for plotting graphical shapes such as ellipses, circles, cylinders, arrows, ...",
+      "License": "GPL (>= 3)",
+      "NeedsCompilation": "no",
+      "Repository": "binary",
+      "Encoding": "UTF-8"
+    },
     "slider": {
       "Package": "slider",
       "Version": "0.3.3",
@@ -7450,6 +7584,29 @@
       "Author": "Terry M Therneau [aut, cre], Thomas Lumley [ctb, trl] (original S->R port and R maintainer until 2009), Atkinson Elizabeth [ctb], Crowson Cynthia [ctb]",
       "Maintainer": "Terry M Therneau <therneau.terry@mayo.edu>",
       "Repository": "CRAN"
+    },
+    "svd": {
+      "Package": "svd",
+      "Version": "0.5.8",
+      "Source": "Repository",
+      "Type": "Package",
+      "Imports": [
+        "methods"
+      ],
+      "Suggests": [
+        "testthat (>= 0.7)"
+      ],
+      "Title": "Interfaces to Various State-of-Art SVD and Eigensolvers",
+      "Author": "Anton Korobeynikov [aut, cre], Rasmus Munk Larsen [ctb, cph], Lawrence Berkeley National Laboratory [ctb, cph]",
+      "Maintainer": "Anton Korobeynikov <anton@korobeynikov.info>",
+      "Description": "R bindings to SVD and eigensolvers (PROPACK, nuTRLan).",
+      "License": "BSD_3_clause + file LICENSE",
+      "Copyright": "see file COPYRIGHTS",
+      "URL": "https://github.com/asl/svd",
+      "Authors@R": "c(person(given = \"Anton\", family = \"Korobeynikov\", role = c(\"aut\", \"cre\"), email = \"anton@korobeynikov.info\"), person(given = c(\"Rasmus\", \"Munk\"), family = \"Larsen\", role = c(\"ctb\", \"cph\")), person(given = c(\"Lawrence\", \"Berkeley\", \"National\"), family = \"Laboratory\", role = c(\"ctb\", \"cph\")))",
+      "NeedsCompilation": "yes",
+      "Repository": "binary",
+      "Encoding": "UTF-8"
     },
     "svglite": {
       "Package": "svglite",
