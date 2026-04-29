@@ -276,7 +276,7 @@ Rather than treating each row as a point, the DDC algorithm treats each cell in 
 
 Entire rows that contain an unusual accumulation of large cell residuals can additionally be flagged as rowwise outliers.
 
-This method is implemented in the `cellWise::DDC()` function. Here we apply it to the French male mortality data, with the data matrix containing the mortality rates for each year (rows) and age (columns). The standardised residuals from the DDC algorithm are plotted as a heatmap in @fig-ddc-mx, with red indicating large positive residuals, blue indicating large negative residuals, and grey indicating small residuals.
+This method is implemented in the `cellWise::DDC()` function. Here we apply it to the French male mortality data, with the data matrix containing the mortality rates for each year (rows) and age (columns).
 
 ```{r}
 #| label: ddc-mx
@@ -299,9 +299,11 @@ mx_ddc <- cellWise::DDC(mx_wide |> select(-Year))$stdResid |>
   )
 ```
 
+The standardised residuals from the DDC algorithm are plotted as a heatmap in @fig-ddc-mx, with red indicating large positive residuals (higher than expected mortality), blue indicating large negative residuals (lower than expected mortality), and grey indicating small residuals. The matrix has been rotated anticlockwise in the plot, so that the years are on the horizontal axis and the ages are on the vertical axis, to be consistent with the custom of plotting time on the horizontal axis.
+
 ```{r}
 #| label: fig-ddc-mx
-#| fig-cap: "DDC algorithm applied to the French male mortality data. The standardised residuals from the DDC algorithm are plotted as a heatmap, with red indicating large positive residuals, blue indicating large negative residuals."
+#| fig-cap: "DDC algorithm applied to the French male mortality data. The standardised residuals from the DDC algorithm are plotted as a heatmap, with red indicating large positive residuals (higher than expected mortality), and blue indicating large negative residuals (lower than expected mortality)."
 #| message: false
 ggplot(mx_ddc) +
   geom_tile(aes(x = Year, y = Age, fill = anomaly)) +
@@ -319,7 +321,6 @@ The DDC algorithm identifies many anomalous cells in the data, particularly duri
 * 1940--1944: World War II
 
 Mortality rates are often also high in the year after a war, as soldiers return home with injuries and illnesses. The Spanish flu pandemic of 1918--1919 is evident in the plot, with higher than usual mortality rates for a wider age range than the wars. There was also unusually high mortality for males in their 20s in 1840--1843, which does not correspond to any known war [@french_mortality], but seems very similar to the pattern due to the Crimean War thirteen years later. The same pattern is not seen for females. Unusually high childhood mortality at around 10 years of age is seen until about 1870, probably driven by infectious diseases such as cholera, tuberculosis and measles. Finally, the large blue area at the upper right of the plot indicates unusually low mortality rates for older ages in recent years.
-
 
 ## Stray and HDoutliers algorithms
 
