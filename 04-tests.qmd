@@ -36,7 +36,7 @@ The other three simulated examples will use 1000 observations from each of the f
 5. a $\text{t}_3$ distribution, which has heavy tails (but finite variance);
 6. a $\chi^2_4$ distribution, which is positively skewed.
 
-The density functions for these three distributions are shown in @fig-testdist.
+The density functions for these three distributions can be seen in @fig-testdist.
 
 ```{r}
 #| label: fig-testdist
@@ -117,7 +117,7 @@ Some books recommend that observations be identified as anomalies when the absol
 
 ### Examples
 
-Let's see what happens when we apply this test to the six examples.
+We now examine what happens when we apply this test to the six examples.
 
 ```{r}
 #| label: zscore1
@@ -754,32 +754,34 @@ For these examples, the test has failed to identify any of the anomalies in `old
 
 ## Gap-based methods {#sec-gap-tests}
 
-Dixon's test only examines the gap adjacent to the minimum or maximum observation. @Tukey1977-xd proposed looking for large gaps anywhere in the sorted data, while @Wainer1978 proposed a method for determining whether any such spacing is unexpectedly large for its position in the distribution. The method is best thought of as detecting unusually large **separations** or **holes** in a one-dimensional data set. A large tail gap may suggest an outlier; a large interior gap usually suggests a separation between two groups rather than a single anomalous observation.
+Dixon's test only examines the gap adjacent to the minimum or maximum observation. @Tukey1977-xd proposed looking for large gaps anywhere in the sorted data, while @Wainer1978 formalised this into a practical method for determining whether any such spacing is unexpectedly large for its position in the distribution. The method is best thought of as detecting unusually large **separations** or **holes** in a one-dimensional data set. A large tail gap may suggest an outlier; a large interior gap usually suggests a separation between two groups rather than a single anomalous observation.
 
 ### Tukey--Wainer--Schacht gap scores {-}
 
-Let
+Consider the spacings defined (@sec-gaps) by
 $$
-  y_{(1)} \le y_{(2)} \le \cdots \le y_{(n)}
+  d_i = y_{(i+1)} - y_{(i)}, \qquad i = 1, \dots, n-1,
 $$
-be the sorted observations, and define the adjacent spacings
-$$
-  d_i = y_{(i+1)} - y_{(i)}, \qquad i = 1, \ldots, n-1.
-$$
+where $y_{(1)} \le y_{(2)} \le \cdots \le y_{(n)}$ are the sorted observations.
 
-Raw spacings are not directly comparable across the sorted sample. Even for data from a single unimodal distribution, spacings tend to be small near the centre of the distribution, where observations are dense, and larger in the tails, where observations are sparse. Tukey's correction gives more weight to gaps in the centre and less weight to gaps in the tails:
+Raw spacings are not directly comparable across the sorted sample. Even for data from a single unimodal distribution, spacings tend to be small near the centre of the distribution, where observations are dense, and larger in the tails, where observations are sparse.
+
+Tukey’s *gapping* scheme addresses this by weighting each gap according to its position in the ordered data. Specifically, the gap between $y{(i)}$ and $y{(i+1)}$ is assigned weight
 $$
-  a_i = i(n-i), \qquad i = 1, \ldots, n-1.
-$$ {#eq-ws-weight}
-The factor $a_i$ is the product of the number of observations below the gap and the number above it. It is largest near the middle of the ordered sample and smallest at the two extremes. The weighted gap is then
+  a_i = i(n-i), \qquad i = 1, \ldots, n-1,
 $$
-  h_i = \sqrt{a_i d_i}.
+{#eq-ws-weight}
+which is largest near the middle of the sample and smallest at the extremes. This emphasises unusually large gaps in the centre, where observations are normally close together, and downweights gaps in the tails, where larger spacings are expected.
+
+@Wainer1978 developed this idea into a practical diagnostic by transforming and standardising the weighted gaps. They proposed using the square root of the weighted gaps,
 $$
-The weighted raw gaps are strongly right-skewed, and taking square roots makes their distribution more nearly symmetric. Finally, compare each $h_i$ with a robust estimate of the typical weighted gap size, the 25% trimmed mean of the $h_i$ values:
+  h_i = \sqrt{a_i d_i},
+$$
+which makes their distribution more nearly symmetric, and then comparing each $h_i$ with a robust estimate of typical gap size, namely the 25% trimmed mean of the $h_i$ values:
 $$
   z^*_i = \frac{h_i}{\bar h_{T25}}.
 $$ {#eq-ws-score}
-Large values of $z^*_i$ identify gaps that are large relative to other gaps after allowing for their position in the sorted data. Tukey suggested $z^*_i > 2.25$ as an exploratory cut-off; @Wainer1978 found by simulation that, under a Gaussian distribution, this corresponds to a per-gap false positive rate of about 3%. Because there are $n-1$ gaps, this is not a 5% test for the whole data set. If many gaps are inspected, the chance of at least one crossing the threshold can be much larger than the per-gap rate.
+Large values of $z^*_i$ identify gaps that are large relative to other gaps after allowing for their position in the sorted data. Tukey suggested $z^*_i > 2.25$ as an exploratory cut-off; @Wainer1978 showed by simulation that, under a Gaussian distribution, this corresponds to a per-gap false positive rate of about 3%. Because there are $n-1$ gaps, this is not a 5% test for the whole data set. If many gaps are inspected, the chance of at least one crossing the threshold can be much larger than the per-gap rate.
 
 The code below constructs a data frame of **gaps** between batter averages.
 
@@ -801,7 +803,7 @@ batting_gaps <- batters |>
   mutate(
     weighted_gap = sqrt(weight * spacing),
     ws = weighted_gap / mean(weighted_gap, trim = 0.25, na.rm = TRUE)
-  )  |>
+  ) |>
   filter(!is.na(ws))
 
 batting_gaps |>
@@ -811,12 +813,12 @@ batting_gaps |>
   labs(x = "Career batting average", y = "Tukey--Wainer--Schacht gap score")
 ```
 
-Restricting attention to scores above the exploratory threshold of 2.25, the five largest gaps are shown below.
+Restricting attention to scores above the exploratory threshold of 2.25, we show the five largest gaps below.
 
 ```{r}
 #| code-fold: false
 batting_gaps |>
-  filter(ws > 2.5) |>
+  filter(ws > 2.25) |>
   slice_max(spacing, n = 5)
 ```
 
@@ -860,7 +862,7 @@ batting_gaps |>
     t = (nrow(batters) + 1) * transformed_gap - log(nrow(batting_gaps)),
     p_value = 1 - exp(-exp(-t))
   ) |>
-  slice_min(p_value, n = 1, with_ties = FALSE)
+  filter(p_value < 0.05)
 ```
 
 The $p$-value is very small, confirming that the gap below Bradman's average is far too large to be consistent with all batters coming from a single fitted Normal distribution.
