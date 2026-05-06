@@ -32,7 +32,7 @@ n01b |>
 
 The other three simulated examples will use 1000 observations from each of the following distributions:
 
-4. a N(0,1) distribution (we will use the first variable in the `n01` data set);
+4. an N(0,1) distribution (we will use the first variable in the `n01` data set);
 5. a $\text{t}_3$ distribution, which has heavy tails (but finite variance);
 6. a $\chi^2_4$ distribution, which is positively skewed.
 
@@ -67,7 +67,7 @@ t3 <- tibble(y = rt(1000, df = 3))
 chisq4 <- tibble(y = rchisq(1000, df = 4))
 ```
 
-All of the methods considered in this chapter assume the underlying data follow a Normal distribution. In our examples, only #4 is from a Normal distribution, so the methods should work well in that case, but perhaps not in the other cases.
+All methods considered in this chapter assume the underlying data follow a Normal distribution. In our examples, only #4 is from a Normal distribution, so the methods should work well in that case, but perhaps not in the other cases.
 
 Good anomaly detection methods should pick up one anomaly in the cricket batting example, at least three anomalies in the Old Faithful example, and the two anomalies in the `n01b` example. They should identify no anomalies in the remaining examples.
 

@@ -803,7 +803,7 @@ The three types of limits correspond to different forms of the tail behaviour of
 
 If we take the negative of the random variables $Y_1,\dots,Y_n$, it becomes clear that a similar result holds for the minimum.
 
-These three families of distributions can be further combined into a single family by using the following cdf known as the Generalized Extreme Value (GEV) distribution,
+These three families of distributions can be further combined into a single family by using the following cdf known as the Generalised Extreme Value (GEV) distribution,
 $$
   G(z) = \exp\left\{ -\left[ 1 + \xi\Big(\frac{z - \mu_G}{\sigma_G} \Big)\right]^{-1/\xi} \right\},
 $$ {#eq-EVT4}
