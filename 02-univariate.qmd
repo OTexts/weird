@@ -214,6 +214,15 @@ Similarly, a $\Gamma(\alpha,\beta)$ distribution is approximately Normal for lar
 
 @Wasserman2004 provides some further details and examples of the CLT.
 
+## Order statistics and spacings {#sec-gaps}
+
+The **order statistics** of a sample $y_1,\dots,y_n$ are the values rearranged in ascending order, denoted $y_{(1)} \le y_{(2)} \le \cdots \le y_{(n)}$. The $i$th **spacing** is the gap between consecutive order statistics,
+$$
+  d_i = y_{(i+1)} - y_{(i)}, \quad i = 1, \ldots, n-1.
+$$ {#eq-spacing}
+
+Raw spacings are difficult to compare across the distribution: where the density is high they tend to be small, and where the density is low they tend to be large. To put them on a common scale, we can apply the **probability integral transform**. If the observations are iid from a continuous distribution $F$, then $u_i = F(y_{(i)})$ are distributed as uniform order statistics on $[0,1]$, and each transformed spacing $F(y_{(i+1)}) - F(y_{(i)})$ has expected value $1/(n+1)$ regardless of position in the distribution. A transformed spacing substantially larger than $1/(n+1)$ therefore signals an unusually large gap at that location, which may indicate an anomalous observation. Methods based on this idea are discussed in @sec-gap-tests.
+
 ## Quantiles {#sec-quantiles}
 
 A quantile of a continuous univariate distribution is a point that divides the sample space into two regions, based on the probability of observations falling below or above the quantile value. If $Q(p)$ denotes the quantile corresponding to probability $p$, then $\Pr(Y \le Q(p)) = p$ and $\Pr(Y > Q(p)) = 1-p$.
@@ -291,7 +300,7 @@ The R function `quantile()` includes nine variations when applied to numerical i
 
 Let's compare two of the possible variations available in `quantile()`: `type = 7` which is the default method, and `type = 8` which was the recommendation of @HF96 due to it having smaller bias.
 
-Let $y_{(k)}$ denote the $k$th smallest observation, $k=1,\dots,n$. These ordered values are known as "**order statistics**". Then the sample quantile $\hat{Q}(p)$ is given by linear interpolation between consecutive order statistics. That is, if $k^+= p(n+1-2a) +a$ for some constant $a$, and $k = \lfloor k^+ \rfloor$ is the integer part of $k^+$, then
+The sample quantile $\hat{Q}(p)$ is given by linear interpolation between consecutive order statistics. That is, if $k^+= p(n+1-2a) +a$ for some constant $a$, and $k = \lfloor k^+ \rfloor$ is the integer part of $k^+$, then
 $$
   \hat{Q}(p) = (1-\gamma) y_{(k)} + \gamma y_{(k+1)},
 $$
@@ -409,14 +418,6 @@ $$
 $$ {#eq-sample-quantile-distribution}
 where $f(Q(p)) > 0$ and $f(y)$ is the density of the underlying distribution [@van2000asymptotic, p308]. This is an asymptotic result, which assumes $np$ is large, and holds for all types of sample quantiles.
 
-## Order statistics and spacings {#sec-gaps}
-
-The **order statistics** of a sample $y_1,\dots,y_n$ are the values rearranged in ascending order, denoted $y_{(1)} \le y_{(2)} \le \cdots \le y_{(n)}$. The $i$th **spacing** is the gap between consecutive order statistics,
-$$
-  d_i = y_{(i+1)} - y_{(i)}, \quad i = 1, \ldots, n-1.
-$$ {#eq-spacing}
-
-Raw spacings are difficult to compare across the distribution: where the density is high they tend to be small, and where the density is low they tend to be large. To put them on a common scale, we can apply the **probability integral transform**. If the observations are iid from a continuous distribution $F$, then $u_i = F(y_{(i)})$ are distributed as uniform order statistics on $[0,1]$, and each transformed spacing $F(y_{(i+1)}) - F(y_{(i)})$ has expected value $1/(n+1)$ regardless of position in the distribution. A transformed spacing substantially larger than $1/(n+1)$ therefore signals an unusually large gap at that location, which may indicate an anomalous observation. Methods based on this idea are discussed in @sec-gap-tests.
 
 ## Highest density regions {#sec-hdr}
 
