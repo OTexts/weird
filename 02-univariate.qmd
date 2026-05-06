@@ -403,6 +403,15 @@ $$
 $$ {#eq-sample-quantile-distribution}
 where $f(Q(p)) > 0$ and $f(y)$ is the density of the underlying distribution [@van2000asymptotic, p308]. This is an asymptotic result, which assumes $np$ is large, and holds for all types of sample quantiles.
 
+## Order statistics and spacings {#sec-gaps}
+
+The **order statistics** of a sample $y_1,\dots,y_n$ are the values rearranged in ascending order, denoted $y_{(1)} \le y_{(2)} \le \cdots \le y_{(n)}$. The $i$th **spacing** is the gap between consecutive order statistics,
+$$
+  d_i = y_{(i+1)} - y_{(i)}, \quad i = 1, \ldots, n-1.
+$$ {#eq-spacing}
+
+Raw spacings are difficult to compare across the distribution: where the density is high they tend to be small, and where the density is low they tend to be large. To put them on a common scale we apply the **probability integral transform**. If the observations are iid from a continuous distribution $F$, then $u_i = F(y_{(i)})$ are distributed as uniform order statistics on $[0,1]$, and each transformed spacing $F(y_{(i+1)}) - F(y_{(i)})$ has expected value $1/(n+1)$ regardless of position in the distribution. A transformed spacing substantially larger than $1/(n+1)$ therefore signals an unusually large gap at that location, which may indicate an anomalous observation. Methods based on this idea are discussed in @sec-tests.
+
 ## Highest density regions {#sec-hdr}
 
 A **highest density region** is defined as the region of the sample space where the density is higher than a given threshold [@HDR96]. It is commonly specified using the probability mass that the HDR contains. For example, a 95% HDR is the region of the sample space that contains 95% of the probability mass, and where every point inside the region has higher density than any point outside the region.
