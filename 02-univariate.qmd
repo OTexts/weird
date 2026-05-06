@@ -190,7 +190,7 @@ There is also a discrete version of the probability integral transform, but we w
 
 ## Central limit theorem {#sec-clt}
 
-The central limit theorem (CLT) is one of the most important results in statistics. There are several variations of the theorem; the simplest version states that the sum of many iid random variables, with finite mean and variance, is approximately Normally distributed.
+The central limit theorem (CLT) is one of the most important results in statistics. There are several variations of the theorem; the simplest version states that the sum of many independent and identically distributed (iid) random variables, with finite mean and variance, is approximately Normally distributed.
 
 ::: {.callout-tip}
 ## Central Limit Theorem {-}
