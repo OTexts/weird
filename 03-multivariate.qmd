@@ -442,7 +442,7 @@ Points that are connected in some way form a "cluster": a set of nodes where you
 
 Imagine slowly increasing $\delta$ from 0 upwards. At $\delta=0$, there are no edges, so every observation is its own cluster. As $\delta$ increases, more edges appear, and the clusters merge together. When an edge connects two clusters that were previously separate, those two clusters merge into one larger cluster. Eventually, all clusters merge into a single cluster.
 
-Taking the small example of @fig-graph, we explore what happens as $\delta$ increases from 0.5 to 2.0. With a small value of $\delta$, all points are disconnected, and the graph consists of 8 vertices with no edges. As $\delta$ increases, more points are connected to each other, and eventually, the complex consists of a single cluster.
+Taking the small example of @fig-graph, we explore what happens as $\delta$ increases from 0.5 to 2.0. With a small value of $\delta$, all points are disconnected, and the graph consists of 8 vertices with no edges. As $\delta$ increases, more points are connected to each other, and eventually, the graph consists of a single cluster.
 
 ```{r}
 #| label: fig-clusters
@@ -517,18 +517,71 @@ data.frame(
   distance = hc$height
 ) |>
   ggplot(aes(x = row, y = distance)) +
-  geom_bar(stat = "identity", width=0.1, fill = "#C14b14") +
+  geom_bar(stat = "identity", width = 0.1, fill = "#C14b14") +
   labs(y = "Merge distance", x = "") +
   coord_flip() +
   scale_x_continuous(breaks = NULL) +
   theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 ```
 
-### Related ideas
+#### Related ideas
 
 The graph structure described above is related to the minimum spanning tree (MST) of the data, which is a tree that connects all observations together with the minimum total edge length. The merge distances are exactly the MST edge weights in the order they are added to the tree.
 
 The graph structure is also related to topological data analysis (TDA), which is a method of summarising the shape of data. In TDA, a cluster is a "connected component" --- a 0-dimensional topological feature studied in persistent homology. When two clusters merge, one is described as "dying" and the other as "persisting". The merge distance is called the "death diameter", and the bar plot of merge distances is known as a "barcode". The longest bars in the barcode correspond to the most persistent clusters, which contain potential anomalies. For a general introduction to TDA, see @carlsson2021topological.
+
+### k-means clustering
+
+The most popular clustering method is probably k-means clustering [@Hartigan1975], which is a method of partitioning the data into $k$ clusters, where $k$ is a user-specified parameter.
+
+The algorithm begins by randomly selecting $k$ initial centroids, which are points in the space that represent the centres of the clusters. Then, each observation is assigned to the cluster whose centroid is closest to it, based on some distance measure (usually Euclidean distance). After all observations have been assigned to clusters, the centroids are updated to be the mean of the observations in each cluster. This process is repeated until convergence, which occurs when the cluster assignments no longer change.
+
+The k-means algorithm is relatively fast, but it can be sensitive to the choice of initial centroids, and it can get stuck in local minima. It also assumes that the clusters are spherical and of similar size, which may not always be the case. A further drawback, especially in the context of anomaly detection, is that anomalies can significantly affect the cluster centroids.
+
+### Leader algorithm
+
+Rather than specify the number of clusters in advance, we can specify a maximum radius for each cluster, and then find clusters that satisfy this constraint. This is known as the leader algorithm [@Hartigan1975], and is a fast, incremental clustering method that can be used for large data sets. The only input required is $\delta$, the maximum radius of each cluster. The algorithm can be summarised as follows:
+
+1. Select an initial data point as the first "leader".
+2. For each subsequent data point:
+   a. If the point is within $\delta$ of any existing leader, assign it to the cluster of the nearest leader.
+   b. If the point is not within $\delta$ of any existing leader, it becomes a new leader for a new cluster.
+
+Thus, the leaders become the centroids of their respective clusters, and the clusters are defined as the set of points that are within $\delta$ of their leader. The order of the data will obviously affect the resulting clusters, but the algorithm is very fast, and can be used as a first step in more complex clustering algorithms. Further, because the centroids are data points, rather than means, they are much less sensitive to anomalies than k-means clustering.
+
+To compare these two approaches, we will apply them to the Old Faithful data set in @fig-clustering-off.
+
+```{r}
+#| label: fig-clustering-off
+#| fig-cap: "Clustering of the Old Faithful data set using k-means and the leader algorithm. The k-means clusters are shown in the left plot, while the leader clusters are shown in the right plot. The k-means clusters are more affected by anomalies than the leader clusters."
+km_clusters <- oldfaithful |>
+  select(duration, waiting) |>
+  mvscale(cov = NULL) |>
+  kmeans(centers = 2)
+leader_clusters <- oldfaithful |>
+  select(duration, waiting) |>
+  mvscale() |>
+  leaderCluster::leaderCluster(radius = 3.3)
+oldfaithful |>
+  mutate(
+    km_cluster = factor(km_clusters$cluster),
+    leader_cluster = factor(leader_clusters$cluster_id)
+  ) |>
+  tidyr::pivot_longer(
+    cols = c(km_cluster, leader_cluster),
+    names_to = "method",
+    values_to = "cluster"
+  ) |>
+  mutate(method = recode(method, km_cluster = "K-means clustering", leader_cluster = "Leader clustering")) |>
+  ggplot(aes(x = duration, y = waiting, color = cluster)) +
+  geom_point() +
+  facet_wrap(~method) +
+  labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
+```
+
+Here two clusters have been specified for the k-means algorithm, and (after some experimentation) a radius of 3.3 has been specified for the leader algorithm.
+
+Apart from a reversal of the cluster labels, most points are assigned to the same two large clusters, with some variation in the points between the two clouds of points. However, the outlying points have been allocated to other clusters in the leader algorithm. If we increase the number of clusters in the k-means algorithm, we get the upper right cluster splitting into multiple clusters, rather than the outlying points being allocated to separate clusters. This is a result of the fact that the k-means centroids are affected by the outlying points, while the leader centroids are not.
 
 ## Multivariate kernel density estimation
 
