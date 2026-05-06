@@ -149,7 +149,7 @@ Note that an observation $\bm{y}_j$ may be within $N_{i,k}$ while $\bm{y}_i$ doe
 
 ```{r}
 #| label: fig-njk
-#| fig.cap: "A synthetic data set of 11 observations. Nearest neighbourhoods containing five observations each are shown for $\\bm{y}_1$ (in orange) and $\\bm{y}_2$ (in blue). The neighbourhood of $\\bm{y}_1$ contains $\\bm{y}_2$ in its nearest five observations, but $\\bm{y}_2$ does not include $\\bm{y}_1$ in its nearest five observations."
+#| fig-cap: "A synthetic data set of 11 observations. Nearest neighbourhoods containing five observations each are shown for $\\bm{y}_1$ (in orange) and $\\bm{y}_2$ (in blue). The neighbourhood of $\\bm{y}_1$ contains $\\bm{y}_2$ in its nearest five observations, but $\\bm{y}_2$ does not include $\\bm{y}_1$ in its nearest five observations."
 #| warning: false
 #| echo: false
 set.seed(2)
@@ -323,6 +323,13 @@ The DDC algorithm identifies many anomalous cells in the data, particularly duri
 Mortality rates are often also high in the year after a war, as soldiers return home with injuries and illnesses. The Spanish flu pandemic of 1918--1919 is evident in the plot, with higher than usual mortality rates for a wider age range than the wars. There was also unusually high mortality for males in their 20s in 1840--1843, which does not correspond to any known war [@french_mortality], but seems very similar to the pattern due to the Crimean War thirteen years later. The same pattern is not seen for females. Unusually high childhood mortality at around 10 years of age is seen until about 1870, probably driven by infectious diseases such as cholera, tuberculosis and measles. Finally, the large blue area at the upper right of the plot indicates unusually low mortality rates for older ages in recent years.
 
 ## Stray and HDoutliers algorithms
+
+The HDoutliers algorithm of @Wilkinson2017-rb was designed to address several problems in anomaly detection:
+
+1. Data containing a mixture of categorical and continuous variables.
+2. Data with high dimensionality (a large number of variables).
+3. Data with a large number of observations.
+4. Data where anomalies occur in small clusters, rather than as isolated points.
 
 ```{r}
 #| label: fig-stray

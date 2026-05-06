@@ -20,8 +20,8 @@ We will test the methods using six examples: two involving real data, and four i
 
 ```{r}
 #| label: fig-n01b
-#| fig.asp: 0.2
-#| fig.cap: "Eighteen observations from a N(0,1) distribution along with two anomalies."
+#| fig-asp: 0.2
+#| fig-cap: "Eighteen observations from a N(0,1) distribution along with two anomalies."
 n01b <- tibble(y = c(n01$v2[1:18], 4, 4.5))
 n01b |>
   ggplot(aes(x = y, y = 1)) +
@@ -40,7 +40,7 @@ The density functions for these three distributions can be seen in @fig-testdist
 
 ```{r}
 #| label: fig-testdist
-#| fig.cap: "Three distributions we will use to test various anomaly detection methods."
+#| fig-cap: "Three distributions we will use to test various anomaly detection methods."
 #| message: false
 c(t3 = dist_student_t(3), X4 = dist_chisq(4), N01 = dist_normal()) |>
   gg_density() +
@@ -329,7 +329,7 @@ Benjamin Peirce was a Harvard mathematician in the mid 1800s who worked with ast
 #| label: fig-zscorecriteria
 #| warning: false
 #| echo: false
-#| fig.cap: "Criteria for anomalies based on z-scores."
+#| fig-cap: "Criteria for anomalies based on z-scores."
 #| dependson: pspurious
 threshold <- numeric(length(n))
 for (i in seq_along(n)) {
@@ -644,7 +644,7 @@ Simulation can be used to compute the critical values for this test, assuming th
 
 ```{r}
 #| label: fig-spuriousdixon
-#| fig.cap: "Probability of a spurious anomaly using Dixon's test."
+#| fig-cap: "Probability of a spurious anomaly using Dixon's test."
 #| dependson: "pspurious"
 #| echo: false
 # Function to compute probability of spurious anomaly for sample size n,

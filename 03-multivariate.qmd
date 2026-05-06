@@ -388,7 +388,7 @@ Let's consider the `oldfaithful` data again, where durations are much longer tha
 ```{r}
 #| label: fig-scaling
 #| warning: false
-#| fig.cap: "Old Faithful duration and waiting time data, before and after scaling."
+#| fig-cap: "Old Faithful duration and waiting time data, before and after scaling."
 p1 <- oldfaithful |>
   ggplot(aes(x = duration, y = waiting)) +
   geom_point(alpha = 0.2) +
@@ -420,7 +420,7 @@ For example, consider the eight points labelled A to H shown in @fig-graph, and 
 
 ```{r}
 #| label: fig-graph
-#| fig.cap: "An example of a graph based on eight observations (the nodes) which are joined by edges if the distance between them is at most $\\delta=1.5$. The blue disks have radius $\\delta/2$, so overlapping disks indicate that their central points are within $\\delta$ of each other. The resulting graph consists of three clusters."
+#| fig-cap: "An example of a graph based on eight observations (the nodes) which are joined by edges if the distance between them is at most $\\delta=1.5$. The blue disks have radius $\\delta/2$, so overlapping disks indicate that their central points are within $\\delta$ of each other. The resulting graph consists of three clusters."
 #| message: false
 #| warning: false
 #| echo: false
@@ -446,7 +446,7 @@ Taking the small example of @fig-graph, we explore what happens as $\delta$ incr
 
 ```{r}
 #| label: fig-clusters
-#| fig.cap: "Clusters resulting from different $\\delta$ values."
+#| fig-cap: "Clusters resulting from different $\\delta$ values."
 #| echo: false
 #| warning: false
 #| fig-width: 8
@@ -655,7 +655,7 @@ Now we will apply the method to the full data set, using the `dist_kde()` functi
 ```{r}
 #| label: fig-ofbivariate2
 #| code-fold: false
-#| fig.cap: "Bivariate kernel density estimate with default bandwidth matrix."
+#| fig-cap: "Bivariate kernel density estimate with default bandwidth matrix."
 oldfaithful |>
   select(duration, waiting) |>
   dist_kde() |>
@@ -690,7 +690,7 @@ where $d_\gamma$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\
 ```{r}
 #| label: fig-ofbivariate3
 #| code-fold: false
-#| fig.cap: "Bivariate kernel density estimate with a lookout bandwidth."
+#| fig-cap: "Bivariate kernel density estimate with a lookout bandwidth."
 oldfaithful |>
   select(duration, waiting) |>
   dist_kde(method = "lookout") |>

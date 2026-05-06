@@ -571,7 +571,7 @@ Let's suppose $K_h$ is a Gaussian kernel and let $h = `r round(h, 1)`$ (I will e
 
 ```{r}
 #| label: fig-kde1
-#| fig.asp: 0.2
+#| fig-asp: 0.2
 #| depends: of2021
 #| echo: false
 #| fig-cap: Kernel functions centred over the observations.
@@ -603,7 +603,7 @@ These functions are then added together, as in @eq-kde, to give the density esti
 
 ```{r}
 #| label: fig-kde2
-#| fig.asp: 0.5
+#| fig-asp: 0.5
 #| dependson: kde1
 #| echo: false
 #| fig-cap: Density estimate formed by summing the kernel functions centred on the observations.
@@ -629,7 +629,7 @@ The choice of $h$ is more difficult and will change the shape of the density est
 
 ```{r}
 #| label: fig-kde3
-#| fig.asp: 0.5
+#| fig-asp: 0.5
 #| dependson: of2021
 #| echo: false
 #| fig-cap: Kernel density estimates based on different bandwidth values $h$.
@@ -663,9 +663,9 @@ This example using only 10 observations was purely to illustrate the method. Let
 
 ```{r}
 #| label: fig-oldfaithful4
-#| fig.asp: 0.45
+#| fig-asp: 0.45
 #| code-fold: false
-#| fig.cap: "Kernel density estimate of Old Faithful eruption durations between 2017 and 2023."
+#| fig-cap: "Kernel density estimate of Old Faithful eruption durations between 2017 and 2023."
 of_density <- dist_kde(oldfaithful$duration)
 of_density |>
   gg_density() +
@@ -822,7 +822,7 @@ According to the FTG theorem, the distribution of the maximum can be approximate
 
 ```{r}
 #| label: "fig-evdexample"
-#| fig.cap: "Distribution of the maximum of 1000 N(0,1) draws. Here we have simulated 2000 such maximums and shown the estimated GEV distribution (in orange), along with the true distribution (in blue). The approximation is so good, that it is hard to distinguish the two distributions."
+#| fig-cap: "Distribution of the maximum of 1000 N(0,1) draws. Here we have simulated 2000 such maximums and shown the estimated GEV distribution (in orange), along with the true distribution (in blue). The approximation is so good, that it is hard to distinguish the two distributions."
 n <- 1000
 maximums <- replicate(2000, max(rnorm(n)))
 # Fit GEV distribution
@@ -858,7 +858,7 @@ Continuing the previous example, we now look at the probability distribution of 
 ```{r}
 #| label: fig-pot
 #| dependson: evdexample
-#| fig.cap: "Conditional distribution of exceedances above 3 from N(0,1) draws. Here we have simulated 100,000 values and only kept those above 3. The density implied by the GEV distribution is shown in blue, and an estimated GPD distribution is shown in orange."
+#| fig-cap: "Conditional distribution of exceedances above 3 from N(0,1) draws. Here we have simulated 100,000 values and only kept those above 3. The density implied by the GEV distribution is shown in blue, and an estimated GPD distribution is shown in orange."
 # Generate random normal data above 3 and fit GPD distribution
 df <- tibble(y = rnorm(1e5)) |> filter(y >= 3)
 gpd_fit <- evd::fpot(df$y, 3)$estimate

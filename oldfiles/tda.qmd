@@ -3,7 +3,7 @@ title: TDA for lookout
 author: Rob J Hyndman
 html-math-method: katex
 format:
-  pdf: 
+  pdf:
     include-in-header: preamble.tex
     keep-tex: true
   html:
@@ -35,7 +35,7 @@ The *Vietoris-Rips* complex is one type of $k$-simplicial complex. Given a set o
 
 ```{r}
 #| label: fig-tetrahedron
-#| fig.cap: "Two examples of Vietoris-Rips complexes. Left: points $p$, $q$, $r$, $s$ and $t$, with a proximity parameter $\\varepsilon = 0.5$. The resulting complex consists of the tetrahedron $pqrs$, triangles $pqr$, $qrs$, $prs$, $pqs$, edges $pq$, $qr$, $rs$, $sp$, $qs$, $pr$, and vertices $p$, $q$, $r$, $s$ and $t$. Right: eight points with $\\varepsilon=1.5$. The resulting complex consists of the triangles $ade$, $acd$, edges $ad$, $ae$, $de$, $ac$, $cd$, $ch$, $bg$, and vertices $a,\\dots,h$."
+#| fig-cap: "Two examples of Vietoris-Rips complexes. Left: points $p$, $q$, $r$, $s$ and $t$, with a proximity parameter $\\varepsilon = 0.5$. The resulting complex consists of the tetrahedron $pqrs$, triangles $pqr$, $qrs$, $prs$, $pqs$, edges $pq$, $qr$, $rs$, $sp$, $qs$, $pr$, and vertices $p$, $q$, $r$, $s$ and $t$. Right: eight points with $\\varepsilon=1.5$. The resulting complex consists of the triangles $ade$, $acd$, edges $ad$, $ae$, $de$, $ac$, $cd$, $ch$, $bg$, and vertices $a,\\dots,h$."
 #| message: false
 #| warning: false
 #| echo: false
@@ -81,11 +81,11 @@ Taking the small example on the right of @fig-tetrahedron, we explore what happe
 
 ```{r}
 #| label: fig-persistence
-#| fig.cap: "Vietoris-Rips complexes resulting from different $\\varepsilon$ values."
+#| fig-cap: "Vietoris-Rips complexes resulting from different $\\varepsilon$ values."
 #| echo: false
 #| warning: false
-#| fig.width: 8
-#| fig.asp: 1
+#| fig-width: 8
+#| fig-asp: 1
 #| out.width: "100%"
 prox <- c(0.5, 1.5, 2.5, 3.5)
 p <- list()
@@ -110,11 +110,11 @@ To take a larger, more interesting, example, in @fig-annulus, we start with a po
 
 ```{r}
 #| label: fig-annulus
-#| fig.cap: "Vietoris-Rips complexes resulting from different $\\varepsilon$ values."
+#| fig-cap: "Vietoris-Rips complexes resulting from different $\\varepsilon$ values."
 #| echo: false
 #| warning: false
-#| fig.width: 8
-#| fig.asp: 1
+#| fig-width: 8
+#| fig-asp: 1
 #| out.width: "100%"
 outer_radius <- 1
 inner_radius <- 0.7
@@ -221,4 +221,4 @@ patchwork::wrap_plots(g1, g2, g3, nrow = 1)
 The plot on the right in @fig-tdaknn shows the largest 20 death diameters (out of the `r NROW(phom)` diameters shown in the centre panel). A vertical dashed line is drawn at diameter $h^* = `r sprintf("%.3f",top2[1])`$, the second largest death diameter. The largest death diameter is `r sprintf("%.3f",top2[2])`. Any diameter between these two values gives the same number of connected components. For this data set, $(`r sprintf("%.3f",top2[1])`, `r sprintf("%.3f",top2[2])`)$ is the largest diameter range for which the number of components stays the same. Thus, it signifies a global structural property of the point cloud, and we want a bandwidth that will help us detect this structure. In this example, an appropriate choice would be $\bm{H} = h_*^2\bm{I}$, which ensures that points within a distance of $h_*$ contribute to the kernel density estimate.
 
 From $\bm{Y}^*$, we can compute the Vietoris-Rips death diameters, $d_1,\dots,d_n$. These are then ordered to give $d_{(1)},\dots,d_{(n)}$, and we find the largest interval by computing successive differences
-$\Delta_i = d_{(i+1)} - d_{(i)}$, for $i=1,\dots,n-1$. Following @lookout2021, we choose $h_* = d_{(i)}$ to be the diameter corresponding to the largest $\Delta_i$. 
+$\Delta_i = d_{(i+1)} - d_{(i)}$, for $i=1,\dots,n-1$. Following @lookout2021, we choose $h_* = d_{(i)}$ to be the diameter corresponding to the largest $\Delta_i$.

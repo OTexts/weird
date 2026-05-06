@@ -362,7 +362,7 @@ and is depicted in @fig-shiraz-regression with 95% prediction intervals.
 ```{r}
 #| label: fig-shiraz-regression
 #| warning: false
-#| fig.cap: Log price of Shiraz as a function of points, with 95% prediction intervals. The points are horizontally jitted to reduce overplotting. Points outside the prediction intervals are coloured.
+#| fig-cap: Log price of Shiraz as a function of points, with 95% prediction intervals. The points are horizontally jitted to reduce overplotting. Points outside the prediction intervals are coloured.
 wine_aug <- broom::augment(fit_wine, data = shiraz, interval = "prediction") |>
   mutate(
     lwr = exp(.lower),
@@ -387,9 +387,9 @@ The LOO surprisals obtained from this model are shown in @fig-shiraz-regression-
 
 ```{r}
 #| label: fig-shiraz-regression-scores
-#| fig.cap: Residuals and surprisals for the Shiraz data using a linear regression model. Points are coloured to match the 95% prediction intervals in @fig-shiraz-regression.
-#| fig.height: 6
-#| fig.asp: 0.8
+#| fig-cap: Residuals and surprisals for the Shiraz data using a linear regression model. Points are coloured to match the 95% prediction intervals in @fig-shiraz-regression.
+#| fig-height: 6
+#| fig-asp: 0.8
 wine_aug <- wine_aug |>
   mutate(
     std_loo_res = .resid / (.sigma * sqrt(1 - .hat)),
@@ -481,7 +481,7 @@ shiraz |>
 
 ```{r}
 #| label: fig-shiraz-surprisal
-#| fig.cap: Price vs points for Shiraz wines. Points are coloured according to the surprisal probability. The eight blue points are observations with surprisal probabilities less than 0.002.
+#| fig-cap: Price vs points for Shiraz wines. Points are coloured according to the surprisal probability. The eight blue points are observations with surprisal probabilities less than 0.002.
 shiraz |>
   ggplot(aes(x = points, y = price, colour = prob < 0.002)) +
   geom_jitter(height = 0, width = 0.2) +
@@ -521,7 +521,7 @@ Consider the number of "not outs" for each batter in the `cricket_batting` data 
 
 ```{r}
 #| label: fig-notouts
-#| fig.cap: "Proportion of not outs for each batter as a function of the number of innings they played."
+#| fig-cap: "Proportion of not outs for each batter as a function of the number of innings they played."
 #| message: false
 #| code-fold: false
 df_no <- cricket_batting |>
@@ -546,7 +546,7 @@ We can fit this model using the `mgcv` package.
 #| label: fig-notouts-gam
 #| message: false
 #| code-fold: false
-#| fig.cap: "Proportion of not outs for each batter as a function of the number of innings they played, with a GAM fit using a Binomial distribution. The blue line shows the probability of a batter being not out as a function of the number of Innings they have played."
+#| fig-cap: "Proportion of not outs for each batter as a function of the number of innings they played, with a GAM fit using a Binomial distribution. The blue line shows the probability of a batter being not out as a function of the number of Innings they have played."
 fit_notouts <- mgcv::gam(
   prop_no ~ s(Innings),
   data = df_no,
@@ -671,9 +671,9 @@ Now there are `r english::words(no)` points with probabilities less than 0.005, 
 
 ```{r}
 #| label: fig-ofpot
-#| fig.cap: "HDR boxplot of the Old Faithful eruption durations, with the surprisal anomalies highlighted in black."
+#| fig-cap: "HDR boxplot of the Old Faithful eruption durations, with the surprisal anomalies highlighted in black."
 #| dependson: ofpot2
-#| fig.asp: 0.2
+#| fig-asp: 0.2
 #| code-fold: false
 oldfaithful |>
   filter(duration > 60) |>
@@ -701,7 +701,7 @@ Now, `r english::words(sum(surprisals_prob(of, loo = TRUE, approximation = "gpd"
 ```{r}
 #| label: fig-ofpot2
 #| code-fold: false
-#| fig.cap: "HDR scatterplot of the Old Faithful eruption durations and waiting times, with the surprisal anomalies highlighted in black."
+#| fig-cap: "HDR scatterplot of the Old Faithful eruption durations and waiting times, with the surprisal anomalies highlighted in black."
 oldfaithful |>
   gg_hdrboxplot(duration, waiting, show_points = TRUE)
 ```

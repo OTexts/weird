@@ -93,7 +93,7 @@ donave <- max(batting$Average)
 
 ```{r}
 #| label: fig-cricketbox
-#| fig.asp: 0.2
+#| fig-asp: 0.2
 #| code-fold: false
 #| depends: cricket_batting
 #| fig-cap: !expr paste("Career batting averages for all men and women to have played test cricket and batted more than 20 times. The anomaly is Don Bradman, who averaged", scales::number(donave, 0.01), "over his career.")
@@ -109,7 +109,7 @@ In Tukey's original version, the ends of the box were determined by the letter v
 
 ```{r}
 #| label: fig-cricketbox2
-#| fig.asp: 0.3
+#| fig-asp: 0.3
 #| code-fold: false
 #| eval: false
 #| include: false
@@ -151,8 +151,8 @@ To better understand the first problem, imagine if the data comprised $n$ observ
 ```{r}
 #| label: fig-normalboxplot
 #| code-fold: false
-#| fig.asp: 0.2
-#| fig.cap: "Boxplot of 10000 draws from a standard Normal distribution."
+#| fig-asp: 0.2
+#| fig-cap: "Boxplot of 10000 draws from a standard Normal distribution."
 tibble(x = rnorm(10000)) |>
   ggplot(aes(x = x)) +
   geom_boxplot() +
@@ -167,8 +167,8 @@ The second problem is demonstrated using the Old Faithful eruption duration data
 ```{r}
 #| label: fig-oldfaithful2a
 #| code-fold: false
-#| fig.asp: 0.2
-#| fig.cap: "Boxplot of Old Faithful eruption durations between 2017 and 2023."
+#| fig-asp: 0.2
+#| fig-cap: "Boxplot of Old Faithful eruption durations between 2017 and 2023."
 oldfaithful |>
   ggplot(aes(x = duration)) +
   geom_boxplot() +
@@ -196,7 +196,7 @@ Under Tukey's boxplot approach to identifying outliers, a **regular outlier** is
 
 ```{r}
 #| label: fig-probanomaly
-#| fig.cap: "Probability of at least one spurious anomaly identified in a Normal distribution, based on the boxplot approach of Tukey, and the modified IQR approach of @Barbato2011."
+#| fig-cap: "Probability of at least one spurious anomaly identified in a Normal distribution, based on the boxplot approach of Tukey, and the modified IQR approach of @Barbato2011."
 tibble(n = exp(seq(log(3), log(1e6), l = 100))) |>
   mutate(
     Tukey1 = 2 * (1 - pnorm(q3 + 1.5 * iqr)),
@@ -295,8 +295,8 @@ These can be produced using the `lvplot` package.
 ```{r}
 #| label: fig-cricketboxlv
 #| code-fold: false
-#| fig.asp: 0.2
-#| fig.cap: "Letter value plot of career batting averages for all men and women who played test cricket and batted more than 20 times."
+#| fig-asp: 0.2
+#| fig-cap: "Letter value plot of career batting averages for all men and women who played test cricket and batted more than 20 times."
 library(lvplot)
 cricket_batting |>
   filter(Innings > 20) |>
@@ -334,8 +334,8 @@ When applied to the remaining examples, we see approximately 10--20 observations
 
 ```{r}
 #| label: fig-lvplots1
-#| fig.asp: 0.2
-#| fig.cap: "Letter value plot of Old Faithful eruption durations."
+#| fig-asp: 0.2
+#| fig-cap: "Letter value plot of Old Faithful eruption durations."
 oldfaithful |>
   ggplot(aes(x = 1, y = duration)) +
   geom_lv(aes(fill = after_stat(LV))) +
@@ -347,8 +347,8 @@ oldfaithful |>
 
 ```{r}
 #| label: fig-lvplots2
-#| fig.asp: 0.2
-#| fig.cap: "Letter value plot of 1000 N(0,1) observations."
+#| fig-asp: 0.2
+#| fig-cap: "Letter value plot of 1000 N(0,1) observations."
 n01 |>
   ggplot(aes(x = 1, y = v1)) +
   geom_lv(aes(fill = after_stat(LV))) +
@@ -360,8 +360,8 @@ n01 |>
 
 ```{r}
 #| label: fig-lvplots3
-#| fig.asp: 0.2
-#| fig.cap: "Letter value plot of 19 N(0,1) observations with an anomaly at 4."
+#| fig-asp: 0.2
+#| fig-cap: "Letter value plot of 19 N(0,1) observations with an anomaly at 4."
 n01b |>
   ggplot(aes(x = 1, y = y)) +
   geom_lv(aes(fill = after_stat(LV))) +
@@ -387,7 +387,7 @@ A diagram will help illustrate the idea. Suppose we have the observations shown 
 
 ```{r}
 #| label: fig-tukeydepth
-#| fig.cap: "A data set of 10 bivariate observations (shown in black). The dividing red line splits the plane into two halfspaces. We are interested in the depth of the orange point."
+#| fig-cap: "A data set of 10 bivariate observations (shown in black). The dividing red line splits the plane into two halfspaces. We are interested in the depth of the orange point."
 n01 |>
   head(10) |>
   ggplot(aes(x = v1, y = v2)) +
@@ -478,7 +478,7 @@ A more interesting example is obtained in @fig-oldfaithfulbagplot, showing a bag
 
 ```{r}
 #| label: fig-oldfaithfulbagplot
-#| fig.cap: Bagplot of the durations and waiting times of Old Faithful eruptions between 2017 and 2023.
+#| fig-cap: Bagplot of the durations and waiting times of Old Faithful eruptions between 2017 and 2023.
 oldfaithful |>
   gg_bagplot(duration, waiting) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
@@ -490,7 +490,7 @@ A useful variation of the bagplot, especially for larger data sets, displays a s
 
 ```{r}
 #| label: fig-oldfaithfulbagplot2
-#| fig.cap: Bagplot of the durations and waiting times of Old Faithful eruptions between 2017 and 2023.
+#| fig-cap: Bagplot of the durations and waiting times of Old Faithful eruptions between 2017 and 2023.
 oldfaithful |>
   gg_bagplot(duration, waiting, show_points = TRUE) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
@@ -510,7 +510,7 @@ Let's illustrate the idea with univariate data. In @sec-kde, we estimated the de
 
 ```{r}
 #| label: fig-hdr-faithful
-#| fig.cap: "Kernel density estimate of the duration of Old Faithful eruptions between 2017 and 2023. Below the density estimate is shown an HDR boxplot of the same data, with the 50% and 99% highest density regions shown as shaded regions, and observations outside the 99% region shown as individual points."
+#| fig-cap: "Kernel density estimate of the duration of Old Faithful eruptions between 2017 and 2023. Below the density estimate is shown an HDR boxplot of the same data, with the 50% and 99% highest density regions shown as shaded regions, and observations outside the 99% region shown as individual points."
 #| warning: false
 dist_kde(oldfaithful$duration) |>
   gg_density(
@@ -529,8 +529,8 @@ The HDR shown here can also be produced using the `gg_hdrboxplot()` function.
 
 ```{r}
 #| label: fig-of-hdrboxplot
-#| fig.cap: "HDR boxplot of the duration of Old Faithful eruptions between 2017 and 2023."
-#| fig.asp: 0.2
+#| fig-cap: "HDR boxplot of the duration of Old Faithful eruptions between 2017 and 2023."
+#| fig-asp: 0.2
 oldfaithful |>
   gg_hdrboxplot(duration, show_anomalies = FALSE) +
   labs(x = "Duration (seconds)") +
@@ -545,7 +545,7 @@ The idea naturally extends to higher dimensions. @fig-hdr-faithful2 shows the bi
 
 ```{r}
 #| label: fig-hdr-faithful2
-#| fig.cap: "Bivariate kernel density estimate of the duration and waiting times of Old Faithful eruptions between 2017 and 2023."
+#| fig-cap: "Bivariate kernel density estimate of the duration and waiting times of Old Faithful eruptions between 2017 and 2023."
 oldfaithful |>
   gg_hdrboxplot(duration, waiting, show_anomalies = FALSE) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
@@ -557,7 +557,7 @@ As with bagplots, there is a variation that shows the individual points coloured
 
 ```{r}
 #| label: fig-hdr-faithful3
-#| fig.cap: "Bivariate HDR boxplot of the duration and waiting times of Old Faithful eruptions between 2017 and 2023. Individual points are coloured according to the HDR region in which they fall."
+#| fig-cap: "Bivariate HDR boxplot of the duration and waiting times of Old Faithful eruptions between 2017 and 2023. Individual points are coloured according to the HDR region in which they fall."
 oldfaithful |>
   gg_hdrboxplot(duration, waiting, show_anomalies = FALSE, show_points = TRUE) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
