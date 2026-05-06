@@ -769,15 +769,14 @@ Raw spacings are not directly comparable across the sorted sample. Even for data
 Tukey’s *gapping* scheme addresses this by weighting each gap according to its position in the ordered data. Specifically, the gap between $y{(i)}$ and $y{(i+1)}$ is assigned weight
 $$
   a_i = i(n-i), \qquad i = 1, \ldots, n-1,
-$$
-{#eq-ws-weight}
+$$ {#eq-ws-weight}
 which is largest near the middle of the sample and smallest at the extremes. This emphasises unusually large gaps in the centre, where observations are normally close together, and downweights gaps in the tails, where larger spacings are expected.
 
 @Wainer1978 developed this idea into a practical diagnostic by transforming and standardising the weighted gaps. They proposed using the square root of the weighted gaps,
 $$
   h_i = \sqrt{a_i d_i},
 $$
-which makes their distribution more nearly symmetric, and then comparing each $h_i$ with a robust estimate of typical gap size, namely the 25% trimmed mean of the $h_i$ values:
+which makes their distribution more symmetric, and then comparing each $h_i$ with a robust estimate of typical gap size, namely the 25% trimmed mean of the $h_i$ values:
 $$
   z^*_i = \frac{h_i}{\bar h_{T25}}.
 $$ {#eq-ws-score}
@@ -810,7 +809,7 @@ batting_gaps |>
   ggplot(aes(x = upper_average, y = ws)) +
   geom_hline(yintercept = 2.25, linetype = "dashed", colour = "gray50") +
   geom_point(alpha = 0.5) +
-  labs(x = "Career batting average", y = "Tukey--Wainer--Schacht gap score")
+  labs(x = "Career batting average", y = "Tukey-Wainer-Schacht gap score")
 ```
 
 Restricting attention to scores above the exploratory threshold of 2.25, we show the five largest gaps below.
@@ -842,9 +841,9 @@ then an extreme-value approximation for the largest of the $n-1$ spacings gives
 $$
   t = (n+1)\Delta_{\max} - \log(n-1)
 $$
-as approximately standard Gumbel under the null. This gives the approximate upper-tail probability
+as approximately standard Gumbel under the assumed distribution $F$. This gives the approximate upper-tail probability
 $$
-  p \approx 1 - \exp\!\left(-e^{-t}\right).
+  p \approx 1 - \exp(-e^{-t}).
 $$ {#eq-gap-pvalue}
 
 In practice, $F$ is unknown. The example below uses a robustly fitted Normal distribution, with the median and MAD as estimates of location and scale. This makes the fit less sensitive to the possible outlier, but the resulting test is still only an approximate parametric test.
@@ -867,6 +866,64 @@ batting_gaps |>
 
 The $p$-value is very small, confirming that the gap below Bradman's average is far too large to be consistent with all batters coming from a single fitted Normal distribution.
 
+Finally, we apply the same approach to the other five examples considered in this chapter. Here we associate the p-value with the larger observation in each gap pair.
+
+```{r}
+#| label: gap-tests
+#| code-fold: false
+gap_test_pvalue <- function(x) {
+  mu_hat <- median(x)
+  sigma_hat <- robustbase::s_mad(x)
+  n <- length(x)
+  ix <- order(x)
+  y <- x[ix]
+  lower <- y[-n]
+  upper <- y[-1]
+  transformed_gap <- pnorm(upper, mu_hat, sigma_hat) -
+    pnorm(lower, mu_hat, sigma_hat)
+  t <- (n + 1) * transformed_gap - log(n - 1)
+  p_value <- 1 - exp(-exp(-t))
+
+  p_value_original_order <- rep(NA_real_, n)
+  p_value_original_order[ix[-1]] <- p_value
+  p_value_original_order
+}
+cricket_batting |>
+  filter(Innings > 25) |>
+  filter(gap_test_pvalue(Average) < 0.05) |>
+  select(Player, Country, Average)
+oldfaithful |>
+  filter(gap_test_pvalue(duration) < 0.05)
+n01b |>
+  filter(gap_test_pvalue(y) < 0.05)
+n01 |>
+  filter(gap_test_pvalue(v1) < 0.05)
+t3 |>
+  filter(gap_test_pvalue(y) < 0.05)
+chisq4 |>
+  filter(gap_test_pvalue(y) < 0.05)
+```
+
+```{r}
+#| label: checkgap
+#| include: false
+nanomalies$Gap <- c(
+  cricket_batting |>
+    filter(Innings > 25) |>
+    filter(gap_test_pvalue(Average) < 0.05) |>
+    NROW(),
+  oldfaithful |> filter(gap_test_pvalue(duration) < 0.05) |> NROW(),
+  n01b |> filter(gap_test_pvalue(y) < 0.05) |> NROW(),
+  n01 |> filter(gap_test_pvalue(v1) < 0.05) |> NROW(),
+  t3 |> filter(gap_test_pvalue(y) < 0.05) |> NROW(),
+  chisq4 |> filter(gap_test_pvalue(y) < 0.05) |> NROW()
+)
+stopifnot(nanomalies$Gap == c(1, 68, 0, 0, 0, 0))
+nof <- nanomalies$Gap[2]
+```
+
+While the method worked well for the cricket batting averages, it identified `r nof` "anomalies" in the Old Faithful data, and it failed to identify either of the two clear anomalies in `n01b`.
+
 Like all methods in this chapter, both the normalised gap score and the transformed-gap test depend on an assumed null distribution, and so the results depend on the adequacy of the model. Related extreme-spacing ideas underlie the HDoutliers and stray algorithms discussed in @sec-distance-methods, where gaps in nearest-neighbour distances are used rather than gaps in the raw univariate data.
 
 ## Summary
@@ -880,59 +937,34 @@ We can summarise the results of the various tests used here in the following tab
 #| dependson: check_numbers
 #| cache: false
 library(kableExtra)
-nanomalies$Example[5] <- "<span class='math inline'>\\text{t}_3</span>"
-nanomalies$Example[6] <- "<span class='math inline'>\\chi^2_4</span>"
-nanomalies |>
+nanomalies_table <- nanomalies |>
   mutate(
+    Example = case_when(
+      row_number() == 5 ~ "<span class='math inline'>\\text{t}_3</span>",
+      row_number() == 6 ~ "<span class='math inline'>\\chi^2_4</span>",
+      .default = Example
+    ),
     Example = paste0(row_number(), ". ", Example)
-  ) |>
-  knitr::kable(escape = FALSE, format = "html") %>%
-  add_header_above(c(" " = 3, "Anomaly detection method" = 5)) %>%
-  column_spec(
-    4,
-    color = if_else(
-      nanomalies$Zscore != nanomalies$`Expected anomalies`,
-      "red",
-      "black"
-    )
-  ) %>%
-  column_spec(
-    5,
-    color = if_else(
-      nanomalies$Peirce != nanomalies$`Expected anomalies`,
-      "red",
-      "black"
-    )
-  ) %>%
-  column_spec(
-    6,
-    color = if_else(
-      nanomalies$Chauvenet != nanomalies$`Expected anomalies`,
-      "red",
-      "black"
-    )
-  ) %>%
-  column_spec(
-    7,
-    color = if_else(
-      nanomalies$Grubbs != nanomalies$`Expected anomalies`,
-      "red",
-      "black"
-    )
-  ) %>%
-  column_spec(
-    8,
-    color = if_else(
-      nanomalies$Dixon != nanomalies$`Expected anomalies`,
-      "red",
-      "black"
-    )
   )
+method_cols <- seq.int(4, ncol(nanomalies_table))
+method_colours <- nanomalies[method_cols] |>
+  purrr::map(\(x) {
+    if_else(x != nanomalies$`Expected anomalies`, "red", "black")
+  })
+table <- nanomalies_table |>
+  knitr::kable(escape = FALSE, format = "html") %>%
+  add_header_above(c(" " = 3, "Anomaly detection method" = length(method_cols)))
+purrr::reduce2(
+  .x = method_cols,
+  .y = method_colours,
+  .init = table,
+  .f = \(table, col, colour) column_spec(table, col, color = colour)
+)
 ```
 
-Only Z scores found the three clear anomalies in the Old Faithful data, and most failed to find either of the artificial anomalies in `n01b`. All tests found at least one spurious anomaly in the large simulated data sets with no real anomalies.
+Only Z scores found the three (and only the three) clear anomalies in the Old Faithful data, and most failed to find either of the artificial anomalies in `n01b`. All tests found at least one spurious anomaly in the large simulated data sets with no real anomalies.
 
-As noted at the start of this chapter, anomaly detection methods based on assumed data distributions are unreliable. Until about 1975, they were the only viable methods given the lack of computing facilities available, because they could be implemented using tables and hand calculations. However, there is really no justifiable reason for continuing to use such methods.
+As noted at the start of this chapter, anomaly detection methods based on assumed data distributions are unreliable. Until about 1975, they were the only viable methods given the lack of computing facilities available, because they could be implemented using tables and hand calculations. However, there is little justification for continuing to use such methods.
 
 They are particularly sensitive to the assumed data distribution, and the probability of detecting spurious anomalies is usually much higher in reality than under the ideal conditions in which the tests were conceived.
 
