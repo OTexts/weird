@@ -182,6 +182,12 @@ This is an example of a multimodal density function, with modes at $-2$ and $2$.
 
 A good introduction to other probability distributions on real sample spaces is provided by @Forbes2011, with more advanced treatments in @JKunicontinuous1 and @JKunicontinuous2.
 
+## Probability integral transform {#sec-pit}
+
+The **probability integral transform** is a useful result that allows us to transform any continuous random variable into a uniform random variable. If $Y$ is a continuous random variable with cdf $F$, then the random variable $U = F(Y)$ has a U(0,1) distribution. This is because $\text{Pr}(U \le u) = \text{Pr}(F(Y) \le u) = \text{Pr}(Y \le F^{-1}(u)) = F(F^{-1}(u)) = u$ for $0 < u < 1$. The inverse is also true: if $U$ is a U(0,1) random variable, then the random variable $Y = F^{-1}(U)$ has distribution $F$. A useful consequence of this result is that it is possible to simulate from any continuous distribution by first simulating from a U(0,1) distribution, and then applying the inverse cdf (or quantile function) of the desired distribution.
+
+There is also a discrete version of the probability integral transform, but we will not need to use it in this book.
+
 ## Central limit theorem {#sec-clt}
 
 The central limit theorem (CLT) is one of the most important results in statistics. There are several variations of the theorem; the simplest version states that the sum of many iid random variables, with finite mean and variance, is approximately Normally distributed.
