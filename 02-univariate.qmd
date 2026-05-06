@@ -805,8 +805,10 @@ for parameters $a, b$ and $\alpha$ where $a, \alpha >0$.
 The three types of limits correspond to different forms of the tail behaviour of $F$.
 
   * When $F$ has a finite upper bound, such as with a uniform distribution, then $G$ is a Weibull distribution.
-  * When $F$ has exponential tails, such as with a Normal distribution or a Gamma distribution, then $G$ is a Gumbel distribution.
-  * When $F$ has heavy tails including polynomial decay, then $G$ is a Fréchet distribution. One example is when $F$ itself is a Fréchet distribution with $F(y)= e^{-1/y}$, $y>0$.
+  * When $F$ has light tails (exponentially decaying or faster), such as with a Normal distribution or a Gamma distribution, then $G$ is a Gumbel distribution.
+  * When $F$ has heavy tails (such as polynomial decay), then $G$ is a Fréchet distribution. One example is when $F$ itself is a Fréchet distribution, for example.
+
+We refer to $F$ as being in the "domain of attraction" of the corresponding limit distribution. For example, the Normal distribution is in the domain of attraction of the Gumbel distribution.
 
 If we take the negative of the random variables $Y_1,\dots,Y_n$, it becomes clear that a similar result holds for the minimum.
 
@@ -854,7 +856,7 @@ $$
   H(y) = \Pr\left \{Y \leq u + y \mid Y > u \right \}
   = \frac{ F(u+y) - F(u)}{1 - F(u)}.
 $$ {#eq-POT3}
-When the distribution $F$ satisfies the FTG theorem, then [@coles2001introduction, p75] $H$ is a **Generalised Pareto Distribution** (GPD) defined by
+When the distribution $F$ satisfies the FTG theorem, then [@coles2001introduction, p75] $H$ is well-approximated by a **Generalised Pareto Distribution** (GPD) defined by
   $$
     H(y) \approx 1 - \Big( 1 + \frac{\xi y}{\sigma_u} \Big)^{-1/\xi} ,
   $$ {#eq-POT}
@@ -887,3 +889,9 @@ c(
 ```
 
 The GEV (blue) estimate is better because it is based on more information (2000 maximums rather than `r NROW(df)` exceedances).
+
+### Weissman's spacing theorem
+
+Another important result from EVT is Weissman's spacing theorem [@Weissman1978], which states that the spacings between the largest observations often behave asymptotically like independent exponential random variables.
+
+Specifically, let $D_k = Y_{(k+1)} - Y_{(k)}$ denote the spacing between successive order statistics. If $F$ is in the domain of attraction of the Gumbel distribution, then, for fixed $r$, the upper spacings $D_{n-1}, D_{n-2}, \dots, D_{n-r}$ are asymptotically independent and approximately exponentially distributed, with $D_{k}$ having mean $b_n/(n-k)$. (Here $b_n$ is the same scaling constant that was used in the FTG theorem.)
