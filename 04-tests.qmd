@@ -825,23 +825,15 @@ The largest gap of `r sprintf("%.1f", batting_gaps |> filter(ws > 2.25) |> slice
 
 ### Significance testing {-}
 
-The Tukey--Wainer--Schacht score does not yield a direct $p$-value. A related way to construct a formal gap test is to transform the data to a scale on which the null distribution is uniform. If the data are iid from a continuous distribution $F$, and if $F$ is known, then
-$$
-  u_i = F(y_{(i)})
-$$
-are order statistics from a uniform distribution on $[0,1]$. So unusually large gaps in the original data become unusually large uniform spacings
+The Tukey--Wainer--Schacht score does not yield a direct $p$-value. A related way to construct a formal gap test is to calculate the uniform spacings (see @sec-gaps) of the data after transforming them using the fitted distribution function $F$:
 $$
   \delta_i = F(y_{(i+1)}) - F(y_{(i)}), \quad i = 1, \dots, n-1.
 $$
-Each of these internal spacings has expected value $1/(n+1)$. If
+Since the transformed spacings are approximately $\text{Exp}(n+1)$ (@sec-gaps), and the exponential distribution is in the Gumbel domain of attraction (@sec-evt), then $\delta_{\max} = \max(\delta_1,\dots,\delta_{n-1})$ satisfies
 $$
-  \Delta_{\max} = \max_i \delta_i,
+  t = (n+1)\delta_{\max} - \log(n-1) \approx \text{Gumbel}(0,1).
 $$
-then an extreme-value approximation for the largest of the $n-1$ spacings gives
-$$
-  t = (n+1)\Delta_{\max} - \log(n-1)
-$$
-as approximately standard Gumbel under the assumed distribution $F$. This gives the approximate upper-tail probability
+This gives the approximate upper-tail probability
 $$
   p \approx 1 - \exp(-e^{-t}).
 $$ {#eq-gap-pvalue}
@@ -861,7 +853,8 @@ batting_gaps |>
     t = (nrow(batters) + 1) * transformed_gap - log(nrow(batting_gaps)),
     p_value = 1 - exp(-exp(-t))
   ) |>
-  filter(p_value < 0.05)
+  filter(p_value < 0.05) |>
+  select(lower_player, lower_average, upper_player, upper_average, spacing, p_value)
 ```
 
 The $p$-value is very small, confirming that the gap below Bradman's average is far too large to be consistent with all batters coming from a single fitted Normal distribution.
