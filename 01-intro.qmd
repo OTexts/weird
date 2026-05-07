@@ -106,7 +106,7 @@ The second half of the 20th century witnessed the advent of computing, which all
 
 Modern tools for anomaly detection can be roughly divided into two groups: those based on densities and those based on distances. Distance-based tools usually compute the pairwise distances between observations and identify anomalies as those points that are far from other points. Density-based tools compute the probability density at each observation and identify anomalies as those points with very low density. The two ideas are closely related because density estimates are often based on distances; for example, a density estimate at a point may be a function of the distances between that point and all other observations. Conversely, distance-based tools are making an implicit assumption about the probability distribution of the data, and how likely it is to find points at different distances from other observations.
 
-Density-based methods are discussed in @sec-density-methods, while distance-based methods are the subject of @sec-distance-methods.
+Distance-based methods are discussed in @sec-distance-methods, while density-based methods are the subject of @sec-density-methods.
 
 ### Statistical vs machine learning approaches {-}
 

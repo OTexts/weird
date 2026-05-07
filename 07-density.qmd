@@ -610,6 +610,8 @@ $$
   -\log(K_h(0)/n) \approx \log(nh\sqrt{2\pi}).
 $$
 
+Identifying anomalies using KDE surprisals is related to the "local outlier factor" method (@sec-lof). However, the local outlier factor method is based on the ratio of the density at a point to the average density at its neighbours, while the KDE surprisal method is based on the density at a point alone. This means that the KDE surprisal method is more likely to identify points in low density regions as anomalies.
+
 ### Leave-one-out kde surprisals
 
 The contribution of the $i$th point to the kernel density estimate at that point is $K_H(\bm{0})/n$. Therefore, the leave-one-out kde surprisals are given by
