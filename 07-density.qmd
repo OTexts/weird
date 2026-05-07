@@ -147,7 +147,6 @@ If $f$ is the Normal distribution $N(\mu, \sigma^2)$, then the points of lowest 
 
 This link can be extended to any symmetric distribution. If $f$ is a symmetric distribution centred at $c$, then the most anomalous observations will be those with the largest absolute distance from $c$. If $F$ is the distribution function corresponding to $f$, then $p_i = 2[1 - F(c+|y_i-c|)]$.
 
-
 ### Approximate GPD surprisal probabilities {#sec-gpd-tails}
 
 If we do not know what the distribution of the data should be, or if we think our assumed distribution is incorrect for some reason, there are some ways to find approximate surprisal probabilities that can still be accurate even when the assumed distribution is not.

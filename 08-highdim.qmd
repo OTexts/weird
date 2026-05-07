@@ -43,7 +43,7 @@ The HDoutliers algorithm of @Wilkinson2017-rb was designed to address several pr
 
 ```{r}
 #| label: fig-stray
-of_scores <- of_scores |>
+of_scores <- oldfaithful |>
   mutate(stray = stray_scores(duration))
 of_scores |> arrange(desc(stray))
 of_scores |>
