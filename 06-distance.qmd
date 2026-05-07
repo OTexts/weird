@@ -342,10 +342,3 @@ Anomaly score inversely proportional to average depth of isolation trees.
 isotree package
 
 @Liu2008-dp
-
-## Clustering methods
-
-dbscan package
-
-* Called "density-based", but "density" here does not mean probability density, as in ch6. Instead, it refers to the relative concentration of points in a neighbourhood.
-*

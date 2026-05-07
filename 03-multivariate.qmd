@@ -410,131 +410,13 @@ patchwork::wrap_plots(p1, p2, nrow = 1)
 
 ## Clustering {#sec-clustering}
 
-Clustering is a method of grouping observations together based on their similarity. It is sometimes used for anomaly detection, as anomalies may form their own clusters that are separate from the vast majority of observations. Even if clustering is not used directly, some anomaly detection methods use tools based on clustering, and so we will need to understand some of the basic concepts, including how to represent clusters using graphs and dendrograms.
-
-### Graphs and clusters
-
-A set of observations can be used to construct a graph (i.e., a network, not a plot), where the individual observations are considered vertices and the edges are determined by the distances between them. We draw an edge between two vertices if the distance between the corresponding observations is at most $\delta$, and $\delta$ is a proximity parameter that we can choose. If $\delta$ is very small, there will be few (or no) edges; if $\delta$ is large, there will be many edges.
-
-For example, consider the eight points labelled A to H shown in @fig-graph, and suppose we choose $\delta=1.5$. The blue disks centred on each point have radius $\delta/2$; so overlapping disks indicate that their central points are within $\delta$ of each other. Points B and H form an edge, but are disconnected from all other points because they are further than $\delta$ from the other points. The pair A and F also form an edge, and D is connected to them via F. They don't form a triangle because A and D are too far apart. The points CEG form a connected triangle.
-
-```{r}
-#| label: fig-graph
-#| fig-cap: "An example of a graph based on eight observations (the nodes) which are joined by edges if the distance between them is at most $\\delta=1.5$. The blue disks have radius $\\delta/2$, so overlapping disks indicate that their central points are within $\\delta$ of each other. The resulting graph consists of three clusters."
-#| message: false
-#| warning: false
-#| echo: false
-X <- data.frame(
-  x = c(0.926, 1.82, -1.61, -0.285, -0.342, 0.366, -1.33, 2.41),
-  y = c(0.0638, 1.55, -1.88, 1.211, -1.31, 0.0421, -0.785, 1.21)
-)
-rownames(X) <- LETTERS[1:8]
-vr_complex(X, 1.5) +
-  coord_fixed() +
-  geom_text(
-    aes(x = x, y = y, label = LETTERS[1:8]),
-    nudge_x = -0.1,
-    nudge_y = 0.1
-  )
-```
-
-Points that are connected in some way form a "cluster": a set of nodes where you can travel from any node in the set to any other node in the set by following edges. There are three clusters in @fig-graph.
-
-Imagine slowly increasing $\delta$ from 0 upwards. At $\delta=0$, there are no edges, so every observation is its own cluster. As $\delta$ increases, more edges appear, and the clusters merge together. When an edge connects two clusters that were previously separate, those two clusters merge into one larger cluster. Eventually, all clusters merge into a single cluster.
-
-Taking the small example of @fig-graph, we explore what happens as $\delta$ increases from 0.5 to 2.0. With a small value of $\delta$, all points are disconnected, and the graph consists of 8 vertices with no edges. As $\delta$ increases, more points are connected to each other, and eventually, the graph consists of a single cluster.
-
-```{r}
-#| label: fig-clusters
-#| fig-cap: "Clusters resulting from different $\\delta$ values."
-#| echo: false
-#| warning: false
-#| fig-width: 8
-#| fig-asp: 1
-#| out-width: "100%"
-#| dependson: fig-tetrahedron
-prox <- 0.5 + seq(0, 1.5, by = 0.5)
-p <- list()
-for (i in seq_along(prox)) {
-  p[[i]] <- vr_complex(X, delta = prox[i]) +
-    geom_text(
-      aes(x = x, y = y, label = LETTERS[1:8]),
-      nudge_x = -0.1,
-      nudge_y = 0.1
-    ) +
-    labs(subtitle = latex2exp::TeX(sprintf("$\\delta$ = %.1f", prox[i]))) +
-    coord_cartesian(xlim = c(-2.5, 2.5), ylim = c(-2.5, 2.5), ratio = 1)
-}
-patchwork::wrap_plots(p, nrow = 2)
-```
-
-Anomalies are clusters of one observation (or perhaps a few observations) that don't join the rest of the data until a large value of $\delta$.
-
-### Hierarchical clustering
-
-The above description of clusters and their merging as $\delta$ increases is known as **single-linkage hierarchical clustering**. In this form of clustering, we start with each observation as its own cluster, and then repeatedly merge the two closest clusters together until we have one final cluster.
-
-The distance between two clusters when they merge is called the "merge distance", and in single-linkage hierarchical clustering it is defined as the minimum distance between any point in one cluster and any point in the other cluster. Other forms of hierarchical clustering are based on different measures of the distances between clusters. For example, complete-linkage is based on the maximum distance, while average-linkage is based on the average distance.
-
-Hierarchical clustering is usually displayed as a **dendrogram**, with the following properties:
-
-- Each observation starts as a leaf.
-- Branches join when two clusters merge.
-- The horizontal axis shows the distance at which the merge occurs.
-
-The single-linkage dendrogram for the point cloud in @fig-graph is shown in @fig-dendrogram.
-
-```{r}
-#| label: fig-dendrogram
-#| echo: false
-#| fig-asp: 0.5
-#| fig-cap: "Dendrogram of the point cloud in @fig-graph. The heights of the joins correspond to the merge distances."
-library(ggdendro)
-hc <- dist(X) |>
-  hclust(method = "single")
-hcdata <- dendro_data(hc, type = "rectangle")
-ggplot() +
-  geom_segment(data = segment(hcdata), aes(x = x, y = y, xend = xend, yend = yend)) +
-  scale_x_continuous(breaks = seq_len(NROW(X)), labels = label(hcdata)$label) +
-  coord_flip() +
-  labs(x = "Observation", y = "Merge distance")
-```
-
-@fig-mergedistances shows a bar plot of the cluster merge distances for the point cloud shown in @fig-graph. These correspond to the vertical lines in the dendrogram in @fig-dendrogram. The shortest distance corresponds to when A and F joined to form an edge --- when the two separate vertex clusters merged. The largest distance corresponds to when all points became connected, when the BH edge cluster merged with the rest of the data. With $n$ observations, there are $n$ initial clusters, but only $n - 1$ merges are needed to end up with one final cluster. So we get $n - 1$ merge distances.
-
-```{r}
-#| label: fig-mergedistances
-#| echo: false
-#| fig-cap: "Merge distances of the point cloud in @fig-graph. Each line denotes a cluster, with length equal to its merge distance."
-#| fig-width: 8
-#| fig-height: 1.6
-#| fig-asp: 0.2
-#| out-width: "100%"
-#| warning: false
-#| dependson: fig-tetrahedron
-data.frame(
-  row = seq_along(hc$height),
-  distance = hc$height
-) |>
-  ggplot(aes(x = row, y = distance)) +
-  geom_bar(stat = "identity", width = 0.1, fill = "#C14b14") +
-  labs(y = "Merge distance", x = "") +
-  coord_flip() +
-  scale_x_continuous(breaks = NULL) +
-  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
-```
-
-#### Related ideas
-
-The graph structure described above is related to the minimum spanning tree (MST) of the data, which is a tree that connects all observations together with the minimum total edge length. The merge distances are exactly the MST edge weights in the order they are added to the tree.
-
-The graph structure is also related to topological data analysis (TDA), which is a method of summarising the shape of data. In TDA, a cluster is a "connected component" --- a 0-dimensional topological feature studied in persistent homology. When two clusters merge, one is described as "dying" and the other as "persisting". The merge distance is called the "death diameter", and the bar plot of merge distances is known as a "barcode". The longest bars in the barcode correspond to the most persistent clusters, which contain potential anomalies. For a general introduction to TDA, see @carlsson2021topological.
+Clustering is a method of grouping observations together based on their similarity. It is sometimes used for anomaly detection, as anomalies may form their own small clusters, or may appear as observations that do not belong to any cluster. Even if clustering is not used directly, some anomaly detection methods use tools based on clustering, and so we will need to understand some of the basic concepts.
 
 ### k-means clustering
 
 The most popular clustering method is probably k-means clustering [@Hartigan1975], which is a method of partitioning the data into $k$ clusters, where $k$ is a user-specified parameter.
 
-The algorithm begins by randomly selecting $k$ initial centroids, which are points in the space that represent the centres of the clusters. Then, each observation is assigned to the cluster whose centroid is closest to it, based on some distance measure (usually Euclidean distance). After all observations have been assigned to clusters, the centroids are updated to be the mean of the observations in each cluster. This process is repeated until convergence, which occurs when the cluster assignments no longer change.
+The algorithm begins by randomly selecting $k$ observations as initial centroids, which are points in the space that represent the centres of the clusters. Then, each observation is assigned to the cluster whose centroid is closest to it, based on some distance measure (usually Euclidean distance). After all observations have been assigned to clusters, the centroids are updated to be the mean of the observations in each cluster. This process is repeated until convergence, which occurs when the cluster assignments no longer change.
 
 The k-means algorithm is relatively fast, but it can be sensitive to the choice of initial centroids, and it can get stuck in local minima. It also assumes that the clusters are spherical and of similar size, which may not always be the case. A further drawback, especially in the context of anomaly detection, is that anomalies can significantly affect the cluster centroids.
 
@@ -542,12 +424,12 @@ The k-means algorithm is relatively fast, but it can be sensitive to the choice 
 
 Rather than specify the number of clusters in advance, we can specify a maximum radius for each cluster, and then find clusters that satisfy this constraint. This is known as the leader algorithm [@Hartigan1975], and is a fast, incremental clustering method that can be used for large data sets. The only input required is $\delta$, the maximum radius of each cluster. The algorithm can be summarised as follows:
 
-1. Select an initial data point as the first "leader".
-2. For each subsequent data point:
-   a. If the point is within $\delta$ of any existing leader, assign it to the cluster of the nearest leader.
-   b. If the point is not within $\delta$ of any existing leader, it becomes a new leader for a new cluster.
+1. Select an initial observation as the first "leader".
+2. For each subsequent observation:
+   a. If the observation is within $\delta$ of any existing leader, assign it to the cluster of the nearest leader.
+   b. If the observation is not within $\delta$ of any existing leader, it becomes a new leader for a new cluster.
 
-Thus, the leaders become the centroids of their respective clusters, and the clusters are defined as the set of points that are within $\delta$ of their leader. The order of the data will obviously affect the resulting clusters, but the algorithm is very fast, and can be used as a first step in more complex clustering algorithms. Further, because the centroids are data points, rather than means, they are much less sensitive to anomalies than k-means clustering.
+Thus, the leaders are centroids of their respective clusters, and the clusters are defined as the set of observations that are within $\delta$ of their leader. The order of the data will obviously affect the resulting clusters, but the algorithm is very fast, and can be used as a first step in more complex clustering algorithms. Further, because the centroids are observations, rather than means, they are much less sensitive to anomalies than the centroids in k-means clustering.
 
 To compare these two approaches, we will apply them to the Old Faithful data set in @fig-clustering-off.
 
@@ -582,6 +464,152 @@ oldfaithful |>
 Here two clusters have been specified for the k-means algorithm, and (after some experimentation) a radius of 3.3 has been specified for the leader algorithm.
 
 Apart from a reversal of the cluster labels, most points are assigned to the same two large clusters, with some variation in the points between the two clouds of points. However, the outlying points have been allocated to other clusters in the leader algorithm. If we increase the number of clusters in the k-means algorithm, we get the upper right cluster splitting into multiple clusters, rather than the outlying points being allocated to separate clusters. This is a result of the fact that the k-means centroids are affected by the outlying points, while the leader centroids are not.
+
+### DBSCAN clustering
+
+DBSCAN (Density-Based Spatial Clustering of Applications with Noise) is a clustering method proposed by @dbscan that identifies clusters as dense regions of nearby observations. It does not require the number of clusters to be specified in advance, and it allows some observations to be left unclustered. These unclustered observations are called **noise** by the algorithm. Note that this use of the word "noise" is different from the usual use of the word in statistics, where it refers to random variation in the data. In DBSCAN, noise refers to observations that are not assigned to any cluster. These observations are often interpreted as potential anomalies.
+
+The algorithm has two main parameters: $\epsilon$, which is the radius of the neighbourhood around each observation, and $M$, which is the minimum number of observations required for a neighbourhood to be considered dense. For each observation $\bm{y}_i$, let $N_{\epsilon}(\bm{y}_i)$ denote the set of observations within distance $\epsilon$ of $\bm{y}_i$, including $\bm{y}_i$ itself. An observation $\bm{y}_i$ is classified as follows:
+
+* it is a **core** observation if $|N_{\epsilon}(\bm{y}_i)| \ge M$;
+* it is a **border** observation if it is not a core observation, but it is within distance $\epsilon$ of at least one core observation;
+* otherwise it is **noise**.
+
+Clusters are formed by connecting nearby core observations that are within $\epsilon$ of each other. Each connected group of core observations forms one cluster. Border observations are then attached to any cluster containing a core observation within distance $\epsilon$. If a border observation is within distance $\epsilon$ of core observations from more than one cluster, its assignment may be arbitrary or implementation-dependent. Noise observations are not assigned to any cluster.
+
+The DBSCAN algorithm is implemented in the `dbscan()` function in the `dbscan` package.
+
+### DBSCAN as a graph algorithm
+
+DBSCAN can be understood using a graph (i.e., a network, not a plot). Each observation is a vertex, and we draw an edge between two vertices if the distance between the corresponding observations is at most $\epsilon$. This graph is sometimes called the $\epsilon$-neighbourhood graph.
+
+DBSCAN does not simply take the connected components of this graph as clusters. It first identifies which vertices are core observations, using the density condition described above. It then forms clusters from connected groups of core observations, and attaches any border observations that are connected to those core groups. Sparse vertices that are not connected to any core observation are labelled as noise.
+
+For example, consider the eight points labelled A to H shown in @fig-graph, and suppose we choose $\epsilon=1.5$ and $M=3$. The blue disks centred on each point have radius $\epsilon/2$; so overlapping disks indicate that their central points are within $\epsilon$ of each other. Points B and H form an edge, but are disconnected from all other points because they are further than $\epsilon$ from the other points. The pair A and F also form an edge, and D is connected to them via F. They do not form a triangle because A and D are too far apart. The points C, E and G form a connected triangle.
+
+```{r}
+#| label: fig-graph
+#| fig-cap: "An example of an $\\epsilon$-neighbourhood graph based on eight observations, where two observations are joined by an edge if the distance between them is at most $\\epsilon=1.5$. The blue disks have radius $\\epsilon/2$, so overlapping disks indicate that their central points are within $\\epsilon$ of each other. If DBSCAN is applied with $M=3$, the graph contains two clusters and two noise observations."
+#| message: false
+#| warning: false
+#| echo: false
+X <- data.frame(
+  x = c(0.926, 1.82, -1.61, -0.285, -0.342, 0.366, -1.33, 2.41),
+  y = c(0.0638, 1.55, -1.88, 1.211, -1.31, 0.0421, -0.785, 1.21)
+)
+rownames(X) <- LETTERS[1:8]
+vr_complex(X, 1.5) +
+  coord_fixed() +
+  geom_text(
+    aes(x = x, y = y, label = LETTERS[1:8]),
+    nudge_x = -0.1,
+    nudge_y = 0.1
+  )
+```
+
+If we considered only the connected components of this graph, there would be three groups: A--F--D, C--E--G, and B--H. However, DBSCAN adds the density condition. With $M=3$, F is a core observation because its $\epsilon$-neighbourhood contains A, F and D. The points C, E and G are also core observations because each of them has the other two points in its $\epsilon$-neighbourhood. By contrast, B and H are not core observations, because their $\epsilon$-neighbourhoods contain only B and H. They are not border observations either, because they are not connected to any core observation. Therefore, DBSCAN labels B and H as noise.
+
+So, for this example, DBSCAN gives two clusters and two noise observations:
+
+* A--F--D is one cluster, with F as a core observation and A and D as border observations;
+* C--E--G is another cluster, with all three points as core observations;
+* B and H are noise observations.
+
+This example illustrates the difference between a sparse group and a dense cluster. The pair B--H is a connected component of the $\epsilon$-neighbourhood graph, but it is not dense enough to be a DBSCAN cluster. This is the feature that allows DBSCAN to separate potential anomalies from clusters.
+
+### Hierarchical clustering
+
+A related approach is to examine what happens as the distance threshold changes. If we ignore the DBSCAN density condition and simply take the connected components of the graph, then increasing the threshold gives a sequence of cluster mergers. This is the idea behind **single-linkage hierarchical clustering**.
+
+Imagine slowly increasing a distance threshold $\delta$ from 0 upwards. At $\delta=0$, there are no edges, so every observation is its own cluster. As $\delta$ increases, more edges appear, and clusters merge together. When an edge connects two clusters that were previously separate, those two clusters merge into one larger cluster. Eventually, all clusters merge into a single cluster.
+
+Taking the small example of @fig-graph, we explore what happens as $\delta$ increases from 0.5 to 2.0. With a small value of $\delta$, all points are disconnected, and the graph consists of eight vertices with no edges. As $\delta$ increases, more points are connected to each other, and eventually, the graph consists of a single connected component.
+
+```{r}
+#| label: fig-clusters
+#| fig-cap: "Connected components resulting from different $\\delta$ values. This sequence of connected components corresponds to single-linkage hierarchical clustering, not DBSCAN, because there is no density condition and no observations are labelled as noise."
+#| echo: false
+#| warning: false
+#| fig-width: 8
+#| fig-asp: 1
+#| out-width: "100%"
+#| dependson: fig-graph
+prox <- 0.5 + seq(0, 1.5, by = 0.5)
+p <- list()
+for (i in seq_along(prox)) {
+  p[[i]] <- vr_complex(X, delta = prox[i]) +
+    geom_text(
+      aes(x = x, y = y, label = LETTERS[1:8]),
+      nudge_x = -0.1,
+      nudge_y = 0.1
+    ) +
+    labs(subtitle = latex2exp::TeX(sprintf("$\\delta$ = %.1f", prox[i]))) +
+    coord_cartesian(xlim = c(-2.5, 2.5), ylim = c(-2.5, 2.5), ratio = 1)
+}
+patchwork::wrap_plots(p, nrow = 2)
+```
+
+In single-linkage hierarchical clustering, we start with each observation as its own cluster, and then repeatedly merge the two closest clusters together until we have one final cluster. The distance between two clusters when they merge is called the **merge distance**. For single-linkage clustering, the distance between two clusters is the minimum distance between any point in one cluster and any point in the other cluster.
+
+This is different from DBSCAN in two important ways. First, single-linkage hierarchical clustering does not distinguish between core, border and noise observations. Every observation belongs to some cluster at every stage. Second, the result is not a single clustering, but a hierarchy of clusterings indexed by the merge distance. We can obtain a particular clustering by cutting the hierarchy at a chosen distance threshold, but the hierarchy itself records how the clusters merge over all possible thresholds.
+
+Other forms of hierarchical clustering use different measures of the distances between clusters. For example, complete-linkage is based on the maximum distance between any two points in the two clusters, while average-linkage is based on the average distance between all pairs of points across the two clusters. The graph interpretation above applies specifically to single-linkage hierarchical clustering.
+
+Hierarchical clustering is usually displayed as a **dendrogram**, with the following properties:
+
+- Each observation starts as a leaf.
+- Branches join when two clusters merge.
+- The axis showing the height of each join gives the merge distance.
+
+The single-linkage dendrogram for the point cloud in @fig-graph is shown in @fig-dendrogram.
+
+```{r}
+#| label: fig-dendrogram
+#| echo: false
+#| fig-asp: 0.5
+#| fig-cap: "Dendrogram of the point cloud in @fig-graph. The heights of the joins correspond to the merge distances."
+library(ggdendro)
+hc <- dist(X) |>
+  hclust(method = "single")
+hcdata <- dendro_data(hc, type = "rectangle")
+ggplot() +
+  geom_segment(data = segment(hcdata), aes(x = x, y = y, xend = xend, yend = yend)) +
+  scale_x_continuous(breaks = seq_len(NROW(X)), labels = label(hcdata)$label) +
+  coord_flip() +
+  labs(x = "Observation", y = "Merge distance")
+```
+
+@fig-mergedistances shows a bar plot of the cluster merge distances for the point cloud shown in @fig-graph. These correspond to the merge heights in the dendrogram in @fig-dendrogram. The shortest distance corresponds to when A and F joined to form an edge --- when the two separate vertex clusters merged. The largest distance corresponds to when all points became connected, when the B--H component merged with the rest of the data. With $n$ observations, there are $n$ initial clusters, but only $n - 1$ merges are needed to end up with one final cluster. So we get $n - 1$ merge distances.
+
+```{r}
+#| label: fig-mergedistances
+#| echo: false
+#| fig-cap: "Merge distances of the point cloud in @fig-graph. Each line denotes a cluster, with length equal to its merge distance."
+#| fig-width: 8
+#| fig-height: 1.6
+#| fig-asp: 0.2
+#| out-width: "100%"
+#| warning: false
+#| dependson: fig-graph
+data.frame(
+  row = seq_along(hc$height),
+  distance = hc$height
+) |>
+  ggplot(aes(x = row, y = distance)) +
+  geom_bar(stat = "identity", width = 0.1, fill = "#C14b14") +
+  labs(y = "Merge distance", x = "") +
+  coord_flip() +
+  scale_x_continuous(breaks = NULL) +
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+```
+
+In the context of anomaly detection, observations or small groups that merge with the rest of the data only at large merge distances are potential anomalies. In @fig-graph, B and H form a small component that remains separate until a relatively large value of $\delta$. DBSCAN expresses a similar idea in a different way: with $\epsilon=1.5$ and $M=3$, B and H are labelled as noise because they are not part of any dense region.
+
+#### Related ideas
+
+For single-linkage hierarchical clustering, the graph structure described above is related to the minimum spanning tree (MST) of the data, which is a tree that connects all observations together with the minimum total edge length. The merge distances are the MST edge weights in the order they are added to the tree.
+
+The graph structure is also related to topological data analysis (TDA), which is a method of summarising the shape of data. In TDA, a cluster is a **connected component** --- a 0-dimensional topological feature studied in persistent homology. When two connected components merge, one is described as "dying" and the other as "persisting". The merge distance is called the "death diameter", and the bar plot of merge distances is known as a "barcode". Long bars in the barcode correspond to connected components that remain separate over a wide range of distance thresholds, which may include potential anomalies. For a general introduction to TDA, see @carlsson2021topological.
 
 ## Multivariate kernel density estimation
 
