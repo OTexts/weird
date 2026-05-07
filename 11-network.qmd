@@ -1,1 +1,1 @@
-# Network and graph data {#sec-noneuclidean}
+# Network and graph data {#sec-network}

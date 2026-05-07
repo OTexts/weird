@@ -1,4 +1,4 @@
-# Functional data {#sec-noneuclidean}
+# Functional data {#sec-functional}
 
 ```{r}
 #| include: false

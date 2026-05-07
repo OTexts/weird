@@ -1,1 +1,1 @@
-# Categorical and textual data {#sec-noneuclidean}
+# Categorical and textual data {#sec-text}

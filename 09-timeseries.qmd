@@ -1,4 +1,4 @@
-# Time series data {#sec-noneuclidean}
+# Time series data {#sec-timeseries}
 
 ```{r}
 #| include: false

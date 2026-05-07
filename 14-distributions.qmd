@@ -1,1 +1,1 @@
-# Spaces of probability distributions {#sec-noneuclidean}
+# Spaces of probability distributions {#sec-distributions}

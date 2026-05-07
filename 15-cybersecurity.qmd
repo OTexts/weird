@@ -1,1 +1,1 @@
-# Network intrusions and fraud {#sec-noneuclidean}
+# Network intrusions and fraud {#sec-cybersecurity}
