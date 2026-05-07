@@ -500,7 +500,7 @@ oldfaithful |>
 
 ### General comments
 
-The idea of depth regions and the depth median can be easily generalised to data with more than two dimensions [@rousseeuw1998computing]. Consequently, it would be possible to define a higher-dimensional version of the bagplot, although it would be difficult to plot it in four or more dimensions. In any case, we will consider approaches to handle high-dimensional data in [Chapter -@sec-highdim].
+The idea of depth regions and the depth median can be easily generalised to data with more than two dimensions [@rousseeuw1998computing]. Consequently, it would be possible to define a higher-dimensional version of the bagplot, although it would be difficult to plot it in four or more dimensions. In any case, we will consider approaches to handle high-dimensional data in @sec-highdim.
 
 ## HDR boxplots
 
