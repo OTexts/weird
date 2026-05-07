@@ -32,6 +32,27 @@ projections, and skewness-adjusted variants are often preferred [@Brys2005-pc]. 
 R, `robustbase::adjOutlyingness()` provides an efficient implementation for computing
 these scores.
 
+## Stray and HDoutliers algorithms
+
+The HDoutliers algorithm of @Wilkinson2017-rb was designed to address several problems in anomaly detection:
+
+1. Data containing a mixture of categorical and continuous variables.
+2. Data with high dimensionality (a large number of variables).
+3. Data with a large number of observations.
+4. Data where anomalies occur in small clusters, rather than as isolated points.
+
+```{r}
+#| label: fig-stray
+of_scores <- of_scores |>
+  mutate(stray = stray_scores(duration))
+of_scores |> arrange(desc(stray))
+of_scores |>
+  ggplot(aes(x = duration, y = stray)) +
+  geom_point()
+```
+
+@Talagala2019-zv, @Wilkinson2017-rb
+
 ## PCout
 
 @Filzmoser2008-qa, @Filzmoser2013-tc
