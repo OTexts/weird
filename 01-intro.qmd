@@ -108,6 +108,14 @@ Modern tools for anomaly detection can be roughly divided into two groups: those
 
 Distance-based methods are discussed in @sec-distance-methods, while density-based methods are the subject of @sec-density-methods.
 
+### Beyond simple data sets
+
+For the most part, we will restrict attention in the first seven chapters to numerical data with only one or two variables. This allows us to introduce the main ideas and tools of anomaly detection in a simple setting, where we can easily visualise the data and the anomalies. However, many real data sets are more complex than this, and we will need to use more sophisticated methods to find anomalies in them.
+
+@sec-highdim discusses methods for finding anomalies in high-dimensional data, where there are many variables (sometimes more variables than observations).
+
+The remaining chapters of the book discuss applications of these methods to different types of data, including time series (@sec-timeseries), functional data (@sec-functional), network data (@sec-network), image data (@sec-image), text and categorical data (@sec-text), data which are probability distributions (@sec-distributions), and data on cyber-security and fraud (@sec-cybersecurity).
+
 ### Statistical vs machine learning approaches {-}
 
 Anomaly detection has a long history in the statistics literature, including all the approaches developed in the 20th century, and many of the newer density-based approaches.
