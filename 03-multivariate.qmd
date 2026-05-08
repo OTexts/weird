@@ -412,36 +412,36 @@ patchwork::wrap_plots(p1, p2, nrow = 1)
 
 Clustering is a method of grouping observations into distinct non-overlapping "clusters" based on their similarity. It is sometimes used for anomaly detection, as anomalies may form their own small clusters, or may appear as observations that do not belong to any cluster. Even if clustering is not used directly, some anomaly detection methods use tools based on clustering, and so we will need to understand some of the basic concepts. We will describe four of the most popular clustering methods: K-means clustering, the leader algorithm, DBSCAN, and hierarchical clustering.
 
+The methods differ in what information must be supplied in advance. K-means requires the number of clusters, $K$. The leader algorithm and DBSCAN instead use a distance threshold, $\delta$, which defines a local neighbourhood around each observation. DBSCAN also uses a density parameter, $M$. Hierarchical clustering can be used to examine what happens across many possible values of a distance threshold.
+
 ### K-means clustering
 
-K-means clustering [@Hartigan1975] partitions the data into $K$ clusters, where $K$ is a user-specified parameter. The algorithm begins by randomly selecting $K$ observations as initial "centroids", the centres of the clusters. Then, each observation is assigned to the cluster whose centroid is closest to it, based on some distance measure (usually Euclidean distance, but see @sec-distances for other possibilities). After all observations have been assigned to clusters, the centroids are updated to be the mean of the observations in each cluster. This process is repeated until convergence, which occurs when the cluster assignments no longer change.
+K-means clustering [@Hartigan1975] partitions the data into $K$ clusters, where $K$ is a user-specified parameter. The algorithm begins by selecting $K$ observations as initial "centroids". Then, each observation is assigned to the cluster whose centroid is closest to it, based on some distance measure (usually Euclidean distance, but see @sec-distances for other possibilities). After all observations have been assigned to clusters, the centroids are updated to be the mean of the observations in each cluster. This process is repeated until convergence, which occurs when the cluster assignments no longer change.
 
-The K-means algorithm is relatively fast, but it can be sensitive to the choice of initial centroids. It also assumes that the clusters are spherical and of similar size, which may not always be the case. A further drawback, especially in the context of anomaly detection, is that anomalies can significantly affect the cluster centroids. The number of clusters, $K$, must also be specified in advance, which can be difficult to determine, and often requires some experimentation.
+The K-means algorithm is relatively fast, but it can be sensitive to the choice of initial centroids, so it is common to run the algorithm several times using different random starts. It also assumes that the clusters are roughly spherical and of similar size, which may not always be the case. A further drawback, especially in the context of anomaly detection, is that anomalies can significantly affect the cluster centroids. The number of clusters, $K$, must also be specified in advance, which can be difficult to determine, and often requires some experimentation.
 
 ### Leader algorithm
 
-Rather than specify the number of clusters in advance, we can specify a maximum radius for each cluster, and then find clusters that satisfy this constraint. This is known as the leader algorithm [@Hartigan1975], and is a fast, incremental clustering method that can be used for large data sets. The only input required is $\delta$, the maximum radius of each cluster. The algorithm can be summarised as follows:
+Rather than specify the number of clusters in advance, we can specify a maximum radius for each cluster, and then find clusters that satisfy this constraint. This is known as the leader algorithm [@Hartigan1975], and is a fast, incremental clustering method that can be used for large data sets. The only input required is $\delta$, the maximum distance from an observation to the leader of its cluster. The algorithm can be summarised as follows:
 
-1. Select an initial observation as the first "leader".
+1. Select an initial observation as the first **leader**.
 2. For each subsequent observation:
-   a. If the observation is within $\delta$ of any existing leader, assign it to the cluster of the nearest leader.
+   a. If the observation is within $\delta$ of any existing leader, assign it to the cluster of the nearest such leader.
    b. If the observation is not within $\delta$ of any existing leader, it becomes a new leader for a new cluster.
 
-Thus, the clusters are defined as the set of observations that are within $\delta$ of their leader. The order of the data will obviously affect the resulting clusters, but the algorithm is very fast, and can be used as a first step in more complex clustering algorithms. Also, the clusters are much less sensitive to anomalies than K-means clustering.
+Thus, each cluster is defined by a leader and the observations assigned to that leader. Every assigned observation is within $\delta$ of its leader, so two observations in the same leader cluster can be up to $2\delta$ apart from each other. The order of the data will obviously affect the resulting clusters, but the algorithm is very fast, and can be used as a first step in more complex clustering algorithms. The leader algorithm can also be useful for anomaly detection, because isolated observations tend to become singleton or small clusters rather than being forced into a large cluster. However, this should not be interpreted as full robustness: an early anomaly can become a leader, and the resulting clusters depend on the ordering of the observations.
 
-To compare these two approaches, we will apply them to the Old Faithful data set in @fig-clustering-off. First, the data are scaled (@sec-scaling) to prevent the duration variable from dominating the clustering. Then K-means clustering is applied with $K=2$, and the leader algorithm is applied with $\delta=3.3$ (chosen after some experimentation).
+To compare K-means and the leader algorithm, we will apply them to the Old Faithful data set in @fig-clustering-off. First, the data are scaled (@sec-scaling) to prevent the duration variable from dominating the clustering. Then K-means clustering is applied with $K=2$, and the leader algorithm is applied with $\delta=3.3$ (chosen after some experimentation).
 
 ```{r}
 #| label: fig-clustering-off
-#| fig-cap: "Clustering of the Old Faithful data set using K-means and the leader algorithm. The K-means clusters are shown in the left plot, while the leader clusters are shown in the right plot. The K-means clusters are more affected by anomalies than the leader clusters."
-km_clusters <- oldfaithful |>
+#| fig-cap: "Clustering of the Old Faithful data set using K-means and the leader algorithm. The K-means clusters are shown in the left plot, while the leader clusters are shown in the right plot. K-means forces every observation into one of two clusters, while the leader algorithm can isolate outlying observations into small clusters."
+set.seed(12345)
+of_scaled <- oldfaithful |>
   select(duration, waiting) |>
-  mvscale(cov = NULL) |>
-  kmeans(centers = 2)
-leader_clusters <- oldfaithful |>
-  select(duration, waiting) |>
-  mvscale() |>
-  leaderCluster::leaderCluster(radius = 3.3)
+  mvscale()
+km_clusters <- kmeans(of_scaled, centers = 2, nstart = 20)
+leader_clusters <- leaderCluster::leaderCluster(of_scaled, radius = 3.3)
 oldfaithful |>
   mutate(
     km_cluster = factor(km_clusters$cluster),
@@ -452,40 +452,68 @@ oldfaithful |>
     names_to = "method",
     values_to = "cluster"
   ) |>
-  mutate(method = recode(method, km_cluster = "K-means clustering", leader_cluster = "Leader clustering")) |>
+  mutate(
+    method = recode(
+      method,
+      km_cluster = "K-means clustering",
+      leader_cluster = "Leader clustering"
+    )
+  ) |>
   ggplot(aes(x = duration, y = waiting, color = cluster)) +
   geom_point() +
   facet_wrap(~method) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 
-Apart from a reversal of the cluster labels, most points are assigned to the same two large clusters, with some variation in the points between the two clouds of points. However, the outlying points have been allocated to other clusters in the leader algorithm. If we increase the number of clusters in the K-means algorithm, we get the upper right cluster splitting into multiple clusters, rather than the outlying points being allocated to separate clusters. This is a result of the fact that the K-means centroids are affected by the outlying points, while the leader centroids are not.
+Both methods identify the same two main clouds (with the cluster order reversed), but handle outlying points differently. K-means forces every observation into one of the $K=2$ clusters, pulling the centroids slightly toward the outliers. The leader algorithm instead isolates some outlying points into small separate clusters because they fall outside $\delta$ of the existing leaders. If we increase $K$ in K-means to match the number of leader clusters, we get the main clouds splitting rather than the outliers separating.
 
 ### DBSCAN clustering
 
-DBSCAN (Density-Based Spatial Clustering of Applications with Noise) is a clustering method proposed by @dbscan that identifies clusters as dense regions of nearby observations. It does not require the number of clusters to be specified in advance, and it allows some observations to be left unclustered. These unclustered observations are called **noise** by the algorithm, and are often interpreted as potential anomalies. Note that this use of the word "noise" is different from the usual use of the word in statistics, where it refers to random variation in the data.
+DBSCAN (Density-Based Spatial Clustering of Applications with Noise) is a clustering method proposed by @dbscan that identifies clusters as dense regions of nearby observations. Like the leader algorithm, it uses a neighbourhood radius $\delta$, but adds a density condition controlled by a second parameter $M$. It does not require the number of clusters to be specified in advance, and unlike K-means and the leader algorithm, it allows some observations to be left unclustered. These unclustered observations are called **noise** by the algorithm, and are often interpreted as potential anomalies. Note that this use of the word "noise" is different from the usual use of the word in statistics, where it refers to random variation in the data.
 
-The algorithm has two main parameters: $\delta$, the radius of the neighbourhood around each observation, and $M$, the minimum number of observations required for a neighbourhood to be considered dense. For each observation $\bm{y}_i$, let $N_{\delta}(\bm{y}_i)$ denote the set of observations within distance $\delta$ of $\bm{y}_i$, including $\bm{y}_i$ itself. An observation $\bm{y}_i$ is classified as follows:
+The algorithm has two main parameters: $\delta$, the radius of the neighbourhood around each observation, and $M$, the minimum number of observations required for a neighbourhood to be considered dense. For each observation $\bm{y}_i$, let $N_{\delta}(\bm{y}_i)$ denote the number of observations within distance $\delta$ of $\bm{y}_i$, including $\bm{y}_i$ itself. An observation $\bm{y}_i$ is classified as follows:
 
-* it is a **core** observation if $|N_{\delta}(\bm{y}_i)| \ge M$;
+* it is a **core** observation if $N_{\delta}(\bm{y}_i) \ge M$;
 * it is a **border** observation if it is not a core observation, but it is within distance $\delta$ of at least one core observation;
 * otherwise it is **noise**.
 
 Clusters are formed by connecting nearby core observations that are within $\delta$ of each other. Each connected group of core observations forms one cluster. Border observations are then attached to any cluster containing a core observation within distance $\delta$. If a border observation is within distance $\delta$ of core observations from more than one cluster, its assignment may be arbitrary or implementation-dependent. Noise observations are not assigned to any cluster.
 
-The DBSCAN algorithm is implemented in the `dbscan()` function in the `dbscan` package.
+The DBSCAN algorithm is implemented in the `dbscan()` function in the `dbscan` package. @fig-clustering-dbscan shows the result for the Old Faithful data set, using $\delta=0.61$ and $M=20$ (again, chosen after some experimentation).
 
-### DBSCAN as a graph algorithm
+```{r}
+#| label: fig-clustering-dbscan
+#| fig-cap: "DBSCAN clustering of the Old Faithful data set using robustly scaled variables, with noise observations shown in black."
+dbscan_clusters <- dbscan::dbscan(of_scaled, eps = 0.61, minPts = 20)
+oldfaithful |>
+  mutate(dbscan_cluster = factor(dbscan_clusters$cluster)) |>
+  ggplot(aes(x = duration, y = waiting, color = dbscan_cluster)) +
+  geom_point() +
+  labs(x = "Duration (seconds)", y = "Waiting time (seconds)") +
+  scale_color_manual(
+    values = c(
+      `0` = "#444444",
+      `1` = "#D55E0088",
+      `2` = "#0072B288"
+    ),
+    labels = c(
+      `0` = "Noise",
+      `1` = "Cluster 1",
+      `2` = "Cluster 2"
+    )
+  ) +
+  guides(color = guide_legend(title = "DBSCAN cluster"))
+```
 
-DBSCAN can be understood using a graph (i.e., a network, not a plot). Each observation is a vertex, and we draw an edge between two vertices if the distance between the corresponding observations is at most $\delta$. This graph is sometimes called the $\delta$-neighbourhood graph.
+### The $\delta$-neighbourhood graph
 
-DBSCAN does not simply take the connected components of this graph as clusters. It first identifies which vertices are core observations, using the density condition described above. It then forms clusters from connected groups of core observations, and attaches any border observations that are connected to those core groups. Sparse vertices that are not connected to any core observation are labelled as noise.
+Both the leader algorithm and DBSCAN can be understood using a graph (i.e., a network, not a plot). Each observation is a vertex, and we draw an edge between two vertices if the distance between the corresponding observations is at most $\delta$. This graph is sometimes called the **$\delta$-neighbourhood graph**.
 
 For example, consider the eight points labelled A to H shown in @fig-graph, and suppose we choose $\delta=1.5$ and $M=3$. The blue disks centred on each point have radius $\delta/2$; so overlapping disks indicate that their central points are within $\delta$ of each other. Points B and H form an edge, but are disconnected from all other points because they are further than $\delta$ from the other points. The pair A and F also form an edge, and D is connected to them via F. They do not form a triangle because A and D are too far apart. The points C, E and G form a connected triangle.
 
 ```{r}
 #| label: fig-graph
-#| fig-cap: "An example of an $\\delta$-neighbourhood graph based on eight observations, where two observations are joined by an edge if the distance between them is at most $\\delta=1.5$. The blue disks have radius $\\delta/2$, so overlapping disks indicate that their central points are within $\\delta$ of each other. If DBSCAN is applied with $M=3$, the graph contains two clusters and two noise observations."
+#| fig-cap: "An example of a $\\delta$-neighbourhood graph based on eight observations, where two observations are joined by an edge if the distance between them is at most $\\delta=1.5$. The blue disks have radius $\\delta/2$, so overlapping disks indicate that their central points are within $\\delta$ of each other. If DBSCAN is applied with $M=3$, the graph contains two clusters and two noise observations."
 #| message: false
 #| warning: false
 #| echo: false
@@ -503,7 +531,13 @@ vr_complex(X, 1.5) +
   )
 ```
 
-If we considered only the connected components of this graph, there would be three groups: A--F--D, C--E--G, and B--H. However, DBSCAN adds the density condition. With $M=3$, F is a core observation because its $\delta$-neighbourhood contains A, F and D. The points C, E and G are also core observations because each of them has the other two points in its $\delta$-neighbourhood. By contrast, B and H are not core observations, because their $\delta$-neighbourhoods contain only B and H. They are not border observations either, because they are not connected to any core observation. Therefore, DBSCAN labels B and H as noise.
+The leader algorithm uses this graph in an order-dependent way. As the observations are processed, some vertices are selected as leaders. A new vertex is assigned to an existing leader if it is connected by an edge to at least one leader; otherwise, it becomes a new leader. Thus, the leaders form a set of vertices with no edges between them, because a vertex cannot become a new leader if it is within $\delta$ of an existing leader. Each non-leader vertex is then attached to one of the leader vertices to which it is connected, usually the nearest one. In graph terms, the leader algorithm chooses a set of leader vertices and then forms a collection of star-shaped clusters centred on those leaders. These leader clusters are not necessarily the connected components of the full $\delta$-neighbourhood graph: two observations assigned to different leaders may still be connected by an edge, and a connected component may contain more than one leader cluster.
+
+If we ran the leader algorithm on these points in alphabetical order, A would become the first leader. B and C would also become leaders, because neither is within $\delta$ of an existing leader. D would then become a leader as well, because it is within $\delta$ of F, but F has not yet been processed. The later observations E, F, G and H would be assigned to existing leaders. One possible set of leader clusters is therefore A--F, B--H, C--E--G, and D. This illustrates two important features of the leader algorithm: the result depends on the order of the observations, and a sparse pair such as B--H can form a valid leader cluster because there is no density condition.
+
+DBSCAN uses the same $\delta$-neighbourhood graph differently. It first identifies which vertices are core observations, using the density condition described above. Since the $\delta$-neighbourhood includes $\bm{y}_i$ itself, a vertex is core when it has at least $M-1$ neighbours in the graph. DBSCAN then forms clusters from connected groups of core vertices, and attaches any border vertices that are connected to those core groups. Sparse vertices that are not connected to any core vertex are labelled as noise. Thus, where the leader algorithm uses $\delta$ to build clusters around selected representative vertices, DBSCAN uses $\delta$ to build dense connected regions.
+
+If we considered only the connected components of the $\delta$-neighbourhood graph, there would be three groups: A--F--D, C--E--G, and B--H. DBSCAN adds the density condition. With $M=3$, F is a core observation because its $\delta$-neighbourhood contains A, F and D. The points C, E and G are also core observations because each of them has the other two points in its $\delta$-neighbourhood. By contrast, B and H are not core observations, because their $\delta$-neighbourhoods contain only B and H. They are not border observations either, because they are not connected to any core observation. Therefore, DBSCAN labels B and H as noise.
 
 So, for this example, DBSCAN gives two clusters and two noise observations:
 
@@ -511,13 +545,13 @@ So, for this example, DBSCAN gives two clusters and two noise observations:
 * C--E--G is another cluster, with all three points as core observations;
 * B and H are noise observations.
 
-This example illustrates the difference between a sparse group and a dense cluster. The pair B--H is a connected component of the $\delta$-neighbourhood graph, but it is not dense enough to be a DBSCAN cluster. This is the feature that allows DBSCAN to separate potential anomalies from clusters.
+This example illustrates the difference between a sparse group and a dense cluster. The pair B--H is a connected component of the $\delta$-neighbourhood graph, and may be a leader cluster, but it is not dense enough to be a DBSCAN cluster. This is the feature that allows DBSCAN to separate potential anomalies from clusters.
 
 ### Hierarchical clustering
 
-A related approach is to examine what happens as the distance threshold changes. If we ignore the DBSCAN density condition and simply take the connected components of the graph, then increasing the threshold gives a sequence of cluster mergers. This is the idea behind **single-linkage hierarchical clustering**.
+A related approach is to examine what happens as the distance threshold changes. If we ignore the DBSCAN density condition and simply take the connected components of the $\delta$-neighbourhood graph, then increasing the threshold gives a sequence of cluster mergers. This is the idea behind **single-linkage hierarchical clustering**.
 
-Imagine slowly increasing a distance threshold $\delta$ from 0 upwards. At $\delta=0$, there are no edges, so every observation is its own cluster. As $\delta$ increases, more edges appear, and clusters merge together. When an edge connects two clusters that were previously separate, those two clusters merge into one larger cluster. Eventually, all clusters merge into a single cluster.
+Imagine slowly increasing a distance threshold $\delta$ from 0 upwards. At $\delta=0$, and assuming there are no duplicate observations, there are no edges, so every observation is its own cluster. As $\delta$ increases, more edges appear, and clusters merge together. When an edge connects two clusters that were previously separate, those two clusters merge into one larger cluster. Eventually, all clusters merge into a single cluster.
 
 Taking the small example of @fig-graph, we explore what happens as $\delta$ increases from 0.5 to 2.0. With a small value of $\delta$, all points are disconnected, and the graph consists of eight vertices with no edges. As $\delta$ increases, more points are connected to each other, and eventually, the graph consists of a single connected component.
 
@@ -547,7 +581,7 @@ patchwork::wrap_plots(p, nrow = 2)
 
 In single-linkage hierarchical clustering, we start with each observation as its own cluster, and then repeatedly merge the two closest clusters together until we have one final cluster. The distance between two clusters when they merge is called the **merge distance**. For single-linkage clustering, the distance between two clusters is the minimum distance between any point in one cluster and any point in the other cluster.
 
-This is different from DBSCAN in two important ways. First, single-linkage hierarchical clustering does not distinguish between core, border and noise observations. Every observation belongs to some cluster at every stage. Second, the result is not a single clustering, but a hierarchy of clusterings indexed by the merge distance. We can obtain a particular clustering by cutting the hierarchy at a chosen distance threshold, but the hierarchy itself records how the clusters merge over all possible thresholds.
+This is different from DBSCAN in three important ways. First, single-linkage hierarchical clustering does not distinguish between core, border and noise observations --- every observation belongs to some cluster at every stage, just as in K-means and the leader algorithm. Second, the result is not a single partition of the data, but a full hierarchy indexed by the merge distance. Third, rather than fixing $\delta$ in advance, hierarchical clustering records the complete sequence of partitions for all possible values of $\delta$. We can obtain a particular partition by cutting the hierarchy at a chosen merge distance, but the hierarchy itself shows how the clusters merge as $\delta$ increases.
 
 Other forms of hierarchical clustering use different measures of the distances between clusters. For example, complete-linkage is based on the maximum distance between any two points in the two clusters, while average-linkage is based on the average distance between all pairs of points across the two clusters. The graph interpretation above applies specifically to single-linkage hierarchical clustering.
 
@@ -599,7 +633,7 @@ data.frame(
   theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 ```
 
-In the context of anomaly detection, observations or small groups that merge with the rest of the data only at large merge distances are potential anomalies. In @fig-graph, B and H form a small component that remains separate until a relatively large value of $\delta$. DBSCAN expresses a similar idea in a different way: with $\epsilon=1.5$ and $M=3$, B and H are labelled as noise because they are not part of any dense region.
+In the context of anomaly detection, observations or small groups that merge with the rest of the data only at large merge distances are potential anomalies. In @fig-graph, B and H form a small component that remains separate until a relatively large value of $\delta$. DBSCAN expresses a similar idea in a different way: with $\delta=1.5$ and $M=3$, B and H are labelled as noise because they are not part of any dense region.
 
 #### Related ideas
 
