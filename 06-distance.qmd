@@ -225,17 +225,17 @@ Then the local outlier factor for observation $\bm{y}_i$ is given by
 $$
 \ell_{i,k} = \frac{\bar{r}_{i,k}}{k}\sum_{\bm{y}_j \in N_{i,k}} \bar{r}^{-1}_{j,k}.
 $$
-Thus, it is the ratio between $\bar{r}_{i,k}$ and the average value of $\bar{r}^{-1}_{j,k}$ for points within its neighbourhood.
+Thus, it is the product of $\bar{r}_{i,k}$ and the average value of $\bar{r}^{-1}_{j,k}$ for points within its neighbourhood.
 
 This provides a relative measure of the density of each observation compared to its neighbours. An observation is regarded as an anomaly if it is in a low-density region (far from its neighbours) while its neighbours are in higher density regions (with many neighbours nearby). A value of $\ell_{i,k}$ much greater than 1 shows that the observation has much larger average reachability compared to its neighbours, and so is regarded as an anomaly.
 
-One problem with this definition is that $\ell_{i,k}$ can be infinite. If the data set contains at least $k+1$ identical observations, then the average reachability $\bar{r}_k(j,k)$ will be 0 if $\bm{y}_j$ is one of the group of identical observations. Consequently, $\ell_{i,k} = \infty$ if $\bm{y}_i$ is a neighbour to one of the group of identical observations. In this book we use a slightly different definition from that used elsewhere and replace these infinite values with zeros.
+One problem with this definition is that $\ell_{i,k}$ can be infinite. If the data set contains at least $k+1$ identical observations, then the average reachability $\bar{r}_{j,k}$ will be 0 if $\bm{y}_j$ is one of the group of identical observations. Consequently, $\ell_{i,k} = \infty$ if $\bm{y}_i$ is a neighbour to one of the group of identical observations. In this book we use a slightly different definition from that used elsewhere and replace these infinite values with 1s.
 
 Another problem is that it can be difficult to determine an appropriate value for $k$.
 
 ### Example: Old Faithful data
 
-Let's apply the idea to the `duration` variable in the Old Faithful data set. We will use the `lof_scores()` function to compute the local outlier factors for each eruption, with $k=120$ nearest neighbours. The value of $k=120$ has been chosen after experimenting with various values.
+Let's apply the idea to the `duration` variable in the Old Faithful data set. We will use the `lof_scores()` function to compute the local outlier factors for each eruption, with $k=100$ nearest neighbours. The value of $k=100$ has been chosen after experimenting with various values.
 
 ```{r}
 #| label: ofscores
