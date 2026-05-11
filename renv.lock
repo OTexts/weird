@@ -1849,7 +1849,7 @@
     },
     "cpp11": {
       "Package": "cpp11",
-      "Version": "0.5.4",
+      "Version": "0.5.5",
       "Source": "Repository",
       "Title": "A C++11 Interface for R's C Interface",
       "Authors@R": "c( person(\"Davis\", \"Vaughan\", email = \"davis@posit.co\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0003-4777-038X\")), person(\"Jim\",\"Hester\", role = \"aut\", comment = c(ORCID = \"0000-0002-2739-7082\")), person(\"Romain\", \"François\", role = \"aut\", comment = c(ORCID = \"0000-0002-2444-4226\")), person(\"Benjamin\", \"Kietzman\", role = \"ctb\"), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")) )",
@@ -1892,7 +1892,7 @@
       "NeedsCompilation": "no",
       "Author": "Davis Vaughan [aut, cre] (ORCID: <https://orcid.org/0000-0003-4777-038X>), Jim Hester [aut] (ORCID: <https://orcid.org/0000-0002-2739-7082>), Romain François [aut] (ORCID: <https://orcid.org/0000-0002-2444-4226>), Benjamin Kietzman [ctb], Posit Software, PBC [cph, fnd]",
       "Maintainer": "Davis Vaughan <davis@posit.co>",
-      "Repository": "https://packagemanager.posit.co/cran/__linux__/noble/latest"
+      "Repository": "binary"
     },
     "crayon": {
       "Package": "crayon",
@@ -4504,9 +4504,9 @@
     },
     "ks": {
       "Package": "ks",
-      "Version": "1.15.1",
+      "Version": "1.15.2",
       "Source": "Repository",
-      "Date": "2025-05-04",
+      "Date": "2026-05-09",
       "Title": "Kernel Smoothing",
       "Authors@R": "c(person(\"Tarn\", \"Duong\", role=c(\"aut\",\"cre\"), email=\"tarn.duong@gmail.com\", comment=c(ORCID=\"0000-0002-1198-3482\")), person(\"Matt\", \"Wand\", role=\"ctb\", comment=c(ORCID=\"0000-0003-2555-896X\")), person(\"Jose\", \"Chacon\", role=\"ctb\"), person(\"Artur\", \"Gramacki\", role=\"ctb\", comment=c(ORCID=\"0000-0002-1610-9743\")))",
       "Maintainer": "Tarn Duong <tarn.duong@gmail.com>",
@@ -4526,19 +4526,22 @@
       ],
       "Suggests": [
         "geometry",
+        "knitr",
         "MASS",
         "misc3d (>= 0.4-0)",
         "oz",
         "plot3D",
-        "rgl (>= 0.66)"
+        "rgl (>= 0.66)",
+        "rmarkdown"
       ],
+      "VignetteBuilder": "knitr",
+      "Encoding": "UTF-8",
       "Description": "Kernel smoothers for univariate and multivariate data, with comprehensive visualisation and bandwidth selection capabilities, including for densities, density derivatives, cumulative distributions, clustering, classification, density ridges, significant modal regions, and two-sample hypothesis tests. Chacon & Duong (2018) <doi:10.1201/9780429485572>.",
       "License": "GPL-2 | GPL-3",
-      "URL": "https://www.mvstat.net/mvksa/",
+      "URL": "https://mvstat.net/ks/, https://mvstat.net/mvksa/, https://github.com/cran/ks/",
       "NeedsCompilation": "yes",
       "Author": "Tarn Duong [aut, cre] (ORCID: <https://orcid.org/0000-0002-1198-3482>), Matt Wand [ctb] (ORCID: <https://orcid.org/0000-0003-2555-896X>), Jose Chacon [ctb], Artur Gramacki [ctb] (ORCID: <https://orcid.org/0000-0002-1610-9743>)",
-      "Repository": "https://packagemanager.posit.co/cran/__linux__/noble/latest",
-      "Encoding": "UTF-8"
+      "Repository": "binary"
     },
     "labeling": {
       "Package": "labeling",
@@ -8658,7 +8661,7 @@
       "RemoteUsername": "robjhyndman",
       "RemoteRepo": "weird",
       "RemoteRef": "main",
-      "RemoteSha": "a123c2a8023e8717f93c0df74d970c1dd8eae6c9",
+      "RemoteSha": "67b3bf07cbe9d1c4b2b22941820e130d8fbaf3f4",
       "RemoteHost": "api.github.com"
     },
     "withr": {
