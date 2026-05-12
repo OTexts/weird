@@ -12,3 +12,5 @@
 *_files/*
 /_book/
 /_freeze/
+
+**/*.quarto_ipynb

@@ -225,11 +225,11 @@ By far the most common type of regression model assumes that $f$ is a Normal dis
 
 For a linear Normal regression model, with independent observations and homoscedastic errors, the conditional distribution is given by
 $$
-  y \mid \bm{x} \sim N(\bm{x}^\intercal\bm{\beta}, \sigma^2),
+  y \mid \bm{x} \sim \text{N}(\bm{x}^\intercal\bm{\beta}, \sigma^2),
 $$ {#eq-gaussian-regression}
 where $\bm{\beta}$ is a $p$-dimensional coefficient vector. In matrix form, where $\bm{X}$ is the $n\times p$ matrix of predictors, this is
 $$
-  \bm{y} \sim N(\bm{X}\bm{\beta}, \sigma^2\bm{I}).
+  \bm{y} \sim \text{N}(\bm{X}\bm{\beta}, \sigma^2\bm{I}).
 $$
 
 The OLS estimation of this model was described in @sec-bacon-reg. Recall that the fitted values are given by
