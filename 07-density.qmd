@@ -219,54 +219,34 @@ If the density $f$ has been estimated from the data, then there is a problem of 
 
 ## Linear regression surprisals {#sec-regression-log-scores}
 
-Suppose we want to find anomalies amongst $n$ univariate observations $y_1,\dots,y_n$, and we have $p$ variables that we think might be useful for predicting $y$. Then we can write the conditional density as $f(y \mid \bm{x})$, where $\bm{x}$ is a $p$-dimensional vector of predictor variables. Anomalies in $y$ are identified as observations that are unlikely to have come from the conditional density $f$. This is commonly called a "regression model", regardless of the form of $f$, or whether the relationship with $\bm{x}$ is linear or not.
+Suppose we want to find anomalies amongst $n$ univariate observations $y_1,\dots,y_n$, and we have predictor variables that we think might be useful for predicting $y$. We write the conditional density as $f(y \mid \bm{x})$, where $\bm{x}$ is a $p$-dimensional vector; following the convention of @sec-bacon-reg, $p$ includes the intercept if present. Anomalies in $y$ are identified as observations that are unlikely to have come from the conditional density $f$. This is commonly called a "regression model", regardless of the form of $f$, or whether the relationship with $\bm{x}$ is linear or not.
 
 By far the most common type of regression model assumes that $f$ is a Normal distribution, and that the conditional mean is a linear function of $\bm{x}$. Note that this does *not* mean that $y$ is Normally distributed, or that $\bm{x}$ has a Normal distribution. The assumption is that the *conditional* distribution of $y$ given $\bm{x}$ is Normal, which can easily be checked by looking at the residuals from the regression model.
 
 For a linear Normal regression model, with independent observations and homoscedastic errors, the conditional distribution is given by
 $$
-  y \mid \bm{x} \sim N(\bm{x}_+^\intercal\bm{\beta}, \sigma^2),
+  y \mid \bm{x} \sim N(\bm{x}^\intercal\bm{\beta}, \sigma^2),
 $$ {#eq-gaussian-regression}
-where $\bm{x}_+ = [1, \bm{x}]^\intercal$ is a $(p+1)$-dimensional vector containing a 1 in the first position and the predictors in the remaining positions, and $\bm{\beta}$ is a $(p+1)$-dimensional vector of regression coefficients.
+where $\bm{\beta}$ is a $p$-dimensional coefficient vector. In matrix form, where $\bm{X}$ is an $n\times p$ matrix with rows equal to the predictor variables for each observation, this is
+$$
+  \bm{y} \sim N(\bm{X}\bm{\beta}, \sigma^2\bm{I}).
+$$
 
-### Model estimation
+The OLS estimation of this model was described in @sec-bacon-reg. Recall that the fitted values are given by
+$$
+  \hat{\bm{y}} = \bm{H}\bm{y},
+$$
+where $\bm{H} = \bm{X}(\bm{X}^\intercal\bm{X})^{-1}\bm{X}^\intercal$ is the hat matrix. Its diagonals $h_1,\dots,h_n$, known as the leverage values, take values in $[0,1]$ and measure how much each observation influences its own fitted value; high leverage observations have a large influence on the estimated coefficients, so removing them would substantially change the fitted values and residuals.
 
-The model can be written in matrix form as
+The residuals $\bm{e} = \bm{y} - \hat{\bm{y}} = (\bm{I} - \bm{H})\bm{y}$ have the distribution $\bm{e}\mid\bm{X} \sim N(\bm{0}, \sigma^2(\bm{I} - \bm{H}))$. Standardised residuals are given by
 $$
-  \bm{y} \sim N(\bm{X}\bm{\beta}, \sigma^2\bm{I}),
-$$
-where $\bm{X}$ is an $n\times(p+1)$ matrix with the first column being a vector of 1s, and the other columns containing the predictor variables, or equivalently as
-$$
-  \bm{\varepsilon} = \bm{y} - \bm{X}\bm{\beta} \sim N(\bm{0}, \sigma^2\bm{I}).
-$$ {#eq-error-distribution}
-Provided $\bm{X}$ is of rank $p+1$, and the errors $\bm{\varepsilon}$ are independent of $\bm{X}$, the model can be estimated using ordinary least squares regression [@seberlee2003], resulting in the estimate
-$$
-  \hat{\bm{\beta}} = (\bm{X}^\intercal\bm{X})^{-1}\bm{X}^\intercal\bm{y}.
-$$
-The fitted values (i.e., predicted values for the training data) are given by
-$$
-  \hat{\bm{y}} = \bm{X}\hat{\bm{\beta}} = \bm{H}\bm{y},
-$$
-where $\bm{H} = \bm{X}(\bm{X}^\intercal\bm{X})^{-1}\bm{X}^\intercal$ is known as the "hat"-matrix because it creates the "y-hat" values $\hat{\bm{y}}$ from the data $\bm{y}$.
-
-The diagonals of $\bm{H}$, given by $h_1,\dots,h_n$, take values between 0 and 1. These are known as the "leverage" values [@faraway2004linear, p. 69], and measure how much each observation influences the corresponding fitted value. High leverage values (close to 1) correspond to observations that have a large influence on the estimated coefficients, and so leaving those observations out will lead to very different values for the fitted values and residuals. On the other hand, small leverage values (close to 0) correspond to observations that have little influence on the estimated coefficients, and so leaving those observations out will lead to similar values for the fitted values and residuals.
-
-### Residuals
-
-The residuals from the model are given by
-$$
-  \bm{e} = \bm{y} - \hat{\bm{y}} = (\bm{I} - \bm{H})\bm{y}.
-$$ {#eq-residual-distribution}
-Note that the residuals have the distribution $\bm{e}\mid\bm{X} \sim N(\bm{0}, \sigma^2(\bm{I} - \bm{H}))$, which is not quite the same as the distribution of the errors given by @eq-error-distribution. However, as $n\rightarrow\infty$, $\bm{H}\rightarrow\bm{I}$, so the two distributions are asymptotically equivalent. Often, we need standardised residuals, which are obtained by dividing each residual by its estimated standard deviation, giving
-$$ r_i = \frac{e_i}{\hat{\sigma}\sqrt{1-h_i}}, \qquad i = 1,\dots, n,
+  r_i = \frac{e_i}{\hat{\sigma}\sqrt{1-h_i}}, \qquad i = 1,\dots, n,
 $$
 where
 $$
-\hat\sigma^2 = \frac{1}{n-p-1}\sum_{i=1}^n e_i^2
-$$ {#eq-residual-variance}
+\hat\sigma^2 = \frac{1}{n-p}\sum_{i=1}^n e_i^2
+$$ {#eq-residual-variance-density}
 is the estimated residual variance.
-
-A linear model can be estimated in R using the `stats::lm()` function. The `broom::augment()` function will compute the residuals (named `.resid`), the standardised residuals (named `.std.resid`), and the leverage values (named `.hat`).
 
 The surprisals under the Gaussian linear regression model [@eq-gaussian-regression] can be estimated using these standardised residuals, giving
 $$
@@ -299,15 +279,15 @@ The variance of $e_{-i}$ is given by
 $$
   \frac{\text{Var}(e_i)}{(1-h_i)^2} = \frac{\sigma^2}{1-h_i},
 $$
-so we can standardise each LOO residual to obtain
+so (if we knew $\sigma$) we could standardise each LOO residual to obtain
 $$
- \frac{e_i / (1-h_i)}{\sigma/\sqrt{1-h_i}} = \frac{e_i}{\sigma \sqrt{1-h_i}}
+ \frac{e_i / (1-h_i)}{\sigma/\sqrt{1-h_i}} = \frac{e_i}{\sigma \sqrt{1-h_i}}.
 $$
-To avoid any anomalies affecting the estimate of $\sigma$, we consider again the leave-one-out models. If we leave out the $i$th observation, and fit a regression model to the remaining observations, then the estimated variance of the residuals is given by [@Montgomery2012, Appendix C.8]
+Of course, we don't know $\sigma$, so we need to estimate it. To avoid any anomalies affecting the estimate of $\sigma$, we consider again the leave-one-out models. If we leave out the $i$th observation, and fit a regression model to the remaining observations, then the estimated variance of the residuals is given by [@Montgomery2012, Appendix C.8]
 $$
-  \hat\sigma_{-i}^2 = \frac{1}{n-p-2}\left[(n-p-1)\hat\sigma^2 - e_{i}^2/(1-h_i)\right],
+  \hat\sigma_{-i}^2 = \frac{1}{n-p-1}\left[(n-p)\hat\sigma^2 - e_{i}^2/(1-h_i)\right],
 $$ {#eq-loo-residual-variance}
-where $\hat\sigma^2$ is given by @eq-residual-variance. These are computed by `broom::augment()` and are returned in the column `.sigma`.
+where $\hat\sigma^2$ is given by @eq-residual-variance-density. These are computed by `broom::augment()` and are returned in the column `.sigma`.
 Thus the standardised LOO residuals (also known as "externally studentized residuals") are given by
 $$
  r_{-i} = \frac{e_i}{\hat\sigma_{-i} \sqrt{1-h_i}}.
@@ -335,17 +315,17 @@ surprisals(fit, loo = TRUE)
 
 ### Example: Shiraz reviews
 
-For example, consider the wine reviews of Shiraz (aka Syrah), plotted in @fig-shiraz. We can fit a linear regression model to these data to obtain a conditional density estimate of price given the points awarded to each wine. Then, $\bm{X}$ contains just two columns: a column of 1s, and a column containing the points values. The vector $\bm{y}$ contains the log prices of the wines. The model can be fitted as follows.
+We return to the Shiraz wine reviews introduced in @sec-bacon-reg, fitting the same linear regression model with `log(price)` as the response and `points` as the predictor.
 
 ```{r}
-#| label: shiraz-data
+#| label: shiraz-data-density
 #| eval: false
 #| code-fold: false
 wine_reviews <- fetch_wine_reviews()
 ```
 
 ```{r}
-#| label: shiraz-regression
+#| label: shiraz-regression-density
 #| code-fold: false
 shiraz <- wine_reviews |> filter(variety %in% c("Shiraz", "Syrah"))
 fit_wine <- lm(log(price) ~ points, data = shiraz)
@@ -356,10 +336,10 @@ The fitted model can be written as
 $$
   \log(\text{Price}) \sim N(`r sprintf("%.3f",coef(fit_wine)[1])` + `r sprintf("%.3f",coef(fit_wine)[2])` \times \text{Points}, `r sprintf("%.3f",sigma(fit_wine))`^2),
 $$
-and is depicted in @fig-shiraz-regression with 95% prediction intervals.
+and is depicted in @fig-shiraz-regression-density with 95% prediction intervals.
 
 ```{r}
-#| label: fig-shiraz-regression
+#| label: fig-shiraz-regression-density
 #| warning: false
 #| fig-cap: Log price of Shiraz as a function of points, with 95% prediction intervals. The points are horizontally jitted to reduce overplotting. Points outside the prediction intervals are coloured.
 wine_aug <- broom::augment(fit_wine, data = shiraz, interval = "prediction") |>
@@ -382,11 +362,11 @@ wine_aug |>
   scale_colour_manual(values = c("#0072B2", "#D55E00", "#AAAAAA"))
 ```
 
-The LOO surprisals obtained from this model are shown in @fig-shiraz-regression-scores, using the same colours as @fig-shiraz-regression to indicate whether the observation is below, within, or above, the 95% prediction interval.
+The LOO surprisals obtained from this model are shown in @fig-shiraz-regression-scores, using the same colours as @fig-shiraz-regression-density to indicate whether the observation is below, within, or above, the 95% prediction interval.
 
 ```{r}
 #| label: fig-shiraz-regression-scores
-#| fig-cap: Residuals and surprisals for the Shiraz data using a linear regression model. Points are coloured to match the 95% prediction intervals in @fig-shiraz-regression.
+#| fig-cap: Residuals and surprisals for the Shiraz data using a linear regression model. Points are coloured to match the 95% prediction intervals in @fig-shiraz-regression-density.
 #| fig-height: 6
 #| fig-asp: 0.8
 wine_aug <- wine_aug |>
@@ -430,7 +410,7 @@ good_buy <- wine_aug |>
   filter(std_loo_res == min(std_loo_res))
 ```
 
-The over-priced wines under this model are shown in blue, while the under-priced wines are shown in orange. This shows that the most anomalous observations are the two with LOO surprisals above 17, and standardised residuals close to 6. The largest LOO surprisal is for the most over-priced wine (under this model), a 2009 Shiraz from the Henschke winery in the Eden Valley region of South Australia, with `r most_anomalous$points[1]` points and a price of $`r most_anomalous$price[1]`.
+The over-priced wines under this model are shown in blue, while the under-priced wines are shown in orange. This shows that the most anomalous observations are the two with LOO surprisals above 17, and standardised residuals close to 6. The largest LOO surprisal is for the most over-priced wine (under this model), a 2009 Shiraz from the Henschke winery in the Eden Valley region of South Australia, with `r most_anomalous$points[1]` points and a price of $`r most_anomalous$price[1]`. (The same anomaly that was identified in @sec-bacon-reg using the BACON algorithm.)
 
 ```{r}
 #| code-fold: false
@@ -449,7 +429,7 @@ wine_aug |>
   select(country:winery, year, points:price, std_loo_res, loo_surprisals)
 ```
 
-This corresponds to the only orange point in @fig-shiraz-regression that has a point value above 95 and a price below the 95% prediction interval.
+This corresponds to the only orange point in @fig-shiraz-regression-density that has a point value above 95 and a price below the 95% prediction interval.
 
 ### Surprisal probabilities
 
@@ -630,7 +610,7 @@ The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates
 For the Old Faithful eruption duration data, we obtain the following results.
 
 ```{r}
-#| label: ofscores
+#| label: ofscores-kde
 #| code-fold: false
 of_surprisals <- oldfaithful |>
   mutate(
