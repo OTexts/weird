@@ -184,7 +184,7 @@ A good introduction to other probability distributions on real sample spaces is 
 
 ## Probability integral transform {#sec-pit}
 
-The **probability integral transform** is a useful result that allows us to transform any continuous random variable into a uniform random variable. If $Y$ is a continuous random variable with cdf $F$, then the random variable $U = F(Y)$ has a U(0,1) distribution. This is because $\text{Pr}(U \le u) = \text{Pr}(F(Y) \le u) = \text{Pr}(Y \le F^{-1}(u)) = F(F^{-1}(u)) = u$ for $0 < u < 1$. The inverse is also true: if $U$ is a U(0,1) random variable, then the random variable $Y = F^{-1}(U)$ has distribution $F$. A useful consequence of this result is that it is possible to simulate from any continuous distribution by first simulating from a U(0,1) distribution, and then applying the inverse cdf (or quantile function) of the desired distribution.
+The **probability integral transform** is a useful result that allows us to transform any continuous random variable into a uniform random variable. If $Y$ is a continuous random variable with cdf $F$, then the random variable $U = F(Y)$ has a U(0,1) distribution. This is because $\text{Pr}(U \le u) = \text{Pr}(F(Y) \le u) = \text{Pr}(Y \le F^{-1}(u)) = F(F^{-1}(u)) = u$ for $0 < u < 1$. The inverse is also true: if $U$ is a U(0,1) random variable, then the random variable $Y = F^{-1}(U)$ has distribution $F$. A useful consequence of this result is that it is possible to simulate from any continuous distribution by first simulating from a U(0,1) distribution, and then applying the inverse cdf of the desired distribution.
 
 There is also a discrete version of the probability integral transform, but we will not need to use it in this book.
 
