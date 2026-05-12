@@ -18,6 +18,7 @@ Also update this skill to take account of any new issues you find when reviewing
 - Bold notation applied consistently to vectors and matrices
 - Subscript/superscript placement correct (e.g. `$\bm{S}^*$` not `$\bm{S^*}$`)
 - Same symbol not used for two different things in the same chapter.
+- Distribution names use upright (non-italic) font: `N(0,1)` not `$N(0,1)$`. When parameters contain maths symbols, put only the parameters in maths: `N$(\mu, \sigma^2)$` or `$\text{N}(\mu, \sigma^2)$`.
 
 **Quarto / cross-references**
 - Cross-references use `@sec-label`, `@fig-label`, `@eq-label` syntax — not raw HTML links or raw text that is unlinked.
@@ -35,7 +36,6 @@ Also update this skill to take account of any new issues you find when reviewing
 
 ## What NOT to change
 
-- Citation page locators: use concise form `[p44]` not `[p. 44]`
 - Code chunks (R code) — only fix comments or labels if they contain errors
 - The overall structure, argument, or style of the chapter. You may suggest changes to the overall structure or style, but do not make such changes.
 - Correct passages that are merely informal or conversational

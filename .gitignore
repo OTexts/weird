@@ -6,6 +6,7 @@ public
 _bookdown_files
 .vscode
 .claude/settings.local.json
+.claude/settings.json
 
 /.quarto/
 *_cache/*
@@ -15,4 +16,3 @@ _bookdown_files
 
 **/*.quarto_ipynb
 .history
-.claude/
