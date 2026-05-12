@@ -114,7 +114,7 @@ Suppose we use the Old Faithful data to find eruptions that are neighbours in th
 ```{r}
 #| label: knn
 #| code-fold: false
-#| depends: zscore
+#| dependson: zscores
 # Find 5 nearest neighbours to each eruption
 knn <- dbscan::kNN(z, k = 5)
 # First eruption in the data set
@@ -128,7 +128,7 @@ For large data sets, approximations are available which speed up the computation
 ```{r}
 #| label: ann
 #| code-fold: false
-#| depends: zscore
+#| dependson: zscores
 # Find 5 approximate nearest neighbours to each eruption
 kann <- dbscan::kNN(z, k = 5, approx = 2)
 # Five closest observations
