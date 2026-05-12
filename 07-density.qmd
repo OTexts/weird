@@ -14,7 +14,7 @@ Any density-based method of anomaly detection first requires that we have a dens
 
 "Surprisal" is a term coined by American engineer Myron @Tribus1961 in the context of information theory. In the statistical literature it is better known as a "log score". But since we are considering anomaly detection, "surprisal" seems a more appropriate word to use here.
 
-The surprisal of an observation $\bm{y}_i$, is defined as
+The surprisal of an observation $\bm{y}_i$ is defined as
 $$
   s_i = -\log f(\bm{y}_i),
 $$ {#eq-surprisal}
@@ -66,7 +66,7 @@ The surprisal probability of an observation is the probability of observing a va
 
 Specifically, for an observation $\bm{y}_i$ under the distribution $f$, its surprisal probability is given by
 $$
-p_i = \int f(\bm{u}) 𝟙(-\log f(\bm{u}) \ge s_i) d\bm{u} = \int f(\bm{u}) 𝟙(f(\bm{u}) \leq f(\bm{y}_i)) d\bm{u},
+p_i = \int f(\bm{u}) 𝟙(-\log f(\bm{u}) \geq s_i) d\bm{u} = \int f(\bm{u}) 𝟙(f(\bm{u}) \leq f(\bm{y}_i)) d\bm{u},
 $$ {#eq-pi-density}
 where $𝟙(z)$ is an indicator function taking value 1 when $z$ is true and 0 otherwise.
 
@@ -135,7 +135,7 @@ tibble(
 
 The value of $p_i$ is the probability of an observation being at least as anomalous (or surprising) as $\bm{y}_i$​ if the observations come from the distribution $f$. So if we label points as anomalous when $p_i < \alpha$, we will have a false positive rate of $\alpha$.
 
-This approach allows for anomalies to occur anywhere in the distribution, not just in the tails. For example, anomalies may lie between modes in a multimodal distribution, or in otherwise low-density regions of the distribution. The surprisal approach coverts the problem of working with a potentially complicated distribution into a problem of working with a simple univariate distribution on the surprisal scale, where large values correspond to anomalies.
+This approach allows for anomalies to occur anywhere in the distribution, not just in the tails. For example, anomalies may lie between modes in a multimodal distribution, or in otherwise low-density regions of the distribution. The surprisal approach converts the problem of working with a potentially complicated distribution into a problem of working with a simple univariate distribution on the surprisal scale, where large values correspond to anomalies.
 
 ### Connection to highest density regions
 
@@ -159,7 +159,7 @@ Let $\beta$ denote the tail probability used in the GPD threshold, and let $u$ d
 $$
 \hat{p}_i = \beta\int_{s_i}^\infty \hat g(s) ds,
 $$ {#eq-pi-gpd}
-where $\hat g()$ denotes the estimated GPD density function. This approximation only gives us surprisal probabilities for the surprisals above the threshold $u$. For any $s_i \le u$, all we can say is that $\hat{p}_i \ge \beta$.
+where $\hat g()$ denotes the estimated GPD density function. This approximation only gives us surprisal probabilities for the surprisals above the threshold $u$. For any $s_i \leq u$, all we can say is that $\hat{p}_i \geq \beta$.
 
 @surprisals show that, under very general conditions on the true distribution $f$, this will lead to good estimates of the surprisal probabilities for the most extreme surprisal values (which correspond to the anomalies). That is, even if our assumed distribution $f^*$ is not correct, we can still fit a GPD to the largest surprisal values and use this to estimate the tail probabilities.
 
@@ -227,7 +227,7 @@ For a linear Normal regression model, with independent observations and homosced
 $$
   y \mid \bm{x} \sim N(\bm{x}^\intercal\bm{\beta}, \sigma^2),
 $$ {#eq-gaussian-regression}
-where $\bm{\beta}$ is a $p$-dimensional coefficient vector. In matrix form, where $\bm{X}$ is an $n\times p$ matrix with rows equal to the predictor variables for each observation, this is
+where $\bm{\beta}$ is a $p$-dimensional coefficient vector. In matrix form, where $\bm{X}$ is the $n\times p$ matrix of predictors, this is
 $$
   \bm{y} \sim N(\bm{X}\bm{\beta}, \sigma^2\bm{I}).
 $$
@@ -288,7 +288,7 @@ $$
   \hat\sigma_{-i}^2 = \frac{1}{n-p-1}\left[(n-p)\hat\sigma^2 - e_{i}^2/(1-h_i)\right],
 $$ {#eq-loo-residual-variance}
 where $\hat\sigma^2$ is given by @eq-residual-variance-density. These are computed by `broom::augment()` and are returned in the column `.sigma`.
-Thus the standardised LOO residuals (also known as "externally studentized residuals") are given by
+Thus, the standardised LOO residuals (also known as "externally studentised residuals") are given by
 $$
  r_{-i} = \frac{e_i}{\hat\sigma_{-i} \sqrt{1-h_i}}.
 $$
@@ -341,7 +341,7 @@ and is depicted in @fig-shiraz-regression-density with 95% prediction intervals.
 ```{r}
 #| label: fig-shiraz-regression-density
 #| warning: false
-#| fig-cap: Log price of Shiraz as a function of points, with 95% prediction intervals. The points are horizontally jitted to reduce overplotting. Points outside the prediction intervals are coloured.
+#| fig-cap: Log price of Shiraz as a function of points, with 95% prediction intervals. The points are horizontally jittered to reduce overplotting. Points outside the prediction intervals are coloured.
 wine_aug <- broom::augment(fit_wine, data = shiraz, interval = "prediction") |>
   mutate(
     lwr = exp(.lower),
@@ -482,9 +482,9 @@ This shows the value of computing surprisal probabilities on the conditional dis
 
 In some applications, it is not appropriate to assume the conditional density is Gaussian, or that the relationships are linear. One useful model that allows for non-Gaussian densities, and non-linear relationships, is a generalised additive model or GAM. Under this model, the conditional density is given by [@Wood2017gam]
 $$
-  y\mid\bm{x} \sim f(\mu), \qquad \ell(\mu) = \sum_{k=1}^p g_k(x_{k}),
+  y \mid \bm{x} \sim f(\mu), \qquad \ell(\mu) = \sum_{k=1}^p g_k(x_{k}),
 $$
-where $\mu = \text{E}(y | \bm{x})$ denotes the conditional mean, $\ell()$ is a link function, and each $g_k$ function is smooth. If $f$ is Normal, $\ell$ is the identity, and $g_k(u) = \beta_k u$, then this reduces to the linear Gaussian model (@eq-gaussian-regression).
+where $\mu = \text{E}(y \mid \bm{x})$ denotes the conditional mean, $\ell()$ is a link function, and each $g_k$ function is smooth. If $f$ is Normal, $\ell$ is the identity, and $g_k(u) = \beta_k u$, then this reduces to the linear Gaussian model (@eq-gaussian-regression).
 
 ```{r}
 #| include: false
@@ -496,7 +496,7 @@ p <- sum(df_no$NotOuts) / sum(df_no$Innings)
 
 Consider the number of "not outs" for each batter in the `cricket_batting` data set. A "not out" occurs when a batsman has not been dismissed at the end of the team's innings. Let's consider if there are some batters who have an unusually high proportion of not outs. The data set contains results from `r sum(df_no$Innings)` innings, of which `r sum(df_no$NotOuts)` were not outs. So the overall proportion of not outs is $`r sum(df_no[["NotOuts"]])` / `r sum(df_no[["Innings"]])` = `r sprintf("%.3f", p)`$.
 
-@fig-notouts shows the proportion of not outs for each batter as a function of the number of innings they played. The unusual pattern on the left of each plot is due to the discrete nature of the data --- both the number of not outs and the number of innings must be integers. There is some overplotting that occurs due to batters having the same numbers of not-outs and innings, which results in the higher colour density of the corresponding plotted points. Batters who have played only a few innings tend to have a higher proportion of not outs on average, and a higher variance, than those who have played many innings.
+@fig-notouts shows the proportion of not outs for each batter as a function of the number of innings they played. The unusual pattern on the left of the plot is due to the discrete nature of the data --- both the number of not outs and the number of innings must be integers. There is some overplotting that occurs due to batters having the same numbers of not-outs and innings, which results in the higher colour density of the corresponding plotted points. Batters who have played only a few innings tend to have a higher proportion of not outs on average, and a higher variance, than those who have played many innings.
 
 ```{r}
 #| label: fig-notouts
@@ -653,7 +653,6 @@ Now there are `r english::words(no)` points with probabilities less than 0.005, 
 ```{r}
 #| label: fig-ofpot
 #| fig-cap: "HDR boxplot of the Old Faithful eruption durations, with the surprisal anomalies highlighted in black."
-#| dependson: ofpot2
 #| fig-asp: 0.2
 #| code-fold: false
 oldfaithful |>

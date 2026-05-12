@@ -12,7 +12,7 @@ Before we discuss some of the methods that fall into this class of algorithms, w
 
 ## Multivariate pairwise distances {#sec-distances}
 
-Suppose our observations are denoted by $\bm{y}_1,\dots,\bm{y}_n$. In univariate data, the distance between any two observations is simply the absolute difference between the points. But in multivariate data, there are many different ways of measuring distances between observations, even when the data are all numerical.
+Suppose our observations are denoted by $\bm{y}_1,\dots,\bm{y}_n$, each a vector of length $m$. In univariate data, the distance between any two observations is simply the absolute difference between the points. But in multivariate data, there are many different ways of measuring distances between observations, even when the data are all numerical.
 
 ### Euclidean distance
 
