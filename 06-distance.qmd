@@ -156,15 +156,9 @@ set.seed(2)
 df <- tibble(
   x = c(rnorm(5), rnorm(6, 5, 1)),
   y = c(rnorm(5), rnorm(6, 5, 1))
-)
+ ) |>
+  mutate(d = dbscan::kNNdist(pick(x, y), 5))
 chosen <- c(3, 11)
-knn <- dbscan::kNN(df, 5)$id[chosen, ]
-df <- df |>
-  mutate(
-    d = dbscan::kNNdist(df, 5),
-    n15 = if_else(row_number() %in% knn[1, ], "N15", "NO"),
-    n25 = if_else(row_number() %in% knn[2, ], "N25", "NO")
-  )
 df |>
   ggplot() +
   ggforce::geom_circle(
@@ -173,7 +167,6 @@ df |>
     data = df[chosen, ]
   ) +
   geom_point(aes(x = x, y = y), size = 3) +
-  # geom_point(aes(x=x, y=y), size=3, data=df[chosen,], col=cols) +
   annotate(
     "text",
     x = df$x[chosen] + 0.3,
