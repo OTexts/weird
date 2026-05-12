@@ -6815,6 +6815,40 @@
       "Maintainer": "Yihui Xie <xie@yihui.name>",
       "Repository": "https://packagemanager.posit.co/cran/__linux__/noble/latest"
     },
+    "robustX": {
+      "Package": "robustX",
+      "Version": "1.2-8",
+      "Source": "Repository",
+      "Type": "Package",
+      "Title": "'eXtra' / 'eXperimental' Functionality for Robust Statistics",
+      "VersionNote": "Last CRAN: 1.2-7 on 2023-06-16",
+      "Date": "2026-02-20",
+      "Authors@R": "c(person(\"Martin\",\"Maechler\", role=c(\"aut\",\"cre\"), email=\"maechler@stat.math.ethz.ch\", comment = c(ORCID = \"0000-0002-8685-9910\")) , person(\"Werner A.\", \"Stahel\", role=\"aut\", email=\"stahel@stat.math.ethz.ch\") , person(\"Rolf\", \"Turner\",   role=\"ctb\", email=\"r.turner@auckland.ac.nz\", comment = \"reclas()\") , person(\"Ueli\", \"Oetliker\", role=\"ctb\", comment = \"original version of BACON() and mvBACON for S+\") , person(\"Tobias\", \"Schoch\", role=\"ctb\", comment = \"init.sel=\\\"V2\\\" for BACON; fix alpha\") )",
+      "Maintainer": "Martin Maechler <maechler@stat.math.ethz.ch>",
+      "URL": "https://robustbase.R-forge.R-project.org/, https://R-forge.R-project.org/R/?group_id=59, https://R-forge.R-project.org/scm/viewvc.php/pkg/robustX/?root=robustbase, svn://svn.r-forge.r-project.org/svnroot/robustbase/pkg/robustX",
+      "BugReports": "https://R-forge.R-project.org/tracker/?atid=302&group_id=59",
+      "Description": "Robustness -- 'eXperimental', 'eXtraneous', or 'eXtraordinary' Functionality for Robust Statistics.  Hence methods which are not well established, often related to methods in package 'robustbase'.  Amazingly, 'BACON()', originally by Billor, Hadi, and Velleman (2000) <doi:10.1016/S0167-9473(99)00101-2> has become established in places.  The \"barrow wheel\" `rbwheel()` is from Stahel and Mächler (2009) <doi:10.1111/j.1467-9868.2009.00706.x>.",
+      "Imports": [
+        "grDevices",
+        "graphics",
+        "stats",
+        "utils",
+        "robustbase (>= 0.92-3)"
+      ],
+      "Suggests": [
+        "MASS",
+        "lattice",
+        "pcaPP"
+      ],
+      "Enhances": [
+        "ICS"
+      ],
+      "License": "GPL (>= 2)",
+      "Encoding": "UTF-8",
+      "NeedsCompilation": "no",
+      "Author": "Martin Maechler [aut, cre] (ORCID: <https://orcid.org/0000-0002-8685-9910>), Werner A. Stahel [aut], Rolf Turner [ctb] (reclas()), Ueli Oetliker [ctb] (original version of BACON() and mvBACON for S+), Tobias Schoch [ctb] (init.sel=\"V2\" for BACON; fix alpha)",
+      "Repository": "binary"
+    },
     "robustbase": {
       "Package": "robustbase",
       "Version": "0.99-7",
