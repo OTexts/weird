@@ -30,7 +30,7 @@ $$
 $$
 Rather than label these using integers ($L_2,L_3,\dots$), Tukey proposed using letters ($L_F,L_E,L_D,\dots$) where $F=$ fourths, $E=$ eighths, $D=$ sixteenths, and so on.
 
-Because each depth is roughly half the previous depth, the lower letter values provide estimates of the quantiles with probabilities $p=\frac{1}{2},\frac14,\frac18,\dots$, while the upper letter values provide estimates of the quantiles with probabilities $p=\frac{1}{2},\frac34,\frac78,\dots$. @hoaglin1983letter [p44], showed that $\hat{Q}(p)$ with `type = 8` gives approximately the same result as the corresponding letter value.
+Because each depth is roughly half the previous depth, the lower letter values provide estimates of the quantiles with probabilities $p=\frac{1}{2},\frac14,\frac18,\dots$, while the upper letter values provide estimates of the quantiles with probabilities $p=\frac{1}{2},\frac34,\frac78,\dots$. @hoaglin1983letter [p. 44], showed that $\hat{Q}(p)$ with `type = 8` gives approximately the same result as the corresponding letter value.
 
 ```{r}
 #| label: battinglv

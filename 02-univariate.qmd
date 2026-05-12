@@ -421,7 +421,7 @@ With a large sample size $n$, the sample quantile $\hat{Q}(p)$ has an approximat
 $$
 \hat{Q}(p) \approx \text{N}\left(Q(p), \frac{p(1-p)}{n f^2(Q(p))}\right)
 $$ {#eq-sample-quantile-distribution}
-where $f(Q(p)) > 0$ and $f(y)$ is the density of the underlying distribution [@van2000asymptotic, p308]. This is an asymptotic result, which assumes $np$ is large, and holds for all types of sample quantiles.
+where $f(Q(p)) > 0$ and $f(y)$ is the density of the underlying distribution [@van2000asymptotic, p. 308]. This is an asymptotic result, which assumes $np$ is large, and holds for all types of sample quantiles.
 
 
 ## Highest density regions {#sec-hdr}
@@ -659,7 +659,7 @@ of2021 |>
   geom_label(x = 320, y = 0.004, label = "h = 40", col = "#009E73")
 ```
 
-When $h$ is too small, the density estimate is too rough, with many peaks and troughs. When $h$ is too large, the density estimate is too smooth and we fail to see any features in the data. A popular choice for $h$ is the "normal reference rule" [@Silverman1986, p45] given by
+When $h$ is too small, the density estimate is too rough, with many peaks and troughs. When $h$ is too large, the density estimate is too smooth and we fail to see any features in the data. A popular choice for $h$ is the "normal reference rule" [@Silverman1986, p. 45] given by
 $$
   h = 1.059 s n^{-1/5}.
 $$ {#eq-nrr}
@@ -781,7 +781,7 @@ of_density |>
 
 Extreme Value Theory is used to model rare, extreme events and is useful in anomaly detection. Suppose we have $n$ independent and identically distributed random variables $Y_1, \dots, Y_n$ with a cdf $F(y) = \Pr(Y \le y)$. Then the maximum of these $n$ random variables is $M_n = \max \{Y_1, \dots, Y_n\}$. If $F$ is known, the cdf of $M_n$ is given by $\Pr(M_n \le z) = \Pr(Y_1 \le z, \dots, Y_n \le z) = \left(F(z)\right)^n$. However, $F$ is often not known in practice. This gap is filled by Extreme Value Theory, which studies approximate families of models for $F^n$ so that extremes can be modeled and their uncertainty quantified.
 
-It is well known, due to the [central limit theorem](02-tools.html#sec-clt), that the average of a set of iid random variables will converge to the Normal distribution if the mean and variance both exist and are finite. The Fisher-Tippett-Gnedenko (FTG) Theorem provides an analogous result for the maximum. It was developed in a series of papers by @Frechet1927, @Fisher1928, and @Gnedenko1943. Independently, @Mises1936 proposed a similar result. The FTG Theorem states that if the maximum can be scaled so that it converges, then the scaled maximum will converge to either a Gumbel, Fréchet or Weibull distribution [@coles2001introduction, p46]; no other limits are possible.
+It is well known, due to the [central limit theorem](02-tools.html#sec-clt), that the average of a set of iid random variables will converge to the Normal distribution if the mean and variance both exist and are finite. The Fisher-Tippett-Gnedenko (FTG) Theorem provides an analogous result for the maximum. It was developed in a series of papers by @Frechet1927, @Fisher1928, and @Gnedenko1943. Independently, @Mises1936 proposed a similar result. The FTG Theorem states that if the maximum can be scaled so that it converges, then the scaled maximum will converge to either a Gumbel, Fréchet or Weibull distribution [@coles2001introduction, p. 46]; no other limits are possible.
 
 ::: {.callout-tip}
 ## Fisher-Tippett-Gnedenko Theorem {-}
@@ -861,7 +861,7 @@ $$
   H(y) = \Pr\left \{Y \leq u + y \mid Y > u \right \}
   = \frac{ F(u+y) - F(u)}{1 - F(u)}.
 $$ {#eq-POT3}
-When the distribution $F$ satisfies the FTG theorem, then [@coles2001introduction, p75] $H$ is well-approximated by a **Generalised Pareto Distribution** (GPD) defined by
+When the distribution $F$ satisfies the FTG theorem, then [@coles2001introduction, p. 75] $H$ is well-approximated by a **Generalised Pareto Distribution** (GPD) defined by
   $$
     H(y) \approx 1 - \Big( 1 + \frac{\xi y}{\sigma_u} \Big)^{-1/\xi} ,
   $$ {#eq-POT}
