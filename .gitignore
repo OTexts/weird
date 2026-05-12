@@ -2,17 +2,13 @@
 .Rhistory
 .RData
 .Ruserdata
-public
-_bookdown_files
 .vscode
 .claude/settings.local.json
 .claude/settings.json
+.history
 
 /.quarto/
 *_cache/*
 *_files/*
 /_book/
 /_freeze/
-
-**/*.quarto_ipynb
-.history
