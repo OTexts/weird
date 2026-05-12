@@ -222,7 +222,7 @@ Thus, it is the product of $\bar{r}_{i,k}$ and the average value of $\bar{r}^{-1
 
 This provides a relative measure of the density of each observation compared to its neighbours. An observation is regarded as an anomaly if it is in a low-density region (far from its neighbours) while its neighbours are in higher density regions (with many neighbours nearby). A value of $\ell_{i,k}$ much greater than 1 shows that the observation has much larger average reachability compared to its neighbours, and so is regarded as an anomaly.
 
-One problem with this definition is that $\ell_{i,k}$ can be infinite. If the data set contains at least $k+1$ identical observations, then the average reachability $\bar{r}_{j,k}$ will be 0 if $\bm{y}_j$ is one of the group of identical observations. Consequently, $\ell_{i,k} = \infty$ if $\bm{y}_i$ is a neighbour to one of the group of identical observations. In this book we use a slightly different definition from that used elsewhere and replace these infinite values with 1s.
+One problem with this definition is that $\ell_{i,k}$ can be infinite. If the data set contains at least $k+1$ identical observations, then the average reachability $\bar{r}_{j,k}$ will be 0 if $\bm{y}_j$ is one of the group of identical observations. Consequently, $\ell_{i,k} = \infty$ if $\bm{y}_i$ is a neighbour to one of the group of identical observations. In this book we use a slightly different definition from that used elsewhere and replace these infinite values with 1s (indicating they have similar reachability to their identical neighbours).
 
 Another problem is that it can be difficult to determine an appropriate value for $k$.
 
@@ -241,7 +241,7 @@ Here the three shortest eruptions (which we have previously identified as genuin
 
 ```{r}
 #| label: fig-ofscores
-#| fig-cap: Local outlier factors for each eruption plotted against the duration.
+#| fig-cap: Local outlier factors for each eruption duration plotted against the duration.
 #| dependson: ofscores
 of_scores |>
   ggplot(aes(x = duration, y = lof)) +
