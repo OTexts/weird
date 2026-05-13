@@ -156,7 +156,7 @@ set.seed(2)
 df <- tibble(
   x = c(rnorm(5), rnorm(6, 5, 1)),
   y = c(rnorm(5), rnorm(6, 5, 1))
- ) |>
+) |>
   mutate(d = dbscan::kNNdist(pick(x, y), 5))
 chosen <- c(3, 11)
 df |>
@@ -666,14 +666,326 @@ wine_bacon |>
 
 The comparison with the ordinary residual plot highlights the purpose of the regression BACON algorithm. Least-squares residuals are measured relative to a line fitted to all observations, so the line may itself be affected by the anomalies. BACON instead repeatedly refits the model to a growing subset of observations that are internally consistent, and then nominates observations that remain inconsistent with that subset.
 
-## Isolation forest
+## Isolation forest {#sec-iforest}
 
-Isolation tree: Randomly partition data until every point is isolated or some depth is reached.
+The methods discussed so far in this chapter all build their anomaly scores by measuring, in one way or another, how far each observation is from the bulk of the data. A conceptually different approach is to ask instead: *how easy is it to isolate this observation from the rest?* This is the idea behind the Isolation Forest algorithm of @Liu2008-dp.
 
-Combine many isolation trees to form an isolation forest.
+### Isolation trees
 
-Anomaly score inversely proportional to average depth of isolation trees.
+Trees are a common tool for classification and regression, and involve recursively partitioning the data into smaller and smaller subsets. The partitions are usually chosen to maximise some measure of homogeneity within the resulting subsets. In contrast, an isolation tree is built by recursively partitioning the data using *random* splits that are independent of the data values. The goal is not to create homogeneous subsets, but rather to isolate individual observations.
 
-isotree package
+Because anomalies are rare and have unusual attribute values, they are more likely to be separated from the rest of the data by a random split. Non-anomalous observations, on the other hand, are usually surrounded by many similar neighbours and typically require more splits to be isolated. Thus, the number of splits required to isolate an observation can be used as a measure of its anomalousness: fewer splits indicate a more anomalous observation.
 
-@Liu2008-dp
+To build an **isolation tree** (iTree), we recursively partition the data as follows:
+
+1. Select a variable $q$ uniformly at random from all variables.
+2. Select a split value $p$ uniformly at random from the range of $q$ in the current sample.
+3. Assign observations with $q < p$ to the left child node and the rest to the right child node.
+4. Recursively apply Steps 1--3 on each child until either the node contains a single observation or a maximum tree height is reached. By default, the maximum tree height is set to $\lceil\log_2(n)\rceil$.
+
+Because we stop when a maximum tree height is reached, nodes that contain more than one observation when the recursion terminates are given an adjustment for the expected additional depth. The **path length** $h(\bm{y})$ of an observation $\bm{y}$ is the number of splits required to isolate $\bm{y}$, plus any adjustment for an unfinished subtree. The path length is therefore inversely related to anomalousness. The expected path length is approximately
+$$
+  c(n) = 2\left[\log(n-1) + \gamma - 1 + 1/n\right].
+$$
+where $\gamma \approx 0.5772$ is Euler's constant. Because this is a function of $n$, we cannot directly compare path lengths across data sets of different sizes.
+
+To illustrate the procedure, we build an iTree for the `oldfaithful` data, but with maximum depth set to 4. The resulting tree is shown in @fig-iso-tree.
+
+```{r}
+#| label: iso-tree
+#| code-fold: false
+library(isotree)
+# Fit one tree with low max depth
+tree <- oldfaithful |>
+  select(duration, waiting) |>
+  isolation.forest(ntrees = 1, max_depth = 3)
+```
+
+```{r}
+#| label: fig-iso-tree
+#| echo: false
+#| fig-cap: "A simple isolation tree for the Old Faithful data, with maximum depth set to 3."
+#| dependson: iso-tree
+library(tidygraph)
+library(ggraph)
+library(purrr)
+
+# ---- 1. Save tree as JSON for easier manipulation ----
+tj <- isotree.to.json(tree, tree = 1)
+
+# ---- 2. Flatten the JSON list into a tidy node table ----
+# tj is a named list of nodes keyed by id ("1", "2", ...). Each element has
+# $terminal ("yes"/"no") plus, for internal nodes, $column, $value, and the
+# two child ids; for terminals, $leaf. purrr::map_* with .default handles the
+# missing-field-for-some-nodes case cleanly.
+nodes <- tibble(id = as.integer(names(tj)), node = unname(tj)) |>
+  mutate(
+    terminal = map_chr(node, "terminal") == "yes",
+    column = map_chr(node, "column", .default = NA_character_),
+    value = map_dbl(node, "value", .default = NA_real_),
+    leaf = map_int(node, "leaf", .default = NA_integer_) + 1,
+    left = map_int(node, "node_when_condition_is_met", .default = NA_integer_),
+    right = map_int(node, "node_when_condition_is_not_met", .default = NA_integer_)
+  ) |>
+  select(-node) |>
+  arrange(id)
+
+# ---- 3. Edge list: one row per parent->child link ----
+edges <- nodes |>
+  filter(!terminal) |>
+  select(from = id, yes = left, no = right) |>
+  tidyr::pivot_longer(c(yes, no), names_to = "branch", values_to = "to") |>
+  select(from, to, branch)
+
+# ---- 4. Build the graph; let tidygraph number splits breadth-first ----
+g <- tbl_graph(nodes = nodes, edges = edges) |>
+  activate(nodes) |>
+  mutate(
+    bfs = bfs_rank(root = 1),
+    split = dense_rank(if_else(terminal, NA_integer_, bfs)),
+    label = if_else(
+      terminal,
+      sprintf("leaf %d", leaf),
+      sprintf("Split %d\n%s <= %.2f", split, column, value)
+    )
+  )
+
+# ---- 3. Plot ----
+ggraph(g, layout = "tree") +
+  geom_edge_diagonal(
+    aes(label = branch),
+    label_dodge = unit(2.5, "mm"),
+    angle_calc = "along",
+    start_cap = circle(9, "mm"),
+    end_cap = circle(7, "mm"),
+    edge_colour = "grey55"
+  ) +
+  geom_node_label(
+    aes(label = label, fill = terminal),
+    colour = "white",
+    fontface = "bold",
+    size = 3.2,
+    label.r = unit(2, "mm"),
+    label.padding = unit(2.5, "mm")
+  ) +
+  scale_fill_manual(
+    values = c(`FALSE` = "#2c3e7bdd", `TRUE` = "#9aa0a6"),
+    guide = "none"
+  ) +
+  labs(
+    title = "Single isolation tree for Old Faithful data",
+    subtitle = "(max depth = 4)"
+  ) +
+  theme_void(base_size = 12)
+```
+
+Another way to visualize the same tree structure is to show the splits as lines on the scatterplot, as in @fig-iforest-tree. Each split is confined to the rectangle defined by its parent node, so the splits are nested within each other. Each leaf corresponds to a final rectangle containing one or more observations. The path length for an observation is the number of splits required to isolate it.
+
+```{r}
+#| label: fig-iforest-tree
+#| fig-cap: "First four random splits from a single isolation tree fitted to the Old Faithful data. After the fourth split, one observation (at the bottom right) has been isolated, while the rest of the data are still in groups containing multiple observations."
+#| echo: false
+#| dependson: iso-tree
+# ---- 1. Plot bounds (pad by 4% on each side) ----
+xr <- range(oldfaithful$duration)
+yr <- range(oldfaithful$waiting)
+pad <- 0.04
+xlim <- xr + c(0, pad) * diff(xr)
+ylim <- yr + c(-pad, 0) * diff(yr)
+
+# ---- 2. Recursive walk: every split is confined to its parent's rectangle ----
+walk <- function(id, xmin, xmax, ymin, ymax) {
+  n <- nodes[id, ]
+  if (n$terminal) {
+    return(tibble(
+      id = id,
+      kind = "leaf",
+      xmin = xmin,
+      xmax = xmax,
+      ymin = ymin,
+      ymax = ymax
+    ))
+  }
+  v <- n$value
+  if (n$column == "duration") {
+    seg <- tibble(id = id, kind = "split", xmin = v, xmax = v, ymin = ymin, ymax = ymax)
+    bind_rows(
+      seg,
+      walk(n$left, xmin, min(xmax, v), ymin, ymax),
+      walk(n$right, max(xmin, v), xmax, ymin, ymax)
+    )
+  } else {
+    # split on "waiting"
+    seg <- tibble(id = id, kind = "split", xmin = xmin, xmax = xmax, ymin = v, ymax = v)
+    bind_rows(
+      seg,
+      walk(n$left, xmin, xmax, ymin, min(ymax, v)),
+      walk(n$right, xmin, xmax, max(ymin, v), ymax)
+    )
+  }
+}
+
+partition_df <- walk(1L, xlim[1], xlim[2], ylim[1], ylim[2]) |>
+  left_join(nodes |> select(id, column, leaf), by = "id")
+
+splits_df <- partition_df |>
+  filter(kind == "split") |>
+  left_join(g |> activate(nodes) |> as_tibble() |> select(id, split), by = "id") |>
+  mutate(
+    label = paste0("Split ", split),
+    lab_x = if_else(column == "duration", xmin, xmax),
+    lab_y = if_else(column == "duration", ymin, ymax)
+  )
+
+leaves_df <- partition_df |>
+  filter(kind == "leaf") |>
+  mutate(
+    label = paste0("leaf ", leaf),
+    xmin = if_else(leaf == 3, xmin + 30, xmin),
+    ymax = if_else(leaf == 3, ymax - 30, ymax),
+    ymax = if_else(leaf == 5, ymax - 230, ymax)
+  )
+
+# ---- 3. Plot ----
+ggplot() +
+  geom_label(
+    data = leaves_df,
+    aes(x = xmin, y = ymax, label = label),
+    hjust = -0.2,
+    vjust = 1.4,
+    size = 3,
+    colour = "white",
+    fill = "#9aa0a6",
+    label.r = unit(1.2, "mm"),
+    fontface = "bold"
+  ) +
+  geom_segment(
+    data = splits_df,
+    aes(x = xmin, xend = xmax, y = ymin, yend = ymax),
+    colour = "#2c3e7b",
+    linewidth = 0.7
+  ) +
+  geom_label(
+    data = splits_df,
+    aes(x = lab_x, y = lab_y, label = label),
+    size = 3,
+    fill = "#2c3e7bdd",
+    colour = "white",
+    fontface = "bold",
+    label.padding = unit(1.2, "mm"),
+    label.r = unit(1, "mm"),
+  ) +
+  geom_point(
+    data = oldfaithful,
+    aes(x = duration, y = waiting)
+  ) +
+  labs(
+    x = "Eruption duration (min)",
+    y = "Waiting time to next eruption (min)",
+    title = "Recursive partition by a single isolation tree for the Old Faithful data",
+    subtitle = "(max_depth = 4)"
+  )
+```
+
+```{r}
+#| label: iforest-splits
+#| echo: false
+#| output: asis
+#| dependson: fig-iforest-tree
+shortest = 1784
+stopifnot(sum(oldfaithful$duration < splits_df$xmin[1]) == 4L)
+```
+
+This shows that the first split separates the four shortest eruptions from the rest of the data (one is very close to the boundary). The second split divides the four into two groups of two. By the fourth split, one observation has been isolated from the rest of the data --- at the bottom right of the plot, with a duration of `r oldfaithful$duration[shortest]` minutes and a waiting time of `r oldfaithful$waiting[shortest]` minutes.  This observation is in leaf 4, and it has a path length of 3 (Splits 1, 3 and 4).
+
+A tree with a larger maximum depth would continue splitting the remaining observations into smaller groups, so the path lengths for the other observations would be larger. The shortest eruptions are more likely to be isolated early on, because they can be separated from the rest of the data by a single additional random split. The eruptions near the centres of the clusters will require more splits to be isolated.
+
+### Ensembles of isolation trees
+
+A single iTree provides a highly variable estimate of anomalousness, because it is built using random splits that are independent of the data. That is, the path length for a given observation can vary widely across different iTrees built on the same data, because the random splits may or may not isolate the observation early on, depending on how they happen to fall relative to the observation and its neighbours.
+
+To address this, we can create many iTrees, each formed with a different random partition (and possibly using random subsets of the data). This ensemble of iTrees is known as an **isolation forecast** or iForest. Let $T$ be the number of trees in the ensemble, and $\psi$ be the size of the random sub-sample used to build each tree. @Liu2008-dp found that $T = 100$ trees and $\psi = 256$ observations per sub-sample are usually sufficient, although the defaults in the `isotree` package are to use $T=500$, and $\psi = \min(n, 10^5)$. Thus, the full training set is used for each tree, unless there are more than 10,000 observations. The path length for an observation is then averaged across all trees in the ensemble, giving a more stable estimate of anomalousness.
+
+As no pairwise distances are computed, iForest scales naturally to large, high-dimensional data sets where other distance-based methods become slow or unreliable.
+
+The **anomaly score** for observation $\bm{y}$ is then computed by averaging the path lengths across the ensemble of iTrees, and normalising by the expected path length for a sample of size $\psi$:
+$$
+  s(\bm{y}, \psi) = 2^{-\bar{h}(\bm{y})/c(\psi)},
+$$ {#eq-ifscore}
+where $\bar{h}(\bm{y})$ is the average path length over all trees in the ensemble. The score lies in $(0, 1]$. Observations with $s$ closer to 1 are more likely to be anomalies; those with $s$ well below 0.5 are unlikely to be anomalies; if all scores cluster around 0.5, the data probably contains no clear anomalies.
+
+### Extended Isolation Forest
+
+In the original iForest algorithm, all splits involve only one variable at a time (known as "axis-parallel" splits). As a result, the partitions are always rectangular and parallel to the axes. This may lead to a directional bias in the anomaly scores, and also tends to lead to more splits when isolating observations.
+
+@Hariri2021 addressed this with the **Extended Isolation Forest** (EIF), which replaces
+axis-parallel splits by random hyperplane splits: at each node, a random direction in the
+$m$-dimensional space is chosen, and observations are divided according to which side of
+the corresponding hyperplane they fall on. In our two-dimensional Old Faithful example, this means that splits can be made at any angle, rather than being restricted to vertical or horizontal lines. This removes the directional bias at the cost of a slight increase in computational effort.
+
+### The `isotree` package {#sec-isotree}
+
+The `isotree` package [@isotree] provides a fast, multi-threaded implementation of the original iForest and of several variants including EIF, SCiForest [@Liu2010] and Fair-Cut Forest [@Cortes2021], which use non-random splits aimed at finding clustered anomalies. The main interface is `isolation.forest()`, which returns a fitted model, and `predict()`, which scores new observations.
+
+The three most important parameters of `isolation.forest()` are:
+
+* `ntrees`: the number of trees $T$ (default 500).
+* `sample_size`: the sub-sample size $\psi$ (default uses the minimum of the full training set and 10000).
+* `ndim`: the number of columns combined at each split. Setting `ndim = 1` (the default)
+  gives the original iForest with axis-parallel splits; `ndim = m` (the number of
+  variables) gives the extended model with hyperplane splits.
+
+### Example: Old Faithful data
+
+We apply iForest to the `oldfaithful` data, using both duration and waiting time, with `ndim = 2` to use EIF hyperplane splits. The resulting anomaly scores are shown in @fig-iforest-of.
+
+```{r}
+#| label: iforest-of
+#| code-fold: false
+model_if <- oldfaithful |>
+  select(duration, waiting) |>
+  isolation.forest(ndim = 2)
+of_if <- oldfaithful |>
+  mutate(score = predict(model_if, pick(duration, waiting))) |>
+  arrange(desc(score))
+of_if
+```
+
+```{r}
+#| label: forecast-of-scores
+#| echo: false
+#| dependson: iforest-of
+iso <- which(
+  of_if$duration == oldfaithful$duration[shortest] &
+    of_if$waiting == oldfaithful$waiting[shortest]
+)
+```
+
+The three shortest eruptions, which we have repeatedly identified as genuine anomalies, are amongst the four highest scores. The observation that was the first to be isolated in the single iTree example above is ranked `r english::ordinal(iso)`, with a score of `r sprintf("%.3f", of_if$score[iso])`. In total, there are `r sum(of_if$score > 0.65)` observations with scores above 0.65 (a threshold chosen after some experimentation). These are highlighted in @fig-iforest-of,
+
+```{r}
+#| label: fig-iforest-of
+#| fig-cap: "Isolation Forest anomaly scores for the Old Faithful eruptions. Anomalies are shown as observations with scores above 0.65, which are highlighted in blue."
+#| code-fold: false
+#| dependson: iforest-of
+grid_of <- tidyr::expand_grid(
+  duration = seq(0, 320, length = 100),
+  waiting = seq(3000, 7200, length = 100)
+)
+grid_of$score <- predict(
+  model_if,
+  grid_of |> select(duration, waiting)
+)
+of_if |>
+  ggplot(aes(x = duration, y = waiting)) +
+  geom_contour(
+    data = grid_of,
+    aes(x = duration, y = waiting, z = score),
+    color = "grey85",
+    breaks = seq(0.35, 0.85, by = 0.025)
+  ) +
+  geom_point(aes(colour = score > 0.65)) +
+  labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
+```
+
+The contour lines show the score surface, which is highest near the anomalies, and lowest near the centres of the clusters, where observations are less likely to be isolated early on.
