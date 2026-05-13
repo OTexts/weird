@@ -49,7 +49,7 @@ of |> dist(method = "manhattan")
 ### Minkowski distance
 
 This generalises the Manhattan and Euclidean distances to use powers of $p$ to define the $L_p$ distance:
-$$\|\bm{y}_i - \bm{y}_j\|_p = \left(\sum_{k=1}^m (y_{ik}-y_{jk})^p\right)^{1/p}.$$
+$$\|\bm{y}_i - \bm{y}_j\|_p = \left(\sum_{k=1}^m |y_{ik}-y_{jk}|^p\right)^{1/p}.$$
 It is named after the German mathematician, Hermann Minkowski. When $p=1$ this is the Manhattan distance, and when $p=2$ this is the Euclidean distance.
 
 Here is the Minkowski distance with $p = 3$ for the same five observations from the `oldfaithful` data set.
@@ -60,7 +60,7 @@ Here is the Minkowski distance with $p = 3$ for the same five observations from 
 of |> dist(method = "minkowski", p = 3)
 ```
 
-### Chebyshev Distance
+### Chebyshev distance
 
 The maximum distance between any components of $\bm{y}_i$ and $\bm{y}_j$ is known as the Chebyshev distance (after the Russian mathematician, Pafnuty Chebyshev), given by
 $$\|\bm{y}_i - \bm{y}_j\|_{\text{max}} = \max_k |y_{ik}-y_{jk}|.$$
@@ -145,7 +145,7 @@ Suppose we write the distance between observations $\bm{y}_i$ and $\bm{y}_j$ as 
 
 Let $N_{i,k}$ be the set of $k$ nearest neighbours within $d_{i,k}$ of $\bm{y}_i$. (If there are multiple observations all exactly $d_{i,k}$ from $\bm{y}_i$, then $N_{i,k}$ may contain more than $k$ observations, but we will ignore that issue here.)
 
-Note that an observation $\bm{y}_j$ may be within $N_{i,k}$ while $\bm{y}_i$ does not fall within $N_{j,k}$, as shown in the diagram below.
+Note that an observation $\bm{y}_j$ may be within $N_{i,k}$ while $\bm{y}_i$ does not fall within $N_{j,k}$, as shown in @fig-njk.
 
 ```{r}
 #| label: fig-njk
@@ -413,7 +413,7 @@ oldfaithful |>
 
 ## BACON algorithm for linear regression {#sec-bacon-reg}
 
-Suppose we observe a response $y_i$ and a vector of $\bm{x}_i$, and assume that the non-outlying observations follow the model
+Suppose we observe a response $y_i$ and a predictor vector $\bm{x}_i$, and assume that the non-outlying observations follow the model
 $$
   y_i = \bm{x}_i^\intercal \bm{\beta} + \varepsilon_i,
 $$
@@ -523,7 +523,7 @@ where $\varepsilon$ is a random error term with mean zero and variance $`r sprin
 ```{r}
 #| label: fig-shiraz-regression
 #| warning: false
-#| fig-cap: Log price of Shiraz as a function of points. The points are horizontally jitted to reduce overplotting.
+#| fig-cap: Log price of Shiraz as a function of points. The points are horizontally jittered to reduce overplotting.
 wine_aug <- fit_wine |>
   broom::augment(data = shiraz)
 wine_aug |>
@@ -689,7 +689,7 @@ $$
 $$
 where $\gamma \approx 0.5772$ is Euler's constant. Because this is a function of $n$, we cannot directly compare path lengths across data sets of different sizes.
 
-To illustrate the procedure, we build an iTree for the `oldfaithful` data, but with maximum depth set to 4. The resulting tree is shown in @fig-iso-tree.
+To illustrate the procedure, we build an iTree for the `oldfaithful` data, but with maximum depth set to 3. The resulting tree is shown in @fig-iso-tree.
 
 ```{r}
 #| label: iso-tree
@@ -774,12 +774,12 @@ ggraph(g, layout = "tree") +
   ) +
   labs(
     title = "Single isolation tree for Old Faithful data",
-    subtitle = "(max depth = 4)"
+    subtitle = "(max depth = 3)"
   ) +
   theme_void(base_size = 12)
 ```
 
-Another way to visualize the same tree structure is to show the splits as lines on the scatterplot, as in @fig-iforest-tree. Each split is confined to the rectangle defined by its parent node, so the splits are nested within each other. Each leaf corresponds to a final rectangle containing one or more observations. The path length for an observation is the number of splits required to isolate it.
+Another way to visualise the same tree structure is to show the splits as lines on the scatterplot, as in @fig-iforest-tree. Each split is confined to the rectangle defined by its parent node, so the splits are nested within each other. Each leaf corresponds to a final rectangle containing one or more observations. The path length for an observation is the number of splits required to isolate it.
 
 ```{r}
 #| label: fig-iforest-tree
@@ -880,10 +880,10 @@ ggplot() +
     aes(x = duration, y = waiting)
   ) +
   labs(
-    x = "Eruption duration (min)",
-    y = "Waiting time to next eruption (min)",
+    x = "Eruption duration (seconds)",
+    y = "Waiting time to next eruption (seconds)",
     title = "Recursive partition by a single isolation tree for the Old Faithful data",
-    subtitle = "(max_depth = 4)"
+    subtitle = "(max_depth = 3)"
   )
 ```
 
@@ -904,7 +904,7 @@ A tree with a larger maximum depth would continue splitting the remaining observ
 
 A single iTree provides a highly variable estimate of anomalousness, because it is built using random splits that are independent of the data. That is, the path length for a given observation can vary widely across different iTrees built on the same data, because the random splits may or may not isolate the observation early on, depending on how they happen to fall relative to the observation and its neighbours.
 
-To address this, we can create many iTrees, each formed with a different random partition (and possibly using random subsets of the data). This ensemble of iTrees is known as an **isolation forecast** or iForest. Let $T$ be the number of trees in the ensemble, and $\psi$ be the size of the random sub-sample used to build each tree. @Liu2008-dp found that $T = 100$ trees and $\psi = 256$ observations per sub-sample are usually sufficient, although the defaults in the `isotree` package are to use $T=500$, and $\psi = \min(n, 10^5)$. Thus, the full training set is used for each tree, unless there are more than 10,000 observations. The path length for an observation is then averaged across all trees in the ensemble, giving a more stable estimate of anomalousness.
+To address this, we can create many iTrees, each formed with a different random partition (and possibly using random subsets of the data). This ensemble of iTrees is known as an **isolation forest** or iForest. Let $T$ be the number of trees in the ensemble, and $\psi$ be the size of the random subsample used to build each tree. @Liu2008-dp found that $T = 100$ trees and $\psi = 256$ observations per subsample are usually sufficient, although the defaults in the `isotree` package are to use $T=500$, and $\psi = \min(n, 10^4)$. Thus, the full training set is used for each tree, unless there are more than 10,000 observations. The path length for an observation is then averaged across all trees in the ensemble, giving a more stable estimate of anomalousness.
 
 As no pairwise distances are computed, iForest scales naturally to large, high-dimensional data sets where other distance-based methods become slow or unreliable.
 
@@ -930,7 +930,7 @@ The `isotree` package [@isotree] provides a fast, multi-threaded implementation 
 The three most important parameters of `isolation.forest()` are:
 
 * `ntrees`: the number of trees $T$ (default 500).
-* `sample_size`: the sub-sample size $\psi$ (default uses the minimum of the full training set and 10000).
+* `sample_size`: the subsample size $\psi$ (default uses the minimum of the full training set and 10000).
 * `ndim`: the number of columns combined at each split. Setting `ndim = 1` (the default)
   gives the original iForest with axis-parallel splits; `ndim = m` (the number of
   variables) gives the extended model with hyperplane splits.
