@@ -6,87 +6,31 @@
 source("before-each-chapter.R")
 ```
 
-Distance-based anomaly detection methods are based on the distances between observations. The pairwise distances between observations are computed, and anomalies are identified as those observations that are far from other observations.
+Distance-based anomaly detection methods identify anomalies as observations that are far from the bulk of the data. Some methods measure distance from a global centre; others use distances to neighbouring observations. Before introducing these methods, we first discuss how distances between multivariate observations are measured.
 
-Before we discuss some of the methods that fall into this class of algorithms, we will first discuss some of the different ways of measuring distances between observations.
+## Measuring distances {#sec-distances}
 
-## Multivariate pairwise distances {#sec-distances}
-
-Suppose our observations are denoted by $\bm{y}_1,\dots,\bm{y}_n$, each a vector of length $m$. In univariate data, the distance between any two observations is simply the absolute difference between the points. But in multivariate data, there are many different ways of measuring distances between observations, even when the data are all numerical.
-
-### Euclidean distance
+Suppose our observations are denoted by $\bm{y}_1,\dots,\bm{y}_n$, each a vector of length $m$. In univariate data, the distance between any two observations is simply the absolute difference between the points. But in multivariate data, there are several different ways of measuring distances between observations, even when the data are all numerical.
 
 Perhaps the most obvious way to define the distance between any two points $\bm{y}_i$ and $\bm{y}_j$ is to measure the length of the straight line between the points. This is commonly known as Euclidean distance, named after the famous Greek mathematician Euclid, and can be defined as
 $$\|\bm{y}_i - \bm{y}_j\|_2 = \sqrt{\sum_{k=1}^m (y_{ik}-y_{jk})^2}.$$
 This is also known as the $L_2$ distance. For $m=1$ or $m=2$, this is the physical distance between the points when plotted on a strip plot or a scatterplot (provided there is no jittering used).
 
-The `dist()` function will return a distance matrix containing all pairwise distances between observations. The argument `method` specifies the type of distance to compute, with the default being Euclidean distance.
+Other distances also exist, including $L_1$ (Manhattan), $L_p$ (Minkowski), and $L_\infty$ (Chebyshev) distances [@Borg2005].
 
-Here is an example using only the first five observations of the `old_faithful` data set (omitting the time stamp). Because the distances are symmetric, only the lower triangle of the matrix is computed.
+A problem with all of these is that variables with large ranges dominate the calculation. In the Old Faithful data, for example, eruption durations range from about 50 to 300 seconds while waiting times run from about 3000 to 7200 seconds, so the waiting time almost entirely determines the Euclidean distance between any two eruptions. The solution is to scale the variables before computing distances.
 
-```{r}
-#| label: dist-1
-#| code-fold: false
-head(oldfaithful, 5)
-of <- head(oldfaithful, 5) |> select(duration, waiting)
-of |> dist()
-```
-
-### Manhattan distance
-
-The Manhattan distance (or absolute distance) between two observations is given by
-$$\|\bm{y}_i - \bm{y}_j\|_1 = \sum_{k=1}^m |y_{ik}-y_{jk}|.$$
-This is also known as the $L_1$ distance. It is called the Manhattan distance as it gives the shortest path between the corners of city blocks (denoted as points on a grid) when those blocks are rectangular, as they mostly are in Manhattan. For the same reason, it is also sometimes called the "taxicab" distance or the "city block" distance.
-
-Let's compute the Manhattan distances for the same five observations from the `oldfaithful` data set.
-
-```{r}
-#| label: dist-2
-#| code-fold: false
-of |> dist(method = "manhattan")
-```
-
-### Minkowski distance
-
-This generalises the Manhattan and Euclidean distances to use powers of $p$ to define the $L_p$ distance:
-$$\|\bm{y}_i - \bm{y}_j\|_p = \left(\sum_{k=1}^m |y_{ik}-y_{jk}|^p\right)^{1/p}.$$
-It is named after the German mathematician, Hermann Minkowski. When $p=1$ this is the Manhattan distance, and when $p=2$ this is the Euclidean distance.
-
-Here is the Minkowski distance with $p = 3$ for the same five observations from the `oldfaithful` data set.
-
-```{r}
-#| label: dist-3
-#| code-fold: false
-of |> dist(method = "minkowski", p = 3)
-```
-
-### Chebyshev distance
-
-The maximum distance between any components of $\bm{y}_i$ and $\bm{y}_j$ is known as the Chebyshev distance (after the Russian mathematician, Pafnuty Chebyshev), given by
-$$\|\bm{y}_i - \bm{y}_j\|_{\text{max}} = \max_k |y_{ik}-y_{jk}|.$$
-
-```{r}
-#| label: dist-4
-#| code-fold: false
-of |> dist(method = "maximum")
-```
-
-This is also known as chessboard distance, as it is the number of moves a king would have to travel on a chessboard to move between two squares. The Chebyshev distance is equivalent to the Minkowski distance with $p=\infty$.
-
-Notice that all four of the distances introduced so far are equal to the absolute difference between observations when $m=1$. The next distance does not have this property.
-
-### Mahalanobis distance
-
-When the variables have different scales, the variables with the largest ranges will dominate the distance measures. In the Old Faithful example, durations are much longer than waiting times, and so the duration variable is dominating the calculation of distances. Consequently, it is often preferable to scale the data before computing distances.
-
-Suppose we scale the data using the robust multivariate approach described in @sec-scaling, so that the scaled data are given by
-$\bm{z}_i = \bm{U} (\bm{y}_i - \bm{m})$, where $\bm{m}$ is the pointwise median, and $\bm{U}^\intercal\bm{U} = \bm{S}_{\text{OGK}}^{-1}$ is the Cholesky decomposition of the inverse of $\bm{S}_{\text{OGK}}$, the robust OGK estimate of the covariance matrix of the data (@sec-robust-cov). Then the Euclidean distance between $\bm{z}_i$ and $\bm{z}_j$ is given by
+A useful way to scale multivariate data that potentially contains anomalies is to use the robust approach described in @sec-scaling, which transforms each observation to a multivariate z-score
 $$
-  \| \bm{z}_i - \bm{z}_j\|_2 = \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{U}^\intercal \bm{U} (\bm{y}_i - \bm{y}_j)} = \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{S}_{\text{OGK}}^{-1} (\bm{y}_i - \bm{y}_j)}
+  \bm{z}_i = \bm{U}(\bm{y}_i - \bm{m}),
 $$
-This is known as the Mahalanobis distance, named after the Indian statistician Prasanta Chandra Mahalanobis (although he wasn't using a robust measure of covariance). It is a multivariate generalisation of the number of standard deviations between any two observations.
+where $\bm{m}$ is the pointwise median and $\bm{U}^\intercal\bm{U} = \bm{S}_{\text{OGK}}^{-1}$ is the Cholesky decomposition of the inverse of the robust OGK covariance matrix (@sec-robust-cov). The Euclidean distance between the scaled observations $\bm{z}_i$ and $\bm{z}_j$ is then
+$$
+  \|\bm{z}_i - \bm{z}_j\|_2 = \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{S}_{\text{OGK}}^{-1} (\bm{y}_i - \bm{y}_j)}.
+$$
+The combination of scaling by an estimated covariance matrix, followed by the Euclidean distance, is known as the **Mahalanobis distance**, named after the Indian statistician Prasanta Chandra Mahalanobis. It is a multivariate generalisation of the number of standard deviations separating two observations, and accounts for both the different scales of the variables and the correlations between them.
 
-Mahalanobis distance is not an option provided by the `dist()` function, so we will need to compute the scaled data first.
+We compute the scaled Old Faithful data using `mvscale()`, which will be used throughout this chapter.
 
 ```{r}
 #| label: zscores
@@ -94,12 +38,8 @@ Mahalanobis distance is not an option provided by the `dist()` function, so we w
 z <- oldfaithful |>
   select(duration, waiting) |>
   mvscale()
-z |>
-  head(5) |>
-  dist()
+head(z)
 ```
-
-For more information about pairwise distances, see @Borg2005.
 
 ## Mahalanobis anomaly scores {#sec-mahal-scores}
 
