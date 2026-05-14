@@ -127,251 +127,7 @@ oldfaithful |>
 
 ```
 
-@fig-mahal-scores shows that the genuine anomalies have been flagged, but so have all eruptions in the lower cluster. The reason for this is that the robust centre and covariance are dominated by the larger upper cluster, so eruptions in the lower cluster appear far from the centre even though they form a coherent group. Mahalanobis anomaly scores work best when the data come from a single roughly elliptical cluster; with multimodal data they can produce many false positives.
-
-## Nearest neighbours
-
-If there are $n$ observations, then there are $n(n-1)/2$ pairwise distances to compute, so this is an $O(n^2)$ operation which can take a long time for large $n$.
-
-Some algorithms only compute the pairwise distances of the $k$ nearest observations, although finding those observations requires some additional distances to be computed. For some types of distances, efficient solutions are available using kd trees [@Bentley1975;@Arya1998] that find the $k$ nearest neighbours to each observation in $O(n\log(n))$ time.
-
-The calculation of $k$ nearest neighbours is useful for more than anomaly detection problems. It is also the basis of a popular classification method due to the Berkeley statisticians Evelyn Fix and Joe Hodges [@knn] which is often known as the "kNN algorithm".
-
-Suppose we use the Old Faithful data to find eruptions that are neighbours in the (duration, waiting) space. The `dbscan` package uses kd trees to quickly identify the $k$ nearest observations to each eruption. We will use the scaled data computed in the last section to find the 5 nearest neighbours to each eruption.
-
-```{r}
-#| label: knn
-#| code-fold: false
-#| dependson: zscores
-# Find 5 nearest neighbours to each eruption
-knn <- dbscan::kNN(z, k = 5)
-# First eruption in the data set
-oldfaithful[1, ]
-# Five closest observations
-oldfaithful[knn$id[1, ], ]
-```
-
-For large data sets, approximations are available which speed up the computation even more, but are less accurate in finding the $k$ nearest neighbours. The `approx` argument specifies a distance tolerance which makes the process faster for large data sets, although the neighbours returned may not be the exact nearest neighbours.
-
-```{r}
-#| label: ann
-#| code-fold: false
-#| dependson: zscores
-# Find 5 approximate nearest neighbours to each eruption
-kann <- dbscan::kNN(z, k = 5, approx = 2)
-# Five closest observations
-oldfaithful[kann$id[1, ], ]
-```
-
-In this case, four of the same five observations have been found, with the last being different.
-
-## kNN anomaly scores {#sec-knn-scores}
-
-The simplest way to use nearest neighbours for anomaly detection is to score each observation by its distance to its $k$-th nearest neighbour. Let $d_{i,k}$ denote the distance between observation $\bm{y}_i$ and its $k$-th nearest neighbour. A large $d_{i,k}$ means the observation is far from its neighbourhood and is likely anomalous; a small value indicates a dense neighbourhood and a typical observation.
-
-The `dbscan::kNNdist()` function computes $d_{i,k}$ for every observation. Here we apply it to the scaled Old Faithful data with $k = 100$.
-
-```{r}
-#| label: knn-scores
-#| code-fold: false
-#| dependson: zscores
-of_knn <- oldfaithful |>
-  mutate(score = dbscan::kNNdist(z, k = 100))
-of_knn |> arrange(desc(score))
-```
-
-```{r}
-#| label: fig-knn-scores
-#| fig-cap: kNN anomaly scores for each eruption, using the distance to the 100th nearest neighbour on the scaled data.
-#| dependson: knn-scores
-of_knn |>
-  ggplot(aes(x = duration, y = score)) +
-  geom_point() +
-  labs(x = "Duration (seconds)", y = "kNN anomaly score")
-```
-
-As with many of the methods we have seen, the three shortest eruptions have the highest scores. The bimodal structure of the data is also visible: eruptions that fall in the gap between the two clusters have higher scores than those near the cluster centres.
-
-A limitation of the kNN anomaly score is that $d_{i,k}$ is an absolute distance. It does not adjust for the local density of the neighbourhood, so an observation in a naturally sparse region of the data will receive a higher score than one in a naturally dense region, even if it is no more unusual relative to its local neighbours. The local outlier factor, introduced in the next section, addresses this limitation.
-
-## Local outlier factors {#sec-lof}
-
-A popular way of using $k$-nearest neighbours for anomaly detection is via local outlier factors [@lof]. This is designed to find points in areas with few surrounding observations.
-
-Suppose we write the distance between observations $\bm{y}_i$ and $\bm{y}_j$ as $\|\bm{y}_i - \bm{y}_j\|$, and let $d_{i,k}$ be the distance between observation $\bm{y}_i$ and its $k$th nearest neighbour (as defined in @sec-knn-scores).
-
-Let $N_{i,k}$ be the set of $k$ nearest neighbours within $d_{i,k}$ of $\bm{y}_i$. (If there are multiple observations all exactly $d_{i,k}$ from $\bm{y}_i$, then $N_{i,k}$ may contain more than $k$ observations, but we will ignore that issue here.)
-
-Note that an observation $\bm{y}_j$ may be within $N_{i,k}$ while $\bm{y}_i$ does not fall within $N_{j,k}$, as shown in @fig-njk.
-
-```{r}
-#| label: fig-njk
-#| fig-cap: "A synthetic data set of 11 observations. Nearest neighbourhoods containing five observations each are shown for $\\bm{y}_1$ (in orange) and $\\bm{y}_2$ (in blue). The neighbourhood of $\\bm{y}_1$ contains $\\bm{y}_2$ in its nearest five observations, but $\\bm{y}_2$ does not include $\\bm{y}_1$ in its nearest five observations."
-#| warning: false
-#| echo: false
-set.seed(2)
-df <- tibble(
-  x = c(rnorm(5), rnorm(6, 5, 1)),
-  y = c(rnorm(5), rnorm(6, 5, 1))
-) |>
-  mutate(d = dbscan::kNNdist(pick(x, y), 5))
-chosen <- c(3, 11)
-df |>
-  ggplot() +
-  ggforce::geom_circle(
-    aes(x0 = x, y0 = y, r = d, col = c("N15", "N25"), fill = c("N15", "N25")),
-    alpha = 0.2,
-    data = df[chosen, ]
-  ) +
-  geom_point(aes(x = x, y = y), size = 3) +
-  annotate(
-    "text",
-    x = df$x[chosen] + 0.3,
-    y = df$y[chosen] + 0.3,
-    label = latex2exp::TeX(
-      paste0("$y_", 1:2, "$"),
-      bold = TRUE,
-      output = "character"
-    ),
-    parse = TRUE,
-    col = discrete_colours[1:2]
-  ) +
-  annotate(
-    "text",
-    x = c(-0.5, 3.6),
-    y = c(4.2, 6),
-    label = latex2exp::TeX(paste0("$N_{", 1:2, ",5}$"), output = "character"),
-    parse = TRUE,
-    col = discrete_colours[1:2]
-  ) +
-  geom_segment(
-    aes(x = x, y = y, xend = c(7.75, 8.75), yend = y),
-    arrow = arrow(length = unit(0.02, "npc")),
-    data = df[chosen, ],
-    col = discrete_colours[1:2]
-  ) +
-  annotate(
-    "text",
-    x = c(4.7, 7),
-    y = c(-0.8, 4.1),
-    label = latex2exp::TeX(paste0("$d_{", 1:2, ",5}$"), output = "character"),
-    parse = TRUE,
-    col = discrete_colours[1:2]
-  ) +
-  coord_fixed(xlim = c(-4, 8.5), ylim = range(df$y)) +
-  guides(col = "none", fill = "none") +
-  theme_void()
-```
-
-Let $r_k(i,j) = \max(d_{j,k}, \|\bm{y}_i-\bm{y}_j\|)$ be the "reachability" of $\bm{y}_i$ from $\bm{y}_j$. Thus, $r_k(i,j)$ is the distance between observations $\bm{y}_i$ and $\bm{y}_j$ when they are far from each other, but is equal to $d_{j,k}$ if $\bm{y}_i$ is one of the $k$ nearest neighbours of $\bm{y}_j$. The reachability is a truncated variant of the usual Euclidean distance $\|\bm{y}_i-\bm{y}_j\|$ so that it is not less than $d_{j,k}$.
-
-The average reachability of $\bm{y}_i$ *from* its nearest neighbours is given by
-$$
-  \bar{r}_{i,k} = k^{-1} \sum_{\bm{y}_j \in N_{i,k}} r_k(i,j)
-$$
-This is not the same as the average reachability of the neighbours *from* $\bm{y}_i$ which, by definition, would be $d_{i,k}$. An observation will have high average reachability if it is far from its neighbours, whereas it will have low average reachability if it has many close neighbours.
-
-Then the local outlier factor for observation $\bm{y}_i$ is given by
-$$
-\ell_{i,k} = \frac{\bar{r}_{i,k}}{k}\sum_{\bm{y}_j \in N_{i,k}} \bar{r}^{-1}_{j,k}.
-$$
-Thus, it is the product of $\bar{r}_{i,k}$ and the average value of $\bar{r}^{-1}_{j,k}$ for points within its neighbourhood.
-
-This provides a relative measure of the density of each observation compared to its neighbours. An observation is regarded as an anomaly if it is in a low-density region (far from its neighbours) while its neighbours are in higher density regions (with many neighbours nearby). A value of $\ell_{i,k}$ much greater than 1 shows that the observation has much larger average reachability compared to its neighbours, and so is regarded as an anomaly.
-
-One problem with this definition is that $\ell_{i,k}$ can be infinite. If the data set contains at least $k+1$ identical observations, then the average reachability $\bar{r}_{j,k}$ will be 0 if $\bm{y}_j$ is one of the group of identical observations. Consequently, $\ell_{i,k} = \infty$ if $\bm{y}_i$ is a neighbour to one of the group of identical observations. In this book we use a slightly different definition from that used elsewhere and replace these infinite values with 1s (indicating they have similar reachability to their identical neighbours).
-
-Another problem is that it can be difficult to determine an appropriate value for $k$.
-
-### Example: Old Faithful data
-
-Let's apply the idea to the `duration` variable in the Old Faithful data set. We will use the `lof_scores()` function to compute the local outlier factors for each eruption, with $k=100$ nearest neighbours. The value of $k=100$ has been chosen after experimenting with various values.
-
-```{r}
-#| label: ofscores
-of_scores <- oldfaithful |>
-  mutate(lof = lof_scores(duration, k = 100))
-of_scores |> arrange(desc(lof))
-```
-
-Here the three shortest eruptions (which we have previously identified as genuine anomalies) are those with the highest local outlier factors. Next there is a group of eruptions with durations above 300 seconds.
-
-```{r}
-#| label: fig-ofscores
-#| fig-cap: Local outlier factors for each eruption duration plotted against the duration.
-#| dependson: ofscores
-of_scores |>
-  ggplot(aes(x = duration, y = lof)) +
-  geom_point() +
-  labs(x = "Duration (seconds)", y = "Local outlier factor")
-```
-
-@fig-ofscores shows a scatterplot of the local outlier factors for each eruption plotted against the eruption duration. The three short eruptions clearly stand out. The bimodal distribution of eruption durations is also evident here, with the peak in local outlier factors around 150 seconds, indicating a low density of eruptions at that duration.
-
-## Detect deviating cells algorithm
-
-So far, we have treated each multivariate observation as a single point in the multivariate space, and have computed distances between those points. Under this perspective, the observations are the rows of the data matrix, and the columns are the variables. So an anomaly is a row that is far from other rows. That may be because of the values in one or more columns, or the unusual combination of values across columns. Almost all robust multivariate methods require at least half the observations to be non-anomalous, so that the main body of the data can be identified. But sometimes many rows (observations) each have a few contaminated cell values, and it is not possible to identify "normal" rows. In that case, it may be possible to identify the anomalous cells instead of the anomalous rows. This is the idea behind the "detect deviating cells" (DDC) algorithm of @Rousseeuw2016-wm.
-
-Suppose a fraction $\varepsilon$ of cells are contaminated, and that the contaminated cells are randomly distributed across the data matrix. Then, on average, each row will have $\varepsilon m$ contaminated cells. The expected fraction of contaminated rows is $1-(1-\varepsilon)^m$, which is close to 1 when $m\varepsilon$ is large.
-
-Rather than treating each row as a point, the DDC algorithm treats each cell in the data matrix as a point, and detects anomalous cells. It does this by checking whether each cell value is consistent with what would be predicted from the other variables in the same row (observation), following these steps.
-
-1. Non-numerical columns, and discrete columns taking a few distinct values, are omitted.
-2. Optionally, numerical columns can be transformed to be closer to normality, for example by applying a log transformation to positive-valued columns.
-3. All numerical columns are standardised using robust location and scale estimates.
-4. Cell values that are outliers in their column are flagged.
-5. Robust pairwise correlations are computed between all pairs of columns. Only pairs of columns whose absolute correlation exceeds a threshold (0.5 by default) are considered "connected"; for each such pair, a robust bivariate slope is also estimated.
-6. Each cell value is predicted using a weighted combination of connected columns, ignoring flagged cells. The weights are based on the absolute correlations between the columns.
-7. Cells for which the observed value differs substantially from the predicted value are flagged as anomalous.
-
-Entire rows that contain an unusual accumulation of large cell residuals can additionally be flagged as rowwise outliers.
-
-This method is implemented in the `cellWise::DDC()` function. Here we apply it to the French male mortality data, with the data matrix containing the mortality rates for each year (rows) and age (columns).
-
-```{r}
-#| label: ddc-mx
-#| output: false
-mx_wide <- fr_mortality |>
-  filter(Sex == "Male") |>
-  select(-Sex) |>
-  tidyr::pivot_wider(names_from = Age, values_from = Mortality) |>
-  arrange(Year)
-mx_ddc <- cellWise::DDC(mx_wide |> select(-Year))$stdResid |>
-  as_tibble() |>
-  mutate(Year = mx_wide$Year) |>
-  tidyr::pivot_longer(-Year, names_to = "Age", values_to = "stdResid") |>
-  mutate(
-    Age = as.numeric(Age),
-    anomaly = cut(
-      stdResid,
-      breaks = qnorm(c(0, 0.001, 0.01, 0.99, 0.999, 1))
-    )
-  )
-```
-
-The standardised residuals from the DDC algorithm are plotted as a heatmap in @fig-ddc-mx, with red indicating large positive residuals (higher than expected mortality), blue indicating large negative residuals (lower than expected mortality), and grey indicating small residuals. The matrix has been rotated anticlockwise in the plot, so that the years are on the horizontal axis and the ages are on the vertical axis, to be consistent with the custom of plotting time on the horizontal axis.
-
-```{r}
-#| label: fig-ddc-mx
-#| fig-cap: "DDC algorithm applied to the French male mortality data. The standardised residuals from the DDC algorithm are plotted as a heatmap, with red indicating large positive residuals (higher than expected mortality), and blue indicating large negative residuals (lower than expected mortality)."
-#| message: false
-ggplot(mx_ddc) +
-  geom_tile(aes(x = Year, y = Age, fill = anomaly)) +
-  scale_fill_brewer(palette = "RdBu", direction = -1) +
-  coord_cartesian(expand = FALSE) +
-  guides(fill = "none")
-```
-
-The DDC algorithm identifies many anomalous cells in the data, particularly during years in which France was involved in war:
-
-* 1853--1856: Crimean war
-* 1870: Franco-Prussian war
-* 1871: Repression of the ‘Commune de Paris’
-* 1914--1918: World War I
-* 1940--1944: World War II
-
-Mortality rates are often also high in the year after a war, as soldiers return home with injuries and illnesses. The Spanish flu pandemic of 1918--1919 is evident in the plot, with higher than usual mortality rates for a wider age range than the wars. There was also unusually high mortality for males in their 20s in 1840--1843, which does not correspond to any known war [@french_mortality], but seems very similar to the pattern due to the Crimean War thirteen years later. The same pattern is not seen for females. Unusually high childhood mortality at around 10 years of age is seen until about 1870, probably driven by infectious diseases such as cholera, tuberculosis and measles. Finally, the large blue area at the upper right of the plot indicates unusually low mortality rates for older ages in recent years.
-
+@fig-mahal-scores shows that the genuine anomalies have been flagged, but so have all eruptions in the lower cluster. The reason for this is that the robust centre and covariance are dominated by the larger upper cluster, so eruptions in the lower cluster appear far from the centre even though they form a coherent group. Mahalanobis anomaly scores work best when the data come from a single roughly elliptical cluster; with multimodal data they can produce many false positives. The BACON algorithm, described next, addresses this by estimating the centre iteratively from a clean subset of observations rather than from all the data.
 
 ## BACON algorithm {#sec-bacon}
 
@@ -436,7 +192,7 @@ of_bacon |>
   arrange(desc(distance))
 ```
 
-As expected, the nominated outliers include the very short eruptions that we have identified as genuine anomalies throughout this chapter: their Mahalanobis distances from the robust centre of the data are substantially larger than those of other eruptions. However, many other observations have also been nominated as outliers.
+As expected, the nominated outliers include the very short eruptions that we have identified as genuine anomalies: their Mahalanobis distances from the robust centre of the data are substantially larger than those of other eruptions. However, many other observations have also been nominated as outliers.
 
 ```{r}
 #| label: fig-bacon-of
@@ -723,6 +479,187 @@ wine_bacon |>
 
 The comparison with the ordinary residual plot highlights the purpose of the regression BACON algorithm. Least-squares residuals are measured relative to a line fitted to all observations, so the line may itself be affected by the anomalies. BACON instead repeatedly refits the model to a growing subset of observations that are internally consistent, and then nominates observations that remain inconsistent with that subset.
 
+## Nearest neighbours {#sec-nn}
+
+The approaches discussed so far have scored each observation by its distance from a global centre. We now turn to methods that use the distances between each observation and its nearest neighbours, focusing on local structure rather than global structure. This local perspective is particularly useful for multimodal data, where no single centre can adequately represent the bulk of the data.
+
+If there are $n$ observations, then there are $n(n-1)/2$ pairwise distances to compute, so this is an $O(n^2)$ operation which can take a long time for large $n$.
+
+Some algorithms only compute the pairwise distances of the $k$ nearest observations, although finding those observations requires some additional distances to be computed. For some types of distances, efficient solutions are available using kd trees [@Bentley1975;@Arya1998] that find the $k$ nearest neighbours to each observation in $O(n\log(n))$ time.
+
+The calculation of $k$ nearest neighbours is useful for more than anomaly detection problems. It is also the basis of a popular classification method due to the Berkeley statisticians Evelyn Fix and Joe Hodges [@knn] which is often known as the "kNN algorithm".
+
+Suppose we use the Old Faithful data to find eruptions that are neighbours in the (duration, waiting) space. The `dbscan` package uses kd trees to quickly identify the $k$ nearest observations to each eruption. We will use the scaled data `z` computed in @sec-distances to find the 5 nearest neighbours to each eruption.
+
+```{r}
+#| label: knn
+#| code-fold: false
+#| dependson: zscores
+# Find 5 nearest neighbours to each eruption
+knn <- dbscan::kNN(z, k = 5)
+# First eruption in the data set
+oldfaithful[1, ]
+# Five closest observations
+oldfaithful[knn$id[1, ], ]
+```
+
+For large data sets, approximations are available which speed up the computation even more, but are less accurate in finding the $k$ nearest neighbours. The `approx` argument specifies a distance tolerance which makes the process faster for large data sets, although the neighbours returned may not be the exact nearest neighbours.
+
+```{r}
+#| label: ann
+#| code-fold: false
+#| dependson: zscores
+# Find 5 approximate nearest neighbours to each eruption
+kann <- dbscan::kNN(z, k = 5, approx = 2)
+# Five closest observations
+oldfaithful[kann$id[1, ], ]
+```
+
+In this case, four of the same five observations have been found, with the last being different.
+
+## kNN anomaly scores {#sec-knn-scores}
+
+The simplest way to use nearest neighbours for anomaly detection is to score each observation by its distance to its $k$-th nearest neighbour. Let $d_{i,k}$ denote the distance between observation $\bm{y}_i$ and its $k$-th nearest neighbour. A large $d_{i,k}$ means the observation is far from its neighbourhood and is likely anomalous; a small value indicates a dense neighbourhood and a typical observation.
+
+The `dbscan::kNNdist()` function computes $d_{i,k}$ for every observation. Here we apply it to the scaled Old Faithful data with $k = 100$.
+
+```{r}
+#| label: knn-scores
+#| code-fold: false
+#| dependson: zscores
+of_knn <- oldfaithful |>
+  mutate(score = dbscan::kNNdist(z, k = 100))
+of_knn |> arrange(desc(score))
+```
+
+```{r}
+#| label: fig-knn-scores
+#| fig-cap: kNN anomaly scores for each eruption, using the distance to the 100th nearest neighbour on the scaled data.
+#| dependson: knn-scores
+of_knn |>
+  ggplot(aes(x = duration, y = score)) +
+  geom_point() +
+  labs(x = "Duration (seconds)", y = "kNN anomaly score")
+```
+
+As with many of the methods we have seen, the three shortest eruptions have the highest scores. The bimodal structure of the data is also visible: eruptions that fall in the gap between the two clusters have higher scores than those near the cluster centres.
+
+A limitation of the kNN anomaly score is that $d_{i,k}$ is an absolute distance. It does not adjust for the local density of the neighbourhood, so an observation in a naturally sparse region of the data will receive a higher score than one in a naturally dense region, even if it is no more unusual relative to its local neighbours. The local outlier factor, introduced in the next section, addresses this limitation.
+
+## Local outlier factors {#sec-lof}
+
+A popular way of using $k$-nearest neighbours for anomaly detection is via local outlier factors [@lof]. This is designed to find points in areas with few surrounding observations.
+
+Suppose we write the distance between observations $\bm{y}_i$ and $\bm{y}_j$ as $\|\bm{y}_i - \bm{y}_j\|$, and let $d_{i,k}$ be the distance between observation $\bm{y}_i$ and its $k$th nearest neighbour (as defined in @sec-knn-scores).
+
+Let $N_{i,k}$ be the set of $k$ nearest neighbours within $d_{i,k}$ of $\bm{y}_i$. (If there are multiple observations all exactly $d_{i,k}$ from $\bm{y}_i$, then $N_{i,k}$ may contain more than $k$ observations, but we will ignore that issue here.)
+
+Note that an observation $\bm{y}_j$ may be within $N_{i,k}$ while $\bm{y}_i$ does not fall within $N_{j,k}$, as shown in @fig-njk.
+
+```{r}
+#| label: fig-njk
+#| fig-cap: "A synthetic data set of 11 observations. Nearest neighbourhoods containing five observations each are shown for $\\bm{y}_1$ (in orange) and $\\bm{y}_2$ (in blue). The neighbourhood of $\\bm{y}_1$ contains $\\bm{y}_2$ in its nearest five observations, but $\\bm{y}_2$ does not include $\\bm{y}_1$ in its nearest five observations."
+#| warning: false
+#| echo: false
+set.seed(2)
+df <- tibble(
+  x = c(rnorm(5), rnorm(6, 5, 1)),
+  y = c(rnorm(5), rnorm(6, 5, 1))
+) |>
+  mutate(d = dbscan::kNNdist(pick(x, y), 5))
+chosen <- c(3, 11)
+df |>
+  ggplot() +
+  ggforce::geom_circle(
+    aes(x0 = x, y0 = y, r = d, col = c("N15", "N25"), fill = c("N15", "N25")),
+    alpha = 0.2,
+    data = df[chosen, ]
+  ) +
+  geom_point(aes(x = x, y = y), size = 3) +
+  annotate(
+    "text",
+    x = df$x[chosen] + 0.3,
+    y = df$y[chosen] + 0.3,
+    label = latex2exp::TeX(
+      paste0("$y_", 1:2, "$"),
+      bold = TRUE,
+      output = "character"
+    ),
+    parse = TRUE,
+    col = discrete_colours[1:2]
+  ) +
+  annotate(
+    "text",
+    x = c(-0.5, 3.6),
+    y = c(4.2, 6),
+    label = latex2exp::TeX(paste0("$N_{", 1:2, ",5}$"), output = "character"),
+    parse = TRUE,
+    col = discrete_colours[1:2]
+  ) +
+  geom_segment(
+    aes(x = x, y = y, xend = c(7.75, 8.75), yend = y),
+    arrow = arrow(length = unit(0.02, "npc")),
+    data = df[chosen, ],
+    col = discrete_colours[1:2]
+  ) +
+  annotate(
+    "text",
+    x = c(4.7, 7),
+    y = c(-0.8, 4.1),
+    label = latex2exp::TeX(paste0("$d_{", 1:2, ",5}$"), output = "character"),
+    parse = TRUE,
+    col = discrete_colours[1:2]
+  ) +
+  coord_fixed(xlim = c(-4, 8.5), ylim = range(df$y)) +
+  guides(col = "none", fill = "none") +
+  theme_void()
+```
+
+Let $r_k(i,j) = \max(d_{j,k}, \|\bm{y}_i-\bm{y}_j\|)$ be the "reachability" of $\bm{y}_i$ from $\bm{y}_j$. Thus, $r_k(i,j)$ is the distance between observations $\bm{y}_i$ and $\bm{y}_j$ when they are far from each other, but is equal to $d_{j,k}$ if $\bm{y}_i$ is one of the $k$ nearest neighbours of $\bm{y}_j$. The reachability is a truncated variant of the usual Euclidean distance $\|\bm{y}_i-\bm{y}_j\|$ so that it is not less than $d_{j,k}$.
+
+The average reachability of $\bm{y}_i$ *from* its nearest neighbours is given by
+$$
+  \bar{r}_{i,k} = k^{-1} \sum_{\bm{y}_j \in N_{i,k}} r_k(i,j)
+$$
+This is not the same as the average reachability of the neighbours *from* $\bm{y}_i$ which, by definition, would be $d_{i,k}$. An observation will have high average reachability if it is far from its neighbours, whereas it will have low average reachability if it has many close neighbours.
+
+Then the local outlier factor for observation $\bm{y}_i$ is given by
+$$
+\ell_{i,k} = \frac{\bar{r}_{i,k}}{k}\sum_{\bm{y}_j \in N_{i,k}} \bar{r}^{-1}_{j,k}.
+$$
+Thus, it is the product of $\bar{r}_{i,k}$ and the average value of $\bar{r}^{-1}_{j,k}$ for points within its neighbourhood.
+
+This provides a relative measure of the density of each observation compared to its neighbours. An observation is regarded as an anomaly if it is in a low-density region (far from its neighbours) while its neighbours are in higher density regions (with many neighbours nearby). A value of $\ell_{i,k}$ much greater than 1 shows that the observation has much larger average reachability compared to its neighbours, and so is regarded as an anomaly.
+
+One problem with this definition is that $\ell_{i,k}$ can be infinite. If the data set contains at least $k+1$ identical observations, then the average reachability $\bar{r}_{j,k}$ will be 0 if $\bm{y}_j$ is one of the group of identical observations. Consequently, $\ell_{i,k} = \infty$ if $\bm{y}_i$ is a neighbour to one of the group of identical observations. In this book we use a slightly different definition from that used elsewhere and replace these infinite values with 1s (indicating they have similar reachability to their identical neighbours).
+
+Another problem is that it can be difficult to determine an appropriate value for $k$.
+
+### Example: Old Faithful data
+
+Let's apply the idea to the `duration` variable in the Old Faithful data set. We will use the `lof_scores()` function to compute the local outlier factors for each eruption, with $k=100$ nearest neighbours. The value of $k=100$ has been chosen after experimenting with various values.
+
+```{r}
+#| label: ofscores
+of_scores <- oldfaithful |>
+  mutate(lof = lof_scores(duration, k = 100))
+of_scores |> arrange(desc(lof))
+```
+
+Here the three shortest eruptions (which we have previously identified as genuine anomalies) are those with the highest local outlier factors. Next there is a group of eruptions with durations above 300 seconds.
+
+```{r}
+#| label: fig-ofscores
+#| fig-cap: Local outlier factors for each eruption duration plotted against the duration.
+#| dependson: ofscores
+of_scores |>
+  ggplot(aes(x = duration, y = lof)) +
+  geom_point() +
+  labs(x = "Duration (seconds)", y = "Local outlier factor")
+```
+
+@fig-ofscores shows a scatterplot of the local outlier factors for each eruption plotted against the eruption duration. The three short eruptions clearly stand out. The bimodal distribution of eruption durations is also evident here, with the peak in local outlier factors around 150 seconds, indicating a low density of eruptions at that duration.
+
 ## Isolation forest {#sec-iforest}
 
 The methods discussed so far in this chapter all build their anomaly scores by measuring, in one way or another, how far each observation is from the bulk of the data. A conceptually different approach is to ask instead: *how easy is it to isolate this observation from the rest?* This is the idea behind the Isolation Forest algorithm of @Liu2008-dp.
@@ -953,7 +890,7 @@ shortest = 1784
 stopifnot(sum(oldfaithful$duration < splits_df$xmin[1]) == 4L)
 ```
 
-This shows that the first split separates the four shortest eruptions from the rest of the data (one is very close to the boundary). The second split divides the four into two groups of two. By the fourth split, one observation has been isolated from the rest of the data --- at the bottom right of the plot, with a duration of `r oldfaithful$duration[shortest]` minutes and a waiting time of `r oldfaithful$waiting[shortest]` minutes.  This observation is in leaf 4, and it has a path length of 3 (Splits 1, 3 and 4).
+This shows that the first split separates the four shortest eruptions from the rest of the data (one is very close to the boundary). The second split divides the four into two groups of two. By the fourth split, one observation has been isolated from the rest of the data --- at the bottom right of the plot, with a duration of `r oldfaithful$duration[shortest]` seconds and a waiting time of `r oldfaithful$waiting[shortest]` seconds.  This observation is in leaf 4, and it has a path length of 3 (Splits 1, 3 and 4).
 
 A tree with a larger maximum depth would continue splitting the remaining observations into smaller groups, so the path lengths for the other observations would be larger. The shortest eruptions are more likely to be isolated early on, because they can be separated from the rest of the data by a single additional random split. The eruptions near the centres of the clusters will require more splits to be isolated.
 
@@ -1046,3 +983,67 @@ of_if |>
 ```
 
 The contour lines show the score surface, which is highest near the anomalies, and lowest near the centres of the clusters, where observations are less likely to be isolated early on.
+
+## Detect deviating cells algorithm
+
+So far, we have treated each multivariate observation as a single point in the multivariate space, and have computed distances between those points. Under this perspective, the observations are the rows of the data matrix, and the columns are the variables. So an anomaly is a row that is far from other rows. That may be because of the values in one or more columns, or the unusual combination of values across columns. Almost all robust multivariate methods require at least half the observations to be non-anomalous, so that the main body of the data can be identified. But sometimes many rows (observations) each have a few contaminated cell values, and it is not possible to identify "normal" rows. In that case, it may be possible to identify the anomalous cells instead of the anomalous rows. This is the idea behind the "detect deviating cells" (DDC) algorithm of @Rousseeuw2016-wm.
+
+Suppose a fraction $\varepsilon$ of cells are contaminated, and that the contaminated cells are randomly distributed across the data matrix. Then, on average, each row will have $\varepsilon m$ contaminated cells. The expected fraction of contaminated rows is $1-(1-\varepsilon)^m$, which is close to 1 when $m\varepsilon$ is large.
+
+Rather than treating each row as a point, the DDC algorithm treats each cell in the data matrix as a point, and detects anomalous cells. It does this by checking whether each cell value is consistent with what would be predicted from the other variables in the same row (observation), following these steps.
+
+1. Non-numerical columns, and discrete columns taking a few distinct values, are omitted.
+2. Optionally, numerical columns can be transformed to be closer to normality, for example by applying a log transformation to positive-valued columns.
+3. All numerical columns are standardised using robust location and scale estimates.
+4. Cell values that are outliers in their column are flagged.
+5. Robust pairwise correlations are computed between all pairs of columns. Only pairs of columns whose absolute correlation exceeds a threshold (0.5 by default) are considered "connected"; for each such pair, a robust bivariate slope is also estimated.
+6. Each cell value is predicted using a weighted combination of connected columns, ignoring flagged cells. The weights are based on the absolute correlations between the columns.
+7. Cells for which the observed value differs substantially from the predicted value are flagged as anomalous.
+
+Entire rows that contain an unusual accumulation of large cell residuals can additionally be flagged as rowwise outliers.
+
+This method is implemented in the `cellWise::DDC()` function. Here we apply it to the French male mortality data, with the data matrix containing the mortality rates for each year (rows) and age (columns).
+
+```{r}
+#| label: ddc-mx
+#| output: false
+mx_wide <- fr_mortality |>
+  filter(Sex == "Male") |>
+  select(-Sex) |>
+  tidyr::pivot_wider(names_from = Age, values_from = Mortality) |>
+  arrange(Year)
+mx_ddc <- cellWise::DDC(mx_wide |> select(-Year))$stdResid |>
+  as_tibble() |>
+  mutate(Year = mx_wide$Year) |>
+  tidyr::pivot_longer(-Year, names_to = "Age", values_to = "stdResid") |>
+  mutate(
+    Age = as.numeric(Age),
+    anomaly = cut(
+      stdResid,
+      breaks = qnorm(c(0, 0.001, 0.01, 0.99, 0.999, 1))
+    )
+  )
+```
+
+The standardised residuals from the DDC algorithm are plotted as a heatmap in @fig-ddc-mx, with red indicating large positive residuals (higher than expected mortality), blue indicating large negative residuals (lower than expected mortality), and grey indicating small residuals. The matrix has been rotated anticlockwise in the plot, so that the years are on the horizontal axis and the ages are on the vertical axis, to be consistent with the custom of plotting time on the horizontal axis.
+
+```{r}
+#| label: fig-ddc-mx
+#| fig-cap: "DDC algorithm applied to the French male mortality data. The standardised residuals from the DDC algorithm are plotted as a heatmap, with red indicating large positive residuals (higher than expected mortality), and blue indicating large negative residuals (lower than expected mortality)."
+#| message: false
+ggplot(mx_ddc) +
+  geom_tile(aes(x = Year, y = Age, fill = anomaly)) +
+  scale_fill_brewer(palette = "RdBu", direction = -1) +
+  coord_cartesian(expand = FALSE) +
+  guides(fill = "none")
+```
+
+The DDC algorithm identifies many anomalous cells in the data, particularly during years in which France was involved in war:
+
+* 1853--1856: Crimean war
+* 1870: Franco-Prussian war
+* 1871: Repression of the ‘Commune de Paris’
+* 1914--1918: World War I
+* 1940--1944: World War II
+
+Mortality rates are often also high in the year after a war, as soldiers return home with injuries and illnesses. The Spanish flu pandemic of 1918--1919 is evident in the plot, with higher than usual mortality rates for a wider age range than the wars. There was also unusually high mortality for males in their 20s in 1840--1843, which does not correspond to any known war [@french_mortality], but seems very similar to the pattern due to the Crimean War thirteen years later. The same pattern is not seen for females. Unusually high childhood mortality at around 10 years of age is seen until about 1870, probably driven by infectious diseases such as cholera, tuberculosis and measles. Finally, the large blue area at the upper right of the plot indicates unusually low mortality rates for older ages in recent years.
