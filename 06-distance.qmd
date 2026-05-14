@@ -165,11 +165,40 @@ oldfaithful[kann$id[1, ], ]
 
 In this case, four of the same five observations have been found, with the last being different.
 
+## kNN anomaly scores {#sec-knn-scores}
+
+The simplest way to use nearest neighbours for anomaly detection is to score each observation by its distance to its $k$-th nearest neighbour. Let $d_{i,k}$ denote the distance between observation $\bm{y}_i$ and its $k$-th nearest neighbour. A large $d_{i,k}$ means the observation is far from its neighbourhood and is likely anomalous; a small value indicates a dense neighbourhood and a typical observation.
+
+The `dbscan::kNNdist()` function computes $d_{i,k}$ for every observation. Here we apply it to the scaled Old Faithful data with $k = 100$.
+
+```{r}
+#| label: knn-scores
+#| code-fold: false
+#| dependson: zscores
+of_knn <- oldfaithful |>
+  mutate(score = dbscan::kNNdist(z, k = 100))
+of_knn |> arrange(desc(score))
+```
+
+```{r}
+#| label: fig-knn-scores
+#| fig-cap: kNN anomaly scores for each eruption, using the distance to the 100th nearest neighbour on the scaled data.
+#| dependson: knn-scores
+of_knn |>
+  ggplot(aes(x = duration, y = score)) +
+  geom_point() +
+  labs(x = "Duration (seconds)", y = "kNN anomaly score")
+```
+
+As with many of the methods we have seen, the three shortest eruptions have the highest scores. The bimodal structure of the data is also visible: eruptions that fall in the gap between the two clusters have higher scores than those near the cluster centres.
+
+A limitation of the kNN anomaly score is that $d_{i,k}$ is an absolute distance. It does not adjust for the local density of the neighbourhood, so an observation in a naturally sparse region of the data will receive a higher score than one in a naturally dense region, even if it is no more unusual relative to its local neighbours. The local outlier factor, introduced in the next section, addresses this limitation.
+
 ## Local outlier factors {#sec-lof}
 
 A popular way of using $k$-nearest neighbours for anomaly detection is via local outlier factors [@lof]. This is designed to find points in areas with few surrounding observations.
 
-Suppose we write the distance between observations $\bm{y}_i$ and $\bm{y}_j$ as $\|\bm{y}_i - \bm{y}_j\|$, and let $d_{i,k}$ be the distance between observation $\bm{y}_i$ and its $k$th nearest neighbour.
+Suppose we write the distance between observations $\bm{y}_i$ and $\bm{y}_j$ as $\|\bm{y}_i - \bm{y}_j\|$, and let $d_{i,k}$ be the distance between observation $\bm{y}_i$ and its $k$th nearest neighbour (as defined in @sec-knn-scores).
 
 Let $N_{i,k}$ be the set of $k$ nearest neighbours within $d_{i,k}$ of $\bm{y}_i$. (If there are multiple observations all exactly $d_{i,k}$ from $\bm{y}_i$, then $N_{i,k}$ may contain more than $k$ observations, but we will ignore that issue here.)
 
