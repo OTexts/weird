@@ -80,7 +80,7 @@ Notice that all four of the distances introduced so far are equal to the absolut
 When the variables have different scales, the variables with the largest ranges will dominate the distance measures. In the Old Faithful example, durations are much longer than waiting times, and so the duration variable is dominating the calculation of distances. Consequently, it is often preferable to scale the data before computing distances.
 
 Suppose we scale the data using the robust multivariate approach described in @sec-scaling, so that the scaled data are given by
-$\bm{z}_i = \bm{U} (\bm{y}_i - \bm{m})$, where $\bm{m}$ is the pointwise median, and $\bm{U}^\intercal\bm{U} = \bm{S}_{\text{OGK}}^{-1}$ is the Cholesky decomposition of the inverse of $\bm{S}_{\text{OGK}}$, a robust estimate of the covariance matrix of the data. Then the Euclidean distance between $\bm{z}_i$ and $\bm{z}_j$ is given by
+$\bm{z}_i = \bm{U} (\bm{y}_i - \bm{m})$, where $\bm{m}$ is the pointwise median, and $\bm{U}^\intercal\bm{U} = \bm{S}_{\text{OGK}}^{-1}$ is the Cholesky decomposition of the inverse of $\bm{S}_{\text{OGK}}$, the robust OGK estimate of the covariance matrix of the data (@sec-robust-cov). Then the Euclidean distance between $\bm{z}_i$ and $\bm{z}_j$ is given by
 $$
   \| \bm{z}_i - \bm{z}_j\|_2 = \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{U}^\intercal \bm{U} (\bm{y}_i - \bm{y}_j)} = \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{S}_{\text{OGK}}^{-1} (\bm{y}_i - \bm{y}_j)}
 $$
@@ -100,6 +100,34 @@ z |>
 ```
 
 For more information about pairwise distances, see @Borg2005.
+
+## Mahalanobis anomaly scores {#sec-mahal-scores}
+
+Rather than compute distances between observations, we can compute the distance of each observation from the centre of the data. For example, the Mahalanobis distance from the centre can be expressed as
+$$
+  d_i  = \sqrt{(\bm{y}_i - \bm{m})^\intercal \bm{S}_{\text{OGK}}^{-1} (\bm{y}_i - \bm{m})}.
+$$
+where $\bm{m}$ is the pointwise median, and $\bm{S}_{\text{OGK}}$ is the robust OGK estimate of the covariance matrix (@sec-robust-cov). This is equivalent to the Euclidean distance of the multivariate z-score $\bm{z}_i$ from the origin. A large $d_i$ means the observation is far from the bulk of the data and is potentially anomalous.
+
+If the data were multivariate Normal, then we would expect the squared $d_i$ distances to follow a chi-squared distribution with $m$ degrees of freedom, where $m$ is the number of variables. This provides a natural threshold for flagging anomalies: we can flag $\bm{y}_i$ as an anomaly if $d_i > \sqrt{\chi^2_{m,1-\alpha}}$, where $\chi^2_{m,1-\alpha}$ is the $(1-\alpha)$-quantile of the chi-squared distribution with $m$ degrees of freedom.
+
+We apply this to the Old Faithful data, using the scaled data `z` already computed in @sec-distances, and setting $\alpha = 0.999$ (so only 1 in 1000 non-anomalous observations would be expected to exceed the threshold).
+
+```{r}
+#| label: fig-mahal-scores
+#| code-fold: false
+#| dependson: zscores
+oldfaithful |>
+  mutate(
+    d = sqrt(z$z1^2 + z$z2^2),
+    anomaly = d > sqrt(qchisq(0.999, df = 2))
+  ) |>
+  ggplot(aes(x = duration, y = waiting, colour = anomaly)) +
+  geom_point()
+
+```
+
+@fig-mahal-scores shows that the genuine anomalies have been flagged, but so have all eruptions in the lower cluster. The reason for this is that the robust centre and covariance are dominated by the larger upper cluster, so eruptions in the lower cluster appear far from the centre even though they form a coherent group. Mahalanobis anomaly scores work best when the data come from a single roughly elliptical cluster; with multimodal data they can produce many false positives.
 
 ## Nearest neighbours
 
