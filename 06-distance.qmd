@@ -10,27 +10,40 @@ Distance-based anomaly detection methods identify anomalies as observations that
 
 ## Measuring distances {#sec-distances}
 
-Suppose our observations are denoted by $\bm{y}_1,\dots,\bm{y}_n$, each a vector of length $m$. In univariate data, the distance between any two observations is simply the absolute difference between the points. But in multivariate data, there are several different ways of measuring distances between observations, even when the data are all numerical.
+Suppose our observations are denoted by $\bm{y}_1,\dots,\bm{y}_n$, each a vector of length $m$. In univariate data, the distance between any two observations is simply the absolute difference between the values. But in multivariate data, there are several different ways of measuring distances, even when the data are all numerical.
 
 Perhaps the most obvious way to define the distance between any two points $\bm{y}_i$ and $\bm{y}_j$ is to measure the length of the straight line between the points. This is commonly known as Euclidean distance, named after the famous Greek mathematician Euclid, and can be defined as
 $$\|\bm{y}_i - \bm{y}_j\|_2 = \sqrt{\sum_{k=1}^m (y_{ik}-y_{jk})^2}.$$
-This is also known as the $L_2$ distance. For $m=1$ or $m=2$, this is the physical distance between the points when plotted on a strip plot or a scatterplot (provided there is no jittering used).
+This is also known as the $L_2$ distance. For $m=1$ or $m=2$, it is the physical distance between the points when plotted on a strip plot or a scatterplot (provided there is no jittering used).
 
-Other distances also exist, including $L_1$ (Manhattan), $L_p$ (Minkowski), and $L_\infty$ (Chebyshev) distances [@Borg2005].
+The `dist()` function will return a distance matrix containing all pairwise distances between observations. Here is an example using only the first five observations of the Old Faithful data set, where each $\bm{y}_i$ is a vector of eruption duration and waiting time. Because the distances are symmetric, only the lower triangle of the matrix is computed.
 
-A problem with all of these is that variables with large ranges dominate the calculation. In the Old Faithful data, for example, eruption durations range from about 50 to 300 seconds while waiting times run from about 3000 to 7200 seconds, so the waiting time almost entirely determines the Euclidean distance between any two eruptions. The solution is to scale the variables before computing distances.
+```{r}
+#| label: dist-example
+#| code-fold: false
+head(oldfaithful, 5)
+head(oldfaithful, 5) |>
+  select(duration, waiting) |>
+  dist()
+```
 
-A useful way to scale multivariate data that potentially contains anomalies is to use the robust approach described in @sec-scaling, which transforms each observation to a multivariate z-score
+Other distances measures also exist, including $L_1$ (Manhattan), $L_p$ (Minkowski), and $L_\infty$ (Chebyshev) distances [@Borg2005]. The argument `method` in the `dist()` function specifies the type of distance to compute, with the default being Euclidean distance.
+
+A problem with all of these distances is that variables with large ranges dominate the calculation. In the Old Faithful data, for example, eruption durations range from about 50 to 300 seconds while waiting times run from about 3000 to 7200 seconds. So the Euclidean distances to other observations will be largely determined by the waiting time alone. Consequently, it is often preferable to scale the variables before computing distances, as discussed in @sec-scaling.
+
+We define the scaled observations as the robust multivariate z-scores, given by
 $$
   \bm{z}_i = \bm{U}(\bm{y}_i - \bm{m}),
 $$
-where $\bm{m}$ is the pointwise median and $\bm{U}^\intercal\bm{U} = \bm{S}_{\text{OGK}}^{-1}$ is the Cholesky decomposition of the inverse of the robust OGK covariance matrix (@sec-robust-cov). The Euclidean distance between the scaled observations $\bm{z}_i$ and $\bm{z}_j$ is then
+where $\bm{m}$ is the pointwise median and $\bm{U}^\intercal\bm{U} = \bm{S}_{\text{OGK}}^{-1}$ is the Cholesky decomposition of the inverse of the robust OGK covariance matrix (@sec-robust-cov). Then the Euclidean distance between the scaled observations $\bm{z}_i$ and $\bm{z}_j$ is given by
 $$
-  \|\bm{z}_i - \bm{z}_j\|_2 = \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{S}_{\text{OGK}}^{-1} (\bm{y}_i - \bm{y}_j)}.
+  \|\bm{z}_i - \bm{z}_j\|_2 =
+   \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{U}^\intercal\bm{U} (\bm{y}_i - \bm{y}_j)} =
+   \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{S}_{\text{OGK}}^{-1} (\bm{y}_i - \bm{y}_j)}.
 $$
-The combination of scaling by an estimated covariance matrix, followed by the Euclidean distance, is known as the **Mahalanobis distance**, named after the Indian statistician Prasanta Chandra Mahalanobis. It is a multivariate generalisation of the number of standard deviations separating two observations, and accounts for both the different scales of the variables and the correlations between them.
+This combination of first scaling using a covariance matrix (or its estimate) and then computing a Euclidean distance, is known as the **Mahalanobis distance**, named after the Indian statistician Prasanta Chandra Mahalanobis. It is a multivariate generalisation of the number of standard deviations separating two observations, and accounts for both the different scales of the variables and the correlations between them.
 
-We compute the scaled Old Faithful data using `mvscale()`, which will be used throughout this chapter.
+We compute the scaled Old Faithful data using `mvscale()`.
 
 ```{r}
 #| label: zscores
@@ -38,16 +51,18 @@ We compute the scaled Old Faithful data using `mvscale()`, which will be used th
 z <- oldfaithful |>
   select(duration, waiting) |>
   mvscale()
-head(z)
+head(z, 5)
+head(z, 5) |>
+  dist()
 ```
 
 ## Mahalanobis anomaly scores {#sec-mahal-scores}
 
-Rather than compute distances between observations, we can compute the distance of each observation from the centre of the data. For example, the Mahalanobis distance from the centre can be expressed as
+Rather than compute distances between observations, we can compute the distance of each observation from the centre of the data. For example, if we define the centre as the pointwise median, then Mahalanobis distance from the centre can be expressed as
 $$
-  d_i  = \sqrt{(\bm{y}_i - \bm{m})^\intercal \bm{S}_{\text{OGK}}^{-1} (\bm{y}_i - \bm{m})}.
+  d_i  =  \|\bm{z}_i\|_2 = \sqrt{(\bm{y}_i - \bm{m})^\intercal \bm{S}_{\text{OGK}}^{-1} (\bm{y}_i - \bm{m})}.
 $$
-where $\bm{m}$ is the pointwise median, and $\bm{S}_{\text{OGK}}$ is the robust OGK estimate of the covariance matrix (@sec-robust-cov). This is equivalent to the Euclidean distance of the multivariate z-score $\bm{z}_i$ from the origin. A large $d_i$ means the observation is far from the bulk of the data and is potentially anomalous.
+That is, it is equivalent to the Euclidean distance of the scaled observation $\bm{z}_i$ from the origin. A large $d_i$ means the observation is far from the centre of the data and is potentially anomalous.
 
 If the data were multivariate Normal, then we would expect the squared $d_i$ distances to follow a chi-squared distribution with $m$ degrees of freedom, where $m$ is the number of variables. This provides a natural threshold for flagging anomalies: we can flag $\bm{y}_i$ as an anomaly if $d_i > \sqrt{\chi^2_{m,1-\alpha}}$, where $\chi^2_{m,1-\alpha}$ is the $(1-\alpha)$-quantile of the chi-squared distribution with $m$ degrees of freedom.
 
@@ -67,7 +82,7 @@ oldfaithful |>
 
 ```
 
-@fig-mahal-scores shows that the genuine anomalies have been flagged, but so have all eruptions in the lower cluster. The reason for this is that the robust centre and covariance are dominated by the larger upper cluster, so eruptions in the lower cluster appear far from the centre even though they form a coherent group. Mahalanobis anomaly scores work best when the data come from a single roughly elliptical cluster; with multimodal data they can produce many false positives. The BACON algorithm, described next, addresses this by estimating the centre iteratively from a clean subset of observations rather than from all the data.
+@fig-mahal-scores shows that the genuine anomalies have been flagged, but so have all eruptions in the lower cluster. The reason for this is that the pointwise median is centred on the large upper cluster, and the robust covariance estimate is dominated by that cluster. So the lower cluster appears far from the centre of the data, even though it forms a coherent group. This is a common problem with Mahalanobis anomaly scores: they work best when the data come from a single roughly elliptical cluster; with multimodal data they can produce many false positives. The BACON algorithm, described next, addresses this by estimating the centre iteratively from a clean subset of observations rather than from all the data.
 
 ## BACON algorithm {#sec-bacon}
 
@@ -75,7 +90,7 @@ Francis Bacon wrote:
 
 > "Whoever knows the ways of Nature will more easily notice her deviations; and, on the other hand, whoever knows her deviations will more accurately describe her ways." [@Bacon1620, Book II, Aphorism 29]
 
-Inspired by this aphorism, @Billor2000 developed the BACON algorithm for multivariate outlier detection. The name also stands for "Blocked Adaptive Computationally efficient Outlier Nominator". The idea is to identify a clean subset of the data that is free of outliers, known as the "basic subset", and then use that subset to estimate the centre and spread of the data, and identify outliers as those observations that are far from that centre (as measured by the Mahalanobis distance introduced in @sec-mahal-scores). At each iteration, every observation whose Mahalanobis distance from the current basic subset falls below a data-adaptive threshold is admitted simultaneously. This process typically converges in a few iterations regardless of sample size. The algorithm is implemented in the `robustX::BACON()` function, which is designed to handle both multivariate data and regression data. We will discuss the regression version in @sec-bacon-reg.
+Inspired by this aphorism, @Billor2000 developed the BACON algorithm for multivariate outlier detection. The name also stands for "Blocked Adaptive Computationally efficient Outlier Nominator". The idea is to identify a clean subset of the data that is free of outliers, known as the "basic subset", and then use that subset to estimate the centre and spread of the data, and identify outliers as those observations that are far from that centre (as measured by the Mahalanobis distance). At each iteration, every observation whose Mahalanobis distance from the current basic subset falls below a data-adaptive threshold is admitted simultaneously. This process typically converges in a few iterations regardless of sample size. The algorithm is implemented in the `robustX::BACON()` function, which is designed to handle both multivariate data and regression data. We will discuss the regression version in @sec-bacon-reg.
 
 Given an $n \times p$ data matrix with observations $\bm{y}_1, \dots, \bm{y}_n$, let $B$ denote the current basic subset, and let $\bar{\bm{y}}_B$ and $\bm{S}_B$ be the mean vector and covariance matrix of the observations in $B$.
 
@@ -107,7 +122,7 @@ A regression variant of BACON also exists, in which the Mahalanobis distances ar
 
 ### Example: Old Faithful data
 
-We apply `robustX::BACON()` to the `oldfaithful` data. Because the Mahalanobis distance is used in the algorithm, there is no need to scale the data first. The default initialisation strategy is used, which selects the $m = cp = 4 \times 2 = 8$ observations with the smallest Mahalanobis distances from the full-data mean and covariance.
+We apply `robustX::BACON()` to the `oldfaithful` data. Because the Mahalanobis distance is used in the algorithm, there is no need to scale the data first. (The robust OGK covariance estimate we have been using is different from the standard covariance estimate used by BACON, but it shouldn't make much difference on a data set without outliers.) The default initialisation strategy is used, which selects the $m = cp = 4 \times 2 = 8$ observations with the smallest Mahalanobis distances from the full-data mean and covariance.
 
 ```{r}
 #| label: bacon-of
@@ -144,7 +159,7 @@ of_bacon |>
   labs(x = "Duration", y = "Waiting")
 ```
 
-@fig-bacon-of displays which outliers are identified by the BACON algorithm. It has identified the cluster of longer durations and waiting times as non-outliers, and all the shorter durations and small waiting times as outliers. Clearly, this is not a good result, as the shorter durations are not anomalous, but rather represent a second cluster of eruptions. By starting with a very small central initial basic subset, BACON has been misled by the bimodality of the data, and has identified one of the modes as outliers.
+@fig-bacon-of displays which outliers are identified by the BACON algorithm. It is almost identical to the plot of Mahalanobis anomaly scores in @fig-mahal-scores, because the initial basic subset is at the centre of the large upper cluster, just as the pointwise median is. The additional steps in the BACON algorithm have not addressed the problem of the bimodality of the data, and so one of the clusters has been identified as outliers.
 
 For comparison, if we start with a randomly selected initial basic subset, then the algorithm usually converges to a different (and more reasonable) solution, with far fewer outliers, because its initial subset will probably include observations from each cluster.
 
