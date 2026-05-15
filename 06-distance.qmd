@@ -241,11 +241,11 @@ of_knn |>
 
 As with many of the methods we have seen, the three shortest eruptions have the highest scores. The bimodal structure of the data is also visible: eruptions that fall in the gap between the two clusters have higher scores than those near the cluster centres.
 
-A limitation of the kNN anomaly score is that $d_{i,k}$ is an absolute distance. It does not adjust for the local density of the neighbourhood, so an observation in a naturally sparse region of the data will receive a higher score than one in a naturally dense region, even if it is no more unusual relative to its local neighbours. The local outlier factor, introduced in the next section, addresses this limitation.
+A feature of the kNN anomaly score is that $d_{i,k}$ is an absolute distance. It does not adjust for the sparseness of the neighbourhood, so an observation in a naturally sparse region of the data will receive a higher score than one in a naturally dense region, even if it is no more unusual relative to its local neighbours. Sometimes this is what we want, but in other applications we want to find observations that are anomalies in their local neighbourhood. The local outlier factor, introduced in the next section, is designed to address this issue.
 
 ## Local outlier factors {#sec-lof}
 
-A popular way of using $k$-nearest neighbours for anomaly detection is via local outlier factors [@lof]. This is designed to find points in areas with few surrounding observations.
+A popular way of using $k$-nearest neighbours for anomaly detection is via local outlier factors [@lof]. This is designed to find observations in areas with few surrounding observations.
 
 Suppose we write the distance between observations $\bm{y}_i$ and $\bm{y}_j$ as $\|\bm{y}_i - \bm{y}_j\|$, and let $d_{i,k}$ be the distance between observation $\bm{y}_i$ and its $k$th nearest neighbour (as defined in @sec-knn-scores).
 
@@ -326,7 +326,7 @@ $$
 $$
 Thus, it is the product of $\bar{r}_{i,k}$ and the average value of $\bar{r}^{-1}_{j,k}$ for points within its neighbourhood.
 
-This provides a relative measure of the density of each observation compared to its neighbours. An observation is regarded as an anomaly if it is in a low-density region (far from its neighbours) while its neighbours are in higher density regions (with many neighbours nearby). A value of $\ell_{i,k}$ much greater than 1 shows that the observation has much larger average reachability compared to its neighbours, and so is regarded as an anomaly.
+This provides a relative measure of the density of each observation compared to its neighbours. An observation is regarded as an anomaly if it is in a low-density region while its neighbours are in higher density regions. A value of $\ell_{i,k}$ much greater than 1 shows that the observation has much larger average reachability compared to its neighbours, and so is regarded as an anomaly.
 
 One problem with this definition is that $\ell_{i,k}$ can be infinite. If the data set contains at least $k+1$ identical observations, then the average reachability $\bar{r}_{j,k}$ will be 0 if $\bm{y}_j$ is one of the group of identical observations. Consequently, $\ell_{i,k} = \infty$ if $\bm{y}_i$ is a neighbour to one of the group of identical observations. In this book we use a slightly different definition from that used elsewhere and replace these infinite values with 1s (indicating they have similar reachability to their identical neighbours).
 
@@ -356,6 +356,61 @@ of_scores |>
 ```
 
 @fig-ofscores shows a scatterplot of the local outlier factors for each eruption plotted against the eruption duration. The three short eruptions clearly stand out. The bimodal distribution of eruption durations is also evident here, with the peak in local outlier factors around 150 seconds, indicating a low density of eruptions at that duration.
+
+## GLOSH scores {#sec-glosh}
+
+The **Global-Local Outlier Score from Hierarchies** (GLOSH) was proposed by @glosh. Like LOF, it measures how crowded each observation's neighbourhood is compared to surrounding neighbourhoods, but it does so by looking at a full hierarchy of clusters rather than just the immediate $k$ neighbours.
+
+### Mutual reachability distances
+
+The starting point is the core distance $d_{i,k}$ introduced in @sec-lof. The **mutual reachability distance** between observations $\bm{y}_i$ and $\bm{y}_j$ is a modified distance that prevents closely packed observations from distorting the crowding measure:
+$$
+  d_\text{mreach}(\bm{y}_i, \bm{y}_j) = \max(d_{i,k},\, d_{j,k},\, \|\bm{y}_i - \bm{y}_j\|).
+$$
+This is always at least as large as the actual distance between the two points. In a dense region where two observations are very close together, the mutual reachability distance is held up by the larger of their core distances, preventing extreme closeness from producing an inflated crowding measure.
+
+### The density hierarchy
+
+GLOSH builds a hierarchy of clusters by applying single-linkage hierarchical clustering (discussed in @sec-clustering) to the mutual reachability distances. The result is the same kind of merging hierarchy as in @sec-clustering --- clusters merge together as the distance threshold increases --- but based on the mutual reachability distances rather than the raw Euclidean distances.
+
+Rather than working with distances directly, it is convenient to work with **density levels** $\lambda = 1/d$: a high $\lambda$ means closely packed observations, and a low $\lambda$ corresponds to sparse regions. As we decrease the density level (raise the distance threshold), clusters gradually merge into larger and larger groups. Each observation $\bm{y}_i$ belongs to some cluster at every density level until it is eventually absorbed into the final all-encompassing cluster. The density level of $\bm{y}_i$ is defined as the inverse of its core distance,
+$$
+  \lambda_i = 1/d_{i,k},
+$$
+and provides a measure of how dense the region around $\bm{y}_i$ is. Points with many nearby neighbours have high $\lambda_i$; isolated points have low $\lambda_i$.
+
+### GLOSH scores
+
+For each observation $\bm{y}_i$, let $\lambda^\max_i$ be the maximum density level found within the branch of the hierarchy that contains $\bm{y}_i$ when it is absorbed --- that is, the density at the densest core of $\bm{y}_i$'s local cluster. The GLOSH score is then
+$$
+  g_i = 1 - \frac{\lambda_i}{\lambda^\max_i}.
+$$ {#eq-glosh}
+An observation deep within a dense cluster has $\lambda_i \approx \lambda^\max_i$, giving a score close to 0. An isolated point in a sparse region has $\lambda_i \ll \lambda^\max_i$, giving a score close to 1.
+
+### Example: Old Faithful data
+
+We can compute GLOSH scores using the `glosh_scores()` function, with `k` determining the core distance $d_{i,k}$.
+
+```{r}
+#| label: ofglosh
+#| code-fold: false
+of_glosh <- oldfaithful |>
+  mutate(glosh = glosh_scores(duration, k = 200))
+of_glosh |> arrange(desc(glosh))
+```
+
+```{r}
+#| label: fig-ofglosh
+#| fig-cap: GLOSH scores for each eruption duration plotted against the duration.
+#| fig-asp: 0.5
+#| dependson: ofglosh
+of_glosh |>
+  ggplot(aes(x = duration, y = glosh)) +
+  geom_point() +
+  labs(x = "Duration (seconds)", y = "GLOSH score")
+```
+
+The three spurious short eruptions again have the highest scores, and the plot shows a pattern similar to that in @fig-ofscores, with elevated scores in the low-density gap between the two modes of the duration distribution.
 
 ## Isolation forest {#sec-iforest}
 

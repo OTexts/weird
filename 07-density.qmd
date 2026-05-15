@@ -10,7 +10,7 @@ Anomalies are observations that are unlikely to have come from the same distribu
 
 Any density-based method of anomaly detection first requires that we have a density estimate at each observation, which we will denote by $f(\bm{y}_i)$. This may be an assumed density, or estimated from the data; it may be a parametric function, or a nonparametric estimate; it may be a conditional density or a marginal density. Wherever it comes from, we will treat $f$ as an appropriate probability density function for the data set. When $\bm{y}_i$ takes values on a discrete space (such as the integers), then $f$ is a probability mass function, but we will call it a "density" for convenience when discussing methods that can apply to both discrete and continuous data. In many cases, $f(\bm{y}_i)$ is the estimated *likelihood* of the observation from a given model.
 
-Note that some of the methods we discussed in @sec-distance-methods are often called "density-based" methods, including LOF [@sec-lof] and GLOSH [@sec-glosh], even though they do not explicitly involve a probability density function. In this chapter, we will only discuss methods that explicitly involve a density function.
+Note that some of the methods we discussed in @sec-distance-methods are often called "density-based" methods, including LOF [@sec-lof] and GLOSH [@sec-glosh]. These methods use an *implicit* measure of density, based on the crowdedness of the neighbourhood of each observation. In this chapter, we will only discuss methods that *explicitly* involve a density function.
 
 ## Surprisals {#sec-surprisals}
 
