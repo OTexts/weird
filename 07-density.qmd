@@ -10,6 +10,8 @@ Anomalies are observations that are unlikely to have come from the same distribu
 
 Any density-based method of anomaly detection first requires that we have a density estimate at each observation, which we will denote by $f(\bm{y}_i)$. This may be an assumed density, or estimated from the data; it may be a parametric function, or a nonparametric estimate; it may be a conditional density or a marginal density. Wherever it comes from, we will treat $f$ as an appropriate probability density function for the data set. When $\bm{y}_i$ takes values on a discrete space (such as the integers), then $f$ is a probability mass function, but we will call it a "density" for convenience when discussing methods that can apply to both discrete and continuous data. In many cases, $f(\bm{y}_i)$ is the estimated *likelihood* of the observation from a given model.
 
+Note that some of the methods we discussed in @sec-distance-methods are often called "density-based" methods, including LOF [@sec-lof] and GLOSH [@sec-glosh], even though they do not explicitly involve a probability density function. In this chapter, we will only discuss methods that explicitly involve a density function.
+
 ## Surprisals {#sec-surprisals}
 
 "Surprisal" is a term coined by American engineer Myron @Tribus1961 in the context of information theory. In the statistical literature it is better known as a "log score". But since we are considering anomaly detection, "surprisal" seems a more appropriate word to use here.
@@ -116,7 +118,7 @@ df |>
   ) +
   scale_y_continuous(
     breaks = c(seq(0, 0.15, by = 0.05), falpha),
-    labels = latex2exp::TeX(c(seq(0, 15, by = 5), "$f(y_i)$")),
+    labels = latex2exp::TeX(c(seq(0, 0.15, by = 0.05), "$f(y_i)$")),
     minor_breaks = NULL
   )
 ```
@@ -147,9 +149,11 @@ If $f$ is the Normal distribution $N(\mu, \sigma^2)$, then the points of lowest 
 
 This link can be extended to any symmetric distribution. If $f$ is a symmetric distribution centred at $c$, then the most anomalous observations will be those with the largest absolute distance from $c$. If $F$ is the distribution function corresponding to $f$, then $p_i = 2[1 - F(c+|y_i-c|)]$.
 
-### Approximate GPD surprisal probabilities {#sec-gpd-tails}
+## Approximate surprisal probabilities
 
 If we do not know what the distribution of the data should be, or if we think our assumed distribution is incorrect for some reason, there are some ways to find approximate surprisal probabilities that can still be accurate even when the assumed distribution is not.
+
+### Approximate GPD surprisal probabilities {#sec-gpd-tails}
 
 Let $f^*$ denote the assumed (and possibly incorrect) density function. It might be a poor estimate of the true density, or it might just be a density on the same sample space as the data. Using this assumed density, we can compute the surprisals, $s_i = -\log f^*(\bm{y}_i)$.
 
@@ -177,7 +181,7 @@ The approximation argument of `surprisals_prob()` can be set to `"rank"`, to spe
 
 For example, consider the 1000 values contained in the first column of `n01`. These were generated from a standard Normal distribution. We can use `surprisals_prob()` to identify anomalies with probability less than 1%. This is equivalent to z-scores greater than `r sprintf("%.3f", qnorm(1-0.01/2))` in absolute value.
 
-We will use all three methods described above, first using the correct density in computing the surprisals, and then repeating the calculation using an incorrect density. For the incorrect density, we will use a $t_4$ distribution, which has much longer tails than the true $N(0,1)$ distribution.
+We will use all three methods described above, first using the correct density in computing the surprisals, and then repeating the calculation using an incorrect density. For the incorrect density, we will use a $\text{t}_4$ distribution, which has much longer tails than the true $N(0,1)$ distribution.
 
 ```{r}
 #| label: surprisal_prob
@@ -213,10 +217,6 @@ norm_prob |>
 In summary, even when we don't know the distribution of the data, we can use some
 incorrect assumed distribution to compute the surprisals, and then apply either a GPD or the rank approximation to obtain good estimates of the surprisal probabilities.
 
-### LOO surprisals
-
-If the density $f$ has been estimated from the data, then there is a problem of circular reasoning. Any genuine anomalies may affect the estimated density, and then they may not appear to be anomalies. Therefore, it is sometimes useful to consider the leave-one-out (LOO) estimate given by $f_{-i}$. That is, $f_{-i}$ is the density estimate using all observations other than the $i$th observation. Then an unusual observation can't influence the density estimate, giving us a better measure of how anomalous it really is. In this case, we will call the associated surprisal, a "LOO surprisal", given by $s_i = -\log f_{-i}(\bm{y}_i)$.
-
 
 ## KDE surprisals {#sec-kdesurprisals}
 
@@ -239,9 +239,14 @@ $$
 
 Identifying anomalies using KDE surprisals is related to the "local outlier factor" method (@sec-lof). However, the local outlier factor method is based on the ratio of the density at a point to the average density at its neighbours, while the KDE surprisal method is based on the density at a point alone. This means that the KDE surprisal method is more likely to identify points in low density regions as anomalies.
 
-### Leave-one-out kde surprisals
+## LOO surprisals
 
-The contribution of the $i$th point to the kernel density estimate at that point is $K_H(\bm{0})/n$. Therefore, the leave-one-out kde surprisals are given by
+If the density $f$ has been estimated from the data (whether from a parametric model or a nonparametric method such as KDE), then there is a problem of circular reasoning. Any genuine anomalies may affect the estimated density, and then they may not appear to be anomalies. Therefore, it is sometimes useful to consider the leave-one-out (LOO) estimate given by $f_{-i}$. That is, $f_{-i}$ is the density estimate using all observations other than the $i$th observation. Then an unusual observation can't influence the density estimate, giving us a better measure of how anomalous it really is. In this case, we will call the associated surprisal, a "LOO surprisal", given by $s_i = -\log f_{-i}(\bm{y}_i)$.
+
+
+### LOO kde surprisals
+
+Let's take the example of KDE surprisals. The contribution of the $i$th point to the kernel density estimate at that point is $K_H(\bm{0})/n$. Therefore, the leave-one-out kde surprisals are given by
 $$
   f_{-i} = \left[nf_i - K_H(\bm{0})\right]/(n-1),
 $$ {#eq-lookkde}
@@ -253,9 +258,9 @@ The largest possible LOO kde surprisal is infinite, occurring when there are no 
 
 The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2. It uses surprisal probabilities based on a GPD approximation applied to the leave-one-out kde estimates where the bandwidth is chosen using the "lookout" method. Probabilities obtained using this algorithm can be calculated using the `surprisals_prob()` function with `loo = TRUE`, `approximation = "gpd"`, and `method = "lookout"`.
 
-### Example: Old Faithful eruption durations
+## Example: Old Faithful eruption durations
 
-For the Old Faithful eruption duration data, we obtain the following results.
+Let's apply the kde surprisals method to the Old Faithful eruptions containing in the `oldfaithful` data set. We will use the LOO KDE surprisal probabilities to identify anomalies in the eruption durations.
 
 ```{r}
 #| label: ofscores-kde
@@ -268,7 +273,7 @@ of_surprisals <- oldfaithful |>
 of_surprisals |> arrange(desc(loo_kde_surprisal))
 ```
 
-The three largest LOO surprisals correspond to the three spurious short durations. The `prob` column contains the LOO surprisal probabilities based on the KDE.
+The three largest LOO surprisals correspond to the three spurious short durations. The `prob` column contains the associated surprisal probabilities.
 
 If we omit the three extreme values, we obtain different results.
 
@@ -294,7 +299,7 @@ no_between_155_and_165 <- of_surprisals |> filter(duration >= 155, duration <= 1
 stopifnot(no == no_above_300 + no_below_90 + no_between_155_and_165)
 ```
 
-Now there are `r english::words(no)` points with probabilities less than 0.005, `r english::words(no_above_300)` above 300, `r english::words(no_below_90)` below 90, and the rest between 155 and 165.
+Now there are `r english::words(no)` points with probabilities less than 0.005: `r english::words(no_above_300)` with durations above 300, `r english::words(no_below_90)` below 90, and the rest between 155 and 165.
 
 @fig-ofpot shows an HDR boxplot of the data, with those points with surprisal probabilities less than 0.005 highlighted in black.
 
@@ -324,7 +329,7 @@ of |>
   arrange(prob, duration)
 ```
 
-Now, `r english::words(sum(surprisals_prob(of, loo = TRUE, approximation = "gpd") < 0.001))` anomalies are identified, with both of them having infinite LOO surprisals. We can visualise them in an HDR scatterplot, shown in @fig-ofpot2.
+Now, `r english::words(sum(surprisals_prob(of, loo = TRUE, approximation = "gpd") < 0.005))` anomalies are identified, with `r english::words(sum(surprisals(of, loo = TRUE) == Inf))` of them having infinite LOO surprisals. We can visualise them in an HDR scatterplot, shown in @fig-ofpot2.
 
 ```{r}
 #| label: fig-ofpot2
@@ -334,55 +339,6 @@ oldfaithful |>
   gg_hdrboxplot(duration, waiting, show_points = TRUE)
 ```
 
-### More examples
+## Gaussian mixture model surprisal probabilities
 
-Let's apply the kde surprisals method to the six examples introduced in @sec-examples. For this purpose we will use a threshold of 0.001 for the surprisal probabilities.
-
-```{r}
-#| label: cricket-lookout
-#| code-fold: false
-cricket_batting |>
-  filter(Innings > 20) |>
-  mutate(prob = surprisals_prob(Average, loo = TRUE, approximation = "gpd")) |>
-  filter(prob < 0.001) |>
-  select(Player, Average, prob)
-```
-
-Here Bradman is a clear anomaly (with a very low surprisal probability), and no-one else is identified as a possible anomaly.
-
-Next we consider some artificial examples. First, we consider the first 48 rows of the second variable in the `n01` data, along with the values 4.0 and 4.5.
-
-```{r}
-#| label: lookout3
-#| code-fold: false
-n01b <- tibble(y = c(n01$v2[1:48], 4, 4.5))
-n01b |>
-  mutate(prob = surprisals_prob(y, loo = TRUE, approximation = "gpd")) |>
-  filter(prob < 0.05) |>
-  arrange(prob)
-```
-
-As expected, only the two genuine anomalies have been identified.
-
-Finally, we consider 1000 simulated observations from each of the distributions, N(0,1), $\text{t}_3$ and $\chi^2_4$.
-
-```{r}
-#| label: lookout4
-#| code-fold: false
-n01 |>
-  select(v1) |>
-  mutate(prob = surprisals_prob(v1, loo = TRUE, approximation = "gpd")) |>
-  filter(prob < 0.001) |>
-  arrange(prob, v1)
-set.seed(1)
-tibble(y = rt(1000, df = 3)) |>
-  mutate(prob = surprisals_prob(y, loo = TRUE, approximation = "gpd")) |>
-  filter(prob < 0.001) |>
-  arrange(prob, y)
-tibble(y = rchisq(1000, df = 4)) |>
-  mutate(prob = surprisals_prob(y, loo = TRUE, approximation = "gpd")) |>
-  filter(prob < 0.001) |>
-  arrange(prob, y)
-```
-
-The algorithm has found a few spurious anomalies in each case, out of the 1000 observations included. Notably, the results do not appear to deteriorate with the heavier-tailed or skewed distributions.
+TBC
