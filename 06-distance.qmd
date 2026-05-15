@@ -112,9 +112,9 @@ where $\chi^2_{m,1-\alpha}$ is the $(1 - \alpha)$-quantile of the chi-squared di
 \end{align*}
 $h = \lfloor(n + m + 1)/2\rfloor$, and $r$ is the number of observations in the current basic subset $B$. The correction factor $c_{nmr}$ inflates the threshold when the current basic subset of size $r$ is small relative to the target size $h$. This is because a small basic subset selected for being close to the data centre will have artificially compressed spread, so the Mahalanobis distances computed from it need to be inflated to something closer to what they would be from a full clean sample. As $r$ grows toward $h$, $c_{hr} \to 0$.
 
-**Step 4: Iterate** Steps 2 and 3 until the size of $B$ no longer changes.
+**Step 4: Iterate**. Steps 2 and 3 until the size of $B$ no longer changes.
 
-**Step 5: Nominate outliers.** All observations excluded from the final $B$ are nominated as outliers.
+**Step 5: Nominate outliers**. All observations excluded from the final $B$ are nominated as outliers.
 
 At each step the algorithm only needs to compare $n$ distances against a single threshold, an $O(n)$ operation. By adding multiple observations at each iteration, BACON eliminates the need for many iterations, making it practical for data sets of millions of observations.
 
@@ -359,43 +359,51 @@ of_scores |>
 
 ## GLOSH scores {#sec-glosh}
 
-The **Global-Local Outlier Score from Hierarchies** (GLOSH) was proposed by @glosh. Like LOF, it measures how crowded each observation's neighbourhood is compared to surrounding neighbourhoods, but it does so by looking at a full hierarchy of clusters rather than just the immediate $k$ neighbours.
+The **Global-Local Outlier Score from Hierarchies** (GLOSH) was proposed by @glosh as part of the HDBSCAN clustering framework. Like LOF, it measures how crowded each observation's neighbourhood is compared to surrounding neighbourhoods, but it does so by looking at a full hierarchy of clusters rather than just the immediate $k$ neighbours. The "global--local" label reflects the fact that each observation is compared to a reference chosen *locally* from its own cluster, while the resulting scores are normalised to a common scale that makes them comparable *globally* across the whole data set.
 
 ### Mutual reachability distances
 
-The starting point is the core distance $d_{i,k}$ introduced in @sec-lof. The **mutual reachability distance** between observations $\bm{y}_i$ and $\bm{y}_j$ is a modified distance that prevents closely packed observations from distorting the crowding measure:
+The starting point is the core distance $d_{i,k}$ introduced in @sec-lof --- that is, the distance from $\bm{y}_i$ to its $k$-th nearest neighbour. The **mutual reachability distance** between observations $\bm{y}_i$ and $\bm{y}_j$ is a smoothed version of the usual distance:
 $$
   d_\text{mreach}(\bm{y}_i, \bm{y}_j) = \max(d_{i,k},\, d_{j,k},\, \|\bm{y}_i - \bm{y}_j\|).
 $$
-This is always at least as large as the actual distance between the two points. In a dense region where two observations are very close together, the mutual reachability distance is held up by the larger of their core distances, preventing extreme closeness from producing an inflated crowding measure.
+This is always at least as large as the actual distance between the two points, and it can never fall below the larger of the two core distances. The effect is that very close pairs sitting inside a tightly packed region cannot drag the inter-point distance arbitrarily low: their mutual reachability is held up by the local core distance. This stabilises the hierarchy that is built next.
 
-### The density hierarchy
+### The HDBSCAN hierarchy
 
-GLOSH builds a hierarchy of clusters by applying single-linkage hierarchical clustering (discussed in @sec-clustering) to the mutual reachability distances. The result is the same kind of merging hierarchy as in @sec-clustering --- clusters merge together as the distance threshold increases --- but based on the mutual reachability distances rather than the raw Euclidean distances.
+GLOSH is computed from the cluster hierarchy produced by HDBSCAN [@glosh], which can be thought of as single-linkage hierarchical clustering (@sec-clustering) applied to the mutual reachability distances, together with one extra rule: at any distance threshold $\varepsilon$, an observation $\bm{y}_i$ is treated as **noise** unless it has at least $k$ observations within distance $\varepsilon$, that is, unless $\varepsilon \ge d_{i,k}$.
 
-Rather than working with distances directly, it is convenient to work with **density levels** $\lambda = 1/d$: a high $\lambda$ means closely packed observations, and a low $\lambda$ corresponds to sparse regions. As we decrease the density level (raise the distance threshold), clusters gradually merge into larger and larger groups. Each observation $\bm{y}_i$ belongs to some cluster at every density level until it is eventually absorbed into the final all-encompassing cluster. The density level of $\bm{y}_i$ is defined as the inverse of its core distance,
-$$
-  \lambda_i = 1/d_{i,k},
-$$
-and provides a measure of how dense the region around $\bm{y}_i$ is. Points with many nearby neighbours have high $\lambda_i$; isolated points have low $\lambda_i$.
+As distance threshold $\varepsilon$ increases from very small to very large, the picture changes as follows:
+
+- At very small $\varepsilon$, every observation is noise: no point has enough close neighbours to qualify as a core point.
+- As $\varepsilon$ increases, observations one by one cease to be noise and join clusters; clusters appear, grow, and eventually merge with each other.
+- At very large $\varepsilon$, every observation is absorbed into one all-encompassing cluster.
+
+For each observation $\bm{y}_i$, let $\varepsilon_i = d_{i,k}$. This is the smallest distance threshold at which $\bm{y}_i$ qualifies as a core point: for $\varepsilon \ge \varepsilon_i$ it can belong to a cluster, but as soon as $\varepsilon$ drops below $\varepsilon_i$ it falls back into noise. So $\varepsilon_i$ is the distance threshold at which $\bm{y}_i$ *joins* a cluster going upwards, or equivalently the threshold at which it *leaves* its cluster going downwards. Points with many close neighbours have a small $\varepsilon_i$; isolated points have a large $\varepsilon_i$.
+
+In the hierarchy, let $C_i$ denote the smallest (deepest) cluster that contains $\bm{y}_i$ --- that is, the cluster that $\bm{y}_i$ belongs to just before it falls out into noise as the threshold shrinks.
 
 ### GLOSH scores
 
-For each observation $\bm{y}_i$, let $\lambda^\max_i$ be the maximum density level found within the branch of the hierarchy that contains $\bm{y}_i$ when it is absorbed --- that is, the density at the densest core of $\bm{y}_i$'s local cluster. The GLOSH score is then
+For each observation $\bm{y}_i$, let $\varepsilon_i^{\text{min}}$ be the smallest distance threshold at which $C_i$ or any of its sub-clusters still exists. Loosely, $\varepsilon_i^{\text{min}}$ marks the most tightly packed pocket nested anywhere inside $\bm{y}_i$'s local cluster: at thresholds below this value, every observation in $C_i$ has dropped out as noise. (Including the sub-clusters matters: pockets that survive at smaller thresholds than $\varepsilon_i$ itself are exactly what make $\bm{y}_i$ look like an outlier relative to its cluster.) By construction $\varepsilon_i^{\text{min}} \le \varepsilon_i$.
+
+The GLOSH score is then
 $$
-  g_i = 1 - \frac{\lambda_i}{\lambda^\max_i}.
+  g_i = 1 - \frac{\varepsilon_i^{\text{min}}}{\varepsilon_i} \in [0, 1).
 $$ {#eq-glosh}
-An observation deep within a dense cluster has $\lambda_i \approx \lambda^\max_i$, giving a score close to 0. An isolated point in a sparse region has $\lambda_i \ll \lambda^\max_i$, giving a score close to 1.
+An observation that stays a cluster member almost all the way down to the smallest threshold reached inside its cluster has $\varepsilon_i \approx \varepsilon_i^{\text{min}}$, giving a score close to 0. An observation that drops out of its cluster early --- while more tightly packed sub-clusters inside $C_i$ continue to exist at much smaller thresholds --- has $\varepsilon_i^{\text{min}} \ll \varepsilon_i$, giving a score close to 1.
+
+Because $\varepsilon_i^{\text{min}}$ is defined inside each observation's own cluster, GLOSH adapts to the local crowding of the data (much like LOF does), but the scores it produces are still on a common $[0, 1)$ scale, so they can be compared across clusters with very different spacings. This is the sense in which GLOSH is simultaneously local and global.
 
 ### Example: Old Faithful data
 
-We can compute GLOSH scores using the `glosh_scores()` function, with `k` determining the core distance $d_{i,k}$.
+We can compute GLOSH scores using the `glosh_scores()` function, with `k` determining the core distance $d_{i,k}$. Here we use $k = 120$ after experimenting with various values. The three shortest eruptions again receive the highest scores, followed by a group of eruptions with durations between the two clusters.
 
 ```{r}
 #| label: ofglosh
 #| code-fold: false
 of_glosh <- oldfaithful |>
-  mutate(glosh = glosh_scores(duration, k = 200))
+  mutate(glosh = glosh_scores(duration, k = 120))
 of_glosh |> arrange(desc(glosh))
 ```
 
@@ -410,7 +418,7 @@ of_glosh |>
   labs(x = "Duration (seconds)", y = "GLOSH score")
 ```
 
-The three spurious short eruptions again have the highest scores, and the plot shows a pattern similar to that in @fig-ofscores, with elevated scores in the low-density gap between the two modes of the duration distribution.
+@fig-ofglosh shows a pattern similar to that in @fig-ofscores, with elevated scores in the sparsely populated gap between the two modes of the duration distribution.
 
 ## Isolation forest {#sec-iforest}
 
