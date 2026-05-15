@@ -27,7 +27,7 @@ head(oldfaithful, 5) |>
   dist()
 ```
 
-Other distances measures also exist, including $L_1$ (Manhattan), $L_p$ (Minkowski), and $L_\infty$ (Chebyshev) distances [@Borg2005]. The argument `method` in the `dist()` function specifies the type of distance to compute, with the default being Euclidean distance.
+Other distance measures also exist, including $L_1$ (Manhattan), $L_p$ (Minkowski), and $L_\infty$ (Chebyshev) distances [@Borg2005]. The argument `method` in the `dist()` function specifies the type of distance to compute, with the default being Euclidean distance.
 
 A problem with all of these distances is that variables with large ranges dominate the calculation. In the Old Faithful data, for example, eruption durations range from about 50 to 300 seconds while waiting times run from about 3000 to 7200 seconds. So the Euclidean distances to other observations will be largely determined by the waiting time alone. Consequently, it is often preferable to scale the variables before computing distances, as discussed in @sec-scaling.
 
@@ -92,9 +92,9 @@ Francis Bacon wrote:
 
 Inspired by this aphorism, @Billor2000 developed the BACON algorithm for multivariate outlier detection. The name also stands for "Blocked Adaptive Computationally efficient Outlier Nominator". The idea is to identify a clean subset of the data that is free of outliers, known as the "basic subset", and then use that subset to estimate the centre and spread of the data, and identify outliers as those observations that are far from that centre (as measured by the Mahalanobis distance). At each iteration, every observation whose Mahalanobis distance from the current basic subset falls below a data-adaptive threshold is admitted simultaneously. This process typically converges in a few iterations regardless of sample size. The algorithm is implemented in the `robustX::BACON()` function, which is designed to handle both multivariate data and regression data. We will discuss the regression version in @sec-bacon-reg.
 
-Given an $n \times p$ data matrix with observations $\bm{y}_1, \dots, \bm{y}_n$, let $B$ denote the current basic subset, and let $\bar{\bm{y}}_B$ and $\bm{S}_B$ be the mean vector and covariance matrix of the observations in $B$.
+Given an $n \times m$ data matrix with observations $\bm{y}_1, \dots, \bm{y}_n$, let $B$ denote the current basic subset, and let $\bar{\bm{y}}_B$ and $\bm{S}_B$ be the mean vector and covariance matrix of the observations in $B$.
 
-**Step 1: Initialise the basic subset**. Choose an initial $B$ of size $m = cp$, where $c$ is a small integer. Several initialisation strategies are available. The default in `BACON()` is to compute the Mahalanobis distances from the full-data mean $\bar{\bm{y}}$ and covariance $\bm{S}$, and select the $m$ observations with the smallest distances. An alternative initialisation strategy is to compute distances from the univariate medians rather than the full-data mean. This is more robust to outliers, but the nominated outliers can change if the data are rotated or rescaled. Another strategy is to select $m$ observations at random. Because the initial subset is not anchored to the data centre, this can be more effective when the data are multimodal, but results may vary across runs.
+**Step 1: Initialise the basic subset**. Choose an initial $B$ of size $s = cm$, where $c$ is a small integer. Several initialisation strategies are available. The default in `BACON()` is to compute the Mahalanobis distances from the full-data mean $\bar{\bm{y}}$ and covariance $\bm{S}$, and select the $s$ observations with the smallest distances. An alternative initialisation strategy is to compute distances from the univariate medians rather than the full-data mean. This is more robust to outliers, but the nominated outliers can change if the data are rotated or rescaled. Another strategy is to select $s$ observations at random. Because the initial subset is not anchored to the data centre, this can be more effective when the data are multimodal, but results may vary across runs.
 
 **Step 2: Compute discrepancies**. For each observation $\bm{y}_i$, compute the Mahalanobis distance from the basic subset:
 $$
@@ -103,14 +103,14 @@ $$
 
 **Step 3: Expand the basic subset**. Update $B$ by admitting every observation with
 $$
-  d_i(\bar{\bm{y}}_B, \bm{S}_B) < c_{npr}\sqrt{\chi^2_{p,1-\alpha}},
+  d_i(\bar{\bm{y}}_B, \bm{S}_B) < c_{nmr}\sqrt{\chi^2_{m,1-\alpha}},
 $$
-where $\chi^2_{p,1-\alpha}$ is the $(1 - \alpha)$-quantile of the chi-squared distribution with $p$ degrees of freedom, and $c_{npr} = c_{np} + c_{hr}$ is a correction factor, where
+where $\chi^2_{m,1-\alpha}$ is the $(1 - \alpha)$-quantile of the chi-squared distribution with $m$ degrees of freedom, and $c_{nmr} = c_{nm} + c_{hr}$ is a correction factor, where
 \begin{align*}
-  c_{np} &= 1 + \frac{p+1}{n-p} + \frac{2}{n-1-3p} \\
+  c_{nm} &= 1 + \frac{m+1}{n-m} + \frac{2}{n-1-3m} \\
   c_{hr} &= \max\{0, (h-r)/(h+r)\},
 \end{align*}
-$h = \lfloor(n + p + 1)/2\rfloor$, and $r$ is the number of observations in the current basic subset $B$. The correction factor $c_{npr}$ inflates the threshold when the current basic subset of size $r$ is small relative to the target size $h$. This is because a small basic subset selected for being close to the data centre will have artificially compressed spread, so the Mahalanobis distances computed from it need to be inflated to something closer to what they would be from a full clean sample. As $r$ grows toward $h$, $c_{hr} \to 0$.
+$h = \lfloor(n + m + 1)/2\rfloor$, and $r$ is the number of observations in the current basic subset $B$. The correction factor $c_{nmr}$ inflates the threshold when the current basic subset of size $r$ is small relative to the target size $h$. This is because a small basic subset selected for being close to the data centre will have artificially compressed spread, so the Mahalanobis distances computed from it need to be inflated to something closer to what they would be from a full clean sample. As $r$ grows toward $h$, $c_{hr} \to 0$.
 
 **Step 4: Iterate** Steps 2 and 3 until the size of $B$ no longer changes.
 
@@ -120,7 +120,7 @@ At each step the algorithm only needs to compare $n$ distances against a single 
 
 ### Example: Old Faithful data
 
-We apply `robustX::BACON()` to the `oldfaithful` data. Because the Mahalanobis distance is used in the algorithm, there is no need to scale the data first. (The robust OGK covariance estimate we have been using is different from the standard covariance estimate used by BACON, but it shouldn't make much difference on a data set without outliers.) The default initialisation strategy is used, which selects the $m = cp = 4 \times 2 = 8$ observations with the smallest Mahalanobis distances from the full-data mean and covariance.
+We apply `robustX::BACON()` to the `oldfaithful` data. Because the Mahalanobis distance is used in the algorithm, there is no need to scale the data first. (The robust OGK covariance estimate we have been using is different from the standard covariance estimate used by BACON, but it shouldn't make much difference on a data set without outliers.) The default initialisation strategy is used, which selects the $s = cm = 4 \times 2 = 8$ observations with the smallest Mahalanobis distances from the full-data mean and covariance.
 
 ```{r}
 #| label: bacon-of
@@ -376,7 +376,7 @@ To build an **isolation tree** (iTree), we recursively partition the data as fol
 
 Because we stop when a maximum tree height is reached, nodes that contain more than one observation when the recursion terminates are given an adjustment for the expected additional depth. The **path length** $h(\bm{y})$ of an observation $\bm{y}$ is the number of splits required to isolate $\bm{y}$, plus any adjustment for an unfinished subtree. The path length is therefore inversely related to anomalousness. The expected path length is approximately
 $$
-  c(n) = 2\left[\log(n-1) + \gamma - 1 + 1/n\right].
+  c(n) = 2\left[\log(n-1) + \gamma - 1 + 1/n\right],
 $$
 where $\gamma \approx 0.5772$ is Euler's constant. Because this is a function of $n$, we cannot directly compare path lengths across data sets of different sizes.
 
@@ -652,7 +652,7 @@ iso <- which(
 )
 ```
 
-The three shortest eruptions, which we have repeatedly identified as genuine anomalies, are amongst the four highest scores. The observation that was the first to be isolated in the single iTree example above is ranked `r english::ordinal(iso)`, with a score of `r sprintf("%.3f", of_if$score[iso])`. In total, there are `r sum(of_if$score > 0.65)` observations with scores above 0.65 (a threshold chosen after some experimentation). These are highlighted in @fig-iforest-of,
+The three shortest eruptions, which we have repeatedly identified as genuine anomalies, are amongst the four highest scores. The observation that was the first to be isolated in the single iTree example above is ranked `r english::ordinal(iso)`, with a score of `r sprintf("%.3f", of_if$score[iso])`. In total, there are `r sum(of_if$score > 0.65)` observations with scores above 0.65 (a threshold chosen after some experimentation). These are highlighted in @fig-iforest-of.
 
 ```{r}
 #| label: fig-iforest-of
