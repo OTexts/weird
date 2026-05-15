@@ -70,6 +70,7 @@ We apply this to the Old Faithful data, using the scaled data `z` already comput
 
 ```{r}
 #| label: fig-mahal-scores
+#| fig-cap: "Mahalanobis anomaly scores for the Old Faithful eruptions. Observations flagged as anomalies (using a threshold based on the 0.999 quantile of the chi-squared distribution) are shown in blue."
 #| code-fold: false
 #| dependson: zscores
 oldfaithful |>
@@ -79,7 +80,6 @@ oldfaithful |>
   ) |>
   ggplot(aes(x = duration, y = waiting, colour = anomaly)) +
   geom_point()
-
 ```
 
 @fig-mahal-scores shows that the genuine anomalies have been flagged, but so have all eruptions in the lower cluster. The reason for this is that the pointwise median is centred on the large upper cluster, and the robust covariance estimate is dominated by that cluster. So the lower cluster appears far from the centre of the data, even though it forms a coherent group. This is a common problem with Mahalanobis anomaly scores: they work best when the data come from a single roughly elliptical cluster; with multimodal data they can produce many false positives. The BACON algorithm, described next, addresses this by estimating the centre iteratively from a clean subset of observations rather than from all the data.
@@ -736,7 +736,7 @@ of_if |>
 
 The contour lines show the score surface, which is highest near the anomalies, and lowest near the centres of the clusters, where observations are less likely to be isolated early on.
 
-## Detect deviating cells algorithm
+## Detect deviating cells algorithm {#sec-ddc}
 
 So far, we have treated each multivariate observation as a single point in the multivariate space, and have computed distances between those points. Under this perspective, the observations are the rows of the data matrix, and the columns are the variables. So an anomaly is a row that is far from other rows. That may be because of the values in one or more columns, or the unusual combination of values across columns. Almost all robust multivariate methods require at least half the observations to be non-anomalous, so that the main body of the data can be identified. But sometimes many rows (observations) each have a few contaminated cell values, and it is not possible to identify "normal" rows. In that case, it may be possible to identify the anomalous cells instead of the anomalous rows. This is the idea behind the "detect deviating cells" (DDC) algorithm of @Rousseeuw2016-wm.
 

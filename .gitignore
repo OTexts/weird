@@ -5,6 +5,7 @@
 .vscode
 .claude/settings.local.json
 .claude/settings.json
+.claude/worktrees
 .history
 
 /.quarto/

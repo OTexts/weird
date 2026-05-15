@@ -135,7 +135,7 @@ tibble(
 )
 ```
 
-The value of $p_i$ is the probability of an observation being at least as anomalous (or surprising) as $\bm{y}_i$​ if the observations come from the distribution $f$. So if we label points as anomalous when $p_i < \alpha$, we will have a false positive rate of $\alpha$.
+The value of $p_i$ is the probability of an observation being at least as anomalous (or surprising) as $\bm{y}_i$ if the observations come from the distribution $f$. So if we label points as anomalous when $p_i < \alpha$, we will have a false positive rate of $\alpha$.
 
 This approach allows for anomalies to occur anywhere in the distribution, not just in the tails. For example, anomalies may lie between modes in a multimodal distribution, or in otherwise low-density regions of the distribution. The surprisal approach converts the problem of working with a potentially complicated distribution into a problem of working with a simple univariate distribution on the surprisal scale, where large values correspond to anomalies.
 
@@ -145,7 +145,7 @@ Surprisal probabilities are related to highest density regions (discussed in @se
 
 ### Connection to $z$-scores
 
-If $f$ is the Normal distribution $N(\mu, \sigma^2)$, then the points of lowest density are those furthest from $\mu$. In fact, $p_i = 2[1-\Phi(|y_i-\mu|/\sigma)]$, where $\Phi$ is the standard Normal distribution function. Therefore, identifying anomalies as observations with $p_i < \alpha$ is equivalent to a z-score test (@sec-zscores) with the threshold set to the $1-\alpha/2$ quantile of the standard Normal distribution.
+If $f$ is the Normal distribution $\text{N}(\mu, \sigma^2)$, then the points of lowest density are those furthest from $\mu$. In fact, $p_i = 2[1-\Phi(|y_i-\mu|/\sigma)]$, where $\Phi$ is the standard Normal distribution function. Therefore, identifying anomalies as observations with $p_i < \alpha$ is equivalent to a z-score test (@sec-zscores) with the threshold set to the $1-\alpha/2$ quantile of the standard Normal distribution.
 
 This link can be extended to any symmetric distribution. If $f$ is a symmetric distribution centred at $c$, then the most anomalous observations will be those with the largest absolute distance from $c$. If $F$ is the distribution function corresponding to $f$, then $p_i = 2[1 - F(c+|y_i-c|)]$.
 
@@ -181,7 +181,7 @@ The approximation argument of `surprisals_prob()` can be set to `"rank"`, to spe
 
 For example, consider the 1000 values contained in the first column of `n01`. These were generated from a standard Normal distribution. We can use `surprisals_prob()` to identify anomalies with probability less than 1%. This is equivalent to z-scores greater than `r sprintf("%.3f", qnorm(1-0.01/2))` in absolute value.
 
-We will use all three methods described above, first using the correct density in computing the surprisals, and then repeating the calculation using an incorrect density. For the incorrect density, we will use a $\text{t}_4$ distribution, which has much longer tails than the true $N(0,1)$ distribution.
+We will use all three methods described above, first using the correct density in computing the surprisals, and then repeating the calculation using an incorrect density. For the incorrect density, we will use a $\text{t}_4$ distribution, which has much longer tails than the true N(0,1) distribution.
 
 ```{r}
 #| label: surprisal_prob
@@ -200,7 +200,7 @@ norm_prob <- tibble(
 norm_prob |> arrange(p)
 ```
 
-The true values are in column `p`, as this uses the correct distribution applied to the correct surprisals. Notice that `p_gpd` and `p_emp` are both relatively accurate: the GPD and rank approximations work. The last three columns show the probabilities based on surprisals using the incorrect distribution. Here, `pt` is very inaccurate, with much larger probabilities than they should be, especially in the extreme tails. This is because the $t_4$ distribution has much heavier tails than the true $N(0,1)$ distribution, so the probability of observations more extreme than those observed is much larger than they should be. But `pt_gpd` and `pt_emp` are both reasonable estimates, despite being based on an incorrect distribution for computing the surprisals. In fact, `p_emp` and `pt_emp` are identical, because the ordering of the surprisals is unchanged despite the incorrect distribution being used.
+The true values are in column `p`, as this uses the correct distribution applied to the correct surprisals. Notice that `p_gpd` and `p_emp` are both relatively accurate: the GPD and rank approximations work. The last three columns show the probabilities based on surprisals using the incorrect distribution. Here, `pt` is very inaccurate, with much larger probabilities than they should be, especially in the extreme tails. This is because the $\text{t}_4$ distribution has much heavier tails than the true N(0,1) distribution, so the probability of observations more extreme than those observed is much larger than they should be. But `pt_gpd` and `pt_emp` are both reasonable estimates, despite being based on an incorrect distribution for computing the surprisals. In fact, `p_emp` and `pt_emp` are identical, because the ordering of the surprisals is unchanged despite the incorrect distribution being used.
 
 The various estimates are displayed in @fig-surprisal_prob for values of $y$ greater than 2.5, showing how the estimates (other than `pt`) are particularly accurate in the extreme tails, where we need them for anomaly detection.
 
@@ -246,11 +246,11 @@ If the density $f$ has been estimated from the data (whether from a parametric m
 
 ### LOO kde surprisals
 
-Let's take the example of KDE surprisals. The contribution of the $i$th point to the kernel density estimate at that point is $K_H(\bm{0})/n$. Therefore, the leave-one-out kde surprisals are given by
+Let's take the example of KDE surprisals. The contribution of the $i$th point to the kernel density estimate at that point is $K_H(\bm{0})/n$. Therefore, the leave-one-out kernel density estimate is given by
 $$
   f_{-i} = \left[nf_i - K_H(\bm{0})\right]/(n-1),
 $$ {#eq-lookkde}
-where $f_i$ is the kde estimate at $\bm{y}_i$ using all data. Thus, we can compute the leave-one-out kde surprisals without needing to re-estimate the density many times.
+where $f_i$ is the kde estimate at $\bm{y}_i$ using all data, so that the leave-one-out kde surprisal is $s_{-i} = -\log f_{-i}$. Thus, we can compute the leave-one-out kde surprisals without needing to re-estimate the density many times.
 
 The largest possible LOO kde surprisal is infinite, occurring when there are no observations nearby, so that $nf_i = K_H(\bm{0})$.
 
