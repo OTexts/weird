@@ -356,12 +356,17 @@ gmm <- oldfaithful |>
   Mclust()
 par <- gmm$parameters
 dist1 <- dist_multivariate_normal(
-  list(parmarkdown$mean[, 1]),
+  list(par$mean[, 1]),
   list(par$variance$sigma[,, 1])
 )
-dist2 <- dist_multivariate_normal(list(par$mean[, 2]), list(par$variance$sigma[,, 2]))
-dist3 <- dist_multivariate_normal(list(par$mean[, 3]), list(par$variance$sigma[,, 3]))
-
+dist2 <- dist_multivariate_normal(
+  list(par$mean[, 2]), 
+  list(par$variance$sigma[,, 2])
+)
+dist3 <- dist_multivariate_normal(
+  list(par$mean[, 3]), 
+  list(par$variance$sigma[,, 3])
+)
 gmm_density <- dist_mixture(
   dist1,
   dist2,
@@ -433,7 +438,7 @@ $$
 s_i =  -\log \hat f_W(\bm{w}_i)
 = \frac{1}{2} d_i^2 + \frac{m}{2}\log(2\pi) + \frac{1}{2}\log|\bm{\Sigma}_w|.
 $$
-Thus ranking observations by $d_i^2$ is equivalent to ranking them by their surprisals under the fitted Gaussian copula model. If the model is appropriate, then $d_i^2$ approximately follows a chi-squared distribution with $m$ degrees of freedom, giving the approximate surprisal probability
+Thus ranking observations by $d_i^2$ is equivalent to ranking them by their surprisals under the fitted Gaussian copula model. If the model is appropriate, then $d_i^2$ approximately (when $n$ is large) follows a chi-squared distribution with $m$ degrees of freedom, giving the approximate surprisal probability
 $$
 p_i = 1 - F_{\chi^2_m}(d_i^2).
 $$
