@@ -343,4 +343,40 @@ oldfaithful |>
 
 ## Gaussian mixture model surprisal probabilities
 
-TBC
+A Gaussian mixture model (GMM) is a flexible parametric model for the joint distribution of the data, which can capture multimodality and other complex features. It comprises a weighted sum of multivariate Normal distributions, each with its own mean vector and covariance matrix. In fact, a KDE with a Gaussian kernel can be considered a Gaussian mixture model with a large number of equally-weighted components, each centred at an observation and with a common covariance matrix given by the bandwidth. However, we can also fit a GMM with a smaller number of components, which may provide a more parsimonious model for the data. The `mclust` package provides a convenient way to fit GMMs to data.
+
+
+```{r}
+#| message: false
+#| eval: false
+#| code-fold: false
+library(mclust)
+gmm <- oldfaithful |>
+  select(duration, waiting) |>
+  Mclust()
+par <- gmm$parameters
+dist1 <- dist_multivariate_normal(
+  list(parmarkdown$mean[, 1]),
+  list(par$variance$sigma[,, 1])
+)
+dist2 <- dist_multivariate_normal(list(par$mean[, 2]), list(par$variance$sigma[,, 2]))
+dist3 <- dist_multivariate_normal(list(par$mean[, 3]), list(par$variance$sigma[,, 3]))
+
+gmm_density <- dist_mixture(
+  dist1,
+  dist2,
+  dist3,
+  weights = par$pro
+)
+```
+
+Here we have estimated a 3-component GMM for the Old Faithful data. The number of components has been automatically chosen. The `gg_density()` function can be used to visualise the fitted density, as shown in @fig-gmm-density.
+
+
+```{r}
+#| eval: false
+#| code-fold: false
+gg_density(gmm_density)
+```
+
+We can compute the density at each observation under this fitted model, and then compute surprisal probabilities based on that density. 
