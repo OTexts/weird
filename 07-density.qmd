@@ -380,3 +380,115 @@ gg_density(gmm_density)
 ```
 
 We can compute the density at each observation under this fitted model, and then compute surprisal probabilities based on that density. 
+
+## Gaussian copula anomaly scores {#sec-copula}
+
+Another flexible approach to fitting a density to the data is to model the marginal distributions and the dependence structure separately, using **copulas**. Copulas are functions that capture the dependence structure between random variables, while allowing for arbitrary marginal distributions. This can be particularly useful when the marginals are not well approximated by a Normal distribution, but we still want to use a simple parametric model for the dependence.
+
+### Copulas and marginal transformations
+
+Let $\bm{y}_i = (y_{i1}, \dots, y_{im})$ denote an observation. For each variable $j$, let $F_j$ denote its marginal distribution function. The copula representation of the joint distribution expresses
+$$
+F(\bm{y}_i) = C\big(F_1(y_{i1}), \dots, F_m(y_{im})\big),
+$$
+where $C$ is the copula function, capturing the dependence between the variables.
+
+In practice, the marginal distributions $F_j$ are usually unknown, so we estimate them using empirical ranks. This leads to the transformed values
+$$
+u_{ij} = \hat{F}_j(y_{ij}) = \frac{r_{ij}}{n+1},
+$$
+where $r_{ij}$ is the rank of $y_{ij}$ among the observations of variable $j$. This transformation places all variables on a common scale, regardless of their original units or marginal distributions.
+
+### Gaussian copula model
+
+A simple and widely used choice is the **Gaussian copula**, which assumes that the dependence structure is the same as that of a multivariate Normal distribution. To implement this, we apply the inverse standard Normal distribution function $\Phi^{-1}$ to each component:
+$$
+w_{ij} = \Phi^{-1}(u_{ij}).
+$$
+The transformed observations $\bm{w}_i = (w_{i1}, \dots, w_{im})$ are then modelled as
+$$
+\bm{w}_i \sim \text{N}(\bm{\mu}_w, \bm{\Sigma}_w).
+$$
+The covariance matrix $\bm{\Sigma}_w$ captures the dependence between the variables, while the marginal distributions of the original data are handled separately through the empirical transformations. 
+
+This construction can be viewed as applying a multivariate Normal model to transformed data, where the transformation ensures that each marginal distribution is approximately standard Normal.
+
+### Anomaly scores
+
+Under the Gaussian copula model, anomaly scores can be constructed using the Mahalanobis distance of the transformed observations:
+$$
+d_i^2 = (\bm{w}_i - \bm{\mu}_w)^\intercal \bm{\Sigma}_w^{-1} (\bm{w}_i - \bm{\mu}_w).
+$$
+Large values of $d_i^2$ indicate that the observation is unusual relative to the data according to the fitted Gaussian copula model, and so are potential anomalies.
+
+These squared distances are directly connected to surprisals. The fitted multivariate Normal density of $\bm{w}_i$ is
+$$
+\hat f_W(\bm{w}_i) =
+(2\pi)^{-m/2} |\bm{\Sigma}_w|^{-1/2} \exp\left\{
+-\frac{1}{2} (\bm{w}_i - \bm{\mu}_w)^\intercal \bm{\Sigma}_w^{-1} (\bm{w}_i - \bm{\mu}_w)
+\right\},
+$$
+so the corresponding surprisal is
+$$
+s_i =  -\log \hat f_W(\bm{w}_i)
+= \frac{1}{2} d_i^2 + \frac{m}{2}\log(2\pi) + \frac{1}{2}\log|\bm{\Sigma}_w|.
+$$
+Thus ranking observations by $d_i^2$ is equivalent to ranking them by their surprisals under the fitted Gaussian copula model. If the model is appropriate, then $d_i^2$ approximately follows a chi-squared distribution with $m$ degrees of freedom, giving the approximate surprisal probability
+$$
+p_i = 1 - F_{\chi^2_m}(d_i^2).
+$$
+
+### Practical implementation
+
+The Gaussian copula anomaly scores can be computed using the following steps:
+
+1. Transform each variable using ranks to obtain $u_{ij}$.
+2. Apply the inverse Normal transformation to obtain $w_{ij} = \Phi^{-1}(u_{ij})$.
+3. Compute robust multivariate $z$-scores of the transformed data using @sec-scaling.
+4. Compute the squared Euclidean distance of the resulting vectors.
+
+```{r}
+copula_scores <- function(x) {
+  x <- as.matrix(x)
+  n <- nrow(x)
+  # Step 1: rank-based pseudo-observations
+  U <- apply(x, 2,
+    function(col) rank(col, ties.method = "average") / (n + 1)
+  )
+  # Step 2: Normal-score transform
+  W <- qnorm(U)
+  # Step 3: robust multivariate scaling
+  Z <- mvscale(W) |> as.matrix()
+  # Step 4: squared Euclidean distances
+  rowSums(Z^2)
+}
+```
+
+The Gaussian copula approach provides a useful compromise between flexibility and simplicity:
+
+- It allows each variable to have an arbitrary marginal distribution, avoiding the need for logs or Box-Cox transformations.
+- It explicitly models dependence between variables through the covariance matrix $\bm{\Sigma}_w$.
+- It reduces to the Mahalanobis distance when the original data are already approximately multivariate Normal.
+
+However, the method still relies on the assumption that the dependence structure is adequately captured by a Gaussian copula. In particular, it may not perform well when there are strong nonlinear or tail dependencies between variables. More flexible copula models exist, but are typically more complex to estimate and use.
+
+Despite these limitations, Gaussian copula anomaly scores provide a simple and effective way to extend Mahalanobis-based methods to data with non-Normal marginals, while retaining sensitivity to relationships between variables.
+
+@fig-copula-of applies this method to the Old Faithful data, highlighting observations with surprisal probability less than 0.01.
+
+```{r}
+#| label: fig-copula-of
+#| fig-cap: "Scatterplot of Old Faithful eruption duration and waiting time. Observations flagged as anomalies (surprisal probability less than 0.01) under the Gaussian copula model are highlighted."
+of_scores <- oldfaithful |>
+  select(duration, waiting) |>
+  mutate(
+    cscores = copula_scores(pick(duration, waiting)),
+    prob = 1 - cdf(dist_chisq(2), q=cscores)[[1]]
+  ) |>
+  arrange(prob)
+of_scores |>
+  mutate(anomaly = prob < 0.01) |>
+  ggplot(aes(x = duration, y = waiting, col = anomaly)) +
+  geom_point() +
+  labs(col = "Surprisal Probability < 0.01")
+```
