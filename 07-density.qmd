@@ -206,7 +206,7 @@ The various estimates are displayed in @fig-surprisal_prob for values of $y$ gre
 
 ```{r}
 #| label: fig-surprisal_prob
-#| fig-cap: Surprisal probabilities estimated using the correct N(0,1) distribution and using an incorrect $t_4$ distribution. The GPD and rank estimates of surprisal probabilities are still accurate, even when the wrong distribution is used to compute the surprisal values.
+#| fig-cap: Surprisal probabilities estimated using the correct N(0,1) distribution and using an incorrect $\text{t}_4$ distribution. The GPD and rank estimates of surprisal probabilities are still accurate, even when the wrong distribution is used to compute the surprisal values.
 norm_prob |>
   filter(y > 2.5) |>
   tidyr::pivot_longer(p:pt_emp, names_to = "Estimate", values_to = "Probability") |>
@@ -260,7 +260,7 @@ The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates
 
 ## Example: Old Faithful eruption durations
 
-Let's apply the kde surprisals method to the Old Faithful eruptions containing in the `oldfaithful` data set. We will use the LOO KDE surprisal probabilities to identify anomalies in the eruption durations.
+Let's apply the kde surprisals method to the Old Faithful eruptions contained in the `oldfaithful` data set. We will use the LOO KDE surprisal probabilities to identify anomalies in the eruption durations.
 
 ```{r}
 #| label: ofscores-kde
@@ -295,7 +295,9 @@ of_surprisals |> arrange(desc(loo_kde_surprisal))
 no <- of_surprisals |> filter(prob < 0.005) |> NROW()
 no_above_300 <- of_surprisals |> filter(duration > 300, prob < 0.005) |> NROW()
 no_below_90 <- of_surprisals |> filter(duration < 90, prob < 0.005) |> NROW()
-no_between_155_and_165 <- of_surprisals |> filter(duration >= 155, duration <= 165, prob < 0.005) |> NROW()
+no_between_155_and_165 <- of_surprisals |>
+  filter(duration >= 155, duration <= 165, prob < 0.005) |>
+  NROW()
 stopifnot(no == no_above_300 + no_below_90 + no_between_155_and_165)
 ```
 
