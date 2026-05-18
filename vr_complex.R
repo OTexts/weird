@@ -11,8 +11,8 @@ vr_complex <- function(X, delta) {
   d <- dist(X[, 1:2]) |>
     as.matrix() |>
     as.data.frame() |>
-    mutate(row = 1:NROW(X)) |>
-    tidyr::pivot_longer(1:NROW(X), names_to = "col", values_to = "d") |>
+    mutate(row = seq_len(NROW(X))) |>
+    tidyr::pivot_longer(cols = seq_len(NROW(X)), names_to = "col", values_to = "d") |>
     dplyr::filter(row < col, d < delta)
   d <- d |>
     mutate(

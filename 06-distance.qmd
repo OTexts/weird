@@ -66,7 +66,7 @@ That is, it is equivalent to the Euclidean distance of the scaled observation $\
 
 If the data were multivariate Normal, then we would expect the squared $d_i$ distances to follow a chi-squared distribution with $m$ degrees of freedom, where $m$ is the number of variables. This provides a natural threshold for flagging anomalies: we can flag $\bm{y}_i$ as an anomaly if $d_i > \sqrt{\chi^2_{m,1-\alpha}}$, where $\chi^2_{m,1-\alpha}$ is the $(1-\alpha)$-quantile of the chi-squared distribution with $m$ degrees of freedom.
 
-We apply this to the Old Faithful data, using the scaled data `z` already computed in @sec-distances, and setting $\alpha = 0.999$ (so only 1 in 1000 non-anomalous observations would be expected to exceed the threshold).
+We apply this to the Old Faithful data, using the scaled data `z` already computed in @sec-distances, and setting $\alpha = 0.001$ (so only 1 in 1000 non-anomalous observations would be expected to exceed the threshold).
 
 ```{r}
 #| label: fig-mahal-scores
@@ -112,7 +112,7 @@ where $\chi^2_{m,1-\alpha}$ is the $(1 - \alpha)$-quantile of the chi-squared di
 \end{align*}
 $h = \lfloor(n + m + 1)/2\rfloor$, and $r$ is the number of observations in the current basic subset $B$. The correction factor $c_{nmr}$ inflates the threshold when the current basic subset of size $r$ is small relative to the target size $h$. This is because a small basic subset selected for being close to the data centre will have artificially compressed spread, so the Mahalanobis distances computed from it need to be inflated to something closer to what they would be from a full clean sample. As $r$ grows toward $h$, $c_{hr} \to 0$.
 
-**Step 4: Iterate**. Steps 2 and 3 until the size of $B$ no longer changes.
+**Step 4: Iterate**. Repeat Steps 2 and 3 until the size of $B$ no longer changes.
 
 **Step 5: Nominate outliers**. All observations excluded from the final $B$ are nominated as outliers.
 
@@ -159,7 +159,7 @@ of_bacon |>
 
 @fig-bacon-of displays which outliers are identified by the BACON algorithm. It is almost identical to the plot of Mahalanobis anomaly scores in @fig-mahal-scores, because the initial basic subset is at the centre of the large upper cluster, just as the pointwise median is. The additional steps in the BACON algorithm have not addressed the problem of the bimodality of the data, and so one of the clusters has been identified as outliers.
 
-For comparison, if we start with a randomly selected initial basic subset, then the algorithm usually converges to a different (and more reasonable) solution, with far fewer outliers, because its initial subset will probably include observations from each cluster.
+For comparison, if we start with a randomly selected initial basic subset, then the algorithm usually converges to a different (and more reasonable) solution, with far fewer outliers, because its initial subset will probably include observations from each cluster. @fig-bacon-v2 shows the result of one such run.
 
 ```{r}
 #| label: fig-bacon-v2
@@ -373,7 +373,7 @@ The **Global-Local Outlier Score from Hierarchies** (GLOSH) was proposed by @glo
 
 ### Mutual reachability distances
 
-The starting point is the core distance $d_{i,k}$ introduced in @sec-lof --- that is, the distance from $\bm{y}_i$ to its $k$-th nearest neighbour. The **mutual reachability distance** between observations $\bm{y}_i$ and $\bm{y}_j$ is a smoothed version of the usual distance:
+The starting point is the core distance $d_{i,k}$ introduced in @sec-knn-scores --- that is, the distance from $\bm{y}_i$ to its $k$-th nearest neighbour. The **mutual reachability distance** between observations $\bm{y}_i$ and $\bm{y}_j$ is a smoothed version of the usual distance:
 $$
   d_\text{mreach}(\bm{y}_i, \bm{y}_j) = \max(d_{i,k},\, d_{j,k},\, \|\bm{y}_i - \bm{y}_j\|).
 $$
