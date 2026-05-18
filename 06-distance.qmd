@@ -149,7 +149,7 @@ As expected, the nominated outliers include the very short eruptions that we hav
 
 ```{r}
 #| label: fig-bacon-of
-#| fig-cap: "BACON outliers for the Old Faithful eruptions. All observations in the lower cluster have been identified as outliers, while all observations in the upper cluster have been identified as non-outliers. The three short eruptions are among the outliers, but so are many other observations."
+#| fig-cap: "BACON outliers for the Old Faithful eruptions. All observations in the lower cluster have been identified as outliers, while all observations in the upper cluster have been identified as non-outliers. The three shortest eruptions are among the outliers, but so are many other observations."
 #| dependson: bacon-results
 of_bacon |>
   ggplot(aes(x = duration, y = waiting, colour = outlier)) +
@@ -218,34 +218,38 @@ In this case, four of the same five observations have been found, with the last 
 
 The simplest way to use nearest neighbours for anomaly detection is to score each observation by its distance to its $k$-th nearest neighbour. Let $d_{i,k}$ denote the distance between observation $\bm{y}_i$ and its $k$-th nearest neighbour. A large $d_{i,k}$ means the observation is far from its neighbourhood and is likely anomalous; a small value indicates a dense neighbourhood and a typical observation.
 
-The `dbscan::kNNdist()` function computes $d_{i,k}$ for every observation. Here we apply it to the scaled Old Faithful data with $k = 100$.
+The `dbscan::kNNdist()` function computes $d_{i,k}$ for every observation. Here we apply it to the scaled Old Faithful data with $k = 20$, chosen after experimenting with various values.
 
 ```{r}
 #| label: knn-scores
 #| code-fold: false
 #| dependson: zscores
 of_knn <- oldfaithful |>
-  mutate(score = dbscan::kNNdist(z, k = 100))
+  mutate(score = dbscan::kNNdist(z, k = 20))
 of_knn |> arrange(desc(score))
 ```
 
 ```{r}
 #| label: fig-knn-scores
-#| fig-cap: kNN anomaly scores for each eruption, using the distance to the 100th nearest neighbour on the scaled data.
+#| fig-cap: "Extreme kNN anomaly scores for the Old Faithful eruptions, using the distance to the 20th nearest neighbour on the scaled data. Points with scores exceeding the 99.5th percentile are highlighted."
 #| dependson: knn-scores
+threshold <- quantile(of_knn$score, 0.995)
 of_knn |>
-  ggplot(aes(x = duration, y = score)) +
-  geom_point() +
-  labs(x = "Duration (seconds)", y = "kNN anomaly score")
+  mutate(anomaly = score > threshold) |>
+  ggplot(aes(x = duration, y = waiting)) +
+  geom_point(aes(colour = anomaly)) +
+  scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = discrete_colours[2])) +
+  labs(x = "Duration (seconds)", y = "Waiting time (seconds)") +
+  guides(colour = "none")
 ```
 
-As with many of the methods we have seen, the three shortest eruptions have the highest scores. The bimodal structure of the data is also visible: eruptions that fall in the gap between the two clusters have higher scores than those near the cluster centres.
+As with many of the methods we have seen, the three shortest eruptions are amongst those with the highest scores. The other anomalies shown are those lying furthest from the two clusters.
 
-A feature of the kNN anomaly score is that $d_{i,k}$ is an absolute distance. It does not adjust for the sparseness of the neighbourhood, so an observation in a naturally sparse region of the data will receive a higher score than one in a naturally dense region, even if it is no more unusual relative to its local neighbours. Sometimes this is what we want, but in other applications we want to find observations that are anomalies in their local neighbourhood. The local outlier factor, introduced in the next section, is designed to address this issue.
+A feature of the kNN anomaly score is that $d_{i,k}$ is an absolute distance. It does not adjust for the sparseness of the neighbourhood, so an observation in a naturally sparse region of the data will receive a higher score than one in a naturally dense region, even if it is no more unusual relative to its local neighbours. Often this is what we want, but in some applications we want to find observations that are anomalies in their local neighbourhood. The local outlier factor, introduced in the next section, is designed to address this issue.
 
 ## Local outlier factors {#sec-lof}
 
-A popular way of using $k$-nearest neighbours for anomaly detection is via local outlier factors [@lof]. This is designed to find observations in areas with few surrounding observations.
+A popular way of using $k$-nearest neighbours for anomaly detection is via local outlier factors [@lof]. This is designed to find observations that are unusual relative to their local neighbourhood, rather than anomalous relative to the global structure of the data.
 
 Suppose we write the distance between observations $\bm{y}_i$ and $\bm{y}_j$ as $\|\bm{y}_i - \bm{y}_j\|$, and let $d_{i,k}$ be the distance between observation $\bm{y}_i$ and its $k$th nearest neighbour (as defined in @sec-knn-scores).
 
@@ -334,28 +338,34 @@ Another problem is that it can be difficult to determine an appropriate value fo
 
 ### Example: Old Faithful data
 
-Let's apply the idea to the `duration` variable in the Old Faithful data set. We will use the `lof_scores()` function to compute the local outlier factors for each eruption, with $k=100$ nearest neighbours. The value of $k=100$ has been chosen after experimenting with various values.
+Let's apply the idea to the bivariate Old Faithful data using the scaled variables `z`, with $k=20$ nearest neighbours.
 
 ```{r}
 #| label: ofscores
+#| dependson: zscores
 of_scores <- oldfaithful |>
-  mutate(lof = lof_scores(duration, k = 100))
+  mutate(lof = lof_scores(z, k = 20))
 of_scores |> arrange(desc(lof))
 ```
 
-Here the three shortest eruptions (which we have previously identified as genuine anomalies) are those with the highest local outlier factors. Next there is a group of eruptions with durations above 300 seconds.
+Here the same clear anomalous eruptions have been identified, but there are a few differences in order compared to the kNN anomaly scores.
 
 ```{r}
 #| label: fig-ofscores
-#| fig-cap: Local outlier factors for each eruption duration plotted against the duration.
+#| fig-cap: "Local outlier factors for the Old Faithful eruptions. Points with LOF scores exceeding the 99.5th percentile are highlighted."
 #| dependson: ofscores
+threshold <- quantile(of_scores$lof, 0.995)
 of_scores |>
-  ggplot(aes(x = duration, y = lof)) +
-  geom_point() +
-  labs(x = "Duration (seconds)", y = "Local outlier factor")
+  mutate(anomaly = lof > threshold) |>
+  ggplot(aes(x = duration, y = waiting)) +
+  geom_point(aes(colour = anomaly)) +
+  scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = discrete_colours[2])) +
+  labs(x = "Duration (seconds)", y = "Waiting time (seconds)") +
+  guides(colour = "none")
 ```
 
-@fig-ofscores shows a scatterplot of the local outlier factors for each eruption plotted against the eruption duration. The three short eruptions clearly stand out. The bimodal distribution of eruption durations is also evident here, with the peak in local outlier factors around 150 seconds, indicating a low density of eruptions at that duration.
+@fig-ofscores shows the most extreme local outlier factors across the (duration, waiting) space. The most extreme anomalies are shown again, but different observations are identified around the edges of the two clusters. The local outlier factor has identified observations that are in low-density regions relative to their neighbours, regardless of how far they are from the centre of the data.
+
 
 ## GLOSH scores {#sec-glosh}
 
@@ -397,28 +407,39 @@ Because $\varepsilon_i^{\text{min}}$ is defined inside each observation's own cl
 
 ### Example: Old Faithful data
 
-We can compute GLOSH scores using the `glosh_scores()` function, with `k` determining the core distance $d_{i,k}$. Here we use $k = 120$ after experimenting with various values. The three shortest eruptions again receive the highest scores, followed by a group of eruptions with durations between the two clusters.
+We can compute GLOSH scores using the `glosh_scores()` function, with `k` determining the core distance $d_{i,k}$. Here we use $k = 20$ again, applied to the scaled bivariate data `z`.
 
 ```{r}
 #| label: ofglosh
 #| code-fold: false
+#| dependson: zscores
 of_glosh <- oldfaithful |>
-  mutate(glosh = glosh_scores(duration, k = 120))
+  mutate(glosh = glosh_scores(z, k = 20))
 of_glosh |> arrange(desc(glosh))
 ```
 
 ```{r}
 #| label: fig-ofglosh
-#| fig-cap: GLOSH scores for each eruption duration plotted against the duration.
+#| fig-cap: "Extreme GLOSH scores for the Old Faithful eruptions. Points with GLOSH scores exceeding the 99.5th percentile are highlighted."
 #| fig-asp: 0.5
 #| dependson: ofglosh
+threshold <- quantile(of_glosh$glosh, 0.995)
 of_glosh |>
-  ggplot(aes(x = duration, y = glosh)) +
-  geom_point() +
-  labs(x = "Duration (seconds)", y = "GLOSH score")
+  mutate(anomaly = glosh > threshold) |>
+  ggplot(aes(x = duration, y = waiting)) +
+  geom_point(aes(colour = anomaly)) +
+  scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = discrete_colours[2])) +
+  labs(x = "Duration (seconds)", y = "Waiting time (seconds)") +
+  guides(colour = "none")
 ```
 
-@fig-ofglosh shows a pattern similar to that in @fig-ofscores, with elevated scores in the sparsely populated gap between the two modes of the duration distribution.
+@fig-ofglosh shows a pattern similar to that in @fig-knn-scores.
+
+We have looked at three different scoring methods based on nearest neighbours, designed to identify anomalies in slightly different ways.
+
+* The kNN anomaly score is a global measure based on simple absolute distance to the $k$-th nearest neighbour. It identifies anomalies as observations that are far from their neighbours.
+* The LOF anomaly score is a relative measure, based on how crowded the local neighbourhood is compared to surrounding neighbourhoods. It identifies anomalies as observations that are in sparse regions relative to their neighbours, regardless of how far they are from the centre of the data.
+* The GLOSH anomaly score balances local and global perspectives by comparing each observation to others in its local cluster, while normalising scores to be globally comparable. It identifies anomalies as observations that separate from their cluster early, while denser sub-clusters persist at smaller thresholds.
 
 ## Isolation forest {#sec-iforest}
 
