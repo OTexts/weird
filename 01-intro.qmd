@@ -172,9 +172,36 @@ oldfaithful
 
 The time stamp indicates the start time of each eruption, while `recorded_duration` gives what was transcribed by the observer. This has been converted to seconds to give the `duration` variable. The `waiting` variable is the time to the next eruption, again in seconds. Recordings are incomplete, especially during the winter months when observers may not be present.
 
+### Firearm homicide and gun ownership {-}
+
+The `gun_deaths` data set contains data on gun ownership rates and firearm homicide rates for `r NROW(gun_deaths)` countries in 2017. The gun ownership rate is the number of guns per 100 people, while the firearm homicide rate is the number of firearm homicides per 100,000 people.
+
+```{r}
+#| label: gundata
+#| code-fold: false
+gun_deaths
+```
+
+### Air quality in Beijing {-}
+
+The `air_quality` data set contains hourly data on air quality from 12 monitoring stations in Beijing, China, collected between 1 January 2013 and 31 December 2017. The data set contains `r scales::comma(NROW(air_quality))` hourly observations of the concentration of various pollutants, including PM2.5 (particulate matter with diameter less than 2.5 microns), PM10 (particulate matter with diameter less than 10 microns), SO2 (sulfur dioxide), NO2 (nitrogen dioxide), CO (carbon monoxide), and O3 (ozone). The data set also includes several weather variables, including temperature, pressure, dew point, rainfall, wind direction and speed. Because it is a rather large data set, it does not come pre-loaded with the package, but can be obtained using the `fetch_air_quality()` function.
+
+```{r}
+#| label: airquality0
+#| code-fold: false
+#| eval: false
+air_quality <- fetch_air_quality()
+```
+
+```{r}
+#| label: airquality
+#| code-fold: false
+air_quality
+```
+
 ### Wine prices and quality {-}
 
-The `wine_reviews` data set contains data on `r scales::comma(NROW(wine_reviews))` wines from 44 countries, taken from the *Wine Enthusiast Magazine* during the week of 15 June 2017.
+The `wine_reviews` data set contains data on `r scales::comma(NROW(wine_reviews))` wines from 44 countries, taken from the *Wine Enthusiast Magazine* during the week of 15 June 2017. The data set contains information on the winery and its location, the variety of grape used to make the wine, the year of harvest, the price of the wine in $US, and a points value that provides a measure of the quality of the wine based on a taster's assessment on a scale of 0 to 100. Again, it does not come pre-loaded with the package, but can be obtained using the `fetch_wine_reviews()` function.
 
 ```{r}
 #| label: winedata0
@@ -188,8 +215,6 @@ wine_reviews <- fetch_wine_reviews()
 #| code-fold: false
 wine_reviews
 ```
-
-The `points` variable provides a measure of wine quality based on a taster's assessment on a scale of 0 to 100. The price is provided in $US. Other variables indicate the location of the winery and year of harvest.
 
 ### Synthetic standard normal data
 
