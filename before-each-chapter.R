@@ -50,3 +50,4 @@ cache <- function(command, name) {
   return(object)
 }
 wine_reviews <- fetch_wine_reviews() |> cache("wine_reviews")
+air_quality <- fetch_air_quality() |> cache("air_quality")
