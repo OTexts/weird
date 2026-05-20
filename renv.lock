@@ -1163,7 +1163,7 @@
     },
     "bit64": {
       "Package": "bit64",
-      "Version": "4.8.0",
+      "Version": "4.8.2",
       "Source": "Repository",
       "Title": "A S3 Class for Vectors of 64bit Integers",
       "Authors@R": "c( person(\"Michael\", \"Chirico\", email=\"michaelchirico4@gmail.com\", role=c(\"aut\", \"cre\")), person(\"Jens\", \"Oehlschlägel\", role=\"aut\"), person(\"Leonardo\", \"Silvestri\", role=\"ctb\"), person(\"Ofek\", \"Shilon\", role=\"ctb\"), person(\"Christian\", \"Ullerich\", role=\"ctb\") )",
@@ -1195,7 +1195,7 @@
       "NeedsCompilation": "yes",
       "Author": "Michael Chirico [aut, cre], Jens Oehlschlägel [aut], Leonardo Silvestri [ctb], Ofek Shilon [ctb], Christian Ullerich [ctb]",
       "Maintainer": "Michael Chirico <michaelchirico4@gmail.com>",
-      "Repository": "https://packagemanager.posit.co/cran/__linux__/noble/latest"
+      "Repository": "binary"
     },
     "bitops": {
       "Package": "bitops",
@@ -9115,7 +9115,7 @@
       "RemoteUsername": "robjhyndman",
       "RemoteRepo": "weird",
       "RemoteRef": "main",
-      "RemoteSha": "385088ca78873e9509e8fcd1ee8214439680f44c",
+      "RemoteSha": "2d0794549d45993edd515cb571890cb990a468c2",
       "RemoteHost": "api.github.com"
     },
     "withr": {
