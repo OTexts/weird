@@ -165,15 +165,22 @@ An example is shown in @fig-mixture, where $\mu_1 = -2$, $\mu_2 = 2$, $\sigma_1^
 ```{r}
 #| label: fig-mixture
 #| fig-cap: Probability density function for a mixture of two Normal distributions. The dashed lines show the (scaled) component densities, and the solid line shows the mixture density, equal to the sum of the dashed lines.
-dist_mixture(
-  dist_normal(-2, 1),
-  dist_normal(2, 1),
-  weights = c(1 / 3, 2 / 3)
-) |>
-  gg_density() +
-  gg_density_layer(dist_normal(-2, 1), linetype = "dashed", scale = 1 / 3) +
-  gg_density_layer(dist_normal(2, 1), linetype = "dashed", scale = 2 / 3) +
-  labs(x = "y", y = "Probability Density Function: f(y)")
+d1 <- dist_normal(-2, 1)
+d2 <- dist_normal(2, 1)
+dmix <- dist_mixture(d1, d2, weights = c(1 / 3, 2 / 3))
+density_df(c(d1, d2, dmix)) |>
+  mutate(
+    density = case_when(
+      distribution == "N(-2, 1)" ~ 1 / 3 * density,
+      distribution == "N(2, 1)" ~ 2 / 3 * density,
+      TRUE ~ density
+    ),
+    mixture = distribution %notin% c("N(-2, 1)", "N(2, 1)")
+  ) |>
+  ggplot(aes(x = x, y = density)) +
+  geom_line(aes(col = distribution, linetype = !mixture)) +
+  labs(x = "y", y = "Probability Density Function: f(y)") +
+  theme(legend.position = "none")
 ```
 
 This is an example of a multimodal density function, with modes at $-2$ and $2$. The mixture distribution is not Normal, even though both component distributions are Normal. The mixture distribution is also not symmetric, even though both component distributions are symmetric.

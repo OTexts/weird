@@ -9096,6 +9096,7 @@
       ],
       "Suggests": [
         "mgcv",
+        "mclust",
         "testthat (>= 3.0.0)",
         "tidyr"
       ],
@@ -9115,7 +9116,7 @@
       "RemoteUsername": "robjhyndman",
       "RemoteRepo": "weird",
       "RemoteRef": "main",
-      "RemoteSha": "2d0794549d45993edd515cb571890cb990a468c2",
+      "RemoteSha": "4767edfff69263ca1b224215242ee28eaf470983",
       "RemoteHost": "api.github.com"
     },
     "withr": {

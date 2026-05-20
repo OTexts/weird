@@ -348,43 +348,62 @@ A Gaussian mixture model (GMM) is a flexible parametric model for the joint dist
 
 ```{r}
 #| message: false
-#| eval: false
 #| code-fold: false
 library(mclust)
+set.seed(2)
 gmm <- oldfaithful |>
   select(duration, waiting) |>
   Mclust()
-par <- gmm$parameters
-dist1 <- dist_multivariate_normal(
-  list(par$mean[, 1]),
-  list(par$variance$sigma[,, 1])
-)
-dist2 <- dist_multivariate_normal(
-  list(par$mean[, 2]), 
-  list(par$variance$sigma[,, 2])
-)
-dist3 <- dist_multivariate_normal(
-  list(par$mean[, 3]), 
-  list(par$variance$sigma[,, 3])
-)
-gmm_density <- dist_mixture(
-  dist1,
-  dist2,
-  dist3,
-  weights = par$pro
-)
 ```
 
-Here we have estimated a 3-component GMM for the Old Faithful data. The number of components has been automatically chosen. The `gg_density()` function can be used to visualise the fitted density, as shown in @fig-gmm-density.
+The algorithm involves first clustering a random subset of the data, so different results may be obtained on different runs. The `set.seed()` function is used here to ensure reproducibility.
 
+We have estimated a `r gmm$G`-component GMM for the Old Faithful data. The number of components has been automatically chosen, and are shown in @fig-gmm-components.
 
 ```{r}
-#| eval: false
-#| code-fold: false
-gg_density(gmm_density)
+#| label: fig-gmm-components
+#| fig-cap: "The estimated Gaussian mixture model for the Old Faithful data, showing the different components."
+#| echo: false
+par <- gmm$parameters
+dist_list <- lapply(
+  seq_len(gmm$G),
+  function(i) {
+    distributional::dist_multivariate_normal(
+      list(unname(par$mean[, i])),
+      list(unname(par$variance$sigma[,, i]))
+    )
+  }
+)
+dist <- do.call(c, dist_list)
+cols <- discrete_colours[c(1, 3, 2)]
+w <- sprintf("%.2f", par$pro[c(1, 3, 2)])
+p <- ggplot() +
+  geom_point(data = oldfaithful, aes(x = duration, y = waiting), alpha = 0.1)
+for (i in seq_along(dist)) {
+  p <- p +
+    geom_contour(
+      data = density_df(dist[i]) |> mutate(weight = w[i]),
+      aes(x = x, y = y, z = density, colour = weight),
+      breaks = hdr_table(dist[i], prob = seq(9) / 10)$density
+    )
+}
+p +
+  labs(x = "Duration", y = "Waiting time") +
+  scale_color_manual(name = "Weight", values = cols, breaks = w)
 ```
 
-We can compute the density at each observation under this fitted model, and then compute surprisal probabilities based on that density. 
+The `gg_density()` function can be used to visualise the fitted density, as shown in @fig-gmm-density.
+
+```{r}
+#| code-fold: false
+gmm |>
+  dist_mclust() |>
+  gg_density() +
+  geom_point(data = oldfaithful, aes(x = duration, y = waiting), alpha = 0.1) +
+  labs(x = "Duration", y = "Waiting time")
+```
+
+We can compute the density at each observation under this fitted model, and then compute surprisal probabilities based on that density.
 
 ## Gaussian copula anomaly scores {#sec-copula}
 
@@ -414,7 +433,7 @@ The transformed observations $\bm{w}_i = (w_{i1}, \dots, w_{im})$ are then model
 $$
 \bm{w}_i \sim \text{N}(\bm{\mu}_w, \bm{\Sigma}_w).
 $$
-The covariance matrix $\bm{\Sigma}_w$ captures the dependence between the variables, while the marginal distributions of the original data are handled separately through the empirical transformations. 
+The covariance matrix $\bm{\Sigma}_w$ captures the dependence between the variables, while the marginal distributions of the original data are handled separately through the empirical transformations.
 
 This construction can be viewed as applying a multivariate Normal model to transformed data, where the transformation ensures that each marginal distribution is approximately standard Normal.
 
@@ -457,9 +476,7 @@ copula_scores <- function(x) {
   x <- as.matrix(x)
   n <- nrow(x)
   # Step 1: rank-based pseudo-observations
-  U <- apply(x, 2,
-    function(col) rank(col, ties.method = "average") / (n + 1)
-  )
+  U <- apply(x, 2, function(col) rank(col, ties.method = "average") / (n + 1))
   # Step 2: Normal-score transform
   W <- qnorm(U)
   # Step 3: robust multivariate scaling
@@ -488,7 +505,7 @@ of_scores <- oldfaithful |>
   select(duration, waiting) |>
   mutate(
     cscores = copula_scores(pick(duration, waiting)),
-    prob = 1 - cdf(dist_chisq(2), q=cscores)[[1]]
+    prob = 1 - cdf(dist_chisq(2), q = cscores)[[1]]
   ) |>
   arrange(prob)
 of_scores |>
