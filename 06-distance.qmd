@@ -8,6 +8,42 @@ source("before-each-chapter.R")
 
 Distance-based anomaly detection methods identify anomalies as observations that are far from the bulk of the data. Some methods measure distance from a global centre; others use distances to neighbouring observations. Before introducing these methods, we first discuss how distances between multivariate observations are measured.
 
+Throughout this chapter, we will illustrate the methods using daily average ozone levels and maximum temperatures from the Dongsi neighbourhood of Beijing, China, from March 2013 to February 2017. The data are shown in @fig-dongsi.
+
+```{r}
+#| label: fig-dongsi
+#| code-fold: false
+#| fig-cap: "Daily ozone and maximum temperature data from the Dongsi neighbourhood of Beijing, from March 2013 to February 2017. Days with more than 2 missing hourly values in either variable are excluded."
+dongsi <- air_quality |>
+  filter(station == "Dongsi") |>
+  mutate(date = lubridate::ymd(paste(year, month, day, sep = "-"))) |>
+  group_by(date) |>
+  summarise(
+    nmiss = sum(is.na(o3) | is.na(temperature)),
+    o3 = mean(o3, na.rm = TRUE),
+    max_temp = max(temperature, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  filter(nmiss <= 2) |>
+  select(-nmiss)
+dongsi |>
+  ggplot(aes(x = max_temp, y = o3)) +
+  geom_point() +
+  labs(
+    x = "Maximum temperature (degrees C)",
+    y = latex2exp::TeX("Ozone level ($\\mu g m^{-3}$)")
+  )
+```
+
+```{r}
+#| label: hottest-day
+#| include: false
+hottest_day <- which.max(dongsi$max_temp)
+coldest_day <- which.min(dongsi$max_temp)
+```
+
+As temperatures increase above 20 degrees Celsius, ozone levels tend to increase, although the hottest day over this period (`r dongsi$max_temp[hottest_day]` degrees on `r format(dongsi$date[hottest_day], "%d %B %Y")`) had a relatively moderate average ozone level of `r sprintf("%.1f", dongsi$o3[hottest_day])` $\mu g m^{-3}$ (micrograms per cubic meter). There are two clear anomalies in the ozone variable, with levels above 250 $\mu g m^{-3}$, which are much higher than the other observations (and perhaps recording errors). There was also an unusually cold day on `r format(dongsi$date[coldest_day], "%d %B %Y")`, which had a maximum temperature of only `r dongsi$max_temp[coldest_day]` degrees. This is also a potential anomaly.
+
 ## Measuring distances {#sec-distances}
 
 Suppose our observations are denoted by $\bm{y}_1,\dots,\bm{y}_n$, each a vector of length $m$. In univariate data, the distance between any two observations is simply the absolute difference between the values. But in multivariate data, there are several different ways of measuring distances, even when the data are all numerical.
@@ -16,20 +52,20 @@ Perhaps the most obvious way to define the distance between any two points $\bm{
 $$\|\bm{y}_i - \bm{y}_j\|_2 = \sqrt{\sum_{k=1}^m (y_{ik}-y_{jk})^2}.$$
 This is also known as the $L_2$ distance. For $m=1$ or $m=2$, it is the physical distance between the points when plotted on a strip plot or a scatterplot (provided there is no jittering used).
 
-The `dist()` function will return a distance matrix containing all pairwise distances between observations. Here is an example using only the first five observations of the Old Faithful data set, where each $\bm{y}_i$ is a vector of eruption duration and waiting time. Because the distances are symmetric, only the lower triangle of the matrix is computed.
+The `dist()` function will return a distance matrix containing all pairwise distances between observations. Here is an example using only the first five observations of the `dongsi` data set, where each $\bm{y}_i$ is a vector of maximum daily temperature and mean daily ozone level. Because the distances are symmetric, only the lower triangle of the matrix is computed.
 
 ```{r}
 #| label: dist-example
 #| code-fold: false
-head(oldfaithful, 5)
-head(oldfaithful, 5) |>
-  select(duration, waiting) |>
+head(dongsi, 5)
+head(dongsi, 5) |>
+  select(-date) |>
   dist()
 ```
 
 Other distance measures also exist, including $L_1$ (Manhattan), $L_p$ (Minkowski), and $L_\infty$ (Chebyshev) distances [@Borg2005]. The argument `method` in the `dist()` function specifies the type of distance to compute, with the default being Euclidean distance.
 
-A problem with all of these distances is that variables with large ranges dominate the calculation. In the Old Faithful data, for example, eruption durations range from about 50 to 300 seconds while waiting times run from about 3000 to 7200 seconds. So the Euclidean distances to other observations will be largely determined by the waiting time alone. Consequently, it is often preferable to scale the variables before computing distances, as discussed in @sec-scaling.
+A problem with all of these distances is that variables with large ranges dominate the calculation. For example, in the Dongsi air quality data, ozone levels range from 0 to over 500 $\mu g m^{-3}$, while maximum temperatures range from -14 to 41 degrees. So the distance between two observations will be dominated by the difference in ozone levels, and the difference in temperatures will have a smaller influence on the distance. Consequently, it is often preferable to scale the variables before computing distances, as discussed in @sec-scaling.
 
 We define the scaled observations as the robust multivariate z-scores, given by
 $$
@@ -43,13 +79,13 @@ $$
 $$
 This combination of first scaling using a covariance matrix (or its estimate) and then computing a Euclidean distance, is known as the **Mahalanobis distance**, named after the Indian statistician Prasanta Chandra Mahalanobis. It is a multivariate generalisation of the number of standard deviations separating two observations, and accounts for both the different scales of the variables and the correlations between them.
 
-We compute the scaled Old Faithful data using `mvscale()`.
+We compute the scaled Dongsi air quality data using `mvscale()`, and then the Euclidean distances using `dist()` in order to obtain the Mahalanobis distances between the original observations. The first five rows of the scaled data are shown, and the resulting distance matrix is displayed.
 
 ```{r}
 #| label: zscores
 #| code-fold: false
-z <- oldfaithful |>
-  select(duration, waiting) |>
+z <- dongsi |>
+  select(-date) |>
   mvscale()
 head(z, 5)
 head(z, 5) |>
@@ -66,23 +102,28 @@ That is, it is equivalent to the Euclidean distance of the scaled observation $\
 
 If the data were multivariate Normal, then we would expect the squared $d_i$ distances to follow a chi-squared distribution with $m$ degrees of freedom, where $m$ is the number of variables. This provides a natural threshold for flagging anomalies: we can flag $\bm{y}_i$ as an anomaly if $d_i > \sqrt{\chi^2_{m,1-\alpha}}$, where $\chi^2_{m,1-\alpha}$ is the $(1-\alpha)$-quantile of the chi-squared distribution with $m$ degrees of freedom.
 
-We apply this to the Old Faithful data, using the scaled data `z` already computed in @sec-distances, and setting $\alpha = 0.001$ (so only 1 in 1000 non-anomalous observations would be expected to exceed the threshold).
+We apply this to the Dongsi air quality data, using the scaled data `z` already computed in @sec-distances, and setting $\alpha = 0.001$ (so only 1 in 1000 non-anomalous observations would be expected to exceed the threshold).
 
 ```{r}
 #| label: fig-mahal-scores
-#| fig-cap: "Mahalanobis anomaly scores for the Old Faithful eruptions. Observations flagged as anomalies (using a threshold based on the 0.999 quantile of the chi-squared distribution) are shown in blue."
+#| fig-cap: "Mahalanobis anomaly scores for the Dongsi air quality data. Observations flagged as anomalies (using a threshold based on the 0.999 quantile of the chi-squared distribution) are shown in blue."
 #| code-fold: false
 #| dependson: zscores
-oldfaithful |>
+dongsi |>
   mutate(
     d = sqrt(z$z1^2 + z$z2^2),
     anomaly = d > sqrt(qchisq(0.999, df = 2))
   ) |>
-  ggplot(aes(x = duration, y = waiting, colour = anomaly)) +
-  geom_point()
+  ggplot(aes(x = max_temp, y = o3, colour = anomaly)) +
+  geom_point() +
+  labs(x = "Maximum temperature", y = "Ozone level")
 ```
 
-@fig-mahal-scores shows that the genuine anomalies have been flagged, but so have all eruptions in the lower cluster. The reason for this is that the pointwise median is centred on the large upper cluster, and the robust covariance estimate is dominated by that cluster. So the lower cluster appears far from the centre of the data, even though it forms a coherent group. This is a common problem with Mahalanobis anomaly scores: they work best when the data come from a single roughly elliptical cluster; with multimodal data they can produce many false positives. The BACON algorithm, described next, addresses this by estimating the centre iteratively from a clean subset of observations rather than from all the data.
+@fig-mahal-scores shows that the coldest day has been flagged as an anomaly, along with the two extreme ozone levels. In addition, the next two highest ozone levels have also been flagged as anomalies, although they are not far from the main data cloud, and are probably best understood as non-anomalous observations.
+
+In this analysis, we have used robust measures of the centre and covariance of the data, to avoid the anomalies influencing the distance calculations. If we had used the non-robust mean and covariance, then the two extreme ozone levels would have had a large influence on the centre and spread of the data, and consequently the resulting distances would not have been very meaningful.
+
+In the next approach, non-robust measures are used, but with a subset of observations that is believed to be free of anomalies.
 
 ## BACON algorithm {#sec-bacon}
 
@@ -92,9 +133,9 @@ Francis Bacon wrote:
 
 Inspired by this aphorism, @Billor2000 developed the BACON algorithm for multivariate outlier detection. The name also stands for "Blocked Adaptive Computationally efficient Outlier Nominator". The idea is to identify a clean subset of the data that is free of outliers, known as the "basic subset", and then use that subset to estimate the centre and spread of the data, and identify outliers as those observations that are far from that centre (as measured by the Mahalanobis distance). At each iteration, every observation whose Mahalanobis distance from the current basic subset falls below a data-adaptive threshold is admitted simultaneously. This process typically converges in a few iterations regardless of sample size. The algorithm is implemented in the `robustX::BACON()` function, which is designed to handle both multivariate data and regression data. We will discuss the regression version in @sec-bacon-reg.
 
-Given an $n \times m$ data matrix with observations $\bm{y}_1, \dots, \bm{y}_n$, let $B$ denote the current basic subset, and let $\bar{\bm{y}}_B$ and $\bm{S}_B$ be the mean vector and covariance matrix of the observations in $B$.
+Given an $n \times m$ data matrix with observations $\bm{y}_1, \dots, \bm{y}_n$, let $B$ denote the current basic subset, and let $\bar{\bm{y}}_B$ and $\bm{S}_B$ be the mean vector and covariance matrix of the observations in $B$. These are non-robust measures of centre and spread, but because the basic subset is designed to be free of outliers, they should be reasonably accurate estimates of the centre and spread of the clean data. The algorithm proceeds as follows:
 
-**Step 1: Initialise the basic subset**. Choose an initial $B$ of size $s = cm$, where $c$ is a small integer. Several initialisation strategies are available. The default in `BACON()` is to compute the Mahalanobis distances from the full-data mean $\bar{\bm{y}}$ and covariance $\bm{S}$, and select the $s$ observations with the smallest distances. An alternative initialisation strategy is to compute distances from the univariate medians rather than the full-data mean. This is more robust to outliers, but the nominated outliers can change if the data are rotated or rescaled. Another strategy is to select $s$ observations at random. Because the initial subset is not anchored to the data centre, this can be more effective when the data are multimodal, but results may vary across runs.
+**Step 1: Initialise the basic subset**. Choose an initial $B$ of size $s = cm$, where $c$ is a small integer (set to 4 by default), and $m$ is the dimension of each observation $\bm{y}_i$. Several initialisation strategies are available. The default in `BACON()` is to compute the Mahalanobis distances from the full-data mean $\bar{\bm{y}}$ and covariance $\bm{S}$, and select the $s$ observations with the smallest distances. An alternative initialisation strategy is to compute distances from the univariate medians rather than the full-data mean. This is more robust to outliers, but the nominated outliers can change if the data are rotated or rescaled. Another strategy is to select $s$ observations at random. Because the initial subset is not anchored to the data centre, this can be more effective when the data are multimodal, but results may vary across runs.
 
 **Step 2: Compute discrepancies**. For each observation $\bm{y}_i$, compute the Mahalanobis distance from the basic subset:
 $$
@@ -118,63 +159,34 @@ $h = \lfloor(n + m + 1)/2\rfloor$, and $r$ is the number of observations in the 
 
 At each step the algorithm only needs to compare $n$ distances against a single threshold, an $O(n)$ operation. By adding multiple observations at each iteration, BACON eliminates the need for many iterations, making it practical for data sets of millions of observations.
 
-### Example: Old Faithful data
+### Example: Dongsi air quality data
 
-We apply `robustX::BACON()` to the `oldfaithful` data. Because the Mahalanobis distance is used in the algorithm, there is no need to scale the data first. (The robust OGK covariance estimate we have been using is different from the standard covariance estimate used by BACON, but it shouldn't make much difference on a data set without outliers.) The default initialisation strategy is used, which selects the $s = cm = 4 \times 2 = 8$ observations with the smallest Mahalanobis distances from the full-data mean and covariance.
+We apply `robustX::BACON()` to the Dongsi air quality data. Because the Mahalanobis distance is used in the algorithm, there is no need to scale the data first. (The robust OGK covariance estimate we have been using is different from the standard covariance estimate used by BACON, but it shouldn't make much difference on a data set without outliers.) The default initialisation strategy is used, which selects the $s = cm = 4 \times 2 = 8$ observations with the smallest Mahalanobis distances from the full-data mean and covariance.
 
 ```{r}
 #| label: bacon-of
 #| code-fold: false
-bacon <- oldfaithful |>
-  select(duration, waiting) |>
+bacon <- dongsi |>
+  select(-date) |>
   robustX::BACON()
 ```
 
-The output shows the number of observations in each basic subset over the iterations. The algorithm converges in `r english::words(bacon$steps)`, with the final basic subset containing `r sum(bacon$subset)` observations. The remaining `r NROW(oldfaithful) - sum(bacon$subset)` observations are nominated as outliers. The result contains a Mahalanobis distance in `$dis` for each observation, and a logical vector `$subset` that is `TRUE` for observations belonging to the final basic subset (the non-outliers). We attach these to the data and examine the nominated outliers.
+The output shows the number of observations in each basic subset over the iterations. The algorithm converges in `r english::words(bacon$steps)` iterations, with the final basic subset containing `r sum(bacon$subset)` observations. The remaining `r english::words(NROW(dongsi) - sum(bacon$subset))` observations are nominated as outliers. The result contains a Mahalanobis distance in `$dis` for each observation, and a logical vector `$subset` that is `TRUE` for observations belonging to the final basic subset (the non-outliers). We attach these to the data and examine the nominated outliers.
 
 ```{r}
 #| label: bacon-results
 #| code-fold: false
-of_bacon <- oldfaithful |>
+aq_bacon <- dongsi |>
   mutate(
     distance = bacon$dis,
     outlier = !bacon$subset
   )
-of_bacon |>
+aq_bacon |>
   filter(outlier) |>
   arrange(desc(distance))
 ```
 
-As expected, the nominated outliers include the very short eruptions that we have identified as genuine anomalies: their Mahalanobis distances from the robust centre of the data are substantially larger than those of other eruptions. However, many other observations have also been nominated as outliers.
-
-```{r}
-#| label: fig-bacon-of
-#| fig-cap: "BACON outliers for the Old Faithful eruptions. All observations in the lower cluster have been identified as outliers, while all observations in the upper cluster have been identified as non-outliers. The three shortest eruptions are among the outliers, but so are many other observations."
-#| dependson: bacon-results
-of_bacon |>
-  ggplot(aes(x = duration, y = waiting, colour = outlier)) +
-  geom_point() +
-  labs(x = "Duration", y = "Waiting")
-```
-
-@fig-bacon-of displays which outliers are identified by the BACON algorithm. It is almost identical to the plot of Mahalanobis anomaly scores in @fig-mahal-scores, because the initial basic subset is at the centre of the large upper cluster, just as the pointwise median is. The additional steps in the BACON algorithm have not addressed the problem of the bimodality of the data, and so one of the clusters has been identified as outliers.
-
-For comparison, if we start with a randomly selected initial basic subset, then the algorithm usually converges to a different (and more reasonable) solution, with far fewer outliers, because its initial subset will probably include observations from each cluster. @fig-bacon-v2 shows the result of one such run.
-
-```{r}
-#| label: fig-bacon-v2
-#| code-fold: false
-#| fig-cap: "BACON outliers for the Old Faithful eruptions, starting with a random initial basic subset."
-set.seed(1)
-bacon2 <- oldfaithful |>
-  select(duration, waiting) |>
-  robustX::BACON(init.sel = "random")
-oldfaithful |>
-  mutate(Outlier = !bacon2$subset) |>
-  ggplot(aes(x = duration, y = waiting, colour = Outlier)) +
-  geom_point() +
-  labs(x = "Duration", y = "Waiting")
-```
+Only the two extreme ozone measurements have been identified as anomalies.
 
 ## Nearest neighbours {#sec-nn}
 
@@ -186,18 +198,18 @@ Some algorithms only compute the pairwise distances of the $k$ nearest observati
 
 The calculation of $k$ nearest neighbours is useful for more than anomaly detection problems. It is also the basis of a popular classification method due to the Berkeley statisticians Evelyn Fix and Joe Hodges [@knn] which is often known as the "kNN algorithm".
 
-Suppose we use the Old Faithful data to find eruptions that are neighbours in the (duration, waiting) space. The `dbscan` package uses kd trees to quickly identify the $k$ nearest observations to each eruption. We will use the scaled data `z` computed in @sec-distances to find the 5 nearest neighbours to each eruption.
+Suppose we use the Dongsi air quality data to find observations that are neighbours in the (`o3`, `max_temp`) space. The `dbscan` package uses kd trees to quickly identify the $k$ nearest neighbours to each observation. We will use the scaled data `z` computed in @sec-distances to find the 5 nearest neighbours to each observation.
 
 ```{r}
 #| label: knn
 #| code-fold: false
 #| dependson: zscores
-# Find 5 nearest neighbours to each eruption
+# Find 5 nearest neighbours to each observation
 knn <- dbscan::kNN(z, k = 5)
-# First eruption in the data set
-oldfaithful[1, ]
+# First observation in the data set
+dongsi[1, ]
 # Five closest observations
-oldfaithful[knn$id[1, ], ]
+dongsi[knn$id[1, ], ]
 ```
 
 For large data sets, approximations are available which speed up the computation even more, but are less accurate in finding the $k$ nearest neighbours. The `approx` argument specifies a distance tolerance which makes the process faster for large data sets, although the neighbours returned may not be the exact nearest neighbours.
@@ -206,44 +218,50 @@ For large data sets, approximations are available which speed up the computation
 #| label: ann
 #| code-fold: false
 #| dependson: zscores
-# Find 5 approximate nearest neighbours to each eruption
+# Find 5 approximate nearest neighbours to each observation
 kann <- dbscan::kNN(z, k = 5, approx = 2)
 # Five closest observations
-oldfaithful[kann$id[1, ], ]
+dongsi[kann$id[1, ], ]
 ```
 
-In this case, four of the same five observations have been found, with the last being different.
+In this case, the same five observations have been found.
 
 ## kNN anomaly scores {#sec-knn-scores}
 
 The simplest way to use nearest neighbours for anomaly detection is to score each observation by its distance to its $k$-th nearest neighbour. Let $d_{i,k}$ denote the distance between observation $\bm{y}_i$ and its $k$-th nearest neighbour. A large $d_{i,k}$ means the observation is far from its neighbourhood and is likely anomalous; a small value indicates a dense neighbourhood and a typical observation.
 
-The `dbscan::kNNdist()` function computes $d_{i,k}$ for every observation. Here we apply it to the scaled Old Faithful data with $k = 20$, chosen after experimenting with various values.
+The `dbscan::kNNdist()` function computes $d_{i,k}$ for every observation. Here we apply it to the scaled Dongsi air quality data with $k = 20$, chosen after experimenting with various values.
 
 ```{r}
 #| label: knn-scores
 #| code-fold: false
 #| dependson: zscores
-of_knn <- oldfaithful |>
+dongsi_knn <- dongsi |>
   mutate(score = dbscan::kNNdist(z, k = 20))
-of_knn |> arrange(desc(score))
+dongsi_knn |> arrange(desc(score))
 ```
 
 ```{r}
 #| label: fig-knn-scores
-#| fig-cap: "Extreme kNN anomaly scores for the Old Faithful eruptions, using the distance to the 20th nearest neighbour on the scaled data. Points with scores exceeding the 99.5th percentile are highlighted."
+#| fig-cap: "Extreme kNN anomaly scores for the Dongsi air quality data, using the distance to the 20th nearest neighbour on the scaled data. Points with scores exceeding the 99.5th percentile are highlighted."
 #| dependson: knn-scores
-threshold <- quantile(of_knn$score, 0.995)
-of_knn |>
+threshold <- quantile(dongsi_knn$score, 0.995)
+dongsi_knn |>
   mutate(anomaly = score > threshold) |>
-  ggplot(aes(x = duration, y = waiting)) +
+  ggplot(aes(x = max_temp, y = o3)) +
   geom_point(aes(colour = anomaly)) +
   scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = discrete_colours[2])) +
-  labs(x = "Duration (seconds)", y = "Waiting time (seconds)") +
+  labs(x = "Maximum temperature", y = "Ozone level") +
   guides(colour = "none")
 ```
 
-As with many of the methods we have seen, the three shortest eruptions are amongst those with the highest scores. The other anomalies shown are those lying furthest from the two clusters.
+```{r}
+#| label: knn-scores-check
+#| include: false
+stopifnot(sum(dongsi_knn$score > threshold) == 7)
+```
+
+The two extreme ozone levels, and the very cold day, have all been identified as anomalies. In addition, four other days whose ozone levels are at the top edge of the main data cluster have also been flagged as anomalies, but none of the three hottest days have been flagged as anomalies.
 
 A feature of the kNN anomaly score is that $d_{i,k}$ is an absolute distance. It does not adjust for the sparseness of the neighbourhood, so an observation in a naturally sparse region of the data will receive a higher score than one in a naturally dense region, even if it is no more unusual relative to its local neighbours. Often this is what we want, but in some applications we want to find observations that are anomalies in their local neighbourhood. The local outlier factor, introduced in the next section, is designed to address this issue.
 
@@ -336,35 +354,36 @@ One problem with this definition is that $\ell_{i,k}$ can be infinite. If the da
 
 Another problem is that it can be difficult to determine an appropriate value for $k$.
 
-### Example: Old Faithful data
+### Example: Dongsi air quality data
 
-Let's apply the idea to the bivariate Old Faithful data using the scaled variables `z`, with $k=20$ nearest neighbours.
+Let's apply the idea to the bivariate Dongsi air quality data using the scaled variables `z`, with $k=20$ nearest neighbours.
 
 ```{r}
 #| label: ofscores
 #| dependson: zscores
-of_scores <- oldfaithful |>
+#| code-fold: false
+dongsi_scores <- dongsi |>
   mutate(lof = lof_scores(z, k = 20))
-of_scores |> arrange(desc(lof))
+dongsi_scores |> arrange(desc(lof))
 ```
 
-Here the same clear anomalous eruptions have been identified, but there are a few differences in order compared to the kNN anomaly scores.
+Here the same two extreme ozone observations have been identified, along with the coldest and hottest days.
 
 ```{r}
 #| label: fig-ofscores
-#| fig-cap: "Local outlier factors for the Old Faithful eruptions. Points with LOF scores exceeding the 99.5th percentile are highlighted."
+#| fig-cap: "Local outlier factors for the Dongsi air quality data. Points with LOF scores exceeding the 99.5th percentile are highlighted."
 #| dependson: ofscores
-threshold <- quantile(of_scores$lof, 0.995)
-of_scores |>
+threshold <- quantile(dongsi_scores$lof, 0.995)
+dongsi_scores |>
   mutate(anomaly = lof > threshold) |>
-  ggplot(aes(x = duration, y = waiting)) +
+  ggplot(aes(x = max_temp, y = o3)) +
   geom_point(aes(colour = anomaly)) +
   scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = discrete_colours[2])) +
-  labs(x = "Duration (seconds)", y = "Waiting time (seconds)") +
+  labs(x = "Maximum temperature", y = "Ozone level") +
   guides(colour = "none")
 ```
 
-@fig-ofscores shows the most extreme local outlier factors across the (duration, waiting) space. The most extreme anomalies are shown again, but different observations are identified around the edges of the two clusters. The local outlier factor has identified observations that are in low-density regions relative to their neighbours, regardless of how far they are from the centre of the data.
+@fig-ofscores shows the most extreme local outlier factors across the (`max_temp`, `o3`) space. The most extreme anomalies are shown again, but different observations are identified around the edges of the  cluster. The local outlier factor has identified observations that are in low-density regions relative to their neighbours, regardless of how far they are from the centre of the data.
 
 
 ## GLOSH scores {#sec-glosh}
@@ -405,7 +424,7 @@ An observation that stays a cluster member almost all the way down to the smalle
 
 Because $\varepsilon_i^{\text{min}}$ is defined inside each observation's own cluster, GLOSH adapts to the local crowding of the data (much like LOF does), but the scores it produces are still on a common $[0, 1)$ scale, so they can be compared across clusters with very different spacings. This is the sense in which GLOSH is simultaneously local and global.
 
-### Example: Old Faithful data
+### Example: Dongsi air quality data
 
 We can compute GLOSH scores using the `glosh_scores()` function, with `k` determining the core distance $d_{i,k}$. Here we use $k = 20$ again, applied to the scaled bivariate data `z`.
 
@@ -413,23 +432,23 @@ We can compute GLOSH scores using the `glosh_scores()` function, with `k` determ
 #| label: ofglosh
 #| code-fold: false
 #| dependson: zscores
-of_glosh <- oldfaithful |>
+dongsi_glosh <- dongsi |>
   mutate(glosh = glosh_scores(z, k = 20))
-of_glosh |> arrange(desc(glosh))
+dongsi_glosh |> arrange(desc(glosh))
 ```
 
 ```{r}
 #| label: fig-ofglosh
-#| fig-cap: "Extreme GLOSH scores for the Old Faithful eruptions. Points with GLOSH scores exceeding the 99.5th percentile are highlighted."
+#| fig-cap: "Extreme GLOSH scores for the Dongsi air quality data. Points with GLOSH scores exceeding the 99.5th percentile are highlighted."
 #| fig-asp: 0.5
 #| dependson: ofglosh
-threshold <- quantile(of_glosh$glosh, 0.995)
-of_glosh |>
+threshold <- quantile(dongsi_glosh$glosh, 0.995)
+dongsi_glosh |>
   mutate(anomaly = glosh > threshold) |>
-  ggplot(aes(x = duration, y = waiting)) +
+  ggplot(aes(x = max_temp, y = o3)) +
   geom_point(aes(colour = anomaly)) +
   scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = discrete_colours[2])) +
-  labs(x = "Duration (seconds)", y = "Waiting time (seconds)") +
+  labs(x = "Maximum temperature", y = "Ozone level") +
   guides(colour = "none")
 ```
 
@@ -464,22 +483,22 @@ $$
 $$
 where $\gamma \approx 0.5772$ is Euler's constant. Because this is a function of $n$, we cannot directly compare path lengths across data sets of different sizes.
 
-To illustrate the procedure, we build an iTree for the `oldfaithful` data, but with maximum depth set to 3. The resulting tree is shown in @fig-iso-tree.
+To illustrate the procedure, we build an iTree for the `dongsi` data, but with maximum depth set to 3. The resulting tree is shown in @fig-iso-tree.
 
 ```{r}
 #| label: iso-tree
 #| code-fold: false
 library(isotree)
 # Fit one tree with low max depth
-tree <- oldfaithful |>
-  select(duration, waiting) |>
-  isolation.forest(ntrees = 1, max_depth = 3)
+tree <- dongsi |>
+  select(max_temp, o3) |>
+  isolation.forest(ntrees = 1, max_depth = 3, seed = 3)
 ```
 
 ```{r}
 #| label: fig-iso-tree
 #| echo: false
-#| fig-cap: "A simple isolation tree for the Old Faithful data, with maximum depth set to 3."
+#| fig-cap: "A simple isolation tree for the Dongsi air quality data, with maximum depth set to 3."
 #| dependson: iso-tree
 library(tidygraph)
 library(ggraph)
@@ -548,7 +567,7 @@ ggraph(g, layout = "tree") +
     guide = "none"
   ) +
   labs(
-    title = "Single isolation tree for Old Faithful data",
+    title = "Single isolation tree for Dongsi air quality data",
     subtitle = "(max depth = 3)"
   ) +
   theme_void(base_size = 12)
@@ -558,12 +577,12 @@ Another way to visualise the same tree structure is to show the splits as lines 
 
 ```{r}
 #| label: fig-iforest-tree
-#| fig-cap: "First four random splits from a single isolation tree fitted to the Old Faithful data. After the fourth split, one observation (at the bottom right) has been isolated, while the rest of the data are still in groups containing multiple observations."
+#| fig-cap: "First four random splits from a single isolation tree fitted to the Dongsi air quality data. After the third split, one observation (at the bottom left) has been isolated, while the rest of the data are still in groups containing multiple observations."
 #| echo: false
 #| dependson: iso-tree
 # ---- 1. Plot bounds (pad by 4% on each side) ----
-xr <- range(oldfaithful$duration)
-yr <- range(oldfaithful$waiting)
+xr <- range(dongsi$max_temp)
+yr <- range(dongsi$o3)
 pad <- 0.04
 xlim <- xr + c(0, pad) * diff(xr)
 ylim <- yr + c(-pad, 0) * diff(yr)
@@ -582,7 +601,7 @@ walk <- function(id, xmin, xmax, ymin, ymax) {
     ))
   }
   v <- n$value
-  if (n$column == "duration") {
+  if (n$column == "max_temp") {
     seg <- tibble(id = id, kind = "split", xmin = v, xmax = v, ymin = ymin, ymax = ymax)
     bind_rows(
       seg,
@@ -590,7 +609,7 @@ walk <- function(id, xmin, xmax, ymin, ymax) {
       walk(n$right, max(xmin, v), xmax, ymin, ymax)
     )
   } else {
-    # split on "waiting"
+    # split on "o3"
     seg <- tibble(id = id, kind = "split", xmin = xmin, xmax = xmax, ymin = v, ymax = v)
     bind_rows(
       seg,
@@ -608,17 +627,17 @@ splits_df <- partition_df |>
   left_join(g |> activate(nodes) |> as_tibble() |> select(id, split), by = "id") |>
   mutate(
     label = paste0("Split ", split),
-    lab_x = if_else(column == "duration", xmin, xmax),
-    lab_y = if_else(column == "duration", ymin, ymax)
+    lab_x = if_else(column == "max_temp", xmin, xmax),
+    lab_y = if_else(column == "max_temp", ymin, ymax)
   )
 
 leaves_df <- partition_df |>
   filter(kind == "leaf") |>
   mutate(
     label = paste0("leaf ", leaf),
-    xmin = if_else(leaf == 3, xmin + 30, xmin),
-    ymax = if_else(leaf == 3, ymax - 30, ymax),
-    ymax = if_else(leaf == 5, ymax - 230, ymax)
+    xmin = if_else(leaf == 3, xmin + 15, xmin),
+    ymax = if_else(leaf == 3, 30, ymax),
+    xmin = if_else(leaf == 1, xmin - 1, xmin)
   )
 
 # ---- 3. Plot ----
@@ -651,29 +670,20 @@ ggplot() +
     label.r = unit(1, "mm"),
   ) +
   geom_point(
-    data = oldfaithful,
-    aes(x = duration, y = waiting)
+    data = dongsi,
+    aes(x = max_temp, y = o3)
   ) +
   labs(
-    x = "Eruption duration (seconds)",
-    y = "Waiting time to next eruption (seconds)",
-    title = "Recursive partition by a single isolation tree for the Old Faithful data",
+    x = "Maximum temperature",
+    y = "Ozone level",
+    title = "Recursive partition by a single isolation tree for the Dongsi air quality data",
     subtitle = "(max_depth = 3)"
   )
 ```
 
-```{r}
-#| label: iforest-splits
-#| echo: false
-#| output: asis
-#| dependson: fig-iforest-tree
-shortest = 1784
-stopifnot(sum(oldfaithful$duration < splits_df$xmin[1]) == 4L)
-```
+This shows that the first split separates the two largest ozone values from the rest of the data. The second split divides the main cluster into two unequal groups, while the third split separates off the coldest day from the rest of the main cluster.
 
-This shows that the first split separates the four shortest eruptions from the rest of the data (one is very close to the boundary). The second split divides the four into two groups of two. By the fourth split, one observation has been isolated from the rest of the data --- at the bottom right of the plot, with a duration of `r oldfaithful$duration[shortest]` seconds and a waiting time of `r oldfaithful$waiting[shortest]` seconds.  This observation is in leaf 4, and it has a path length of 3 (Splits 1, 3 and 4).
-
-A tree with a larger maximum depth would continue splitting the remaining observations into smaller groups, so the path lengths for the other observations would be larger. The shortest eruptions are more likely to be isolated early on, because they can be separated from the rest of the data by a single additional random split. The eruptions near the centres of the clusters will require more splits to be isolated.
+A tree with a larger maximum depth would continue splitting the remaining observations into smaller groups, so the path lengths for the other observations would be larger. The largest ozone levels are more likely to be isolated early on, because they can be separated from the rest of the data by a single additional random split. The observations near the centre of the main data cloud will require more splits to be isolated.
 
 ### Ensembles of isolation trees
 
@@ -696,7 +706,7 @@ In the original iForest algorithm, all splits involve only one variable at a tim
 @Hariri2021 addressed this with the **Extended Isolation Forest** (EIF), which replaces
 axis-parallel splits by random hyperplane splits: at each node, a random direction in the
 $m$-dimensional space is chosen, and observations are divided according to which side of
-the corresponding hyperplane they fall on. In our two-dimensional Old Faithful example, this means that splits can be made at any angle, rather than being restricted to vertical or horizontal lines. This removes the directional bias at the cost of a slight increase in computational effort.
+the corresponding hyperplane they fall on. In our two-dimensional Dongsi air quality example, this means that splits can be made at any angle, rather than being restricted to vertical or horizontal lines. This removes the directional bias at the cost of a slight increase in computational effort.
 
 ### The `isotree` package {#sec-isotree}
 
@@ -710,60 +720,50 @@ The three most important parameters of `isolation.forest()` are:
   gives the original iForest with axis-parallel splits; `ndim = m` (the number of
   variables) gives the extended model with hyperplane splits.
 
-### Example: Old Faithful data
+### Example: Dongsi air quality data
 
-We apply iForest to the `oldfaithful` data, using both duration and waiting time, with `ndim = 2` to use EIF hyperplane splits. The resulting anomaly scores are shown in @fig-iforest-of.
+We apply iForest to the `dongsi` data, using both `max_temp` and `o3`, with `ndim = 2` to use EIF hyperplane splits. The resulting anomaly scores are shown in @fig-iforest-of.
 
 ```{r}
 #| label: iforest-of
 #| code-fold: false
-model_if <- oldfaithful |>
-  select(duration, waiting) |>
+model_if <- dongsi |>
+  select(max_temp, o3) |>
   isolation.forest(ndim = 2)
-of_if <- oldfaithful |>
-  mutate(score = predict(model_if, pick(duration, waiting))) |>
+dongsi_if <- dongsi |>
+  mutate(score = predict(model_if, pick(max_temp, o3))) |>
   arrange(desc(score))
-of_if
+dongsi_if
 ```
 
-```{r}
-#| label: forecast-of-scores
-#| echo: false
-#| dependson: iforest-of
-iso <- which(
-  of_if$duration == oldfaithful$duration[shortest] &
-    of_if$waiting == oldfaithful$waiting[shortest]
-)
-```
-
-The three shortest eruptions, which we have repeatedly identified as genuine anomalies, are amongst the four highest scores. The observation that was the first to be isolated in the single iTree example above is ranked `r english::ordinal(iso)`, with a score of `r sprintf("%.3f", of_if$score[iso])`. In total, there are `r sum(of_if$score > 0.65)` observations with scores above 0.65 (a threshold chosen after some experimentation). These are highlighted in @fig-iforest-of.
+The two largest ozone levels, and the coldest day, are again identified as the most anomalous observations. The next two most anomalous observations are the two hottest days. In total, there are `r sum(dongsi_if$score > 0.6)` observations with scores above 0.6 (a threshold chosen after some experimentation). These are highlighted in @fig-iforest-of.
 
 ```{r}
 #| label: fig-iforest-of
-#| fig-cap: "Isolation Forest anomaly scores for the Old Faithful eruptions. Anomalies are shown as observations with scores above 0.65, which are highlighted in blue."
+#| fig-cap: "Isolation Forest anomaly scores for the Dongsi air quality data. Anomalies are shown as observations with scores above 0.6, which are highlighted in blue."
 #| code-fold: false
 #| dependson: iforest-of
-grid_of <- tidyr::expand_grid(
-  duration = seq(0, 320, length = 100),
-  waiting = seq(3000, 7200, length = 100)
+grid_dongsi <- tidyr::expand_grid(
+  max_temp = seq(-14, 42, length = 100),
+  o3 = seq(0, 525, length = 100)
 )
-grid_of$score <- predict(
+grid_dongsi$score <- predict(
   model_if,
-  grid_of |> select(duration, waiting)
+  grid_dongsi |> select(max_temp, o3)
 )
-of_if |>
-  ggplot(aes(x = duration, y = waiting)) +
+dongsi_if |>
+  ggplot(aes(x = max_temp, y = o3)) +
   geom_contour(
-    data = grid_of,
-    aes(x = duration, y = waiting, z = score),
+    data = grid_dongsi,
+    aes(x = max_temp, y = o3, z = score),
     color = "grey85",
     breaks = seq(0.35, 0.85, by = 0.025)
   ) +
-  geom_point(aes(colour = score > 0.65)) +
-  labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
+  geom_point(aes(colour = score > 0.6)) +
+  labs(x = "Maximum temperature", y = "Ozone level")
 ```
 
-The contour lines show the score surface, which is highest near the anomalies, and lowest near the centres of the clusters, where observations are less likely to be isolated early on.
+The contour lines show the score surface, which is highest near the anomalies, and lowest near the centres of the data cloud, where observations are less likely to be isolated early on.
 
 ## Detect deviating cells algorithm {#sec-ddc}
 
@@ -783,11 +783,14 @@ Rather than treating each row as a point, the DDC algorithm treats each cell in 
 
 Entire rows that contain an unusual accumulation of large cell residuals can additionally be flagged as rowwise outliers.
 
-This method is implemented in the `cellWise::DDC()` function. Here we apply it to the French male mortality data, with the data matrix containing the mortality rates for each year (rows) and age (columns).
+This method is implemented in the `cellWise::DDC()` function.
+
+We will illustrate this algorithm with the French male mortality data, where the data matrix contains the mortality rates for each year (rows) and age (columns).
 
 ```{r}
 #| label: ddc-mx
 #| output: false
+#| code-fold: false
 mx_wide <- fr_mortality |>
   filter(Sex == "Male") |>
   select(-Sex) |>
