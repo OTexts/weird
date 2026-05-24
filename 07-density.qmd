@@ -392,9 +392,11 @@ p +
   scale_color_manual(name = "Weight", values = cols, breaks = w)
 ```
 
-The `gg_density()` function can be used to visualise the fitted density, as shown in @fig-gmm-density.
+When the components are added together, we get the density shown in @fig-gmm-density.
 
 ```{r}
+#| label: fig-gmm-density
+#| fig-cap: "Estimated density based on a Gaussian mixture model, with three components."
 #| code-fold: false
 gmm |>
   dist_mclust() |>
