@@ -708,7 +708,7 @@ axis-parallel splits by random hyperplane splits: at each node, a random directi
 $m$-dimensional space is chosen, and observations are divided according to which side of
 the corresponding hyperplane they fall on. In our two-dimensional Dongsi air quality example, this means that splits can be made at any angle, rather than being restricted to vertical or horizontal lines. This removes the directional bias at the cost of a slight increase in computational effort.
 
-### The `isotree` package {#sec-isotree}
+### The `isotree` package
 
 The `isotree` package [@isotree] provides a fast, multi-threaded implementation of the original iForest and of several variants including EIF, SCiForest [@Liu2010] and Fair-Cut Forest [@Cortes2021], which use non-random splits aimed at finding clustered anomalies. The main interface is `isolation.forest()`, which returns a fitted model, and `predict()`, which scores new observations.
 

@@ -639,7 +639,7 @@ For single-linkage hierarchical clustering, the graph structure described above 
 
 The graph structure is also related to topological data analysis (TDA), which is a method of summarising the shape of data. For example, connected components are known as 0-dimensional topological features in persistent homology. When two connected components merge, one is described as "dying" and the other as "persisting". The merge distance is called the "death diameter", and the bar plot of merge distances is known as a "barcode". Long bars in the barcode correspond to connected components that remain separate over a wide range of distance thresholds, which may include potential anomalies. For a general introduction to TDA, see @carlsson2021topological.
 
-## Multivariate kernel density estimation
+## Multivariate kernel density estimation {#sec-mvkde}
 
 Suppose our observations are $m$-dimensional vectors, $\bm{y}_1,\dots,\bm{y}_n$. Then the multivariate version of @eq-kde is given by [@Scott2015]
 $$
@@ -721,7 +721,7 @@ oldfaithful |>
 
 Here we see that the short durations tended to be followed by a short waiting time until the next duration, while the long durations tend to be followed by a long waiting time until the next duration. There are several anomalous eruptions including the one with the 1 second duration, and the one where a short duration was followed by a short waiting time. The unusual durations between 150 and 180 seconds can be followed by either short or long durations.
 
-### Bandwidth matrix selection {#sec-mvkdebw}
+### Bandwidth matrix selection
 
 A common approach is to specify $\bm{H}$ to be diagonal, with elements equal to the squares of univariate bandwidth rules. (The univariate bandwidths are usually defined as the standard deviation of the kernel, while multivariate bandwidth matrices correspond to the covariance matrix of the kernel. Hence, the univariate bandwidths need to be squared if used in a bandwidth matrix.) That is, if $h_1,\dots,h_m$ are the univariate bandwidths for each of the variables, then the corresponding diagonal bandwidth matrix is given by $\bm{H} = \text{diag}(h_1^2,\dots,h_m^2)$. For example, `geom_density_2d()` uses a bivariate Gaussian kernel with diagonal bandwidth matrix where the diagonal values are given by the squares of @eq-nrd. However, this approach leads to bandwidths that are too small, as it ignores the convergence properties of the multivariate estimator. Additionally, any diagonal bandwidth matrix implicitly assumes that the variables are uncorrelated, and leads to more biased estimators.
 

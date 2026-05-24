@@ -153,7 +153,7 @@ This link can be extended to any symmetric distribution. If $f$ is a symmetric d
 
 If we do not know what the distribution of the data should be, or if we think our assumed distribution is incorrect for some reason, there are some ways to find approximate surprisal probabilities that can still be accurate even when the assumed distribution is not.
 
-### Approximate GPD surprisal probabilities {#sec-gpd-tails}
+### Approximate GPD surprisal probabilities
 
 Let $f^*$ denote the assumed (and possibly incorrect) density function. It might be a poor estimate of the true density, or it might just be a density on the same sample space as the data. Using this assumed density, we can compute the surprisals, $s_i = -\log f^*(\bm{y}_i)$.
 
@@ -254,7 +254,7 @@ where $f_i$ is the kde estimate at $\bm{y}_i$ using all data, so that the leave-
 
 The largest possible LOO kde surprisal is infinite, occurring when there are no observations nearby, so that $nf_i = K_H(\bm{0})$.
 
-### The lookout algorithm {#sec-lookout}
+### The lookout algorithm
 
 The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2. It uses surprisal probabilities based on a GPD approximation applied to the leave-one-out kde estimates where the bandwidth is chosen using the "lookout" method. Probabilities obtained using this algorithm can be calculated using the `surprisals_prob()` function with `loo = TRUE`, `approximation = "gpd"`, and `method = "lookout"`.
 

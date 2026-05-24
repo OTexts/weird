@@ -230,7 +230,7 @@ $$ {#eq-spacing}
 
 If the sample is iid from a uniform distribution, then for large $n$ the spacings are approximately iid exponential random variables with mean $1/(n+1)$, i.e., $\text{Exp}(n+1)$. A spacing substantially larger than $1/(n+1)$ therefore signals an unusually large gap at that location, which may indicate an anomalous observation.
 
-For other non-uniform distributions, raw spacings are difficult to compare across the distribution: where the density is high they tend to be small, and where the density is low they tend to be large. To put them on a common scale, we can apply the **probability integral transform**. If the observations are iid from a continuous distribution $F$, then $u_i = F(y_{(i)})$ are distributed as uniform order statistics on $[0,1]$, and the above results apply to the transformed spacings $F(y_{(i+1)}) - F(y_{(i)})$.
+For other non-uniform distributions, raw spacings are difficult to compare across the distribution: where the density is high they tend to be small, and where the density is low they tend to be large. To put them on a common scale, we can apply the **probability integral transform** (@sec-pit). If the observations are iid from a continuous distribution $F$, then $u_i = F(y_{(i)})$ are distributed as uniform order statistics on $[0,1]$, and the above results apply to the transformed spacings $F(y_{(i+1)}) - F(y_{(i)})$.
 
 Methods based on this idea are discussed in @sec-gap-tests.
 
@@ -754,7 +754,7 @@ h = \left(\frac{f(y)R(K)}{n[f''(y)]^2}\right)^{1/5}.
 $$
 This shows that larger bandwidths are required when $f(y)/[f''(y)]^2$ is relatively large, which often occurs in the extreme tails of a distribution. So bandwidths for anomaly detection tend to be larger than bandwidths for other purposes.
 
-A final option in `kde_bandwidth()` is `method = "lookout"`. We will defer a description of that method until @sec-mvkdebw.
+A final option in `kde_bandwidth()` is `method = "lookout"`. We will defer a description of that method until @sec-mvkde.
 
 ### Highest kernel density regions
 
