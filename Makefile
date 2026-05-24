@@ -4,10 +4,7 @@ shared_deps := weird.bib before-each-chapter.R apa-single-spaced.csl otexts.scss
 
 .PHONY: all preview build launch deploy clean
 
-all: preview
-
-preview:
-	quarto preview --to html
+all: build
 
 build: _book/.built
 
