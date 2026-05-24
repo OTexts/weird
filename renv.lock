@@ -9075,8 +9075,7 @@
       "Imports": [
         "aplpack",
         "broom",
-        "cli (>= 1.0.0)",
-        "crayon (>= 1.3.4)",
+        "cli (>= 3.6.1)",
         "dbscan",
         "distributional",
         "dplyr (>= 0.7.4)",
@@ -9085,12 +9084,8 @@
         "grDevices",
         "ks",
         "mlpack",
-        "mvtnorm",
-        "purrr (>= 0.2.4)",
         "RANN",
-        "rlang",
         "robustbase",
-        "rstudioapi (>= 0.7)",
         "stray",
         "vctrs"
       ],
@@ -9116,7 +9111,7 @@
       "RemoteUsername": "robjhyndman",
       "RemoteRepo": "weird",
       "RemoteRef": "main",
-      "RemoteSha": "4767edfff69263ca1b224215242ee28eaf470983",
+      "RemoteSha": "b34c4b448789e2102630fc3a2fea14bbeb2aa39d",
       "RemoteHost": "api.github.com"
     },
     "withr": {
