@@ -7,7 +7,7 @@ source("before-each-chapter.R")
 # Set up for using rgl
 options(rgl.useNULL = TRUE)
 rgl::setupKnitr()
-source("vr_complex.R")
+source("delta_neighbourhood.R")
 ```
 
 While we will cover anomaly detection in univariate data, most of the methods we will discuss are for multivariate data. We will therefore need to understand some basic concepts of multivariate probability distributions.
@@ -522,7 +522,7 @@ X <- data.frame(
   y = c(0.0638, 1.55, -1.88, 1.211, -1.31, 0.0421, -0.785, 1.21)
 )
 rownames(X) <- LETTERS[1:8]
-vr_complex(X, 1.5) +
+delta_neighbourhood(X, 1.5) +
   coord_fixed() +
   geom_text(
     aes(x = x, y = y, label = LETTERS[1:8]),
@@ -565,7 +565,7 @@ Taking the small example of @fig-graph, we explore what happens as $\delta$ incr
 prox <- 0.5 + seq(0, 1.5, by = 0.5)
 p <- list()
 for (i in seq_along(prox)) {
-  p[[i]] <- vr_complex(X, delta = prox[i]) +
+  p[[i]] <- delta_neighbourhood(X, delta = prox[i]) +
     geom_text(
       aes(x = x, y = y, label = LETTERS[1:8]),
       nudge_x = -0.1,

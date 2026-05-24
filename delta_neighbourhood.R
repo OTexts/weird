@@ -1,4 +1,4 @@
-vr_complex <- function(X, delta) {
+delta_neighbourhood <- function(X, delta) {
   colnames(X)[1:2] <- c("x", "y")
   p <- ggplot(X) +
     ggforce::geom_circle(
