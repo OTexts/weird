@@ -347,44 +347,80 @@ A Gaussian mixture model (GMM) is a flexible parametric model for the joint dist
 
 
 ```{r}
+#| label: gmm1
 #| message: false
 #| code-fold: false
 library(mclust)
 set.seed(2)
 gmm <- oldfaithful |>
   select(duration, waiting) |>
-  Mclust()
+  Mclust() |>
+  dist_mclust()
+gmm
+```
+
+```{r}
+#| label: gmm2
+#| echo: false
+#| dependson: gmm1
+gmm_par <- parameters(gmm)
+gmm_wt <- gmm_par$w[[1]]
+gmm_nc <- length(gmm_wt)
+gmm_par <- lapply(gmm_par[[1]][[1]], parameters)
+mu <- lapply(gmm_par, \(x) x$mu[[1]])
+sigma <- lapply(gmm_par, \(x) x$sigma[[1]])
+gmm_dist <- lapply(seq_len(gmm_nc), function(i) {
+  distributional::dist_multivariate_normal(list(mu[[i]]), list(sigma[[i]]))
+})
+gmm_dist <- do.call(c, gmm_dist)
+# Reorder by weight
+j <- order(gmm_wt, decreasing = TRUE)
+mu <- mu[j]
+sigma <- sigma[j]
+gmm_dist <- gmm_dist[j]
+gmm_wt <- gmm_wt[j]
 ```
 
 The algorithm involves first clustering a random subset of the data, so different results may be obtained on different runs. The `set.seed()` function is used here to ensure reproducibility.
 
-We have estimated a `r gmm$G`-component GMM for the Old Faithful data. The number of components has been automatically chosen, and are shown in @fig-gmm-components.
+We have estimated a `r gmm_nc`-component GMM for the Old Faithful data, with means
+$$
+\bm{\mu}_1 = \begin{bmatrix} `r sprintf("%.1f", mu[[1]][1])` \\ `r sprintf("%.1f", mu[[1]][2])` \end{bmatrix}, \quad
+\bm{\mu}_2 = \begin{bmatrix} `r sprintf("%.1f", mu[[2]][1])` \\ `r sprintf("%.1f", mu[[2]][2])` \end{bmatrix}, \quad\text{and}\quad
+\bm{\mu}_3 = \begin{bmatrix} `r sprintf("%.1f", mu[[3]][1])` \\ `r sprintf("%.1f", mu[[3]][2])` \end{bmatrix},
+$$
+covariances
+$$
+\bm{\Sigma}_1 = \begin{bmatrix}
+`r sprintf("%.1f", sigma[[1]][1,1])` & `r sprintf("%.1f", sigma[[1]][1,2])` \\
+`r sprintf("%.1f", sigma[[1]][2,1])` & `r sprintf("%.1f", sigma[[1]][2,2])`
+ \end{bmatrix}, \quad
+\bm{\Sigma}_2 = \begin{bmatrix}
+`r sprintf("%.1f", sigma[[2]][1,1])` & `r sprintf("%.1f", sigma[[2]][1,2])` \\
+`r sprintf("%.1f", sigma[[2]][2,1])` & `r sprintf("%.1f", sigma[[2]][2,2])`
+ \end{bmatrix}, \quad\text{and}\quad
+\bm{\Sigma}_3 = \begin{bmatrix}
+`r sprintf("%.1f", sigma[[3]][1,1])` & `r sprintf("%.1f", sigma[[3]][1,2])` \\
+`r sprintf("%.1f", sigma[[3]][2,1])` & `r sprintf("%.1f", sigma[[3]][2,2])`
+ \end{bmatrix},
+$$
+and weights $`r sprintf("%.3f", gmm_wt[1])`$, $`r sprintf("%.3f", gmm_wt[2])`$, and $`r sprintf("%.3f", gmm_wt[3])`$, respectively. The component multivariate Normal densities are shown in @fig-gmm-components.
 
 ```{r}
 #| label: fig-gmm-components
 #| fig-cap: "The estimated Gaussian mixture model for the Old Faithful data, showing the different components."
 #| echo: false
-par <- gmm$parameters
-dist_list <- lapply(
-  seq_len(gmm$G),
-  function(i) {
-    distributional::dist_multivariate_normal(
-      list(unname(par$mean[, i])),
-      list(unname(par$variance$sigma[,, i]))
-    )
-  }
-)
-dist <- do.call(c, dist_list)
-cols <- discrete_colours[c(1, 3, 2)]
-w <- sprintf("%.2f", par$pro[c(1, 3, 2)])
+#| dependson: gmm2
+cols <- discrete_colours[1:3]
+w <- sprintf("%.2f", gmm_wt)
 p <- ggplot() +
   geom_point(data = oldfaithful, aes(x = duration, y = waiting), alpha = 0.1)
-for (i in seq_along(dist)) {
+for (i in seq_along(gmm_dist)) {
   p <- p +
     geom_contour(
-      data = density_df(dist[i]) |> mutate(weight = w[i]),
+      data = density_df(gmm_dist[i]) |> mutate(weight = w[i]),
       aes(x = x, y = y, z = density, colour = weight),
-      breaks = hdr_table(dist[i], prob = seq(9) / 10)$density
+      breaks = hdr_table(gmm_dist[i], prob = seq(9) / 10)$density
     )
 }
 p +
@@ -396,16 +432,41 @@ When the components are added together, we get the density shown in @fig-gmm-den
 
 ```{r}
 #| label: fig-gmm-density
-#| fig-cap: "Estimated density based on a Gaussian mixture model, with three components."
+#| fig-cap: "The estimated density for the Old Faithful data based on a Gaussian mixture model with the three components shown in @fig-gmm-components."
 #| code-fold: false
 gmm |>
-  dist_mclust() |>
   gg_density() +
   geom_point(data = oldfaithful, aes(x = duration, y = waiting), alpha = 0.1) +
   labs(x = "Duration", y = "Waiting time")
 ```
 
 We can compute the density at each observation under this fitted model, and then compute surprisal probabilities based on that density.
+
+```{r}
+#| label: gmm-surprisals
+#| code-fold: false
+of <- oldfaithful |>
+  mutate(
+    gmm_prob = surprisals_prob(
+      pick(duration, waiting),
+      distribution = gmm,
+      approximation = "gpd"
+    )
+  ) |>
+  arrange(gmm_prob)
+of
+```
+
+```{r}
+#| label: fig-gmm-surprisals
+#| fig-cap: "Observations with surprisal probability less than 0.005 under the Gaussian mixture model."
+of |>
+  ggplot(aes(x = duration, y = waiting, colour = gmm_prob < 0.005)) +
+  geom_point() +
+  scale_color_manual(values = c("#bbbbbb", "#c14b14"))
+```
+
+The model has effectively highlighted the `r english::words(sum(of$gmm_prob < 0.005))` points that do not appear to belong to the two main clusters of observations.
 
 ## Gaussian copula anomaly scores {#sec-copula}
 
