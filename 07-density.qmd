@@ -68,7 +68,7 @@ The surprisal probability of an observation is the probability of observing a va
 
 Specifically, for an observation $\bm{y}_i$ under the distribution $f$, its surprisal probability is given by
 $$
-p_i = \int f(\bm{u}) 𝟙(-\log f(\bm{u}) \geq s_i) d\bm{u} = \int f(\bm{u}) 𝟙(f(\bm{u}) \leq f(\bm{y}_i)) d\bm{u},
+p_i = \int f(\bm{u}) 𝟙(-\log f(\bm{u}) \ge s_i) d\bm{u} = \int f(\bm{u}) 𝟙(f(\bm{u}) \le f(\bm{y}_i)) d\bm{u},
 $$ {#eq-pi-density}
 where $𝟙(z)$ is an indicator function taking value 1 when $z$ is true and 0 otherwise.
 
@@ -149,7 +149,7 @@ If $f$ is the Normal distribution $\text{N}(\mu, \sigma^2)$, then the points of 
 
 This link can be extended to any symmetric distribution. If $f$ is a symmetric distribution centred at $c$, then the most anomalous observations will be those with the largest absolute distance from $c$. If $F$ is the distribution function corresponding to $f$, then $p_i = 2[1 - F(c+|y_i-c|)]$.
 
-## Approximate surprisal probabilities
+## Approximate surprisal probabilities {#sec-approximate-surprisal-prob}
 
 If we do not know what the distribution of the data should be, or if we think our assumed distribution is incorrect for some reason, there are some ways to find approximate surprisal probabilities that can still be accurate even when the assumed distribution is not.
 
@@ -159,11 +159,11 @@ Let $f^*$ denote the assumed (and possibly incorrect) density function. It might
 
 Then we can fit a Generalised Pareto Distribution (GPD) to the largest surprisals using the POT approach discussed in @sec-evt. Even when $f^*$ is incorrect or poorly estimated, the extreme surprisals will still follow a Generalised Pareto Distribution.
 
-Let $\beta$ denote the tail probability used in the GPD threshold, and let $u$ denote the $1-\beta$ sample quantile of the surprisal values. For example, $\beta = 0.1$ is a common choice, and then $u$ is the $90^{\text{th}}$ percentile of the $s_i$ values. We estimate a GPD distribution using the surprisals above $u$, and then compute the approximate surprisal probability of each observation with $s_i>u$ by
+Let $\beta$ denote the tail probability used in the GPD threshold, and let $u$ denote the $(1-\beta)$ sample quantile of the surprisal values. For example, $\beta = 0.1$ is a common choice, and then $u$ is the $90^{\text{th}}$ percentile of the $s_i$ values. We estimate a GPD distribution using the surprisals above $u$, and then compute the approximate surprisal probability of each observation with $s_i>u$ by
 $$
 \hat{p}_i = \beta\int_{s_i}^\infty \hat g(s) ds,
 $$ {#eq-pi-gpd}
-where $\hat g()$ denotes the estimated GPD density function. This approximation only gives us surprisal probabilities for the surprisals above the threshold $u$. For any $s_i \leq u$, all we can say is that $\hat{p}_i \geq \beta$.
+where $\hat g()$ denotes the estimated GPD density function. This approximation only gives us surprisal probabilities for the surprisals above the threshold $u$. For any $s_i \le u$, all we can say is that $\hat{p}_i \ge \beta$.
 
 @surprisals show that, under very general conditions on the true distribution $f$, this will lead to good estimates of the surprisal probabilities for the most extreme surprisal values (which correspond to the anomalies). That is, even if our assumed distribution $f^*$ is not correct, we can still fit a GPD to the largest surprisal values and use this to estimate the tail probabilities.
 
@@ -173,7 +173,7 @@ The `surprisals_prob()` function uses this GPD approximation when `approximation
 
 ### Approximate rank-based surprisal probabilities
 
-An alternative approach that does not require a GPD is to estimate $p_i$ as the proportion of observations with surprisal values at least as large as $s_i$. That is, $\hat{p}_i = 1 - \text{rank}(s_i)/n + 1/n$, where $\text{rank}(s_i)$ is the rank of $s_i$ among the $s_1,\dots,s_n$ values, with the smallest value having rank 1. For large $n$, this provides a quick and convenient estimate of $p_i$. @surprisals show that this approach works well when the ordering of the largest surprisal values under $f$ and $f^*$ is similar, which should be the case when $f^*$ is a reasonable approximation to $f$.
+An alternative approach that does not require a GPD is to estimate $p_i$ as the proportion of observations with surprisal values at least as large as $s_i$. That is, $\hat{p}_i = (n - \text{rank}(s_i) + 1)/n$, where $\text{rank}(s_i)$ is the rank of $s_i$ among the $s_1,\dots,s_n$ values, with the smallest value having rank 1. For large $n$, this provides a quick and convenient estimate of $p_i$. @surprisals show that this approach works well when the ordering of the largest surprisal values under $f$ and $f^*$ is similar, which should be the case when $f^*$ is a reasonable approximation to $f$.
 
 The approximation argument of `surprisals_prob()` can be set to `"rank"`, to specify that we want to use these rank-based surprisal probabilities.
 
@@ -241,7 +241,7 @@ Identifying anomalies using KDE surprisals is related to the "local outlier fact
 
 ## LOO surprisals
 
-If the density $f$ has been estimated from the data (whether from a parametric model or a nonparametric method such as KDE), then there is a problem of circular reasoning. Any genuine anomalies may affect the estimated density, and then they may not appear to be anomalies. Therefore, it is sometimes useful to consider the leave-one-out (LOO) estimate given by $f_{-i}$. That is, $f_{-i}$ is the density estimate using all observations other than the $i$th observation. Then an unusual observation can't influence the density estimate, giving us a better measure of how anomalous it really is. In this case, we will call the associated surprisal, a "LOO surprisal", given by $s_i = -\log f_{-i}(\bm{y}_i)$.
+If the density $f$ has been estimated from the data (whether from a parametric model or a nonparametric method such as KDE), then there is a problem of circular reasoning. Any genuine anomalies may affect the estimated density, and then they may not appear to be anomalies. Therefore, it is sometimes useful to consider the leave-one-out (LOO) estimate given by $f_{-i}$. That is, $f_{-i}$ is the density estimate using all observations other than the $i$th observation. Then an unusual observation can't influence the density estimate, giving us a better measure of how anomalous it really is. In this case, we will call the associated surprisal, a "LOO surprisal", given by $s_{-i} = -\log f_{-i}(\bm{y}_i)$.
 
 
 ### LOO kde surprisals
@@ -249,14 +249,14 @@ If the density $f$ has been estimated from the data (whether from a parametric m
 Let's take the example of KDE surprisals. The contribution of the $i$th point to the kernel density estimate at that point is $K_H(\bm{0})/n$. Therefore, the leave-one-out kernel density estimate is given by
 $$
   f_{-i} = \left[nf_i - K_H(\bm{0})\right]/(n-1),
-$$ {#eq-lookkde}
-where $f_i$ is the kde estimate at $\bm{y}_i$ using all data, so that the leave-one-out kde surprisal is $s_{-i} = -\log f_{-i}$. Thus, we can compute the leave-one-out kde surprisals without needing to re-estimate the density many times.
+$$ {#eq-loo-kde}
+where $f_i$ is the kde estimate from @eq-kdescores using all data, so that the leave-one-out kde surprisal is $s_{-i} = -\log (f_{-i})$. Thus, we can compute the leave-one-out kde surprisals without needing to re-estimate the density many times.
 
 The largest possible LOO kde surprisal is infinite, occurring when there are no observations nearby, so that $nf_i = K_H(\bm{0})$.
 
 ### The lookout algorithm
 
-The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2. It uses surprisal probabilities based on a GPD approximation applied to the leave-one-out kde estimates where the bandwidth is chosen using the "lookout" method. Probabilities obtained using this algorithm can be calculated using the `surprisals_prob()` function with `loo = TRUE`, `approximation = "gpd"`, and `method = "lookout"`.
+The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2. It computes surprisal probabilities using a GPD approximation applied to the LOO kde surprisals, where the bandwidth is chosen using the "lookout" method. These probabilities can be calculated using the `surprisals_prob()` function with `loo = TRUE`, `approximation = "gpd"`, and `method = "lookout"`.
 
 ## Example: Old Faithful eruption durations
 
@@ -343,8 +343,11 @@ oldfaithful |>
 
 ## Gaussian mixture model surprisal probabilities
 
-A Gaussian mixture model (GMM) is a flexible parametric model for the joint distribution of the data, which can capture multimodality and other complex features. It comprises a weighted sum of multivariate Normal distributions, each with its own mean vector and covariance matrix. In fact, a KDE with a Gaussian kernel can be considered a Gaussian mixture model with a large number of equally-weighted components, each centred at an observation and with a common covariance matrix given by the bandwidth. However, we can also fit a GMM with a smaller number of components, which may provide a more parsimonious model for the data. The `mclust` package provides a convenient way to fit GMMs to data.
-
+A Gaussian mixture model (GMM) is a flexible parametric model for the joint distribution of the data, which can capture multimodality and other complex features. It comprises a weighted sum of multivariate Normal distributions, each with its own mean vector and covariance matrix. That is,
+$$
+  f(\bm{y}) = \sum_{k=1}^K w_k \phi(\bm{y}; \bm{\mu}_k, \bm{\Sigma}_k),
+$$
+where $K$ is the number of components, the weights $w_k \ge 0$ sum to 1, and $\phi(\bm{y}; \bm{\mu}_k, \bm{\Sigma}_k)$ is the multivariate Normal density with mean $\bm{\mu}_k$ and covariance matrix $\bm{\Sigma}_k$. In fact, a KDE with a Gaussian kernel can be considered a Gaussian mixture model with a large number of equally-weighted components, each centred at an observation and with a common covariance matrix given by the bandwidth matrix. However, we can also fit a GMM with a smaller number of components, which may provide a more parsimonious model for the data. The `mclust` package provides a convenient way to fit GMMs to data.
 
 ```{r}
 #| label: gmm1
