@@ -535,6 +535,8 @@ The Gaussian copula anomaly scores can be computed using the following steps:
 4. Compute the squared Euclidean distance of the resulting vectors.
 
 ```{r}
+#| label: copula_scores
+#| code-fold: false
 copula_scores <- function(x) {
   x <- as.matrix(x)
   n <- nrow(x)
@@ -559,11 +561,11 @@ However, the method still relies on the assumption that the dependence structure
 
 Despite these limitations, Gaussian copula anomaly scores provide a simple and effective way to extend Mahalanobis-based methods to data with non-Normal marginals, while retaining sensitivity to relationships between variables.
 
-@fig-copula-of applies this method to the Old Faithful data, highlighting observations with surprisal probability less than 0.01.
+@fig-copula-of applies this method to the Old Faithful data, highlighting observations with surprisal probability less than 0.005.
 
 ```{r}
 #| label: fig-copula-of
-#| fig-cap: "Scatterplot of Old Faithful eruption duration and waiting time. Observations flagged as anomalies (surprisal probability less than 0.01) under the Gaussian copula model are highlighted."
+#| fig-cap: "Scatterplot of Old Faithful eruption duration and waiting time. Observations flagged as anomalies (surprisal probability less than 0.005) under the Gaussian copula model are highlighted."
 of_scores <- oldfaithful |>
   select(duration, waiting) |>
   mutate(
@@ -572,8 +574,11 @@ of_scores <- oldfaithful |>
   ) |>
   arrange(prob)
 of_scores |>
-  mutate(anomaly = prob < 0.01) |>
+  mutate(anomaly = prob < 0.005) |>
   ggplot(aes(x = duration, y = waiting, col = anomaly)) +
   geom_point() +
-  labs(col = "Surprisal Probability < 0.01")
+  labs(col = "Surprisal Probability < 0.005") +
+  scale_color_manual(values = c("#bbbbbb", "#c14b14"))
 ```
+
+In this case, the method has picked up several observations around the edge of the main clusters, and failed to identify some observations that appear to be more obvious anomaly candidates. The Gaussian copula approach is not well-suited to multimodal data.
