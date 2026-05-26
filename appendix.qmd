@@ -4,6 +4,13 @@ code-fold: false
 
 # Matrix algebra {#sec-appendix}
 
+```{r}
+#| include: false
+#| cache: false
+source("before-each-chapter.R")
+```
+
+
 Working with multivariate data inevitably involves writing some of the ideas using matrix expressions and matrix algebra. In this appendix, a few of the results that we need are collected for convenient reference. Readers who have not previously studied matrix algebra are recommended to do some self-study using a good introductory textbook such as @Gentle07 or @Searle06.
 
 ## Identity matrix
@@ -17,12 +24,46 @@ I3
 
 ## Matrices and directions
 
-A matrix can be **applied to** a vector $\bm{v}$ by matrix multiplication, producing a new vector $\bm{A}\bm{v}$. Geometrically, this transforms $\bm{v}$, generally changing both the way it points — its **direction** — and its length. Different starting vectors are typically transformed in different ways: a matrix may stretch some directions, shrink or rotate others, or even collapse two distinct directions onto the same output.
+A matrix can be applied to a vector $\bm{v}$ by matrix multiplication, producing a new vector $\bm{A}\bm{v}$. Geometrically, this transforms $\bm{v}$, generally changing both its length and the direction it points. Different starting vectors are typically transformed in different ways: a matrix may stretch some directions, shrink or rotate others, or even collapse two distinct directions onto the same output.
 
 ```{r}
+#| label: matrixA
 A <- matrix(c(3, 1, 1, 2), 2, 2)
+A
 v <- c(1, 0)
 A %*% v
+```
+
+Geometrically, $\bm{v}$ originally pointed along the $x$-axis with length 1; after $\bm{A}$ is applied, it points up and to the right and is about three times longer.
+
+```{r}
+#| echo: false
+#| dependson: matrixA
+#| warning: false
+#| fig-asp: 0.4
+#| fig-width: 7
+#| out-width: "80%"
+rbind(v, c(A %*% v)) |>
+  as_tibble() |>
+  ggplot() +
+  geom_segment(
+    aes(x = 0, y = 0, xend = V1, yend = V2),
+    arrow = arrow(length = unit(0.25, "cm")),
+    linewidth = 0.8,
+    col = discrete_colours[1:2]
+  ) +
+  annotate(
+    "text",
+    x = c(1, 3.0),
+    y = c(-0.1, 1.1),
+    label = c("bolditalic(v)", "bolditalic(Av)"),
+    parse = TRUE,
+    col = discrete_colours[1:2],
+    family = "serif"
+  ) +
+  labs(x = "x", y = "y") +
+  scale_y_continuous(breaks = seq(0, 1, by = 0.5), minor_breaks = NULL) +
+  coord_equal()
 ```
 
 ## Rank {#sec-rank}
@@ -31,7 +72,7 @@ The **rank** of a matrix measures how many genuinely independent rows (or equiva
 
 More formally, the rank is the number of linearly independent rows, which is always equal to the number of linearly independent columns. A set of rows is **linearly independent** when none of them can be written as a linear combination (i.e., a weighted sum) of the others. For an $m \times n$ matrix, the rank is at most $\min(m, n)$, and a matrix has full rank when this maximum is attained.
 
-The rank of a matrix can be computed in R using `qr(A)$rank`.
+The rank of a matrix can be computed in R using `qr(<matrix>)$rank`.
 
 ```{r}
 qr(A)$rank
@@ -87,6 +128,8 @@ The eigenvalues and eigenvectors of a matrix can be computed using the `eigen` f
 eigen(A)
 ```
 
+Eigenvectors are essential tools in dimension reduction (@sec-highdim).
+
 ## Positive definite matrices
 
 Just as some numerical values must be positive (for example, a distance or a variance), or at least non-negative, sometimes we need something similar for matrices.
@@ -94,6 +137,8 @@ Just as some numerical values must be positive (for example, a distance or a var
 A **positive-definite** matrix is a special type of symmetric matrix where all the eigenvalues are positive. A positive-definite matrix is invertible, and its inverse is also positive definite.
 
 A **positive semi-definite** matrix is a symmetric matrix where all the eigenvalues are non-negative. A positive semi-definite matrix is invertible if and only if it is positive definite.
+
+Covariance matrices are used throughout this book, and they must always be at least positive semi-definite.
 
 ## Cholesky decomposition {#sec-cholesky}
 
@@ -107,6 +152,4 @@ U
 t(U) %*% U
 ```
 
-## Multivariate random variables
-
-A multivariate random variable is written as a vector. The mean of a random vector is the vector of means of the components, and the covariance matrix is the matrix of covariances between the components. The covariance matrix is always symmetric and positive semi-definite.
+Cholesky decompositions are particularly useful in multivariate scaling (@sec-scaling).
