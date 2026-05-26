@@ -42,6 +42,9 @@ Also update this skill to take account of any new issues you find when reviewing
 - Use precise terminology: in multivariate KDE the smoothing parameter is a "bandwidth matrix", not just "the bandwidth".
 - Rank-based probability formulas can be hard to parse with mixed operator precedence; prefer `$(n - \text{rank}(s_i) + 1)/n$` to `$1 - \text{rank}(s_i)/n + 1/n$`.
 
+**Spelling**
+- Use Australian spelling throughout. Check for spelling consistency.
+
 ## What NOT to change
 
 - Code chunks (R code) — only fix comments or labels if they contain errors
