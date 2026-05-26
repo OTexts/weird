@@ -8,20 +8,50 @@ Working with multivariate data inevitably involves writing some of the ideas usi
 
 ## Identity matrix
 
-The identity matrix is like the number 1: multiplying a matrix by the identity matrix leaves the matrix unchanged. The identity matrix is a square matrix with ones on the diagonal and zeros elsewhere, and it is often denoted by $\bm{I}$. Sometimes we will use subscripts to denote the size of the identity matrix; e.g. $\bm{I}_n$ is an $n \times n$ identity matrix.
+The identity matrix is like the number 1: multiplying a matrix by the identity matrix leaves the matrix unchanged. The identity matrix is a square matrix with ones on the diagonal and zeros elsewhere, denoted by $\bm{I}$. Sometimes we will use subscripts to denote the size of the identity matrix; e.g. $\bm{I}_n$ is an $n \times n$ identity matrix.
 
 ```{r}
 I3 <- diag(3)
 I3
 ```
 
-## Matrix inverse
+## Matrices and directions
 
-For a square matrix $\bm{A}$, the inverse $\bm{A}^{-1}$ is defined such that $\bm{A}^{-1}\bm{A} = \bm{I}$, where $\bm{I}$ is the identity matrix. The inverse of a matrix can be computed using the `solve` function in R. Matrices that are not square do not have inverses. Matrices that are square but not invertible are called singular matrices.
+A matrix can be **applied to** a vector $\bm{v}$ by matrix multiplication, producing a new vector $\bm{A}\bm{v}$. Geometrically, this transforms $\bm{v}$, generally changing both the way it points — its **direction** — and its length. Different starting vectors are typically transformed in different ways: a matrix may stretch some directions, shrink or rotate others, or even collapse two distinct directions onto the same output.
 
 ```{r}
 A <- matrix(c(3, 1, 1, 2), 2, 2)
-A
+v <- c(1, 0)
+A %*% v
+```
+
+## Rank {#sec-rank}
+
+The **rank** of a matrix measures how many genuinely independent rows (or equivalently, columns) it contains. A **rank-deficient** matrix has redundancy — some rows are duplicates or weighted sums of others; a **full-rank** matrix has no redundancy.
+
+More formally, the rank is the number of linearly independent rows, which is always equal to the number of linearly independent columns. A set of rows is **linearly independent** when none of them can be written as a linear combination (i.e., a weighted sum) of the others. For an $m \times n$ matrix, the rank is at most $\min(m, n)$, and a matrix has full rank when this maximum is attained.
+
+The rank of a matrix can be computed in R using `qr(A)$rank`.
+
+```{r}
+qr(A)$rank
+```
+
+For a rank-deficient example, the matrix $\begin{pmatrix} 1 & 2 \\ 2 & 4 \end{pmatrix}$ has rank 1, since its second row is twice its first row.
+
+```{r}
+qr(matrix(c(1, 2, 2, 4), 2, 2))$rank
+```
+
+## Matrix inverse
+
+The inverse $\bm{A}^{-1}$ of a matrix $\bm{A}$ is the matrix analogue of $1/x$ for a number: multiplying by it undoes what $\bm{A}$ did. Just as $1/x$ does not exist when $x = 0$, a matrix inverse does not always exist. When it does, $\bm{A}$ is called **invertible** (or **non-singular**); otherwise it is called **singular**. Only square, full-rank matrices have inverses; a rank-deficient matrix has lost information that the inverse would need to recover.
+
+Formally, for a square matrix $\bm{A}$, the inverse $\bm{A}^{-1}$ is defined by $\bm{A}^{-1}\bm{A} = \bm{A}\bm{A}^{-1} = \bm{I}$, where $\bm{I}$ is the identity matrix.
+
+The inverse of a matrix can be computed using the `solve` function in R.
+
+```{r}
 Ainv <- solve(A)
 Ainv
 Ainv %*% A
@@ -29,15 +59,17 @@ Ainv %*% A
 
 ## Determinants
 
-The determinant of a square matrix $\bm{A}$ is a scalar value denoted by $|\bm{A}|$ or $\text{det}(\bm{A})$. It describes the "scale" of the matrix, and is used when computing the inverse of a matrix, and in some other operations. The formula for a determinant is usually computed recursively, using the Laplace expansion, as follows:
+The **determinant** of a square matrix measures how much the matrix stretches or shrinks space when applied to vectors. A determinant of zero means the matrix has collapsed at least one direction down to nothing — which is why such a matrix cannot be inverted: the information lost in the flattening cannot be recovered. So a square matrix is singular (equivalently, rank-deficient) if and only if its determinant is zero.
+
+The determinant of a square matrix $\bm{A}$ is denoted by $|\bm{A}|$ or $\text{det}(\bm{A})$. The determinant of a $1 \times 1$ matrix is just the value of the element. For a $2 \times 2$ matrix,
+$$
+|\bm{A}| = a_{11}a_{22} - a_{12}a_{21},
+$$
+where $a_{ij}$ is the element in row $i$ and column $j$. For larger matrices, the formula is usually computed recursively using the Laplace expansion: for any choice of row $i$,
 $$
 |\bm{A}| = \sum_{j=1}^n (-1)^{i+j} a_{ij} |\bm{A}_{ij}|,
 $$
-where $a_{ij}$ is the element in the $i$th row and $j$th column of $\bm{A}$, and $\bm{A}_{ij}$ is the matrix obtained by deleting the $i$th row and $j$th column of $\bm{A}$. The determinant of a $1 \times 1$ matrix is just the value of the element. The determinant of a $2 \times 2$ matrix is computed as
-$$
-|\bm{A}| = a_{11}a_{22} - a_{12}a_{21}.
-$$
-Singular matrices have a determinant of zero.
+where $\bm{A}_{ij}$ is the matrix obtained by deleting the $i$th row and $j$th column of $\bm{A}$.
 
 The determinant of a matrix can be computed using the `det` function in R.
 
@@ -47,7 +79,7 @@ det(A)
 
 ## Eigenvalues and eigenvectors
 
-A matrix $\bm{A}$ has an eigenvector $\bm{v}$ and eigenvalue $\lambda$ if $\bm{A}\bm{v} = \lambda \bm{v}$. Thus, eigenvectors can be thought of as "directions" that remain unchanged when the matrix is applied, and each eigenvalue is the amount by which the corresponding eigenvector is scaled.
+Some matrices have special directions along which they only stretch or shrink vectors (possibly reversing them), without rotating them to point a different way. Any nonzero vector along such a direction is called an **eigenvector**, and the corresponding stretching factor is the **eigenvalue**. Formally, a nonzero vector $\bm{v}$ is an eigenvector of $\bm{A}$, with eigenvalue $\lambda$, if $\bm{A}\bm{v} = \lambda \bm{v}$. A square matrix has full rank (see @sec-rank) if and only if all of its eigenvalues are nonzero.
 
 The eigenvalues and eigenvectors of a matrix can be computed using the `eigen` function in R.
 
@@ -57,6 +89,8 @@ eigen(A)
 
 ## Positive definite matrices
 
+Just as some numerical values must be positive (for example, a distance or a variance), or at least non-negative, sometimes we need something similar for matrices.
+
 A **positive-definite** matrix is a special type of symmetric matrix where all the eigenvalues are positive. A positive-definite matrix is invertible, and its inverse is also positive definite.
 
 A **positive semi-definite** matrix is a symmetric matrix where all the eigenvalues are non-negative. A positive semi-definite matrix is invertible if and only if it is positive definite.
@@ -65,7 +99,7 @@ A **positive semi-definite** matrix is a symmetric matrix where all the eigenval
 
 A Cholesky decomposition is like a square root for a matrix. It is a decomposition of a positive semi-definite matrix $\bm{A}$ into a product $\bm{A} = \bm{L}\bm{L}^\intercal$, where $\bm{L}$ is a lower triangular matrix with non-negative diagonal entries. If $\bm{A}$ is positive definite, then the diagonal elements of $\bm{L}$ are positive.
 
-Alternatively, it can be expressed using an upper triangular matrix, $\bm{U} = \bm{L}^\intercal$, so that $\bm{A} = \bm{U}^\intercal \bm{U}$. The `chol` function in R computes the upper triangular version of the Cholesky decomposition.
+Alternatively, it can be expressed using an upper triangular matrix, $\bm{U} = \bm{L}^\intercal$, so that $\bm{A} = \bm{U}^\intercal \bm{U}$. The `chol` function in R computes the upper triangular version of the Cholesky decomposition (although only for positive-definite matrices).
 
 ```{r}
 U <- chol(A)
@@ -75,4 +109,4 @@ t(U) %*% U
 
 ## Multivariate random variables
 
-Random variables in multivariate space are usually written as vectors. The mean of a random vector is the vector of means of the components, and the covariance matrix is the matrix of covariances between the components. The covariance matrix is always symmetric and positive semi-definite.
+A multivariate random variable is written as a vector. The mean of a random vector is the vector of means of the components, and the covariance matrix is the matrix of covariances between the components. The covariance matrix is always symmetric and positive semi-definite.
