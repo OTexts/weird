@@ -8,9 +8,128 @@ source("before-each-chapter.R")
 
 ## Projections
 
+Many high-dimensional anomaly detection methods reduce the dimensionality of the data using **linear projections**: linear combinations of the original variables that map each $p$-dimensional observation to a lower-dimensional space. Different projection directions preserve different aspects of the joint structure, so the choice of direction matters. Understanding the geometry of projections sets the foundation for the methods described in the rest of this chapter.
 
+To keep the geometry simple, all variables are scaled to have mean zero and unit variance, although no rotation is applied. We will illustrate the ideas using meteorological variables measured hourly at the Aotizhongxin monitoring station (at the Olympic Sports Centre) in Beijing, over May 2014.
 
-## Principal component analysis
+```{r}
+#| label: aotizhongxin
+#| code-fold: false
+#| fig-cap: "Projection of standardised temperature and pressure from Aotizhongxin onto one dimension. The blue line shows the projection direction. Five randomly selected observations (in orange) are shown projecting onto the line, with the resulting scores shown as blue dots."
+az_aq <- air_quality |>
+  filter(station == "Aotizhongxin", year == 2014, month == 5) |>
+  select(temperature, pressure, dew_point, wind_speed, rainfall) |>
+  mvscale(center = mean, scale = sd, cov = NULL)
+```
+
+### Projecting from 2 to 1 dimension
+
+The simplest case maps two variables to a single number. A projection onto a vector $\bm{a} = (a_1, a_2)^\intercal$ gives a score
+$$
+w_i = \bm{a}^\intercal \bm{y}_i = a_1 y_{i,1} + a_2 y_{i,2}.
+$$
+for each observation, where $\bm{a}$ to be a unit vector (i.e., $\|\bm{a}\| = 1$). The projection is a linear transformation that maps the 2D data cloud onto the line spanned by $\bm{a}$, with $w_i$ giving the position of the projected point along that line.
+
+@fig-proj-geometry shows an example using $\bm{a} = (-0.8, 0.6)^\intercal$ applied to the standardised temperature and pressure measurements at Aotizhongxin. The blue line is the projection direction. The five orange points are randomly selected observations, showing how they project onto the line. The resulting scores are the blue dots on the line.
+
+```{r}
+#| label: fig-proj-geometry
+#| code-fold: true
+#| fig-cap: "Projection of standardised temperature and pressure from Aotizhongxin onto one dimension. The blue line shows the projection direction. Five randomly selected observations (in orange) are shown projecting onto the line, with the resulting scores shown as blue dots."
+#| dependson: aotizhongxin
+set.seed(2)
+# The projection direction
+a <- c(-0.8, 0.6)
+# Select five random observations to illustrate the projection
+show_pts <- az_aq |>
+  slice_sample(n = 5) |>
+  mutate(
+    w = a[1] * temperature + a[2] * pressure,
+    foot_temp = w * a[1],
+    foot_press = w * a[2]
+  )
+# Construct the plot
+ggplot(az_aq, aes(x = temperature, y = pressure)) +
+  geom_point(alpha = 0.2) +
+  geom_abline(slope = a[2] / a[1], intercept = 0, color = "#0072B2") +
+  geom_segment(
+    data = show_pts,
+    aes(x = temperature, y = pressure, xend = foot_temp, yend = foot_press),
+    color = "#D55E00",
+  ) +
+  geom_point(
+    data = show_pts,
+    aes(x = foot_temp, y = foot_press),
+    color = "#0072B2",
+    size = 3
+  ) +
+  geom_point(data = show_pts, color = "#D55E00", size = 2) +
+  coord_equal() +
+  labs(x = "Standardised temperature", y = "Standardised pressure")
+```
+
+Projections can be thought of like shadows. Imagine a light source shining on the data cloud from a direction perpendicular to $\bm{a}$; the projection scores are the positions of the shadows cast by the observations onto the line spanned by $\bm{a}$.
+
+The projection direction $\bm{a}$ can be any unit vector, so there are infinitely many ways to project the data. Each choice of $\bm{a}$ captures a different perspective on the joint variation in the data. Some directions may align with the main axis of variation (like the one shown in @fig-proj-geometry), giving a wide spread of scores; others may be nearly orthogonal to that axis, giving a narrow spread; still others may be perpendicular to the axes. For example $\bm{a} = (1, 0)^\intercal$ projects onto the temperature axis, while $\bm{a} = (0, 1)^\intercal$ projects onto the pressure axis.
+
+The variance of the scores is a measure of how much of the joint variation is captured by that direction. The variance of the projection scores is
+$$
+\text{Var}(w) = \bm{a}^\intercal \widehat{\bm{\Sigma}} \bm{a},
+$$
+where $\widehat{\bm{\Sigma}}$ is the sample covariance matrix. The variance is maximised when $\bm{a}$ is the leading eigenvector of $\widehat{\bm{\Sigma}}$, and the maximum variance is the leading eigenvalue. This is the basis of principal component analysis, which we will discuss in the next section.
+
+### Projecting from 3 to 2 dimensions
+
+A projection from $p = 3$ variables onto a 2-dimensional subspace is defined by two orthonormal vectors $\bm{a}_1, \bm{a}_2 \in \mathbb{R}^3$, assembled as columns of a $3 \times 2$ matrix
+$$
+\bm{A} = \begin{bmatrix} \bm{a}_1 & \bm{a}_2 \end{bmatrix},
+\quad \bm{A}^\intercal \bm{A} = \bm{I}_2.
+$$
+The 2-dimensional projection of $\bm{y}_i$ is
+$$
+\bm{z}_i = \bm{A}^\intercal \bm{y}_i = \begin{pmatrix} \bm{a}_1^\intercal \bm{y}_i \\ \bm{a}_2^\intercal \bm{y}_i \end{pmatrix} \in \mathbb{R}^2.
+$$
+Each component is a 1D projection as before; the two scores together provide a coordinate system for the projected subspace. The residual $\bm{y}_i - \bm{A}\bm{A}^\intercal\bm{y}_i$ is the part of $\bm{y}_i$ not captured by the projection, and is orthogonal to both $\bm{a}_1$ and $\bm{a}_2$.
+
+Adding dew point as a third variable introduces further structure. Dew point (the temperature at which the air becomes saturated with water vapour) is strongly positively correlated with temperature ($\hat\rho = 0.82$) and moderately negatively correlated with pressure ($\hat\rho = -0.78$). @fig-proj-pairs3 shows all three pairwise relationships.
+
+```{r}
+#| label: fig-proj-pairs3
+#| code-fold: false
+#| fig-cap: "Pairwise scatterplots and correlations for standardised temperature, pressure and dew point at Aotizhongxin. All three pairs are strongly correlated, so the joint variation is nearly confined to a two-dimensional subspace."
+#| dependson: aotizhongxin
+#| message: false
+#| warning: false
+az_aq |>
+  select(temperature, pressure, dew_point) |>
+  GGally::ggpairs()
+```
+
+The strong mutual correlations indicate that the three variables share a nearly two-dimensional structure: despite being measured in three dimensions, the observations lie close to a plane. Two orthonormal directions spanning that plane can represent most of the joint variation in a 2D scatter. How to choose those directions is the subject of the next section.
+
+### General projections
+
+In the general case, a projection from $p$ dimensions to $k$ dimensions uses a $p \times k$ matrix $\bm{A}$ with orthonormal columns, $\bm{A}^\intercal\bm{A} = \bm{I}_k$. Writing the $n \times p$ data matrix as $\bm{Y}$, the projected scores form the $n \times k$ matrix
+$$
+\bm{Z} = \bm{Y}\bm{A}.
+$$
+The total variance of the projected scores is $\text{tr}(\bm{A}^\intercal\widehat{\bm{\Sigma}}\bm{A})$. For the temperature-pressure-dew point example, two well-chosen directions can capture nearly all the joint variation; adding less-correlated variables requires more directions for a similar degree of fidelity.
+
+The Aotizhongxin station records five meteorological variables: temperature, pressure, dew point, wind speed, and rainfall. @fig-proj-all shows the pairwise relationships among all five.
+
+```{r}
+#| label: fig-proj-all
+#| code-fold: false
+#| dependson: aotizhongxin
+#| fig-cap: "Pairwise scatterplots and correlations for five standardised meteorological variables at Aotizhongxin. Wind speed and rainfall are largely uncorrelated with the temperature-pressure-dew point group, so the five variables span a more complex joint distribution than the three-variable case."
+az_aq |>
+  select(temperature, pressure, dew_point, wind_speed, rainfall) |>
+  GGally::ggpairs()
+```
+
+Wind speed and rainfall are largely uncorrelated with the temperature-pressure-dew point group, so the five variables span a more complex joint distribution than the three-variable case. A single 2D projection cannot capture all the variation, and the next section discusses how to choose $\bm{A}$ to best summarise the data.
+
+## Principal component analysis {#sec-pca}
 
 ## Multi-dimensional scaling
 
