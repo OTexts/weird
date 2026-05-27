@@ -397,9 +397,9 @@ This shows the value of computing surprisal probabilities on the conditional dis
 
 In some applications, it is not appropriate to assume the conditional density is Gaussian, or that the relationships are linear. One useful model that allows for non-Gaussian densities, and non-linear relationships, is a generalised additive model or GAM. Under this model, the conditional density is given by [@Wood2017gam]
 $$
-  y \mid \bm{x} \sim f(\mu), \qquad \ell(\mu) = \sum_{k=1}^p g_k(x_{k}),
+  y \mid \bm{x} \sim f(\mu, \bm{\theta}), \qquad \ell(\mu) = \sum_{k=1}^p g_k(x_{k}),
 $$
-where $\mu = \text{E}(y \mid \bm{x})$ denotes the conditional mean, $\ell()$ is a link function (mapping the mean to an unbounded scale), and each $g_k$ function is smooth. If $f$ is Normal, $\ell$ is the identity, and $g_k(u) = \beta_k u$, then this reduces to the linear Gaussian model (@eq-gaussian-regression).
+where $\mu = \text{E}(y \mid \bm{x})$ denotes the conditional mean, $\bm{\theta}$ is a vector of any other parameters, $\ell()$ is a link function (mapping the mean to an unbounded scale), and each $g_k$ function is smooth. If $f$ is Normal, $\bm{\theta} = \sigma^2$, $\ell$ is the identity, and $g_k(u) = \beta_k u$, then this reduces to the linear Gaussian model (@eq-gaussian-regression).
 
 ```{r}
 #| label: cricket-setup
