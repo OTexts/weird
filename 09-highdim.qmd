@@ -6,6 +6,8 @@
 source("before-each-chapter.R")
 ```
 
+The curse of dimensionality (@sec-curse) makes it difficult to detect anomalies once the number of variables grows too large. In practice, even a moderate number of variables (e.g., $m > 5$) can cause problems for some methods. The high-dimensional methods described in this chapter are designed to address these challenges, by reducing the dimensionality of the data while preserving the relevant structure for anomaly detection.
+
 ## Projections
 
 Many high-dimensional anomaly detection methods reduce the dimensionality of the data using **linear projections**: linear combinations of the original variables that map each $p$-dimensional observation to a lower-dimensional space. Different projection directions preserve different aspects of the joint structure, so the choice of direction matters. Understanding the geometry of projections sets the foundation for the methods described in the rest of this chapter.
@@ -28,7 +30,7 @@ The simplest case maps two variables to a single number. A projection onto a vec
 $$
 w_i = \bm{a}^\intercal \bm{y}_i = a_1 y_{i,1} + a_2 y_{i,2}.
 $$
-for each observation, where $\bm{a}$ to be a unit vector (i.e., $\|\bm{a}\| = 1$). The projection is a linear transformation that maps the 2D data cloud onto the line spanned by $\bm{a}$, with $w_i$ giving the position of the projected point along that line.
+for each observation, where $\bm{a}$ is a unit vector (i.e., $\|\bm{a}\| = a_1^2 + a_2^2 = 1$). The projection is a linear transformation that maps the 2D data cloud onto the line spanned by $\bm{a}$, with $w_i$ giving the position of the projected point along that line.
 
 @fig-proj-geometry shows an example using $\bm{a} = (-0.8, 0.6)^\intercal$ applied to the standardised temperature and pressure measurements at Aotizhongxin. The blue line is the projection direction. The five orange points are randomly selected observations, showing how they project onto the line. The resulting scores are the blue dots on the line.
 
@@ -74,9 +76,9 @@ The projection direction $\bm{a}$ can be any unit vector, so there are infinitel
 
 The variance of the scores is a measure of how much of the joint variation is captured by that direction. The variance of the projection scores is
 $$
-\text{Var}(w) = \bm{a}^\intercal \widehat{\bm{\Sigma}} \bm{a},
+\text{Var}(w) = \bm{a}^\intercal \bm{\Sigma} \bm{a},
 $$
-where $\widehat{\bm{\Sigma}}$ is the sample covariance matrix. The variance is maximised when $\bm{a}$ is the leading eigenvector of $\widehat{\bm{\Sigma}}$, and the maximum variance is the leading eigenvalue. This is the basis of principal component analysis, which we will discuss in the next section.
+where $\bm{\Sigma}$ is the covariance matrix of the data $\bm{y}$. The variance is maximised when $\bm{a}$ is the leading eigenvector of $\bm{\Sigma}$, and the maximum variance is the leading eigenvalue. This is the basis of principal component analysis, which we will discuss in the next section.
 
 ### Projecting from 3 to 2 dimensions
 
