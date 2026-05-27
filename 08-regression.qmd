@@ -19,10 +19,10 @@ $$
 $$
 where $\bm{\beta}$ is a vector of coefficients and the errors $\{\varepsilon_1,\dots,\varepsilon_n\}$ are iid with mean zero and common variance $\sigma^2$. Here $\bm{x}_i$ may include a leading 1 if an intercept is included in the model. Let $p$ be the length of $\bm{x}_i$.
 
-The model can be written in matrix form as $\bm{y} = \bm{X}\bm{\beta} + \bm{\varepsilon}$, where $\bm{y}$ is the $n$-vector of responses, $\bm{X}$ is the $n\times p$ matrix of predictors, and $\bm{\varepsilon}$ is the $n$-vector of errors. Provided $\bm{X}$ is of rank $p$ (@sec-rank), the model can be estimated using ordinary least squares regression [@seberlee2003], resulting in the estimate
+The model can be written in matrix form as $\bm{y} = \bm{X}\bm{\beta} + \bm{\varepsilon}$, where $\bm{y}$ is the $n$-vector of responses, $\bm{X}$ is the $n\times p$ matrix of predictors, and $\bm{\varepsilon}$ is the $n$-vector of errors. Provided $\bm{X}$ is of rank $p$ (@sec-rank), the model can be estimated using ordinary least squares (OLS) regression [@seberlee2003], resulting in the estimate
 $$
   \hat{\bm{\beta}} = (\bm{X}^\intercal\bm{X})^{-1}\bm{X}^\intercal\bm{y}.
-$$
+$$ {#eq-ols}
 The fitted values (i.e., predicted values for the training data) are given by
 $$
   \hat{\bm{y}} = \bm{X}\hat{\bm{\beta}} = \bm{H}\bm{y},
@@ -35,9 +35,9 @@ $$
 $$
 Many regression-based anomaly detection methods involve finding anomalies in the residuals.
 
-The diagonals of $\bm{H}$, given by $h_1,\dots,h_n$, where
+The diagonals of $\bm{H}$, given by
 $$
-h_i = \bm{x}_i^\intercal(\bm{X}^\intercal\bm{X})^{-1}\bm{x}_i
+h_i = \bm{x}_i^\intercal(\bm{X}^\intercal\bm{X})^{-1}\bm{x}_i,\qquad i=1,\dots,n,
 $$
 take values between 0 and 1. These are known as the "leverage" values [@faraway2004linear, p. 69], and measure how much each observation influences the corresponding fitted value. High leverage values (close to 1) correspond to observations that have a large influence on the estimated coefficients, and so leaving those observations out will lead to very different values for the fitted values and residuals. On the other hand, small leverage values (close to 0) correspond to observations that have little influence on the estimated coefficients, and so leaving those observations out will lead to similar values for the fitted values and residuals. Often high leverage values are those corresponding to anomalies in the predictor space (although not necessarily in the space of the response variable).
 
@@ -110,19 +110,21 @@ wine_aug |>
 
 Here the highest leverage values are due to the only two wines with 100 points, while the three on 99 points result in the next highest. After that come the wines with the lowest points values. Observations at the edges of the predictor space will always lead to the highest leverage values, especially when there are few observations with the same predictor value. In this case, none of the observations look particularly extreme in the points dimension.
 
-### Robust regression {#sec-robust-reg}
+### Robust regression
 
-The ordinary least-squares estimator described above has zero *breakdown point* --- a single anomalous observation with high leverage can arbitrarily distort the fitted regression line, pulling it toward itself. When this happens, the anomalous observation ends up with a small residual and so is not flagged, while genuine regular observations may have large residuals. This masking effect makes OLS-based anomaly detection potentially unreliable in the presence of outliers.
+The ordinary least-squares estimator (@eq-ols) has zero *breakdown point* --- a single anomalous observation with high leverage can arbitrarily distort the fitted regression line, pulling it toward itself. When this happens, the anomalous observation ends up with a smaller residual and so may not be flagged. This is known as **masking**, and occurs when the presence of anomalies distorts the fitted model enough that the anomalies are undetected.
 
-Robust regression methods address this by producing an estimate of $\bm{\beta}$ that remains stable even when a fraction of the observations are anomalous. The *least trimmed squares* (LTS) estimator [@Rousseeuw2003-ip] minimises the sum of the $h$ smallest squared residuals,
+Robust regression methods address this by producing an estimate of $\bm{\beta}$ that remains stable even when a fraction of the observations are anomalous. For example, the *least trimmed squares* (LTS) estimator [@Rousseeuw2003-ip] minimises the sum of the $h$ smallest squared residuals,
 $$
-  \hat{\bm{\beta}}_{\text{LTS}} = \mathop{\arg\min}_{\bm{\beta}} \sum_{i=1}^{h} e_{(i)}^2(\bm{\beta}),
+  \hat{\bm{\beta}}_{\text{LTS}} = \mathop{\arg\min}_{\bm{\beta}} \sum_{i=1}^{h} e_{(i)}^2,
 $$
-where $e_{(1)}^2(\bm{\beta}) \le e_{(2)}^2(\bm{\beta}) \le \cdots \le e_{(n)}^2(\bm{\beta})$ are the squared residuals in increasing order, and $h = \lfloor n/2 \rfloor + \lfloor (p+1)/2 \rfloor$. Observations with squared residuals beyond the $h$th smallest are effectively discarded. This choice of $h$ gives a breakdown point of approximately 50%, meaning the fit remains well-defined even when nearly half the observations are anomalous. Residuals from the LTS fit can then be used to identify anomalies, since the fit is not drawn toward them.
+where $e_{(1)}^2 \le e_{(2)}^2 \le \cdots \le e_{(n)}^2$ are the squared residuals in increasing order, and $h = \lfloor n/2 \rfloor + \lfloor (p+1)/2 \rfloor$. Observations with squared residuals beyond the $h$th smallest are effectively discarded.^[The OLS estimate given in @eq-ols is equivalent to setting $h=n$.] This choice of $h$ gives a breakdown point of approximately 50%, meaning the fit remains well-defined even when nearly half the observations are anomalous. Residuals from the LTS fit can then be used to identify anomalies, since the fit is not drawn toward them.
 
 In R, `robustbase::ltsReg()` fits the LTS model using an efficient numerical algorithm [@robustbase]. An alternative approach that achieves similar robustness at lower computational cost is the BACON algorithm, which we will discuss in @sec-bacon-reg. Other robust regression methods are also available in the `robustbase` package.
 
-## Regression residuals
+For now, we will continue to use the OLS approach, as it makes many calculations much easier, but be aware that some anomalies can be masked.
+
+## Regression residuals {#sec-residuals}
 
 ### Standardised residuals
 
@@ -142,13 +144,13 @@ We can think of the standardised residuals as adjusted response values, after ac
 
 ### LOO residuals
 
-The leave-one-out residual for the $i$th observation is defined as the difference between $\bm{y}_i$ and the predicted value obtained using a model fitted to all observations except the $i$th observation. In this context, LOO residuals are often called PRESS (prediction error sum of squares) residuals. At first, it appears that calculating LOO residuals involves a lot of computation --- estimating $n$ separate models. However, the leave-one-out residuals are easily obtained without actually having to re-estimate the model many times. It can be shown [@Montgomery2012, Appendix C.7] that the leave-one-out (LOO) residuals are given by
+The leave-one-out residual for the $i$th observation is defined as the difference between $y_i$ and the predicted value obtained using a model fitted to all observations except the $i$th observation. In this context, LOO residuals are often called PRESS (prediction error sum of squares) residuals. At first, it appears that calculating LOO residuals involves a lot of computation --- estimating $n$ separate models. However, the leave-one-out residuals are easily obtained without actually having to re-estimate the model many times. It can be shown [@Montgomery2012, Appendix C.7] that the leave-one-out (LOO) residuals are given by
 $$
   e_{-i} = e_{i}/(1-h_{i}),
 $$
 where $e_{i}$ is the residual obtained from fitting the model to *all* observations, and $h_i$ is the corresponding leverage value.
 
-The variance of $e_{-i}$ is given by
+Since $\text{Var}(e_i) = \sigma^2(1-h_i)$ (the diagonal of $\text{Var}(\bm{e}) = \sigma^2(\bm{I}-\bm{H})$) and $e_{-i} = e_i/(1-h_i)$, the variance of $e_{-i}$ is given by
 $$
   \frac{\text{Var}(e_i)}{(1-h_i)^2} = \frac{\sigma^2}{1-h_i},
 $$
@@ -156,7 +158,7 @@ so (if we knew $\sigma$) we could standardise each LOO residual to obtain
 $$
  \frac{e_i / (1-h_i)}{\sigma/\sqrt{1-h_i}} = \frac{e_i}{\sigma \sqrt{1-h_i}}.
 $$
-Of course, we don't know $\sigma$, so we need to estimate it. To avoid any anomalies affecting the estimate of $\sigma$, we consider again the leave-one-out models. If we leave out the $i$th observation, and fit a regression model to the remaining observations, then the estimated variance of the residuals is given by [@Montgomery2012, Appendix C.8]
+Of course, we don't know $\sigma$, so we need to estimate it. To reduce the effect of anomalies on the estimate of $\sigma$, we consider again the leave-one-out models. If we leave out the $i$th observation, and fit a regression model to the remaining observations, then the estimated variance of the residuals is given by [@Montgomery2012, Appendix C.8]
 $$
   \hat\sigma_{-i}^2 = \frac{1}{n-p-1}\left[(n-p)\hat\sigma^2 - e_{i}^2/(1-h_i)\right],
 $$
@@ -168,15 +170,15 @@ $$
  r_{-i} = \frac{e_i}{\hat\sigma_{-i} \sqrt{1-h_i}}.
 $$
 
-### Cook's distance {#sec-cooks-distance}
+### Cook's distance
 
 Another useful "leave-one-out" measure is Cook's distance [@Cook1977], which measures how much all $n$ fitted values change when observation $i$ is omitted:
 $$
-  D_i = \frac{(\hat{\bm{y}} - \hat{\bm{y}}_{(i)})^\intercal (\hat{\bm{y}} - \hat{\bm{y}}_{(i)})}{p\hat\sigma^2},
+  D_i = \frac{(\hat{\bm{y}} - \hat{\bm{y}}_{-i})^\intercal (\hat{\bm{y}} - \hat{\bm{y}}_{-i})}{p\hat\sigma^2},
 $$
-where $\hat{\bm{y}}_{(i)}$ are the fitted values from the model omitting observation $i$. As with the LOO residual, this can be computed without refitting the model $n$ times. It can be shown that
+where $\hat{\bm{y}}_{-i}$ are the fitted values from the model omitting observation $i$. As with the LOO residual, this can be computed without refitting the model $n$ times. It can be shown that
 $$
-  D_i = \frac{r_i^2}{p} \cdot \frac{h_i}{1-h_i},
+  D_i = \frac{r_i^2h_i}{p(1-h_i)},
 $$ {#eq-cooks-distance}
 where $r_i$ is the standardised residual and $h_i$ is the leverage. From @eq-cooks-distance, an observation has a large Cook's distance if it has a large residual (anomalous response given its predictors), or high leverage (extreme position in predictor space), or both. Cook's distance therefore measures *influence* on the model rather than response anomaly alone.
 
@@ -397,7 +399,7 @@ In some applications, it is not appropriate to assume the conditional density is
 $$
   y \mid \bm{x} \sim f(\mu), \qquad \ell(\mu) = \sum_{k=1}^p g_k(x_{k}),
 $$
-where $\mu = \text{E}(y \mid \bm{x})$ denotes the conditional mean, $\ell()$ is a link function, and each $g_k$ function is smooth. If $f$ is Normal, $\ell$ is the identity, and $g_k(u) = \beta_k u$, then this reduces to the linear Gaussian model (@eq-gaussian-regression).
+where $\mu = \text{E}(y \mid \bm{x})$ denotes the conditional mean, $\ell()$ is a link function (mapping the mean to an unbounded scale), and each $g_k$ function is smooth. If $f$ is Normal, $\ell$ is the identity, and $g_k(u) = \beta_k u$, then this reduces to the linear Gaussian model (@eq-gaussian-regression).
 
 ```{r}
 #| label: cricket-setup
@@ -431,7 +433,7 @@ $$
 $$
 where $p$ denotes the probability of a batter not being dismissed in an innings, and
 $$
-  \log(p / (1- p)) = g(\text{Innings}).
+  \log(p/(1-p)) = g(\text{Innings}).
 $$
 We can fit this model using the `mgcv` package.
 
@@ -488,7 +490,7 @@ We have identified an anomaly that is not anomalous in the proportion of not-out
 
 ## BACON algorithm for linear regression {#sec-bacon-reg}
 
-In the regression version of the BACON algorithm, the goal is to identify observations that are inconsistent with the regression model. This is more complicated than the multivariate case discussed in @sec-bacon, because an observation can be anomalous in terms of its predictor values, or in terms of its response value given its predictor values, or both. Cook's distance (@sec-cooks-distance) captures both of these sources of influence, but it does not protect against masking. Also, high leverage values can lead to residual anomalies being masked. Masking occurs when the presence of multiple outliers distorts the fitted model enough that the outliers appear to have small residuals. Like the LTS estimator (@sec-robust-reg), BACON addresses masking by fitting the model to a subset of regular observations rather than to all the data. Unlike LTS, which selects the subset by minimising trimmed residuals, BACON builds the subset sequentially, making it computationally efficient for large data sets. The regression BACON algorithm begins by using the multivariate BACON algorithm on the predictors, and then uses scaled prediction errors to decide which observations are compatible with the regression model.
+In the regression version of the BACON algorithm, the goal is to identify observations that are inconsistent with the regression model. This is more complicated than the multivariate case discussed in @sec-bacon, because an observation can be anomalous in terms of its predictor values, or in terms of its response value given its predictor values, or both. Cook's distance (@sec-residuals) captures both of these sources of influence, but it does not protect against masking. Also, high leverage values can lead to residual anomalies being masked. Like the LTS estimator (@sec-ols), BACON addresses masking by fitting the model to a subset of regular observations rather than to all the data. Unlike LTS, which selects the subset by minimising trimmed residuals, BACON builds the subset sequentially, making it computationally efficient for large data sets. The regression BACON algorithm begins by using the multivariate BACON algorithm on the predictors, and then uses scaled prediction errors to decide which observations are compatible with the regression model.
 
 Let $B$ be the current basic subset, with $r$ observations, and let $\bm{X}_B$ and $\bm{y}_B$ denote the corresponding predictor matrix and response vector. Let $\hat{\bm{\beta}}_B$ be the least-squares estimate computed using only the observations in $B$, and let
 $$
