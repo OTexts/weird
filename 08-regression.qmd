@@ -215,6 +215,8 @@ wine_aug |>
 
 Wines with large positive residuals are more expensive than expected for their points score, while wines with large negative residuals are cheaper than expected.
 
+Both distance-based and density-based methods can be applied to the standardised residuals (or standardised LOO residuals) to identify observations with unusual response values given the corresponding predictor values. In the next two sections, we will discuss using density-based surprisals to find anomalous residuals. Then in @sec-bacon-reg, we will discuss a variation of the distance-based BACON algorithm for regression. The other methods described in @sec-distance-methods and @sec-density-methods can also be applied to residuals, although they are not discussed here.
+
 ## Linear regression surprisals {#sec-regression-log-scores}
 
 The surprisal approach (@sec-density-methods) extends naturally to regression by specifying a density for the residuals, then computing the surprisal of each observation under that density. Specifying a density for the residuals is equivalent to specifying a **conditional density** for the response given the predictors,
