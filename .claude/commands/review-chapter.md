@@ -16,6 +16,7 @@ Also update this skill to take account of any new issues you find when reviewing
 - Math symbols used consistently throughout (e.g. `\Pr` vs `\text{Pr}`, `\le` vs `\leq`, `\ge` vs `\geq`, `\bm{}` for vectors/matrices). The book uses `\le` and `\ge` (not `\leq`/`\geq`).
 - Parameter lists in pdfs match the parameterisation stated in the text
 - Bold notation applied consistently to vectors and matrices
+- Matrix transposes use `^\intercal`, not `'` or `^T` or `^\prime`.
 - Subscript/superscript placement correct (e.g. `$\bm{S}^*$` not `$\bm{S^*}$`)
 - Same symbol not used for two different things in the same chapter.
 - Distribution names use upright (non-italic) font: `N(0,1)` not `$N(0,1)$`. When parameters contain maths symbols, put only the parameters in maths: `N$(\mu, \sigma^2)$` or `$\text{N}(\mu, \sigma^2)$`.
@@ -38,16 +39,19 @@ Also update this skill to take account of any new issues you find when reviewing
 **Clarity for 3rd year undergraduates**
 - Notation introduced before it is used
 - No unnecessary complexity beyond what the content requires
-- When a model is named (GMM, Gaussian copula, etc.), include a formal density formula so the rest of the section has a concrete mathematical anchor.
+- Intuition before mathematical formulation
 - Use precise terminology: in multivariate KDE the smoothing parameter is a "bandwidth matrix", not just "the bandwidth".
-- Rank-based probability formulas can be hard to parse with mixed operator precedence; prefer `$(n - \text{rank}(s_i) + 1)/n$` to `$1 - \text{rank}(s_i)/n + 1/n$`.
 
 **Spelling**
 - Use Australian spelling throughout. Check for spelling consistency.
 
+**R chunks**
+- All R chunks should have labels
+- If an R chunk uses an object created in a previous chunk, add a dependency using `#| dependson <chunk-label>`.
+- Do not change any code contained in an R chunk
+
 ## What NOT to change
 
-- Code chunks (R code) — only fix comments or labels if they contain errors
 - The overall structure, argument, or style of the chapter. You may suggest changes to the overall structure or style, but do not make such changes.
 - Correct passages that are merely informal or conversational
 - Unicode mathematical characters (e.g. `𝟙` for indicator) that the author has deliberately chosen — these render through MathJax.
