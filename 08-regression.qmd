@@ -593,7 +593,7 @@ wine_bacon |>
   select(country, winery, year, points, price, bacon_distance)
 ```
 
-These are almost identical to those identified by the Linear regression surprisals approach (@sec-regression-log-scores), with one additional anomaly (the last in the table above).
+These are almost identical to those identified by the linear regression surprisals approach (@sec-regression-log-scores), with one additional anomaly (the last in the table above).
 
 To see the effect of the anomalies on the fitted regression relationship, we refit the least-squares model using only the final BACON basic subset. This gives the regression line shown in @fig-shiraz-bacon that is obtained after omitting the nominated regression outliers. The two lines are almost identical because the nominated outliers have relatively low leverage.
 
