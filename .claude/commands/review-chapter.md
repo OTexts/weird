@@ -25,6 +25,7 @@ Also update this skill to take account of any new issues you find when reviewing
 
 **Quarto / cross-references**
 - Cross-references use `@sec-label`, `@fig-label`, `@eq-label` syntax — not raw HTML links or raw text that is unlinked.
+- Sections are only numbered down to level 2 (##). So do not add labels to level 3 headers (###) or lower, and do not cross-reference level 3 sections or lower.
 - Equation labels should either be referenced elsewhere or be removed. Watch for typo'd labels (e.g. `eq-lookkde` for what should be `eq-loo-kde`).
 
 **Accuracy**
