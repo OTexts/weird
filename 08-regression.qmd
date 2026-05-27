@@ -29,7 +29,7 @@ $$
 $$
 where $\bm{H} = \bm{X}(\bm{X}^\intercal\bm{X})^{-1}\bm{X}^\intercal$ is known as the "hat"-matrix because it creates the "y-hat" values $\hat{\bm{y}}$ from the data $\bm{y}$.
 
-The residuals from the model are the differences between what was observed and what was predicted, given by
+The residuals (or prediction errors) from the model are the differences between what was observed and what was predicted, given by
 $$
   \bm{e} = \bm{y} - \hat{\bm{y}} = (\bm{I} - \bm{H})\bm{y}.
 $$
@@ -532,7 +532,7 @@ where $\text{t}_{r-p,\,1-\alpha/(2(r+1))}$ is the $(1-\alpha/(2(r+1)))$ quantile
 
 **Step 6: Nominate outliers.** Observations excluded from the final basic subset are nominated as regression outliers.
 
-As in the multivariate version, the algorithm grows the basic subset in blocks, rather than adding one observation at a time. It gives a robust regression fit at relatively low computational cost. The final values $|t_i(B)|$ provide anomaly scores: large values correspond to observations whose responses are unusually far from what would be predicted by the regression relationship fitted to the final basic subset. This contrasts with the ordinary residuals shown in @fig-shiraz-residuals, which are measured relative to a line fitted to all observations and may therefore be compressed near outliers that have distorted the fit.
+As in the multivariate version, the algorithm grows the basic subset in blocks, rather than adding one observation at a time. It gives a robust regression fit at relatively low computational cost. The final values $|t_i(B)|$ provide anomaly scores: large values correspond to observations whose responses are unusually far from what would be predicted by the regression relationship fitted to the final basic subset.
 
 ```{r}
 #| label: shiraz-points
@@ -541,7 +541,9 @@ As in the multivariate version, the algorithm grows the basic subset in blocks, 
 shiraz_points <- shiraz |> count(points) |> arrange(desc(n))
 ```
 
-We now apply regression BACON, using `points` as the predictor and `log(price)` as the response. The function first applies multivariate BACON to the predictor variable, and then applies the regression version of the algorithm using scaled prediction errors. Because the predictor has many repeated values (taking only integer values between 80 and 100), we need to specify the initial set to be larger than the most common points score, which is `r shiraz_points$points[1]` with `r shiraz_points$n[1]` observations. So we set the initial size to $m=600$ observations to ensure the initial basic subset does not contain only observations with a single points score. The BACON algorithm then identifies outliers as those with large scaled prediction errors from the fitted regression line based on the final basic subset.
+### Example: Shiraz reviews
+
+We now apply regression BACON to the same `shiraz` data set containing wine reviews that was used in @sec-ols, with `points` as the predictor and `log(price)` as the response. Multivariate BACON is first applied to the predictor variable, and then the regression version of the algorithm uses scaled prediction errors. Because the predictor has many repeated values (taking only integer values between 80 and 100), we need to specify the initial set to be larger than the most common points score, which is `r shiraz_points$points[1]` with `r shiraz_points$n[1]` observations. So we set the initial size to $m=600$ observations to ensure the initial basic subset does not contain only observations with a single points score. The BACON algorithm then identifies outliers as those with large scaled prediction errors from the fitted regression line based on the final basic subset.
 
 ```{r}
 #| label: shiraz-bacon
