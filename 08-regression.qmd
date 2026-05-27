@@ -112,13 +112,13 @@ Here the highest leverage values are due to the only two wines with 100 points, 
 
 ### Robust regression
 
-The ordinary least-squares estimator (@eq-ols) has zero *breakdown point* --- a single anomalous observation with high leverage can arbitrarily distort the fitted regression line, pulling it toward itself. When this happens, the anomalous observation ends up with a smaller residual and so may not be flagged. This is known as **masking**, and occurs when the presence of anomalies distorts the fitted model enough that the anomalies are undetected.
+The ordinary least-squares estimator (@eq-ols) is fragile --- a single anomalous observation with high leverage can arbitrarily distort the fitted regression line, pulling it toward itself. When this happens, the anomalous observation ends up with a smaller residual and so may not be flagged. This is known as **masking**, and occurs when the presence of anomalies distorts the fitted model enough that the anomalies are undetected.
 
 Robust regression methods address this by producing an estimate of $\bm{\beta}$ that remains stable even when a fraction of the observations are anomalous. For example, the *least trimmed squares* (LTS) estimator [@Rousseeuw2003-ip] minimises the sum of the $h$ smallest squared residuals,
 $$
   \hat{\bm{\beta}}_{\text{LTS}} = \mathop{\arg\min}_{\bm{\beta}} \sum_{i=1}^{h} e_{(i)}^2,
 $$
-where $e_{(1)}^2 \le e_{(2)}^2 \le \cdots \le e_{(n)}^2$ are the squared residuals in increasing order, and $h = \lfloor n/2 \rfloor + \lfloor (p+1)/2 \rfloor$. Observations with squared residuals beyond the $h$th smallest are effectively discarded.^[The OLS estimate given in @eq-ols is equivalent to setting $h=n$.] This choice of $h$ gives a breakdown point of approximately 50%, meaning the fit remains well-defined even when nearly half the observations are anomalous. Residuals from the LTS fit can then be used to identify anomalies, since the fit is not drawn toward them.
+where $e_{(1)}^2 \le e_{(2)}^2 \le \cdots \le e_{(n)}^2$ are the squared residuals in increasing order, and $h = \lfloor n/2 \rfloor + \lfloor (p+1)/2 \rfloor$. Observations with squared residuals beyond the $h$th smallest are effectively discarded.^[The OLS estimate given in @eq-ols is equivalent to setting $h=n$.] This choice of $h$ gives a "breakdown point" of approximately 50%, meaning the estimated $\bm{\beta}$ remains consistent even when nearly half the observations are anomalous. Residuals from the LTS fit can then be used to identify anomalies, since the fit is not drawn toward them.
 
 In R, `robustbase::ltsReg()` fits the LTS model using an efficient numerical algorithm [@robustbase]. An alternative approach that achieves similar robustness at lower computational cost is the BACON algorithm, which we will discuss in @sec-bacon-reg. Other robust regression methods are also available in the `robustbase` package.
 
@@ -431,11 +431,11 @@ df_no |>
 
 This suggests that we can construct a GAM for the number of not outs for each batter as a function of the number of innings they played. It is natural to use a Binomial distribution with a logit link function:
 $$
-  \text{NotOuts} \mid \text{Innings} \sim \text{Binomial}(n=\text{Innings},~ p),
+  \text{NotOuts} \mid \text{Innings} \sim \text{Binomial}(\text{Innings},~ q),
 $$
-where $p$ denotes the probability of a batter not being dismissed in an innings, and
+where $q$ denotes the probability of a batter not being dismissed in an innings, and
 $$
-  \log(p/(1-p)) = g(\text{Innings}).
+  \log(q/(1-q)) = g(\text{Innings}).
 $$
 We can fit this model using the `mgcv` package.
 
@@ -492,7 +492,7 @@ We have identified an anomaly that is not anomalous in the proportion of not-out
 
 ## BACON algorithm for linear regression {#sec-bacon-reg}
 
-In the regression version of the BACON algorithm, the goal is to identify observations that are inconsistent with the regression model. This is more complicated than the multivariate case discussed in @sec-bacon, because an observation can be anomalous in terms of its predictor values, or in terms of its response value given its predictor values, or both. Cook's distance (@sec-residuals) captures both of these sources of influence, but it does not protect against masking. Also, high leverage values can lead to residual anomalies being masked. Like the LTS estimator (@sec-ols), BACON addresses masking by fitting the model to a subset of regular observations rather than to all the data. Unlike LTS, which selects the subset by minimising trimmed residuals, BACON builds the subset sequentially, making it computationally efficient for large data sets. The regression BACON algorithm begins by using the multivariate BACON algorithm on the predictors, and then uses scaled prediction errors to decide which observations are compatible with the regression model.
+In the regression version of the BACON algorithm [@Billor2000], the goal is to identify observations that are inconsistent with the regression model. This is more complicated than the multivariate case discussed in @sec-bacon, because an observation can be anomalous in terms of its predictor values, or in terms of its response value given its predictor values, or both. Cook's distance (@sec-residuals) captures both of these sources of influence, but it does not protect against masking. Also, high leverage values can lead to residual anomalies being masked. Like the LTS estimator (@sec-ols), BACON addresses masking by fitting the model to a subset of regular observations rather than to all the data. Unlike LTS, which selects the subset by minimising trimmed residuals, BACON builds the subset sequentially, making it computationally efficient for large data sets. The regression BACON algorithm begins by using the multivariate BACON algorithm on the predictors, and then uses scaled prediction errors to decide which observations are compatible with the regression model.
 
 Let $B$ be the current basic subset, with $r$ observations, and let $\bm{X}_B$ and $\bm{y}_B$ denote the corresponding predictor matrix and response vector. Let $\hat{\bm{\beta}}_B$ be the least-squares estimate computed using only the observations in $B$, and let
 $$
