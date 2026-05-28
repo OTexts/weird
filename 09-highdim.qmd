@@ -1,23 +1,26 @@
 # High-dimensional methods {#sec-highdim}
 
 ```{r}
+#| label: setup
 #| include: false
 #| cache: false
 source("before-each-chapter.R")
+# Set up for using rgl
+options(rgl.useNULL = TRUE)
+rgl::setupKnitr()
 ```
 
 The curse of dimensionality (@sec-curse) makes it difficult to detect anomalies once the number of variables grows too large. In practice, even a moderate number of variables (e.g., $m > 5$) can cause problems for some methods. The high-dimensional methods described in this chapter are designed to address these challenges, by reducing the dimensionality of the data while preserving the relevant structure for anomaly detection.
 
 ## Projections
 
-Many high-dimensional anomaly detection methods reduce the dimensionality of the data using **linear projections**: linear combinations of the original variables that map each $p$-dimensional observation to a lower-dimensional space. Different projection directions preserve different aspects of the joint structure, so the choice of direction matters. Understanding the geometry of projections sets the foundation for the methods described in the rest of this chapter.
+The simplest way to reduce the dimensionality of the data is to use **linear projections**: linear combinations of the original variables that map each $p$-dimensional observation to a lower-dimensional space. Different projection directions preserve different aspects of the joint structure, so the choice of direction matters. Understanding the geometry of projections sets the foundation for the methods described in the rest of this chapter.
 
-To keep the geometry simple, all variables are scaled to have mean zero and unit variance, although no rotation is applied. We will illustrate the ideas using meteorological variables measured hourly at the Aotizhongxin monitoring station (at the Olympic Sports Centre) in Beijing, over May 2014.
+To keep the geometry simple, we will scale all variables to have mean zero and unit variance, although to preserve interpretability, no rotation will be applied. The ideas are illustrated using meteorological variables measured hourly at the Aotizhongxin monitoring station (at the Olympic Sports Centre) in Beijing, over May 2014.
 
 ```{r}
 #| label: aotizhongxin
 #| code-fold: false
-#| fig-cap: "Projection of standardised temperature and pressure from Aotizhongxin onto one dimension. The blue line shows the projection direction. Five randomly selected observations (in orange) are shown projecting onto the line, with the resulting scores shown as blue dots."
 az_aq <- air_quality |>
   filter(station == "Aotizhongxin", year == 2014, month == 5) |>
   select(temperature, pressure, dew_point, wind_speed, rainfall) |>
@@ -28,9 +31,9 @@ az_aq <- air_quality |>
 
 The simplest case maps two variables to a single number. A projection onto a vector $\bm{a} = (a_1, a_2)^\intercal$ gives a score
 $$
-w_i = \bm{a}^\intercal \bm{y}_i = a_1 y_{i,1} + a_2 y_{i,2}.
+w_i = \bm{a}^\intercal \bm{y}_i = a_1 y_{i,1} + a_2 y_{i,2}
 $$
-for each observation, where $\bm{a}$ is a unit vector (i.e., $\|\bm{a}\| = a_1^2 + a_2^2 = 1$). The projection is a linear transformation that maps the 2D data cloud onto the line spanned by $\bm{a}$, with $w_i$ giving the position of the projected point along that line.
+for each observation, where $\bm{a}$ is a unit vector (i.e., $\|\bm{a}\| = \sqrt{a_1^2 + a_2^2} = 1$). The projection is a linear transformation that maps the 2D data cloud onto the line spanned by $\bm{a}$, with $w_i$ giving the position of the projected point along that line.
 
 @fig-proj-geometry shows an example using $\bm{a} = (-0.8, 0.6)^\intercal$ applied to the standardised temperature and pressure measurements at Aotizhongxin. The blue line is the projection direction. The five orange points are randomly selected observations, showing how they project onto the line. The resulting scores are the blue dots on the line.
 
@@ -82,18 +85,30 @@ where $\bm{\Sigma}$ is the covariance matrix of the data $\bm{y}$. The variance 
 
 ### Projecting from 3 to 2 dimensions
 
-A projection from $p = 3$ variables onto a 2-dimensional subspace is defined by two orthonormal vectors $\bm{a}_1, \bm{a}_2 \in \mathbb{R}^3$, assembled as columns of a $3 \times 2$ matrix
-$$
-\bm{A} = \begin{bmatrix} \bm{a}_1 & \bm{a}_2 \end{bmatrix},
-\quad \bm{A}^\intercal \bm{A} = \bm{I}_2.
-$$
-The 2-dimensional projection of $\bm{y}_i$ is
-$$
-\bm{z}_i = \bm{A}^\intercal \bm{y}_i = \begin{pmatrix} \bm{a}_1^\intercal \bm{y}_i \\ \bm{a}_2^\intercal \bm{y}_i \end{pmatrix} \in \mathbb{R}^2.
-$$
-Each component is a 1D projection as before; the two scores together provide a coordinate system for the projected subspace. The residual $\bm{y}_i - \bm{A}\bm{A}^\intercal\bm{y}_i$ is the part of $\bm{y}_i$ not captured by the projection, and is orthogonal to both $\bm{a}_1$ and $\bm{a}_2$.
+@fig-aq3d shows the standardised temperature, pressure and dew point measurements at Aotizhongxin in a 3D scatterplot. What you see on the screen is a 2D projection of the 3D data. Think of a light source directly behind the screen, casting shadows of the data points onto the screen. The projection direction is perpendicular to the screen, so you are seeing the data from that perspective. As you rotate the plot, you are changing the projection direction, which gives different perspectives on the joint structure. 
 
-Adding dew point as a third variable introduces further structure. Dew point (the temperature at which the air becomes saturated with water vapour) is strongly positively correlated with temperature ($\hat\rho = 0.82$) and moderately negatively correlated with pressure ($\hat\rho = -0.78$). @fig-proj-pairs3 shows all three pairwise relationships.
+::: {#fig-aq3d}
+
+::: {.figure-content}
+
+```{r}
+#| webgl: true
+#| code-fold: true
+#| cache: false
+rgl::plot3d(
+  az_aq[, c("temperature", "pressure", "dew_point")],
+  size = 4, alpha = 0.3
+)
+```
+
+:::
+
+Interactive 3D scatterplot of the temperature, pressure and dew point at Aotizhongxin.
+
+:::
+
+A pairwise scatterplot matrix, such as that shown in @fig-proj-pairs3, shows three different 2D projections of the 3D data. Each panel is a projection onto the plane spanned by the two variables shown on the axes. 
+
 
 ```{r}
 #| label: fig-proj-pairs3
@@ -107,15 +122,19 @@ az_aq |>
   GGally::ggpairs()
 ```
 
-The strong mutual correlations indicate that the three variables share a nearly two-dimensional structure: despite being measured in three dimensions, the observations lie close to a plane. Two orthonormal directions spanning that plane can represent most of the joint variation in a 2D scatter. How to choose those directions is the subject of the next section.
+A projection from $p = 3$ variables onto a 2-dimensional subspace is defined by a $3 \times 2$ matrix $\bm{A}$ where $\bm{A}^\intercal\bm{A} = \bm{I}_2$. In other words, the columns of $\bm{A}$ are "orthonormal": each column is a unit vector, and all columns are mutually orthogonal (i.e., $\bm{a}_i^\intercal\bm{a}_j = 0$ for any two distinct columns $i$ and $j$). The columns of $\bm{A}$ define the projection directions.
+
+The 2-dimensional projection of $\bm{y}_i$ is
+$$
+\bm{w}_i = \bm{A}^\intercal \bm{y}_i 
+$$
 
 ### General projections
 
 In the general case, a projection from $p$ dimensions to $k$ dimensions uses a $p \times k$ matrix $\bm{A}$ with orthonormal columns, $\bm{A}^\intercal\bm{A} = \bm{I}_k$. Writing the $n \times p$ data matrix as $\bm{Y}$, the projected scores form the $n \times k$ matrix
 $$
-\bm{Z} = \bm{Y}\bm{A}.
+\bm{W} = \bm{Y}\bm{A}.
 $$
-The total variance of the projected scores is $\text{tr}(\bm{A}^\intercal\widehat{\bm{\Sigma}}\bm{A})$. For the temperature-pressure-dew point example, two well-chosen directions can capture nearly all the joint variation; adding less-correlated variables requires more directions for a similar degree of fidelity.
 
 The Aotizhongxin station records five meteorological variables: temperature, pressure, dew point, wind speed, and rainfall. @fig-proj-all shows the pairwise relationships among all five.
 
@@ -129,9 +148,46 @@ az_aq |>
   GGally::ggpairs()
 ```
 
-Wind speed and rainfall are largely uncorrelated with the temperature-pressure-dew point group, so the five variables span a more complex joint distribution than the three-variable case. A single 2D projection cannot capture all the variation, and the next section discusses how to choose $\bm{A}$ to best summarise the data.
+```{r}
+#| label: 5dto2d
+#| include: false
+A <- prcomp(az_aq, center = FALSE, scale = FALSE, rank = 2)$rotation |>
+  round(2)
+A <- dobin::dobin(az_aq)$rotation[,1:2] |>
+  round(2)
+colnames(A) <- c("a1", "a2")
+```
+
+We can project these five variables onto a 2-dimensional subspace defined by a $5 \times 2$ matrix $\bm{A}$ with orthonormal columns. The resulting 2D projection will capture some aspects of the joint structure, but not all. For example, suppose we choose the following projection matrix $\bm{A}$:
+
+```{r}
+#| label: 5dto2dA
+#| code-fold: false
+A
+```
+
+Then the resulting 2D projection is shown in @fig-proj-5dto2d. 
+
+```{r}
+#| label: fig-proj-5dto2d
+#| code-fold: true
+#| fig-cap: "Projection of the five standardised meteorological variables at Aotizhongxin onto a 2-dimensional subspace."
+as.matrix(az_aq) %*% A |>
+  as_tibble() |>
+  ggplot(aes(x = a1, y = a2)) +
+  geom_point(alpha = 0.2) +
+  labs(x = "w1", y = "w2")
+```
+
+A few observations in this projection appear to be anomalies, but we may also have missed some anomalies that are only visible in other projections. This illustrates the challenge of anomaly detection in high dimensions: we may not know which projection will reveal the anomalies, and there are infinitely many projections to choose from.
+
+For an excellent introduction to interactively exploring all possible projections, see @mulgar.
 
 ## Principal component analysis {#sec-pca}
+
+By far the most common projection method is **principal component analysis (PCA)**, which finds the projection directions that capture the most variance in the data. The first principal component is the direction of maximum variance, the second is the direction of maximum variance orthogonal to the first, and so on. 
+
+
 
 ## Multi-dimensional scaling
 
