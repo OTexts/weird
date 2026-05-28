@@ -16,15 +16,17 @@ The curse of dimensionality (@sec-curse) makes it difficult to detect anomalies 
 
 The simplest way to reduce the dimensionality of the data is to use **linear projections**: linear combinations of the original variables that map each $p$-dimensional observation to a lower-dimensional space. Different projection directions preserve different aspects of the joint structure, so the choice of direction matters. Understanding the geometry of projections sets the foundation for the methods described in the rest of this chapter.
 
-To keep the geometry simple, we will scale all variables to have mean zero and unit variance, although to preserve interpretability, no rotation will be applied. The ideas are illustrated using meteorological variables measured hourly at the Aotizhongxin monitoring station (at the Olympic Sports Centre) in Beijing, over May 2014.
+To keep the geometry simple, we will scale all variables to have mean zero and unit variance, although to preserve interpretability, no rotation will be applied. The ideas are illustrated using air quality and meteorological variables measured hourly at the Aotizhongxin monitoring station (at the Olympic Sports Centre) in Beijing, over May 2014.
 
 ```{r}
 #| label: aotizhongxin
 #| code-fold: false
 az_aq <- air_quality |>
   filter(station == "Aotizhongxin", year == 2014, month == 5) |>
-  select(temperature, pressure, dew_point, wind_speed, rainfall) |>
-  mvscale(center = mean, scale = sd, cov = NULL)
+  select(pm2_5:rainfall, wind_speed) |>
+  mvscale(center = mean, scale = sd, cov = NULL) |>
+  tidyr::drop_na()
+az_aq
 ```
 
 ### Projecting from 2 to 1 dimension
@@ -85,7 +87,7 @@ where $\bm{\Sigma}$ is the covariance matrix of the data $\bm{y}$. The variance 
 
 ### Projecting from 3 to 2 dimensions
 
-@fig-aq3d shows the standardised temperature, pressure and dew point measurements at Aotizhongxin in a 3D scatterplot. What you see on the screen is a 2D projection of the 3D data. Think of a light source directly behind the screen, casting shadows of the data points onto the screen. The projection direction is perpendicular to the screen, so you are seeing the data from that perspective. As you rotate the plot, you are changing the projection direction, which gives different perspectives on the joint structure. 
+@fig-aq3d shows the standardised temperature, pressure and dew point measurements at Aotizhongxin in a 3D scatterplot. What you see on the screen is a 2D projection of the 3D data. Think of a light source directly behind the screen, casting shadows of the data points onto the screen. The projection direction is perpendicular to the screen, so you are seeing the data from that perspective. As you rotate the plot, you are changing the projection direction, which gives different perspectives on the joint structure.
 
 ::: {#fig-aq3d}
 
@@ -97,7 +99,8 @@ where $\bm{\Sigma}$ is the covariance matrix of the data $\bm{y}$. The variance 
 #| cache: false
 rgl::plot3d(
   az_aq[, c("temperature", "pressure", "dew_point")],
-  size = 4, alpha = 0.3
+  size = 4,
+  alpha = 0.3
 )
 ```
 
@@ -107,7 +110,7 @@ Interactive 3D scatterplot of the temperature, pressure and dew point at Aotizho
 
 :::
 
-A pairwise scatterplot matrix, such as that shown in @fig-proj-pairs3, shows three different 2D projections of the 3D data. Each panel is a projection onto the plane spanned by the two variables shown on the axes. 
+A pairwise scatterplot matrix, such as that shown in @fig-proj-pairs3, shows three different 2D projections of the 3D data. Each panel is the projection you would see if you were facing the above cube perpendicular to the face not shown in the plot.
 
 
 ```{r}
@@ -122,11 +125,9 @@ az_aq |>
   GGally::ggpairs()
 ```
 
-A projection from $p = 3$ variables onto a 2-dimensional subspace is defined by a $3 \times 2$ matrix $\bm{A}$ where $\bm{A}^\intercal\bm{A} = \bm{I}_2$. In other words, the columns of $\bm{A}$ are "orthonormal": each column is a unit vector, and all columns are mutually orthogonal (i.e., $\bm{a}_i^\intercal\bm{a}_j = 0$ for any two distinct columns $i$ and $j$). The columns of $\bm{A}$ define the projection directions.
-
-The 2-dimensional projection of $\bm{y}_i$ is
+A projection from $p = 3$ variables onto a 2-dimensional subspace is defined by a $3 \times 2$ matrix $\bm{A}$ where $\bm{A}^\intercal\bm{A} = \bm{I}_2$. In other words, the columns of $\bm{A}$ are "orthonormal": each column is a unit vector, and all columns are mutually orthogonal (i.e., $\bm{a}_i^\intercal\bm{a}_j = 0$ for any two distinct columns $i$ and $j$). The columns of $\bm{A}$ define the projection directions. The projection of $\bm{y}_i$ is
 $$
-\bm{w}_i = \bm{A}^\intercal \bm{y}_i 
+\bm{w}_i = \bm{A}^\intercal \bm{y}_i.
 $$
 
 ### General projections
@@ -136,48 +137,40 @@ $$
 \bm{W} = \bm{Y}\bm{A}.
 $$
 
-The Aotizhongxin station records five meteorological variables: temperature, pressure, dew point, wind speed, and rainfall. @fig-proj-all shows the pairwise relationships among all five.
-
-```{r}
-#| label: fig-proj-all
-#| code-fold: false
-#| dependson: aotizhongxin
-#| fig-cap: "Pairwise scatterplots and correlations for five standardised meteorological variables at Aotizhongxin. Wind speed and rainfall are largely uncorrelated with the temperature-pressure-dew point group, so the five variables span a more complex joint distribution than the three-variable case."
-az_aq |>
-  select(temperature, pressure, dew_point, wind_speed, rainfall) |>
-  GGally::ggpairs()
-```
+The Aotizhongxin station data `az_aq` contains `r english::words(NCOL(az_aq))` variables. We can project this `r NCOL(az_aq)`-dimensional space onto a 2-dimensional subspace defined by a $`r NCOL(az_aq)` \times 2$ matrix $\bm{A}$ with orthonormal columns. The resulting 2D projection will capture some aspects of the joint structure, but not all. For example, suppose we choose the following projection matrix $\bm{A}$:
 
 ```{r}
 #| label: 5dto2d
 #| include: false
-A <- prcomp(az_aq, center = FALSE, scale = FALSE, rank = 2)$rotation |>
-  round(2)
-A <- dobin::dobin(az_aq)$rotation[,1:2] |>
-  round(2)
+#A <- prcomp(az_aq)$rotation[, 1:2] %*%
+#  -matrix(c(1, 0, 0, 1), nrow = 2, ncol = 2) |>
+#  round(2)
+A <- dobin::dobin(az_aq)$rotation[, 1:2] |> round(2)
 colnames(A) <- c("a1", "a2")
 ```
-
-We can project these five variables onto a 2-dimensional subspace defined by a $5 \times 2$ matrix $\bm{A}$ with orthonormal columns. The resulting 2D projection will capture some aspects of the joint structure, but not all. For example, suppose we choose the following projection matrix $\bm{A}$:
 
 ```{r}
 #| label: 5dto2dA
 #| code-fold: false
+#| dependson: 5dto2d
 A
 ```
 
-Then the resulting 2D projection is shown in @fig-proj-5dto2d. 
+Then the resulting 2D projection is shown in @fig-proj-5dto2d.
 
 ```{r}
 #| label: fig-proj-5dto2d
 #| code-fold: true
 #| fig-cap: "Projection of the five standardised meteorological variables at Aotizhongxin onto a 2-dimensional subspace."
-as.matrix(az_aq) %*% A |>
-  as_tibble() |>
+#| dependson: 5dto2d
+W <- as.matrix(az_aq) %*% A
+as_tibble(W) |>
   ggplot(aes(x = a1, y = a2)) +
   geom_point(alpha = 0.2) +
   labs(x = "w1", y = "w2")
 ```
+
+This is a 2D shadow of the original 11D data cloud. Each point in the plot corresponds to an 11D observation, and the axes correspond to the two projection directions defined by the columns of $\bm{A}$.
 
 A few observations in this projection appear to be anomalies, but we may also have missed some anomalies that are only visible in other projections. This illustrates the challenge of anomaly detection in high dimensions: we may not know which projection will reveal the anomalies, and there are infinitely many projections to choose from.
 
@@ -185,7 +178,50 @@ For an excellent introduction to interactively exploring all possible projection
 
 ## Principal component analysis {#sec-pca}
 
-By far the most common projection method is **principal component analysis (PCA)**, which finds the projection directions that capture the most variance in the data. The first principal component is the direction of maximum variance, the second is the direction of maximum variance orthogonal to the first, and so on. 
+By far the most common projection method is **principal component analysis (PCA)**, which finds the projection directions that capture the most variance in the data. The first principal component is the direction of maximum variance, the second is the direction of maximum variance orthogonal to the first, and so on. Then the lower dimensional projection will contain as much of the variation of the original data as possible, given the number of dimensions in the projection.
+
+Let $\bm{Y}$ denote the $n\times p$ data matrix, and let $\bm{\Sigma}$ be its $p\times p$ covariance matrix. The projection scores are given by $\bm{W} = \bm{Y}\bm{A}$, where $\bm{A}$ is a $p \times k$ matrix with orthonormal columns.
+
+For principal component projection, each column of $\bm{A}$ can be found sequentially by maximising the variance of the corresponding column of $\bm{W}$, subject to the orthonormality constraints. For example, the first column $\bm{a}_1$ is found by maximising $\text{Var}(\bm{W}_1) = \bm{a}_1^\intercal \bm{\Sigma} \bm{a}_1$ subject to $\|\bm{a}_1\| = 1$. The second column $\bm{a}_2$ is found by maximising $\text{Var}(\bm{W}_2) = \bm{a}_2^\intercal \bm{\Sigma} \bm{a}_2$ subject to $\|\bm{a}_2\| = 1$ and $\bm{a}_2^\intercal \bm{a}_1 = 0$, and so on.
+
+This solution is equivalent to finding the eigenvectors of $\bm{\Sigma}$, and the resulting projection scores are called the principal component scores. The first $k$ eigenvectors of $\bm{\Sigma}$ form the columns of $\bm{A}$, and the corresponding eigenvalues give the variance captured by each principal component.
+
+It is possible to calculate up to $k = \min(n, p)$ principal components, but in practice we often only use the first few that capture most of the variance. The proportion of variance in the original data that has been captured by the first $k$ principal components is given by the sum of the first $k$ eigenvalues divided by the sum of all eigenvalues.
+
+For the 11 air quality and meteorological variables from Aotizhongxin, the 11 principal components can be computed using `prcomp()` as follows.
+
+```{r}
+#| label: pca
+#| code-fold: false
+#| dependson: aotizhongxin
+pca_res <- prcomp(az_aq, center = FALSE, scale = FALSE)
+pca_res$rotation
+```
+
+The total variance explained can also computed from the `prcomp()` output.
+
+```{r}
+#| label: pca-var
+#| code-fold: false
+#| dependson: pca
+pca_res$sdev^2 / sum(pca_res$sdev^2)
+```
+
+So the first three principal components capture about `r round(100*sum((pca_res$sdev^2 / sum(pca_res$sdev^2))[1:3]))`% of the variance in the data.
+
+### Robust principal components
+
+Anomalies are obviously going to affect the principal components, since they will affect the variance structure of the data. In some cases, the anomalies may be so extreme that they dominate the variance and cause the principal components to point in a direction that does not capture the main body of the data. This is another example of "masking", because the anomalies are masked by the influence they have on the principal components.
+
+There are several approaches to "robustifying" PCA, such as computing the eigenvectors of a robust covariance matrix, or using a different objective function that is less sensitive to outliers.
+
+Suppose we used the robust covariance matrix computed by `robustbase::covOGK()` instead of the sample covariance matrix.
+
+```{r}
+#| eval: false
+Sigma <- as.matrix(az_aq)[, 1:4] |> robustbase::covOGK(sigmamu = robustbase::s_Qn)
+robust_pca <- eigen(Sigma$cov)
+```
 
 
 
@@ -245,5 +281,12 @@ of_scores |>
 ## DOBIN
 
 @Kandanaarachchi2020-lo
+
+```{r}
+#| label: fig-dobin
+#| echo: false
+dobin_scores <- dobin::dobin(az_aq)
+```
+
 
 ## Comparisons using the O3 plot
