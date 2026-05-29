@@ -140,29 +140,30 @@ $$
 The Aotizhongxin station data `az_aq` contains `r english::words(NCOL(az_aq))` variables. We can project this `r NCOL(az_aq)`-dimensional space onto a 2-dimensional subspace defined by a $`r NCOL(az_aq)` \times 2$ matrix $\bm{A}$ with orthonormal columns. The resulting 2D projection will capture some aspects of the joint structure, but not all. For example, suppose we choose the following projection matrix $\bm{A}$:
 
 ```{r}
-#| label: 5dto2d
+#| label: 11dto2d
 #| include: false
 #A <- prcomp(az_aq)$rotation[, 1:2] %*%
 #  -matrix(c(1, 0, 0, 1), nrow = 2, ncol = 2) |>
 #  round(2)
 A <- dobin::dobin(az_aq)$rotation[, 1:2] |> round(2)
 colnames(A) <- c("a1", "a2")
+rownames(A) <- colnames(az_aq)
 ```
 
 ```{r}
-#| label: 5dto2dA
+#| label: 11dto2dA
 #| code-fold: false
-#| dependson: 5dto2d
+#| dependson: 11dto2d
 A
 ```
 
-Then the resulting 2D projection is shown in @fig-proj-5dto2d.
+Then the resulting 2D projection is shown in @fig-proj-11dto2d.
 
 ```{r}
-#| label: fig-proj-5dto2d
+#| label: fig-proj-11dto2d
 #| code-fold: true
-#| fig-cap: "Projection of the five standardised meteorological variables at Aotizhongxin onto a 2-dimensional subspace."
-#| dependson: 5dto2d
+#| fig-cap: "Projection of the 11 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace."
+#| dependson: 11dto2d
 W <- as.matrix(az_aq) %*% A
 as_tibble(W) |>
   ggplot(aes(x = a1, y = a2)) +
@@ -180,7 +181,7 @@ For an excellent introduction to interactively exploring all possible projection
 
 By far the most common projection method is **principal component analysis (PCA)**, which finds the projection directions that capture the most variance in the data. The first principal component is the direction of maximum variance, the second is the direction of maximum variance orthogonal to the first, and so on. Then the lower dimensional projection will contain as much of the variation of the original data as possible, given the number of dimensions in the projection.
 
-Let $\bm{Y}$ denote the $n\times p$ data matrix, and let $\bm{\Sigma}$ be its $p\times p$ covariance matrix. The projection scores are given by $\bm{W} = \bm{Y}\bm{A}$, where $\bm{A}$ is a $p \times k$ matrix with orthonormal columns.
+As in the previous section, let $\bm{Y}$ denote the $n\times p$ data matrix, and let $\bm{\Sigma}$ be its $p\times p$ covariance matrix. The projection scores are given by $\bm{W} = \bm{Y}\bm{A}$, where $\bm{A}$ is a $p \times k$ matrix with orthonormal columns.
 
 For principal component projection, each column of $\bm{A}$ can be found sequentially by maximising the variance of the corresponding column of $\bm{W}$, subject to the orthonormality constraints. For example, the first column $\bm{a}_1$ is found by maximising $\text{Var}(\bm{W}_1) = \bm{a}_1^\intercal \bm{\Sigma} \bm{a}_1$ subject to $\|\bm{a}_1\| = 1$. The second column $\bm{a}_2$ is found by maximising $\text{Var}(\bm{W}_2) = \bm{a}_2^\intercal \bm{\Sigma} \bm{a}_2$ subject to $\|\bm{a}_2\| = 1$ and $\bm{a}_2^\intercal \bm{a}_1 = 0$, and so on.
 
@@ -204,10 +205,36 @@ The total variance explained can also computed from the `prcomp()` output.
 #| label: pca-var
 #| code-fold: false
 #| dependson: pca
-pca_res$sdev^2 / sum(pca_res$sdev^2)
+100 * pca_res$sdev^2 / sum(pca_res$sdev^2)
 ```
 
-So the first three principal components capture about `r round(100*sum((pca_res$sdev^2 / sum(pca_res$sdev^2))[1:3]))`% of the variance in the data.
+```{r}
+#| label: pca-cumvar
+#| echo: false
+#| dependson: pca
+var_explained <- 100 * pca_res$sdev^2 / sum(pca_res$sdev^2)
+cum_var_explained <- round(cumsum(var_explained))
+var_explained <- round(var_explained)
+```
+
+So the first three principal components capture about `r var_explained[1]` + `r var_explained[2]` + `r var_explained[3]` = `r cum_var_explained[3]`% of the variance in the data.
+
+Using only the first two principal components gives the scores shown in @fig-pca-2d.
+
+::: {#fig-pca-2d}
+
+```{r}
+#| code-fold: true
+pca_res$x[, 1:2] |>
+  ggplot(aes(x = PC1, y = PC2)) +
+  geom_point(alpha = 0.2)
+```
+
+Two-dimensional principal components projections of the 11D air quality and meterological data from Aotizhongxin. The first two principal components capture about `r cum_var_explained[2]`% of the variance in the data.
+
+:::
+
+Here the anomalies are much less obvious than in @fig-proj-11dto2d
 
 ### Robust principal components
 
@@ -215,14 +242,21 @@ Anomalies are obviously going to affect the principal components, since they wil
 
 There are several approaches to "robustifying" PCA, such as computing the eigenvectors of a robust covariance matrix, or using a different objective function that is less sensitive to outliers.
 
-Suppose we used the robust covariance matrix computed by `robustbase::covOGK()` instead of the sample covariance matrix.
+Suppose we used the robust covariance matrix computed by `robustbase::covMCD()` instead of the sample covariance matrix.
 
 ```{r}
-#| eval: false
-Sigma <- as.matrix(az_aq)[, 1:4] |> robustbase::covOGK(sigmamu = robustbase::s_Qn)
+#| label: robust-pca
+#| warning: false
+Sigma <- as.matrix(az_aq) |> robustbase::covMcd(alpha = 0.9)
 robust_pca <- eigen(Sigma$cov)
+(as.matrix(az_aq) %*% robust_pca$vectors[, 1:2]) |>
+  as_tibble() |>
+  ggplot(aes(x = V1, y = V2)) +
+  geom_point(alpha = 0.2) +
+  labs(x = "Robust PC1", y = "Robust PC2")
 ```
 
+This has made almost no difference to the resulting
 
 
 ## Multi-dimensional scaling
