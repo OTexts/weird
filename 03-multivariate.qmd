@@ -321,39 +321,16 @@ The sample covariance matrix is a useful measure of the spread of a multivariate
 $$
 \bm{S} = \frac{1}{n-1} \sum_{i=1}^n (\bm{y}_i - \bar{\bm{y}})(\bm{y}_i - \bar{\bm{y}})^\intercal,
 $$ {#eq-cov}
-However, it is sensitive to outliers, and so is not suitable for our purposes. There have been many robust estimators of covariance proposed in the literature, but we will discuss only one, relatively simple, estimator known as the "orthogonalised Gnanadesikan/Kettenring" (OGK) estimator [@GK72;@MZ02].
+However, it is sensitive to anomalies, and so is not suitable for our purposes.
 
-Suppose we have two random variables $X$ and $Y$. Then the variance of their sum and difference is given by
-\begin{align*}
-  \text{Var}(X+Y) &= \text{Var}(X) + \text{Var}(Y) + 2\text{Cov}(X, Y) \\
-  \text{Var}(X-Y) &= \text{Var}(X) + \text{Var}(Y) - 2\text{Cov}(X, Y).
-\end{align*}
-The difference between these two expressions is
-$$
-  \text{Var}(X+Y) - \text{Var}(X-Y) = 4\text{Cov}(X,Y),
-$$
-so that the covariance can be expressed as
-$$
-\text{Cov}(X,Y) = \frac{1}{4} \left[ \text{Var}(X+Y) - \text{Var}(X-Y)\right].
-$$
-Now we can use a robust estimate of variance, such as the one based on $Q_n$ (@sec-robust-univariate), to estimate the two variances on the right-hand side, giving
-$$
-\hat{s}(X,Y) = \frac{1}{4} \left[ s_{\text{Qn}}^2(X+Y) - s_{\text{Qn}}^2(X-Y)\right].
-$$
-We can repeat this for each pair of variables, to obtain a robust estimate of the covariance matrix, $\bm{S}^*$. The diagonals can be obtained using the same robust measure of variance. This is known as the Gnanadesikan-Kettenring estimator. The resulting matrix is symmetric, but not necessarily positive definite, which is a requirement of a covariance matrix. So some additional iterative steps are applied to "orthogonalise" it.
+There have been many robust estimators of covariance proposed in the literature, but we will discuss only one, known as the "Minimum Covariance Determinant" (MCD) estimator [@Rousseeuw2003-ip;@fastmcd], which is implemented in the `covMcd()` function in the `robustbase` package [@robustbase]. This estimator finds a subset of $n_\alpha$ observations (where $n_\alpha > n/2$) that has the smallest determinant of the covariance matrix, and then uses these observations to compute a robust estimate of the covariance matrix. The idea is that the subset of observations with the smallest covariance determinant is likely to be a subset of "good" observations, and so the resulting covariance matrix will be robust to anomalies.
 
-1. Compute the eigenvector decomposition of $\bm{S}^*$, so that $\bm{S}^* = \bm{Q}\bm{\Lambda}\bm{Q}^{-1}$.
-2. Project the data onto the basis eigenvectors.
-3. Estimate the variances (robustly) in the coordinate directions.
-4. Then the robust covariance matrix is given by
-  $$
-    \bm{S}_{\text{OGK}} = \bm{Q}\bm{\Lambda}^*\bm{Q}^{-1},
-  $$ {#eq-ogk}
-  where $\bm{\Lambda}^*$ is a diagonal matrix with the robust variances on the diagonal.
+Specifically,
+$$\bm{S}_{\text{MCD}} = \frac{1}{n_\alpha} \sum_{i \in H} (\bm{y}_i - \bar{\bm{y}})(\bm{y}_i - \bar{\bm{y}})^\intercal,
+$$ {#eq-mcd}
+where $H$ is the subset of $n_\alpha$ observations that has the smallest covariance determinant. The value of $n_\alpha$ is approximately $\alpha n$, where $\alpha$ is the targetted proportion of observations to use in the subset. We will use $\alpha = 0.9$ (allowing up to 10% anomalies).
 
-These orthogonalisation steps are usually repeated one more time.
-
-This procedure is implemented in the `covOGK` function in the `robustbase` package [@robustbase].
+The `covMcd()` function will return this covariance matrix, along with some other information, using a default value of $\alpha = 0.5$.
 
 ## Multivariate scaling {#sec-scaling}
 
@@ -381,7 +358,7 @@ Suppose each observation is a vector $\bm{y}_i$, coming from a distribution with
 
 ### Robust multivariate z-scores
 
-When there may be anomalies in the data set, we can replace the mean by the pointwise median (i.e., the vector of medians for each variable), and estimate $\bm{\Sigma}$ using the robust covariance matrix $\bm{S}_{\text{OGK}}$ (@eq-ogk). The `mvscale()` function in the `weird` package will do this for us, by default.
+When there may be anomalies in the data set, we can replace the mean by the pointwise median (i.e., the vector of medians for each variable), and estimate $\bm{\Sigma}$ using the robust covariance matrix $\bm{S}_{\text{MCD}}$ (@eq-mcd). The `mvscale()` function in the `weird` package will do this for us, by default.
 
 Let's consider the `oldfaithful` data again, where durations are much longer than waiting times. @fig-scaling shows the data before and after scaling. The scaling has rotated the data a little, and the variables are now less correlated, and centred on zero. The right plot still appears to show some positive relationship between the variables, because the covariance matrix used for scaling was computed robustly, and so was largely based on the upper cluster of points.
 
@@ -733,13 +710,13 @@ $$
 $$ {#eq-gaussianH}
 Notice that in the univariate case, when $m=1$, this rule gives the same bandwidth as the rule of thumb given by @eq-nrr (where $h = \sqrt{H}$). This is what is calculated by `kde_bandwidth()` when `method = "normal"`, where $\bm{\Sigma}$ is estimated using the sample covariance matrix @eq-cov.
 
-Replacing $\bm{\Sigma}$ by the robust covariance matrix $\bm{S}_{\text{OGK}}$ (@eq-ogk), we obtain a robust normal reference rule, calculated by `kde_bandwidth()` when `method = "robust"` (the default setting). @fig-ofbivariate2 shows a bivariate kernel density estimate computed using this approach.
+Replacing $\bm{\Sigma}$ by the robust covariance matrix $\bm{S}_{\text{MCD}}$ (@eq-mcd), we obtain a robust normal reference rule, calculated by `kde_bandwidth()` when `method = "robust"` (the default setting). @fig-ofbivariate2 shows a bivariate kernel density estimate computed using this approach.
 
 A generalisation of the univariate plug-in bandwidth [@sec-kde] is the "plug-in" estimator of @chacon2018multivariate, calculated by `kde_bandwidth()` when `method = "plugin"`. While this typically leads to better estimates of the density as a whole, it can lead to worse estimates in the tails of the distribution where anomalies tend to lie.
 
-An alternative approach to finding the bandwidth matrix uses ideas from clustering (@sec-clustering). First, we compute robust multivariate z-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \bm{m})$, $i=1,\dots,n$, where $\bm{m}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}$ is the Cholesky decomposition of $\bm{S}_{\text{OGK}}^{-1}$. Then we find the merge distances of the clusters obtained from the z-scores: $\{d_1,\dots,d_{n-1}\}$. Finally, we can set
+An alternative approach to finding the bandwidth matrix uses ideas from clustering (@sec-clustering). First, we compute robust multivariate z-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \bm{m})$, $i=1,\dots,n$, where $\bm{m}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}$ is the Cholesky decomposition of $\bm{S}_{\text{MCD}}^{-1}$. Then we find the merge distances of the clusters obtained from the z-scores: $\{d_1,\dots,d_{n-1}\}$. Finally, we can set
 $$
-  \bm{H} = d_\gamma\bm{S}_{\text{OGK}}
+  \bm{H} = d_\gamma\bm{S}_{\text{MCD}}
 $$ {#eq-lookoutH}
 where $d_\gamma$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_{n-1}\}$ for a large value of $\gamma$. @lookout2 showed that this leads to a consistent density estimate, with good properties for anomaly detection, when $\gamma = 0.98$. We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-kdesurprisals. The `kde_bandwidth()` function will return this bandwidth when `method = "lookout"`. For univariate data, $h = d_\gamma s_{\text{Qn}}$.
 

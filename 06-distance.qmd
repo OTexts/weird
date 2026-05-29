@@ -71,11 +71,11 @@ We define the scaled observations as the robust multivariate z-scores, given by
 $$
   \bm{z}_i = \bm{U}(\bm{y}_i - \bm{m}),
 $$
-where $\bm{m}$ is the pointwise median and $\bm{U}^\intercal\bm{U} = \bm{S}_{\text{OGK}}^{-1}$ is the Cholesky decomposition of the inverse of the robust OGK covariance matrix (@sec-robust-cov). Then the Euclidean distance between the scaled observations $\bm{z}_i$ and $\bm{z}_j$ is given by
+where $\bm{m}$ is the pointwise median and $\bm{U}^\intercal\bm{U} = \bm{S}_{\text{MCD}}^{-1}$ is the Cholesky decomposition of the inverse of the robust MCD covariance matrix (@sec-robust-cov). Then the Euclidean distance between the scaled observations $\bm{z}_i$ and $\bm{z}_j$ is given by
 $$
   \|\bm{z}_i - \bm{z}_j\|_2 =
    \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{U}^\intercal\bm{U} (\bm{y}_i - \bm{y}_j)} =
-   \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{S}_{\text{OGK}}^{-1} (\bm{y}_i - \bm{y}_j)}.
+   \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{S}_{\text{MCD}}^{-1} (\bm{y}_i - \bm{y}_j)}.
 $$
 This combination of first scaling using a covariance matrix (or its estimate) and then computing a Euclidean distance, is known as the **Mahalanobis distance**, named after the Indian statistician Prasanta Chandra Mahalanobis. It is a multivariate generalisation of the number of standard deviations separating two observations, and accounts for both the different scales of the variables and the correlations between them.
 
@@ -96,7 +96,7 @@ head(z, 5) |>
 
 Rather than compute distances between observations, we can compute the distance of each observation from the centre of the data. For example, if we define the centre as the pointwise median, then Mahalanobis distance from the centre can be expressed as
 $$
-  d_i  =  \|\bm{z}_i\|_2 = \sqrt{(\bm{y}_i - \bm{m})^\intercal \bm{S}_{\text{OGK}}^{-1} (\bm{y}_i - \bm{m})}.
+  d_i  =  \|\bm{z}_i\|_2 = \sqrt{(\bm{y}_i - \bm{m})^\intercal \bm{S}_{\text{MCD}}^{-1} (\bm{y}_i - \bm{m})}.
 $$
 That is, it is equivalent to the Euclidean distance of the scaled observation $\bm{z}_i$ from the origin. A large $d_i$ means the observation is far from the centre of the data and is potentially anomalous.
 
@@ -161,7 +161,7 @@ At each step the algorithm only needs to compare $n$ distances against a single 
 
 ### Example: Dongsi air quality data
 
-We apply `robustX::BACON()` to the Dongsi air quality data. Because the Mahalanobis distance is used in the algorithm, there is no need to scale the data first. (The robust OGK covariance estimate we have been using is different from the standard covariance estimate used by BACON, but it shouldn't make much difference on a data set without outliers.) The default initialisation strategy is used, which selects the $s = cm = 4 \times 2 = 8$ observations with the smallest Mahalanobis distances from the full-data mean and covariance.
+We apply `robustX::BACON()` to the Dongsi air quality data. Because the Mahalanobis distance is used in the algorithm, there is no need to scale the data first. (The robust MCD covariance estimate we have been using is different from the standard covariance estimate used by BACON, but it shouldn't make much difference on a data set without outliers.) The default initialisation strategy is used, which selects the $s = cm = 4 \times 2 = 8$ observations with the smallest Mahalanobis distances from the full-data mean and covariance.
 
 ```{r}
 #| label: bacon-of

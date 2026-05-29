@@ -105,7 +105,7 @@
       "License": "GPL (>= 2)",
       "Author": "Eduardo L. T. Conceicao [aut, cre], Martin Maechler [ctb] (ORCID: <https://orcid.org/0000-0002-8685-9910>)",
       "Maintainer": "Eduardo L. T. Conceicao <mail@eduardoconceicao.org>",
-      "Repository": "binary",
+      "Repository": "RSPM",
       "Repository/R-Forge/Project": "robustbase",
       "Repository/R-Forge/Revision": "1009",
       "Repository/R-Forge/DateTimeStamp": "2025-07-27 18:16:52",
@@ -312,7 +312,7 @@
       "NeedsCompilation": "no",
       "Author": "Barret Schloerke [aut, cre] (ORCID: <https://orcid.org/0000-0001-9986-114X>), Di Cook [aut, ths] (ORCID: <https://orcid.org/0000-0002-3813-7155>), Joseph Larmarange [aut] (ORCID: <https://orcid.org/0000-0001-7097-700X>), Francois Briatte [aut], Moritz Marbach [aut], Edwin Thoen [aut], Amos Elberg [aut], Ott Toomet [ctb], Jason Crowley [aut], Heike Hofmann [ths] (ORCID: <https://orcid.org/0000-0001-6216-5183>), Hadley Wickham [ths] (ORCID: <https://orcid.org/0000-0003-4757-117X>)",
       "Maintainer": "Barret Schloerke <schloerke@gmail.com>",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "HMDHFDplus": {
       "Package": "HMDHFDplus",
@@ -351,7 +351,7 @@
       "NeedsCompilation": "no",
       "Author": "Tim Riffe [aut, cre], Carl Boe [aut], Jason Hilton [aut], Josh Goldstein [ctb], Stephen Holzman [ctb], Sam Hyun Yoo [ctb]",
       "Maintainer": "Tim Riffe <tim.riffe@gmail.com>",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "KernSmooth": {
       "Package": "KernSmooth",
@@ -376,8 +376,7 @@
       "NeedsCompilation": "yes",
       "Author": "Matt Wand [aut], Cleve Moler [ctb] (LINPACK routines in src/d*), Brian Ripley [trl, cre, ctb] (R port and updates)",
       "Maintainer": "Brian Ripley <Brian.Ripley@R-project.org>",
-      "Repository": "binary",
-      "Encoding": "UTF-8"
+      "Repository": "CRAN"
     },
     "MASS": {
       "Package": "MASS",
@@ -413,8 +412,7 @@
       "NeedsCompilation": "yes",
       "Author": "Brian Ripley [aut, cre, cph], Bill Venables [aut, cph], Douglas M. Bates [ctb], Kurt Hornik [trl] (partial port ca 1998), Albrecht Gebhardt [trl] (partial port ca 1998), David Firth [ctb] (support functions for polr)",
       "Maintainer": "Brian Ripley <Brian.Ripley@R-project.org>",
-      "Repository": "binary",
-      "Encoding": "UTF-8"
+      "Repository": "CRAN"
     },
     "Matrix": {
       "Package": "Matrix",
@@ -459,7 +457,7 @@
       "NeedsCompilation": "yes",
       "Author": "Douglas Bates [aut] (ORCID: <https://orcid.org/0000-0001-8316-9503>), Martin Maechler [aut, cre] (ORCID: <https://orcid.org/0000-0002-8685-9910>), Mikael Jagan [aut] (ORCID: <https://orcid.org/0000-0002-3542-2938>), Timothy A. Davis [ctb] (ORCID: <https://orcid.org/0000-0001-7614-6899>, SuiteSparse libraries, collaborators listed in dir(system.file(\"doc\", \"SuiteSparse\", package=\"Matrix\"), pattern=\"License\", full.names=TRUE, recursive=TRUE)), George Karypis [ctb] (ORCID: <https://orcid.org/0000-0003-2753-1437>, METIS library, Copyright: Regents of the University of Minnesota), Jason Riedy [ctb] (ORCID: <https://orcid.org/0000-0002-4345-4200>, GNU Octave's condest() and onenormest(), Copyright: Regents of the University of California), Jens Oehlschlägel [ctb] (initial nearPD()), R Core Team [ctb] (ROR: <https://ror.org/02zz1nj61>, base R's matrix implementation)",
       "Maintainer": "Martin Maechler <mmaechler+Matrix@gmail.com>",
-      "Repository": "binary"
+      "Repository": "CRAN"
     },
     "MatrixModels": {
       "Package": "MatrixModels",
@@ -489,7 +487,7 @@
       "NeedsCompilation": "no",
       "Author": "Douglas Bates [aut] (<https://orcid.org/0000-0001-8316-9503>), Martin Maechler [aut, cre] (<https://orcid.org/0000-0002-8685-9910>)",
       "Maintainer": "Martin Maechler <mmaechler+Matrix@gmail.com>",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "MortalityLaws": {
       "Package": "MortalityLaws",
@@ -683,7 +681,7 @@
       "NeedsCompilation": "yes",
       "Author": "Gregory Jefferis [aut, cre] (<https://orcid.org/0000-0002-0587-9355>), Samuel E. Kemp [aut], Kirill Müller [ctb] (<https://orcid.org/0000-0002-1416-3412>), Sunil Arya [aut, cph] (<https://orcid.org/0000-0003-0939-4192>), David Mount [aut, cph] (<https://orcid.org/0000-0002-3290-8932>), University of Maryland [cph] (ANN library is copyright University of Maryland and Sunil Arya and David Mount. See file COPYRIGHT for details)",
       "Maintainer": "Gregory Jefferis <jefferis@gmail.com>",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "RColorBrewer": {
       "Package": "RColorBrewer",
@@ -726,7 +724,7 @@
       "NeedsCompilation": "yes",
       "Author": "CRAN Team [ctb, cre] (de facto maintainer since 2013), Duncan Temple Lang [aut] (ORCID: <https://orcid.org/0000-0003-0159-1546>)",
       "Maintainer": "CRAN Team <CRAN@r-project.org>",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Encoding": "UTF-8"
     },
     "Rcpp": {
@@ -832,7 +830,7 @@
       "NeedsCompilation": "yes",
       "Author": "James Joseph Balamuta [aut, cre, cph] (ORCID: <https://orcid.org/0000-0003-2826-8458>), Dirk Eddelbuettel [aut, cph] (ORCID: <https://orcid.org/0000-0001-6419-907X>)",
       "Maintainer": "James Joseph Balamuta <balamut2@illinois.edu>",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "RcppProgress": {
       "Package": "RcppProgress",
@@ -857,7 +855,7 @@
       "RoxygenNote": "6.1.1",
       "Encoding": "UTF-8",
       "NeedsCompilation": "no",
-      "Repository": "binary"
+      "Repository": "RSPM"
     },
     "RhpcBLASctl": {
       "Package": "RhpcBLASctl",
@@ -939,7 +937,7 @@
       "URL": "http://www.econ.uiuc.edu/~roger/research/sparse/sparse.html",
       "NeedsCompilation": "yes",
       "Author": "Roger Koenker [cre, aut], Pin Tian Ng [ctb] (Contributions to Sparse QR code), Yousef Saad [ctb] (author of sparskit2), Ben Shaby [ctb] (author of chol2csr), Martin Maechler [ctb] (chol() tweaks; S4, <https://orcid.org/0000-0002-8685-9910>)",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Encoding": "UTF-8"
     },
     "StMoMo": {
@@ -976,7 +974,7 @@
       "VignetteBuilder": "knitr, utils",
       "RoxygenNote": "6.0.1",
       "NeedsCompilation": "no",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Encoding": "UTF-8"
     },
     "abind": {
@@ -998,7 +996,7 @@
       "License": "MIT + file LICENSE",
       "NeedsCompilation": "no",
       "Author": "Tony Plate [aut, cre], Richard Heiberger [aut]",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Encoding": "UTF-8"
     },
     "anytime": {
@@ -1058,7 +1056,7 @@
       "License": "GPL (>= 2)",
       "URL": "https://www.uni-bielefeld.de/fakultaeten/wirtschaftswissenschaften/fakultaet/lehrende-ehemalige/pwolf/wolf_aplpack/index.xml",
       "NeedsCompilation": "no",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Encoding": "UTF-8"
     },
     "askpass": {
@@ -1213,7 +1211,7 @@
       "NeedsCompilation": "yes",
       "Author": "Steve Dutky [aut] (S original; then (after MM's port) revised and modified), Martin Maechler [cre, aut] (Initial R port; tweaks, <https://orcid.org/0000-0002-8685-9910>)",
       "Maintainer": "Martin Maechler <maechler@stat.math.ethz.ch>",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Encoding": "UTF-8"
     },
     "blob": {
@@ -1702,7 +1700,7 @@
     },
     "clipr": {
       "Package": "clipr",
-      "Version": "0.8.0",
+      "Version": "0.8.1",
       "Source": "Repository",
       "Type": "Package",
       "Title": "Read and Write from the System Clipboard",
@@ -1724,12 +1722,12 @@
       "VignetteBuilder": "knitr",
       "Encoding": "UTF-8",
       "Language": "en-US",
-      "RoxygenNote": "7.1.2",
+      "RoxygenNote": "7.3.3",
       "SystemRequirements": "xclip (https://github.com/astrand/xclip) or xsel (http://www.vergenet.net/~conrad/software/xsel/) for accessing the X11 clipboard, or wl-clipboard (https://github.com/bugaevc/wl-clipboard) for systems using Wayland.",
       "NeedsCompilation": "no",
-      "Author": "Matthew Lincoln [aut, cre] (<https://orcid.org/0000-0002-4387-3384>), Louis Maddox [ctb], Steve Simpson [ctb], Jennifer Bryan [ctb]",
+      "Author": "Matthew Lincoln [aut, cre] (ORCID: <https://orcid.org/0000-0002-4387-3384>), Louis Maddox [ctb], Steve Simpson [ctb], Jennifer Bryan [ctb]",
       "Maintainer": "Matthew Lincoln <matthew.d.lincoln@gmail.com>",
-      "Repository": "https://packagemanager.posit.co/cran/__linux__/noble/latest"
+      "Repository": "binary"
     },
     "cobs": {
       "Package": "cobs",
@@ -1760,7 +1758,7 @@
       "NeedsCompilation": "yes",
       "Author": "Pin T. Ng [aut], Martin Maechler [aut, cre] (ORCID: <https://orcid.org/0000-0002-8685-9910>)",
       "Maintainer": "Martin Maechler <maechler@stat.math.ethz.ch>",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Encoding": "UTF-8"
     },
     "codetools": {
@@ -1778,8 +1776,7 @@
       "URL": "https://gitlab.com/luke-tierney/codetools",
       "License": "GPL",
       "NeedsCompilation": "no",
-      "Repository": "binary",
-      "Encoding": "UTF-8"
+      "Repository": "CRAN"
     },
     "collections": {
       "Package": "collections",
@@ -2094,7 +2091,7 @@
       "NeedsCompilation": "yes",
       "Author": "Tyson Barrett [aut, cre] (ORCID: <https://orcid.org/0000-0002-2137-1391>), Matt Dowle [aut], Arun Srinivasan [aut], Jan Gorecki [aut], Michael Chirico [aut] (ORCID: <https://orcid.org/0000-0003-0787-087X>), Toby Hocking [aut] (ORCID: <https://orcid.org/0000-0002-3146-0865>), Benjamin Schwendinger [aut] (ORCID: <https://orcid.org/0000-0003-3315-8114>), Ivan Krylov [aut] (ORCID: <https://orcid.org/0000-0002-0172-3812>), Pasha Stetsenko [ctb], Tom Short [ctb], Steve Lianoglou [ctb], Eduard Antonyan [ctb], Markus Bonsch [ctb], Hugh Parsonage [ctb], Scott Ritchie [ctb], Kun Ren [ctb], Xianying Tan [ctb], Rick Saporta [ctb], Otto Seiskari [ctb], Xianghui Dong [ctb], Michel Lang [ctb], Watal Iwasaki [ctb], Seth Wenchel [ctb], Karl Broman [ctb], Tobias Schmidt [ctb], David Arenburg [ctb], Ethan Smith [ctb], Francois Cocquemas [ctb], Matthieu Gomez [ctb], Philippe Chataignon [ctb], Nello Blaser [ctb], Dmitry Selivanov [ctb], Andrey Riabushenko [ctb], Cheng Lee [ctb], Declan Groves [ctb], Daniel Possenriede [ctb], Felipe Parages [ctb], Denes Toth [ctb], Mus Yaramaz-David [ctb], Ayappan Perumal [ctb], James Sams [ctb], Martin Morgan [ctb], Michael Quinn [ctb], @javrucebo [ctb] (GitHub user), Marc Halperin [ctb], Roy Storey [ctb], Manish Saraswat [ctb], Morgan Jacob [ctb], Michael Schubmehl [ctb], Davis Vaughan [ctb], Leonardo Silvestri [ctb], Jim Hester [ctb], Anthony Damico [ctb], Sebastian Freundt [ctb], David Simons [ctb], Elliott Sales de Andrade [ctb], Cole Miller [ctb], Jens Peder Meldgaard [ctb], Vaclav Tlapak [ctb], Kevin Ushey [ctb], Dirk Eddelbuettel [ctb], Tony Fischetti [ctb], Ofek Shilon [ctb], Vadim Khotilovich [ctb], Hadley Wickham [ctb], Bennet Becker [ctb], Kyle Haynes [ctb], Boniface Christian Kamgang [ctb], Olivier Delmarcell [ctb], Josh O'Brien [ctb], Dereck de Mezquita [ctb], Michael Czekanski [ctb], Dmitry Shemetov [ctb], Nitish Jha [ctb], Joshua Wu [ctb], Iago Giné-Vázquez [ctb], Anirban Chetia [ctb], Doris Amoakohene [ctb], Angel Feliz [ctb], Michael Young [ctb], Mark Seeto [ctb], Philippe Grosjean [ctb], Vincent Runge [ctb], Christian Wia [ctb], Elise Maigné [ctb], Vincent Rocher [ctb], Vijay Lulla [ctb], Aljaž Sluga [ctb], Bill Evans [ctb], Reino Bruner [ctb], @badasahog [ctb] (GitHub user), Vinit Thakur [ctb], Mukul Kumar [ctb], Ildikó Czeller [ctb], Manmita Das [ctb], Tarun Thammisetty [ctb]",
       "Maintainer": "Tyson Barrett <t.barrett88@gmail.com>",
-      "Repository": "binary"
+      "Repository": "CRAN"
     },
     "dbplyr": {
       "Package": "dbplyr",
@@ -2198,7 +2195,7 @@
       "NeedsCompilation": "yes",
       "Author": "Michael Hahsler [aut, cre, cph] (ORCID: <https://orcid.org/0000-0003-2716-1405>), Matthew Piekenbrock [aut, cph], Sunil Arya [ctb, cph], David Mount [ctb, cph], Claudia Malzer [ctb]",
       "Maintainer": "Michael Hahsler <mhahsler@lyle.smu.edu>",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "desc": {
       "Package": "desc",
@@ -2371,7 +2368,7 @@
       "NeedsCompilation": "yes",
       "Author": "Kaspar Moesinger [aut], Florian Gerber [aut] (<https://orcid.org/0000-0001-8545-5263>), Reinhard Furrer [cre, ctb] (<https://orcid.org/0000-0002-6319-2332>)",
       "Maintainer": "Reinhard Furrer <reinhard.furrer@uzh.ch>",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Encoding": "UTF-8"
     },
     "downlit": {
@@ -2600,7 +2597,7 @@
       "LazyData": "yes",
       "License": "GPL-3",
       "NeedsCompilation": "yes",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Depends": [
         "R (>= 2.10)"
       ],
@@ -2751,7 +2748,7 @@
       "RoxygenNote": "7.3.3",
       "NeedsCompilation": "no",
       "Author": "Guy J. Abel [aut, cre] (ORCID: <https://orcid.org/0000-0002-4893-5687>)",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "fansi": {
       "Package": "fansi",
@@ -3039,7 +3036,7 @@
       "NeedsCompilation": "yes",
       "Author": "Rob Hyndman [aut, cre, cph] (ORCID: <https://orcid.org/0000-0002-2140-5352>), George Athanasopoulos [aut] (ORCID: <https://orcid.org/0000-0002-5389-2802>), Christoph Bergmeir [aut] (ORCID: <https://orcid.org/0000-0002-3665-9021>), Gabriel Caceres [aut] (ORCID: <https://orcid.org/0000-0002-2947-2023>), Leanne Chhay [aut], Kirill Kuroptev [aut], Maximilian Mücke [aut] (ORCID: <https://orcid.org/0009-0000-9432-9795>), Mitchell O'Hara-Wild [aut] (ORCID: <https://orcid.org/0000-0001-6729-7695>), Fotios Petropoulos [aut] (ORCID: <https://orcid.org/0000-0003-3039-4955>), Slava Razbash [aut], Earo Wang [aut] (ORCID: <https://orcid.org/0000-0001-6448-5260>), Farah Yasmeen [aut] (ORCID: <https://orcid.org/0000-0002-1479-5401>), Federico Garza [ctb], Daniele Girolimetto [ctb], Ross Ihaka [ctb, cph], R Core Team [ctb, cph], Daniel Reid [ctb], David Shaub [ctb], Yuan Tang [ctb] (ORCID: <https://orcid.org/0000-0001-5243-233X>), Xiaoqian Wang [ctb], Zhenyu Zhou [ctb]",
       "Maintainer": "Rob Hyndman <Rob.Hyndman@monash.edu>",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "fracdiff": {
       "Package": "fracdiff",
@@ -3065,7 +3062,7 @@
       "NeedsCompilation": "yes",
       "Author": "Martin Maechler [aut, cre] (ORCID: <https://orcid.org/0000-0002-8685-9910>), Chris Fraley [ctb, cph] (S original; Fortran code), Friedrich Leisch [ctb] (R port, ORCID: <https://orcid.org/0000-0001-7278-1983>), Valderio Reisen [ctb] (fdGPH() & fdSperio()), Artur Lemonte [ctb] (fdGPH() & fdSperio()), Rob Hyndman [ctb] (residuals() & fitted(), ORCID: <https://orcid.org/0000-0002-2140-5352>)",
       "Maintainer": "Martin Maechler <maechler@stat.math.ethz.ch>",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "fs": {
       "Package": "fs",
@@ -3227,7 +3224,7 @@
       "NeedsCompilation": "yes",
       "Author": "Jean-Romain Roussel [cph, ctb] (wrote tsearch function with QuadTrees), C. B. Barber [cph], Kai Habel [cph, aut], Raoul Grasman [cph, aut], Robert B. Gramacy [cph, aut], Pavlo Mozharovskyi [cph, aut], David C. Sterratt [cph, aut, cre] (<https://orcid.org/0000-0001-9092-9099>)",
       "Maintainer": "David C. Sterratt <david.c.sterratt@ed.ac.uk>",
-      "Repository": "binary"
+      "Repository": "RSPM"
     },
     "ggdendro": {
       "Package": "ggdendro",
@@ -3386,7 +3383,7 @@
       "Collate": "'aaa.R' 'shape.R' 'arc_bar.R' 'arc.R' 'autodensity.R' 'autohistogram.R' 'autopoint.R' 'bezier.R' 'bspline.R' 'bspline_closed.R' 'circle.R' 'concaveman.R' 'cpp11.R' 'diagonal.R' 'diagonal_wide.R' 'ellipse.R' 'errorbar.R' 'facet_grid_paginate.R' 'facet_matrix.R' 'facet_row.R' 'facet_stereo.R' 'facet_wrap_paginate.R' 'facet_zoom.R' 'ggforce-package.R' 'ggproto-classes.R' 'interpolate.R' 'labeller.R' 'link.R' 'mark_circle.R' 'mark_ellipse.R' 'mark_hull.R' 'mark_label.R' 'mark_rect.R' 'parallel_sets.R' 'position-jitternormal.R' 'position_auto.R' 'position_floatstack.R' 'regon.R' 'scale-depth.R' 'scale-unit.R' 'sina.R' 'spiro.R' 'themes.R' 'trans.R' 'trans_linear.R' 'utilities.R' 'voronoi.R' 'zzz.R'",
       "NeedsCompilation": "yes",
       "Author": "Thomas Lin Pedersen [cre, aut] (ORCID: <https://orcid.org/0000-0002-5147-4711>), RStudio [cph]",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "ggplot2": {
       "Package": "ggplot2",
@@ -3572,7 +3569,7 @@
       "NeedsCompilation": "yes",
       "Author": "Kamil Slowikowski [aut, cre] (ORCID: <https://orcid.org/0000-0002-2843-6370>), Teun van den Brand [ctb] (ORCID: <https://orcid.org/0000-0002-9335-7468>), Alicia Schep [ctb] (ORCID: <https://orcid.org/0000-0002-3915-0618>), Sean Hughes [ctb] (ORCID: <https://orcid.org/0000-0002-9409-9405>), Trung Kien Dang [ctb] (ORCID: <https://orcid.org/0000-0001-7562-6495>), Saulius Lukauskas [ctb], Jean-Olivier Irisson [ctb] (ORCID: <https://orcid.org/0000-0003-4920-3880>), Zhian N Kamvar [ctb] (ORCID: <https://orcid.org/0000-0003-1458-7108>), Thompson Ryan [ctb] (ORCID: <https://orcid.org/0000-0002-0450-8181>), Dervieux Christophe [ctb] (ORCID: <https://orcid.org/0000-0003-4474-2498>), Yutani Hiroaki [ctb], Pierre Gramme [ctb], Amir Masoud Abdol [ctb], Malcolm Barrett [ctb] (ORCID: <https://orcid.org/0000-0003-0299-5825>), Robrecht Cannoodt [ctb] (ORCID: <https://orcid.org/0000-0003-3641-729X>), Michał Krassowski [ctb] (ORCID: <https://orcid.org/0000-0002-9638-7785>), Michael Chirico [ctb] (ORCID: <https://orcid.org/0000-0003-0787-087X>), Pedro Aphalo [ctb] (ORCID: <https://orcid.org/0000-0003-3385-972X>), Francis Barton [ctb]",
       "Maintainer": "Kamil Slowikowski <kslowikowski@gmail.com>",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "ggstats": {
       "Package": "ggstats",
@@ -3631,7 +3628,7 @@
       "NeedsCompilation": "no",
       "Author": "Joseph Larmarange [aut, cre] (ORCID: <https://orcid.org/0000-0001-7097-700X>)",
       "Maintainer": "Joseph Larmarange <joseph@larmarange.net>",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "ggtime": {
       "Package": "ggtime",
@@ -3838,7 +3835,7 @@
       "NeedsCompilation": "yes",
       "Author": "Heather Turner [aut, cre] (<https://orcid.org/0000-0002-1256-3375>), David Firth [aut] (<https://orcid.org/0000-0003-0302-2312>), Brian Ripley [ctb], Bill Venables [ctb], Douglas M. Bates [ctb], Martin Maechler [ctb] (<https://orcid.org/0000-0002-8685-9910>)",
       "Maintainer": "Heather Turner <ht@heatherturner.net>",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "googledrive": {
       "Package": "googledrive",
@@ -4002,7 +3999,7 @@
       "NeedsCompilation": "no",
       "Author": "Baptiste Auguie [aut, cre], Anton Antonov [ctb]",
       "Maintainer": "Baptiste Auguie <baptiste.auguie@gmail.com>",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Encoding": "UTF-8"
     },
     "gtable": {
@@ -4622,7 +4619,7 @@
       "NeedsCompilation": "no",
       "Author": "Sam Firke [aut, cre], Bill Denney [ctb], Chris Haid [ctb], Ryan Knight [ctb], Malte Grosser [ctb], Jonathan Zadra [ctb]",
       "Maintainer": "Sam Firke <samuel.firke@gmail.com>",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "jquerylib": {
       "Package": "jquerylib",
@@ -4723,7 +4720,7 @@
       "NeedsCompilation": "no",
       "Author": "Hao Zhu [aut, cre] (<https://orcid.org/0000-0002-3386-6076>), Thomas Travison [ctb], Timothy Tsai [ctb], Will Beasley [ctb], Yihui Xie [ctb], GuangChuang Yu [ctb], Stéphane Laurent [ctb], Rob Shepherd [ctb], Yoni Sidi [ctb], Brian Salzer [ctb], George Gui [ctb], Yeliang Fan [ctb], Duncan Murdoch [ctb], Vincent Arel-Bundock [ctb], Bill Evans [ctb]",
       "Maintainer": "Hao Zhu <haozhu233@gmail.com>",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "kernlab": {
       "Package": "kernlab",
@@ -4963,7 +4960,7 @@
       "NeedsCompilation": "no",
       "Author": "Stefano Meschiari [aut, cre]",
       "Maintainer": "Stefano Meschiari <stefano.meschiari@gmail.com>",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "lattice": {
       "Package": "lattice",
@@ -5002,8 +4999,7 @@
       "NeedsCompilation": "yes",
       "Author": "Deepayan Sarkar [aut, cre] (ORCID: <https://orcid.org/0000-0003-4107-1553>), Felix Andrews [ctb], Kevin Wright [ctb] (documentation), Neil Klepeis [ctb], Johan Larsson [ctb] (miscellaneous improvements), Zhijian (Jason) Wen [cph] (filled contour code), Paul Murrell [ctb], Stefan Eng [ctb] (violin plot improvements), Achim Zeileis [ctb] (modern colors), Alexandre Courtiol [ctb] (generics for larrows, lpolygon, lrect and lsegments)",
       "Maintainer": "Deepayan Sarkar <deepayan.sarkar@r-project.org>",
-      "Repository": "binary",
-      "Encoding": "UTF-8"
+      "Repository": "CRAN"
     },
     "leaderCluster": {
       "Package": "leaderCluster",
@@ -5079,7 +5075,7 @@
       "License": "GPL (>= 2)",
       "URL": "http://linprog.r-forge.r-project.org/",
       "NeedsCompilation": "no",
-      "Repository": "binary",
+      "Repository": "RSPM",
       "Encoding": "UTF-8"
     },
     "lintr": {
@@ -5168,7 +5164,7 @@
       "NeedsCompilation": "yes",
       "Author": "Torsten Hothorn [aut] (<https://orcid.org/0000-0001-8301-0471>), Achim Zeileis [aut, cre] (<https://orcid.org/0000-0003-0918-3766>), Richard W. Farebrother [aut] (pan.f), Clint Cummins [aut] (pan.f), Giovanni Millo [ctb], David Mitchell [ctb]",
       "Maintainer": "Achim Zeileis <Achim.Zeileis@R-project.org>",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Encoding": "UTF-8"
     },
     "lookout": {
@@ -5202,7 +5198,7 @@
       "Config/testthat/edition": "3",
       "NeedsCompilation": "no",
       "Author": "Sevvandi Kandanaarachchi [aut, cre] (ORCID: <https://orcid.org/0000-0002-0337-0395>), Rob Hyndman [aut] (ORCID: <https://orcid.org/0000-0002-2140-5352>), Chris Fraley [ctb]",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "lpSolve": {
       "Package": "lpSolve",
@@ -5218,7 +5214,7 @@
       "NeedsCompilation": "yes",
       "Author": "Gábor Csárdi [cre], Michel Berkelaar [aut]",
       "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
-      "Repository": "binary"
+      "Repository": "RSPM"
     },
     "lubridate": {
       "Package": "lubridate",
@@ -5311,7 +5307,7 @@
       "BugReports": "https://github.com/RobinHankin/magic/issues",
       "NeedsCompilation": "no",
       "Author": "Robin K. S. Hankin [aut, cre] (<https://orcid.org/0000-0001-5982-0415>)",
-      "Repository": "binary",
+      "Repository": "RSPM",
       "Encoding": "UTF-8"
     },
     "magrittr": {
@@ -5371,7 +5367,7 @@
       "BugReports": "https://github.com/adeckmyn/maps/issues",
       "Authors@R": "c(person(given  = c(\"Richard\", \"A.\"), family = \"Becker\", role   = \"aut\", comment= \"Original S code\"), person(given  = c(\"Allan\", \"R.\"), family = \"Wilks\", role   = \"aut\", comment= \"Original S code\"), person(given  = \"Ray\", family = \"Brownrigg\", role   = c(\"trl\", \"aut\"), comment= \"R version\"), person(given  = c(\"Thomas\", \"P.\"), family = \"Minka\", role   = \"aut\", comment= \"Enhancements\"), person(given  = \"Alex\", family = \"Deckmyn\", role   = c(\"aut\", \"cre\"), comment= c(ORCID=\"0009-0002-2010-8310\"), email  = \"alex.deckmyn@meteo.be\"))",
       "NeedsCompilation": "yes",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Author": "Richard A. Becker [aut] (Original S code), Allan R. Wilks [aut] (Original S code), Ray Brownrigg [trl, aut] (R version), Thomas P. Minka [aut] (Enhancements), Alex Deckmyn [aut, cre] (ORCID: <https://orcid.org/0009-0002-2010-8310>)",
       "Maintainer": "Alex Deckmyn <alex.deckmyn@meteo.be>",
       "Encoding": "UTF-8"
@@ -5406,7 +5402,7 @@
       "URL": "https://github.com/HenrikBengtsson/matrixStats",
       "BugReports": "https://github.com/HenrikBengtsson/matrixStats/issues",
       "RoxygenNote": "7.3.2",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Encoding": "UTF-8"
     },
     "mclust": {
@@ -5505,8 +5501,7 @@
       "NeedsCompilation": "yes",
       "Author": "Simon Wood [aut, cre]",
       "Maintainer": "Simon Wood <simon.wood@r-project.org>",
-      "Repository": "binary",
-      "Encoding": "UTF-8"
+      "Repository": "CRAN"
     },
     "mime": {
       "Package": "mime",
@@ -5560,7 +5555,7 @@
       "NeedsCompilation": "yes",
       "Author": "Yashwant Singh Parihar [aut, ctb, cph], Ryan Curtin [aut, ctb, cph, cre], Dirk Eddelbuettel [aut, ctb, cph], James Balamuta [aut, ctb, cph], Bill March [ctb, cph], Dongryeol Lee [ctb, cph], Nishant Mehta [ctb, cph], Parikshit Ram [ctb, cph], James Cline [ctb, cph], Sterling Peet [ctb, cph], Matthew Amidon [ctb, cph], Neil Slagle [ctb, cph], Ajinkya Kale [ctb, cph], Vlad Grantcharov [ctb, cph], Noah Kauffman [ctb, cph], Rajendran Mohan [ctb, cph], Trironk Kiatkungwanglai [ctb, cph], Patrick Mason [ctb, cph], Marcus Edel [ctb, cph], Mudit Raj Gupta [ctb, cph], Sumedh Ghaisas [ctb, cph], Michael Fox [ctb, cph], Siddharth Agrawal [ctb, cph], Saheb Motiani [ctb, cph], Yash Vadalia [ctb, cph], Abhishek Laddha [ctb, cph], Vahab Akbarzadeh [ctb, cph], Andrew Wells [ctb, cph], Zhihao Lou [ctb, cph], Udit Saxena [ctb, cph], Stephen Tu [ctb, cph], Jaskaran Singh [ctb, cph], Hritik Jain [ctb, cph], Vladimir Glazachev [ctb, cph], QiaoAn Chen [ctb, cph], Janzen Brewer [ctb, cph], Trung Dinh [ctb, cph], Tham Ngap Wei [ctb, cph], Grzegorz Krajewski [ctb, cph], Joseph Mariadassou [ctb, cph], Pavel Zhigulin [ctb, cph], Andy Fang [ctb, cph], Barak Pearlmutter [ctb, cph], Ivari Horm [ctb, cph], Dhawal Arora [ctb, cph], Alexander Leinoff [ctb, cph], Palash Ahuja [ctb, cph], Yannis Mentekidis [ctb, cph], Ranjan Mondal [ctb, cph], Mikhail Lozhnikov [ctb, cph], Marcos Pividori [ctb, cph], Keon Kim [ctb, cph], Nilay Jain [ctb, cph], Peter Lehner [ctb, cph], Anuraj Kanodia [ctb, cph], Ivan Georgiev [ctb, cph], Shikhar Bhardwaj [ctb, cph], Yashu Seth [ctb, cph], Mike Izbicki [ctb, cph], Sudhanshu Ranjan [ctb, cph], Piyush Jaiswal [ctb, cph], Dinesh Raj [ctb, cph], Vivek Pal [ctb, cph], Prasanna Patil [ctb, cph], Lakshya Agrawal [ctb, cph], Praveen Ch [ctb, cph], Kirill Mishchenko [ctb, cph], Abhinav Moudgil [ctb, cph], Thyrix Yang [ctb, cph], Sagar B Hathwar [ctb, cph], Nishanth Hegde [ctb, cph], Parminder Singh [ctb, cph], CodeAi [ctb, cph], Franciszek Stokowacki [ctb, cph], Samikshya Chand [ctb, cph], N Rajiv Vaidyanathan [ctb, cph], Kartik Nighania [ctb, cph], Eugene Freyman [ctb, cph], Manish Kumar [ctb, cph], Haritha Sreedharan Nair [ctb, cph], Sourabh Varshney [ctb, cph], Projyal Dev [ctb, cph], Nikhil Goel [ctb, cph], Shikhar Jaiswal [ctb, cph], B Kartheek Reddy [ctb, cph], Atharva Khandait [ctb, cph], Wenhao Huang [ctb, cph], Roberto Hueso [ctb, cph], Prabhat Sharma [ctb, cph], Tan Jun An [ctb, cph], Moksh Jain [ctb, cph], Manthan-R-Sheth [ctb, cph], Namrata Mukhija [ctb, cph], Conrad Sanderson [ctb, cph], Thanasis Mattas [ctb, cph], Shashank Shekhar [ctb, cph], Yasmine Dumouchel [ctb, cph], German Lancioni [ctb, cph], Arash Abghari [ctb, cph], Ayush Chamoli [ctb, cph], Tommi Laivamaa [ctb, cph], Kim SangYeon [ctb, cph], Niteya Shah [ctb, cph], Toshal Agrawal [ctb, cph], Dan Timson [ctb, cph], Miguel Canteras [ctb, cph], Bishwa Karki [ctb, cph], Mehul Kumar Nirala [ctb, cph], Heet Sankesara [ctb, cph], Jeffin Sam [ctb, cph], Vikas S Shetty [ctb, cph], Khizir Siddiqui [ctb, cph], Tejasvi Tomar [ctb, cph], Jai Agarwal [ctb, cph], Ziyang Jiang [ctb, cph], Rohit Kartik [ctb, cph], Aditya Viki [ctb, cph], Kartik Dutt [ctb, cph], Suryoday Basak [ctb, cph], Sriram S K [ctb, cph], Manoranjan Kumar Bharti ( Nakul Bharti ) [ctb, cph], Saraansh Tandon [ctb, cph], Gaurav Singh [ctb, cph], Lakshya Ojha [ctb, cph], Bisakh Mondal [ctb, cph], Benson Muite [ctb, cph], Sarthak Bhardwaj [ctb, cph], Aakash Kaushik [ctb, cph], Anush Kini [ctb, cph], Nippun Sharma [ctb, cph], Rishabh Garg [ctb, cph], Sudhakar Brar [ctb, cph], Alex Nguyen [ctb, cph], Gaurav Ghati [ctb, cph], Anmolpreet Singh [ctb, cph], Anjishnu Mukherjee [ctb, cph], Omar Shrit [ctb, cph], Tru Hoang [ctb, cph], Mark Fischinger [ctb, cph], Muhammad Fawwaz Mayda [ctb, cph], Roshan Nrusing Swain [ctb, cph], Suvarsha Chennareddy [ctb, cph], Shubham Agrawal [ctb, cph], Sri Madhan M [ctb, cph], Zhuojin Liu [ctb, cph], Richèl Bilderbeek [ctb, cph], Chetan Pandey [ctb, cph], Nikolay Apanasov [ctb, cph], Martin Lambertsen [ctb, cph], Andrea Novellini [ctb, cph], Felix Patschkowski [ctb, cph], Benjamin A. Beasley [ctb, cph], Maksym Prots [ctb, cph], Zachary Ng [ctb, cph]",
       "Maintainer": "Ryan Curtin <ryan@ratml.org>",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "modelr": {
       "Package": "modelr",
@@ -5686,7 +5681,7 @@
       "NeedsCompilation": "yes",
       "Author": "José Pinheiro [aut] (S version), Douglas Bates [aut] (up to 2007), Saikat DebRoy [ctb] (up to 2002), Deepayan Sarkar [ctb] (up to 2005), EISPACK authors [ctb] (src/rs.f), Siem Heisterkamp [ctb] (Author fixed sigma), Bert Van Willigen [ctb] (Programmer fixed sigma), Johannes Ranke [ctb] (varConstProp()), R Core Team [aut, cre] (ROR: <https://ror.org/02zz1nj61>)",
       "Maintainer": "R Core Team <R-core@R-project.org>",
-      "Repository": "binary"
+      "Repository": "CRAN"
     },
     "nnet": {
       "Package": "nnet",
@@ -5711,8 +5706,7 @@
       "NeedsCompilation": "yes",
       "Author": "Brian Ripley [aut, cre, cph], William Venables [cph]",
       "Maintainer": "Brian Ripley <Brian.Ripley@R-project.org>",
-      "Repository": "binary",
-      "Encoding": "UTF-8"
+      "Repository": "CRAN"
     },
     "np": {
       "Package": "np",
@@ -5851,7 +5845,7 @@
       "Config/Needs/website": "gifski",
       "NeedsCompilation": "no",
       "Author": "Thomas Lin Pedersen [cre, aut] (ORCID: <https://orcid.org/0000-0002-5147-4711>)",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "pbapply": {
       "Package": "pbapply",
@@ -5879,7 +5873,7 @@
       "BugReports": "https://github.com/psolymos/pbapply/issues",
       "NeedsCompilation": "no",
       "Author": "Peter Solymos [aut, cre] (ORCID: <https://orcid.org/0000-0001-7337-1740>), Zygmunt Zawadzki [aut], Henrik Bengtsson [ctb], R Core Team [cph, ctb]",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Encoding": "UTF-8"
     },
     "pcaPP": {
@@ -6113,7 +6107,7 @@
       "NeedsCompilation": "yes",
       "Author": "Hadley Wickham [aut, cre]",
       "Maintainer": "Hadley Wickham <hadley@rstudio.com>",
-      "Repository": "binary"
+      "Repository": "CRAN"
     },
     "polyclip": {
       "Package": "polyclip",
@@ -6134,7 +6128,7 @@
       "Note": "built from Clipper C++ version 6.4.0",
       "NeedsCompilation": "yes",
       "Author": "Angus Johnson [aut] (C++ original, http://www.angusj.com/delphi/clipper.php), Adrian Baddeley [aut, trl, cre], Kurt Hornik [ctb], Brian D. Ripley [ctb], Elliott Sales de Andrade [ctb], Paul Murrell [ctb], Ege Rubak [ctb], Mark Padgham [ctb]",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Encoding": "UTF-8"
     },
     "pracma": {
@@ -6431,7 +6425,7 @@
       "Description": "Estimation and inference methods for models for conditional quantile functions:  Linear and nonlinear parametric and non-parametric (total variation penalized) models  for conditional quantiles of a univariate response and several methods for handling censored survival data.  Portfolio selection methods based on expected shortfall risk are also now included. See Koenker, R. (2005) Quantile Regression, Cambridge U. Press, <doi:10.1017/CBO9780511754098> and Koenker, R. et al. (2017) Handbook of Quantile Regression,  CRC Press, <doi:10.1201/9781315120256>.",
       "Authors@R": "c( person(\"Roger\", \"Koenker\",  role = c(\"cre\",\"aut\"), email =  \"rkoenker@illinois.edu\"), person(\"Stephen\", \"Portnoy\",  role = c(\"ctb\"),  comment = \"Contributions to Censored QR code\", email =  \"sportnoy@illinois.edu\"), person(c(\"Pin\", \"Tian\"), \"Ng\",  role = c(\"ctb\"),  comment = \"Contributions to Sparse QR code\", email =  \"pin.ng@nau.edu\"), person(\"Blaise\", \"Melly\",  role = c(\"ctb\"),  comment = \"Contributions to preprocessing code\", email =  \"mellyblaise@gmail.com\"), person(\"Achim\", \"Zeileis\",  role = c(\"ctb\"),  comment = \"Contributions to dynrq code essentially identical to his dynlm code\",  email =  \"Achim.Zeileis@uibk.ac.at\"), person(\"Philip\", \"Grosjean\",  role = c(\"ctb\"),  comment = \"Contributions to nlrq code\", email =  \"phgrosjean@sciviews.org\"), person(\"Cleve\", \"Moler\",  role = c(\"ctb\"),  comment = \"author of several linpack routines\"), person(\"Yousef\", \"Saad\",  role = c(\"ctb\"),  comment = \"author of sparskit2\"), person(\"Victor\", \"Chernozhukov\",  role = c(\"ctb\"),  comment = \"contributions to extreme value inference code\"), person(\"Ivan\", \"Fernandez-Val\",  role = c(\"ctb\"),  comment = \"contributions to extreme value inference code\"), person(\"Martin\", \"Maechler\", role = \"ctb\", comment = c(\"tweaks (src/chlfct.f, 'tiny','Large')\", ORCID = \"0000-0002-8685-9910\")), person(c(\"Brian\", \"D\"), \"Ripley\",  role = c(\"trl\",\"ctb\"),  comment = \"Initial (2001) R port from S (to my everlasting shame --  how could I have been so slow to adopt R!) and for numerous other  suggestions and useful advice\", email =  \"ripley@stats.ox.ac.uk\"))",
       "Maintainer": "Roger Koenker <rkoenker@illinois.edu>",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Depends": [
         "R (>= 3.5)",
         "stats",
@@ -6488,7 +6482,7 @@
       "Encoding": "UTF-8",
       "NeedsCompilation": "no",
       "Author": "David Firth [aut, cre] (<https://orcid.org/0000-0003-0302-2312>)",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "ragg": {
       "Package": "ragg",
@@ -6682,7 +6676,7 @@
       ],
       "License": "GPL (>= 2)",
       "NeedsCompilation": "no",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Encoding": "UTF-8"
     },
     "rematch": {
@@ -6775,7 +6769,7 @@
       "NeedsCompilation": "no",
       "Author": "Gábor Csárdi [aut, cre], Jim Hester [aut], Hadley Wickham [aut], Winston Chang [aut], Martin Morgan [aut], Dan Tenenbaum [aut], Posit Software, PBC [cph, fnd], Ascent Digital Services [cph]",
       "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "renv": {
       "Package": "renv",
@@ -6917,7 +6911,7 @@
       "NeedsCompilation": "yes",
       "Author": "Hadley Wickham [aut, cre]",
       "Maintainer": "Hadley Wickham <hadley@posit.co>",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "rex": {
       "Package": "rex",
@@ -7022,7 +7016,7 @@
       "NeedsCompilation": "yes",
       "Author": "Duncan Murdoch [aut, cre], Daniel Adler [aut], Oleg Nenadic [ctb], Simon Urbanek [ctb], Ming Chen [ctb], Albrecht Gebhardt [ctb], Ben Bolker [ctb], Gabor Csardi [ctb], Adam Strzelecki [ctb], Alexander Senger [ctb], The R Core Team [ctb, cph], Dirk Eddelbuettel [ctb], The authors of Shiny [cph], The authors of knitr [cph], Jeroen Ooms [ctb], Yohann Demont [ctb], Joshua Ulrich [ctb], Xavier Fernandez i Marin [ctb], George Helffrich [ctb], Ivan Krylov [ctb], Michael Sumner [ctb], Mike Stein [ctb], Jonathon Love [ctb], Mapbox team [ctb, cph]",
       "Maintainer": "Duncan Murdoch <murdoch.duncan@gmail.com>",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Encoding": "UTF-8"
     },
     "rlang": {
@@ -7222,7 +7216,7 @@
       "License": "GPL (>= 2)",
       "Author": "Martin Maechler [aut, cre] (ORCID: <https://orcid.org/0000-0002-8685-9910>), Peter Rousseeuw [ctb] (Qn and Sn), Christophe Croux [ctb] (Qn and Sn), Valentin Todorov [aut] (most robust Cov), Andreas Ruckstuhl [aut] (nlrob, anova, glmrob), Matias Salibian-Barrera [aut] (lmrob orig.), Tobias Verbeke [ctb, fnd] (mc, adjbox), Manuel Koller [aut] (mc, lmrob, psi-func.), Eduardo L. T. Conceicao [aut] (MM-, tau-, CM-, and MTL- nlrob), Maria Anna di Palma [ctb] (initial version of Comedian)",
       "Maintainer": "Martin Maechler <maechler@stat.math.ethz.ch>",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Encoding": "UTF-8"
     },
     "rootSolve": {
@@ -7651,7 +7645,7 @@
       "Encoding": "UTF-8",
       "RoxygenNote": "7.2.1",
       "NeedsCompilation": "yes",
-      "Repository": "binary"
+      "Repository": "RSPM"
     },
     "snakecase": {
       "Package": "snakecase",
@@ -7686,7 +7680,7 @@
       "VignetteBuilder": "knitr",
       "NeedsCompilation": "no",
       "Author": "Malte Grosser [aut, cre]",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "spam": {
       "Package": "spam",
@@ -7727,7 +7721,7 @@
       "NeedsCompilation": "yes",
       "Author": "Reinhard Furrer [aut, cre] (ORCID: <https://orcid.org/0000-0002-6319-2332>), Florian Gerber [aut] (ORCID: <https://orcid.org/0000-0001-8545-5263>), Roman Flury [aut] (ORCID: <https://orcid.org/0000-0002-0349-8698>), Daniel Gerber [ctb], Kaspar Moesinger [ctb], Annina Cincera [ctb], Youcef Saad [ctb] (SPARSEKIT http://www-users.cs.umn.edu/~saad/software/SPARSKIT/), Esmond G. Ng [ctb] (Fortran Cholesky routines), Barry W. Peyton [ctb] (Fortran Cholesky routines), Joseph W.H. Liu [ctb] (Fortran Cholesky routines), Alan D. George [ctb] (Fortran Cholesky routines), Lehoucq B. Rich [ctb] (ARPACK), Maschhoff Kristi [ctb] (ARPACK), Sorensen C. Danny [ctb] (ARPACK), Yang Chao [ctb] (ARPACK)",
       "Maintainer": "Reinhard Furrer <reinhard.furrer@math.uzh.ch>",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Encoding": "UTF-8"
     },
     "stbl": {
@@ -7795,7 +7789,7 @@
       "NeedsCompilation": "no",
       "Author": "Priyanga Dilini Talagala [aut, cre] (<https://orcid.org/0000-0003-2870-7449>), Rob J Hyndman [ths] (<https://orcid.org/0000-0002-2140-5352>), Kate Smith-Miles [ths]",
       "Maintainer": "Priyanga Dilini Talagala <pritalagala@gmail.com>",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "stringi": {
       "Package": "stringi",
@@ -7949,8 +7943,7 @@
       "NeedsCompilation": "yes",
       "Author": "Terry M Therneau [aut, cre], Thomas Lumley [ctb, trl] (original S->R port and R maintainer until 2009), Atkinson Elizabeth [ctb], Crowson Cynthia [ctb]",
       "Maintainer": "Terry M Therneau <therneau.terry@mayo.edu>",
-      "Repository": "binary",
-      "Encoding": "UTF-8"
+      "Repository": "CRAN"
     },
     "svd": {
       "Package": "svd",
@@ -8021,7 +8014,7 @@
       "NeedsCompilation": "yes",
       "Author": "Hadley Wickham [aut], Lionel Henry [aut], Thomas Lin Pedersen [cre, aut] (ORCID: <https://orcid.org/0000-0002-5147-4711>), T Jake Luciani [aut], Matthieu Decorde [aut], Vaudor Lise [aut], Tony Plate [ctb] (Early line dashing code), David Gohel [ctb] (Line dashing code and early raster code), Yixuan Qiu [ctb] (Improved styles; polypath implementation), Håkon Malmedal [ctb] (Opacity code), Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)",
       "Maintainer": "Thomas Lin Pedersen <thomas.pedersen@posit.co>",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "sys": {
       "Package": "sys",
@@ -8500,7 +8493,7 @@
       "NeedsCompilation": "no",
       "Author": "Diethelm Wuertz [aut] (original code), Tobias Setz [aut], Yohan Chalabi [aut], Martin Maechler [ctb] (ORCID: <https://orcid.org/0000-0002-8685-9910>), Joe W. Byers [ctb], Georgi N. Boshnakov [cre, aut] (ORCID: <https://orcid.org/0000-0003-2839-346X>)",
       "Maintainer": "Georgi N. Boshnakov <georgi.boshnakov@manchester.ac.uk>",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "timechange": {
       "Package": "timechange",
@@ -8669,7 +8662,7 @@
       ],
       "NeedsCompilation": "yes",
       "Author": "Thomas Lin Pedersen [aut, cre] (<https://orcid.org/0000-0002-5147-4711>)",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "tzdb": {
       "Package": "tzdb",
@@ -8723,7 +8716,7 @@
       "NeedsCompilation": "yes",
       "Author": "Bernhard Pfaff [aut, cre], Eric Zivot [ctb], Matthieu Stigler [ctb]",
       "Maintainer": "Bernhard Pfaff <bernhard@pfaffikus.de>",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Encoding": "UTF-8"
     },
     "utf8": {
@@ -8996,7 +8989,7 @@
       "NeedsCompilation": "no",
       "Author": "Rob Hyndman [aut, cre, cph] (ORCID: <https://orcid.org/0000-0002-2140-5352>), Sixian Tang [aut] (ORCID: <https://orcid.org/0000-0002-7292-462X>), Miles McBain [ctb] (ORCID: <https://orcid.org/0000-0003-2865-2548>), Mitchell O'Hara-Wild [ctb] (ORCID: <https://orcid.org/0000-0001-6729-7695>)",
       "Maintainer": "Rob Hyndman <Rob.Hyndman@monash.edu>",
-      "Repository": "binary"
+      "Repository": "https://packagemanager.posit.co/all/latest"
     },
     "vroom": {
       "Package": "vroom",
@@ -9150,7 +9143,7 @@
       "RemoteUsername": "robjhyndman",
       "RemoteRepo": "weird",
       "RemoteRef": "main",
-      "RemoteSha": "c22bf3c0f9aa2100e59f903cb8a6870cceeb258b",
+      "RemoteSha": "0531d07114bbdac72d996baaba8933bc68b8098c",
       "RemoteHost": "api.github.com"
     },
     "withr": {
@@ -9369,7 +9362,7 @@
       "NeedsCompilation": "yes",
       "Author": "Achim Zeileis [aut, cre] (ORCID: <https://orcid.org/0000-0003-0918-3766>), Gabor Grothendieck [aut], Jeffrey A. Ryan [aut], Joshua M. Ulrich [ctb], Felix Andrews [ctb]",
       "Maintainer": "Achim Zeileis <Achim.Zeileis@R-project.org>",
-      "Repository": "binary",
+      "Repository": "https://packagemanager.posit.co/all/latest",
       "Encoding": "UTF-8"
     }
   }
