@@ -10,11 +10,13 @@ options(rgl.useNULL = TRUE)
 rgl::setupKnitr()
 ```
 
+Suppose we have observations $\bm{y}_1, \ldots, \bm{y}_n$, where each observation is of length $m$. We can think of each observation as a point in $m$-dimensional space. Our data can be represented as an $n \times m$ matrix $\bm{Y}$, where each row is an observation and each column is a variable. In this chapter, we will focus on the case where $m$ is large, which we will refer to as "high-dimensional" data.
+
 The curse of dimensionality (@sec-curse) makes it difficult to detect anomalies once the number of variables grows too large. In practice, even a moderate number of variables (e.g., $m > 5$) can cause problems for some methods. The high-dimensional methods described in this chapter are designed to address these challenges, by reducing the dimensionality of the data while preserving the relevant structure for anomaly detection.
 
 ## Projections
 
-The simplest way to reduce the dimensionality of the data is to use **linear projections**: linear combinations of the original variables that map each $p$-dimensional observation to a lower-dimensional space. Different projection directions preserve different aspects of the joint structure, so the choice of direction matters. Understanding the geometry of projections sets the foundation for the methods described in the rest of this chapter.
+The simplest way to reduce the dimensionality of the data is to use **linear projections**: linear combinations of the original variables that map each $m$-dimensional observation to a lower-dimensional space. Different projection directions preserve different aspects of the joint structure, so the choice of direction matters. Understanding the geometry of projections sets the foundation for the methods described in the rest of this chapter.
 
 To keep the geometry simple, we will scale all variables to have mean zero and unit variance, although to preserve interpretability, no rotation will be applied. The ideas are illustrated using air quality and meteorological variables measured hourly at the Aotizhongxin monitoring station (at the Olympic Sports Centre) in Beijing, over May 2014.
 
@@ -35,7 +37,9 @@ The simplest case maps two variables to a single number. A projection onto a vec
 $$
 w_i = \bm{a}^\intercal \bm{y}_i = a_1 y_{i,1} + a_2 y_{i,2}
 $$
-for each observation, where $\bm{a}$ is a unit vector (i.e., $\|\bm{a}\| = \sqrt{a_1^2 + a_2^2} = 1$). The projection is a linear transformation that maps the 2D data cloud onto the line spanned by $\bm{a}$, with $w_i$ giving the position of the projected point along that line.
+for each observation $\bm{y}_i$, where $\bm{a}$ is a unit vector (i.e., $\|\bm{a}\| = \sqrt{a_1^2 + a_2^2} = 1$). The projection is a linear transformation that maps the 2D data cloud onto the line spanned by $\bm{a}$, with $w_i$ giving the position of the projected point along that line.
+
+When we write this in matrix form, the projection of the $n \times 2$ data matrix $\bm{Y}$ onto the vector $\bm{a}$ gives an $n$-vector of scores $\bm{w} = \bm{Y}\bm{a}$.
 
 @fig-proj-geometry shows an example using $\bm{a} = (-0.8, 0.6)^\intercal$ applied to the standardised temperature and pressure measurements at Aotizhongxin. The blue line is the projection direction. The five orange points are randomly selected observations, showing how they project onto the line. The resulting scores are the blue dots on the line.
 
@@ -83,7 +87,7 @@ The variance of the scores is a measure of how much of the joint variation is ca
 $$
 \text{Var}(w) = \bm{a}^\intercal \bm{\Sigma} \bm{a},
 $$
-where $\bm{\Sigma}$ is the covariance matrix of the data $\bm{y}$. The variance is maximised when $\bm{a}$ is the leading eigenvector of $\bm{\Sigma}$, and the maximum variance is the leading eigenvalue. This is the basis of principal component analysis, which we will discuss in the next section.
+where $\bm{\Sigma}$ is the $2\times 2$ covariance matrix of the data $\bm{Y}$. The variance is maximised when $\bm{a}$ is the leading eigenvector of $\bm{\Sigma}$, and the maximum variance is the leading eigenvalue. This is the basis of principal component analysis, which we will discuss in the next section.
 
 ### Projecting from 3 to 2 dimensions
 
@@ -94,9 +98,11 @@ where $\bm{\Sigma}$ is the covariance matrix of the data $\bm{y}$. The variance 
 ::: {.figure-content}
 
 ```{r}
+#| label: aq3d-plot
 #| webgl: true
 #| code-fold: true
 #| cache: false
+#| dependson: aotizhongxin
 rgl::plot3d(
   az_aq[, c("temperature", "pressure", "dew_point")],
   size = 4,
@@ -125,14 +131,14 @@ az_aq |>
   GGally::ggpairs()
 ```
 
-A projection from $p = 3$ variables onto a 2-dimensional subspace is defined by a $3 \times 2$ matrix $\bm{A}$ where $\bm{A}^\intercal\bm{A} = \bm{I}_2$. In other words, the columns of $\bm{A}$ are "orthonormal": each column is a unit vector, and all columns are mutually orthogonal (i.e., $\bm{a}_i^\intercal\bm{a}_j = 0$ for any two distinct columns $i$ and $j$). The columns of $\bm{A}$ define the projection directions. The projection of $\bm{y}_i$ is
+A projection from $m = 3$ variables onto a 2-dimensional subspace is defined by a $3 \times 2$ matrix $\bm{A}$ where $\bm{A}^\intercal\bm{A} = \bm{I}_2$. In other words, the columns of $\bm{A}$ are "orthonormal": each column is a unit vector, and all columns are mutually orthogonal (i.e., $\bm{a}_i^\intercal\bm{a}_j = 0$ for any two distinct columns $i$ and $j$). The columns of $\bm{A}$ define the projection directions. The projection of $\bm{y}_i$ is
 $$
 \bm{w}_i = \bm{A}^\intercal \bm{y}_i.
 $$
 
 ### General projections
 
-In the general case, a projection from $p$ dimensions to $k$ dimensions uses a $p \times k$ matrix $\bm{A}$ with orthonormal columns, $\bm{A}^\intercal\bm{A} = \bm{I}_k$. Writing the $n \times p$ data matrix as $\bm{Y}$, the projected scores form the $n \times k$ matrix
+In the general case, a projection from $m$ dimensions to $k$ dimensions uses a $m \times k$ matrix $\bm{A}$ with orthonormal columns, $\bm{A}^\intercal\bm{A} = \bm{I}_k$. Writing the $n \times m$ data matrix as $\bm{Y}$, the projected scores form the $n \times k$ matrix
 $$
 \bm{W} = \bm{Y}\bm{A}.
 $$
@@ -181,13 +187,13 @@ For an excellent introduction to interactively exploring all possible projection
 
 By far the most common projection method is **principal component analysis (PCA)**, which finds the projection directions that capture the most variance in the data. The first principal component is the direction of maximum variance, the second is the direction of maximum variance orthogonal to the first, and so on. Then the lower dimensional projection will contain as much of the variation of the original data as possible, given the number of dimensions in the projection.
 
-As in the previous section, let $\bm{Y}$ denote the $n\times p$ data matrix, and let $\bm{\Sigma}$ be its $p\times p$ covariance matrix. The projection scores are given by $\bm{W} = \bm{Y}\bm{A}$, where $\bm{A}$ is a $p \times k$ matrix with orthonormal columns.
+As in the previous section, let $\bm{Y}$ denote the $n\times m$ data matrix, and let $\bm{\Sigma}$ be its $m\times m$ covariance matrix. The projection scores are given by $\bm{W} = \bm{Y}\bm{A}$, where $\bm{A}$ is a $m \times k$ matrix with orthonormal columns.
 
-For principal component projection, each column of $\bm{A}$ can be found sequentially by maximising the variance of the corresponding column of $\bm{W}$, subject to the orthonormality constraints. For example, the first column $\bm{a}_1$ is found by maximising $\text{Var}(\bm{W}_1) = \bm{a}_1^\intercal \bm{\Sigma} \bm{a}_1$ subject to $\|\bm{a}_1\| = 1$. The second column $\bm{a}_2$ is found by maximising $\text{Var}(\bm{W}_2) = \bm{a}_2^\intercal \bm{\Sigma} \bm{a}_2$ subject to $\|\bm{a}_2\| = 1$ and $\bm{a}_2^\intercal \bm{a}_1 = 0$, and so on.
+For principal component projection, each column of $\bm{A}$ is found sequentially by maximising the variance of the scores it produces, subject to the orthonormality constraints. Specifically, the first direction $\bm{a}_1$ maximises $\text{Var}(\bm{a}_1^\intercal \bm{y}) = \bm{a}_1^\intercal \bm{\Sigma} \bm{a}_1$ subject to $\|\bm{a}_1\| = 1$. The second direction $\bm{a}_2$ maximises $\text{Var}(\bm{a}_2^\intercal \bm{y}) = \bm{a}_2^\intercal \bm{\Sigma} \bm{a}_2$ subject to $\|\bm{a}_2\| = 1$ and $\bm{a}_2^\intercal \bm{a}_1 = 0$, and so on.
 
 This solution is equivalent to finding the eigenvectors of $\bm{\Sigma}$, and the resulting projection scores are called the principal component scores. The first $k$ eigenvectors of $\bm{\Sigma}$ form the columns of $\bm{A}$, and the corresponding eigenvalues give the variance captured by each principal component.
 
-It is possible to calculate up to $k = \min(n, p)$ principal components, but in practice we often only use the first few that capture most of the variance. The proportion of variance in the original data that has been captured by the first $k$ principal components is given by the sum of the first $k$ eigenvalues divided by the sum of all eigenvalues.
+It is possible to calculate up to $k = \min(n, m)$ principal components, but in practice we often only use the first few that capture most of the variance. The proportion of variance in the original data that has been captured by the first $k$ principal components is given by the sum of the first $k$ eigenvalues divided by the sum of all eigenvalues.
 
 For the 11 air quality and meteorological variables from Aotizhongxin, the 11 principal components can be computed using `prcomp()` as follows.
 
@@ -199,7 +205,7 @@ pca_res <- prcomp(az_aq, center = FALSE, scale = FALSE)
 pca_res$rotation
 ```
 
-The total variance explained can also computed from the `prcomp()` output.
+The total variance explained can also be computed from the `prcomp()` output.
 
 ```{r}
 #| label: pca-var
@@ -224,17 +230,19 @@ Using only the first two principal components gives the scores shown in @fig-pca
 ::: {#fig-pca-2d}
 
 ```{r}
+#| label: pca-2d-plot
 #| code-fold: true
+#| dependson: pca
 pca_res$x[, 1:2] |>
   ggplot(aes(x = PC1, y = PC2)) +
   geom_point(alpha = 0.2)
 ```
 
-Two-dimensional principal components projections of the 11D air quality and meterological data from Aotizhongxin. The first two principal components capture about `r cum_var_explained[2]`% of the variance in the data.
+Two-dimensional principal components projections of the 11D air quality and meteorological data from Aotizhongxin. The first two principal components capture about `r cum_var_explained[2]`% of the variance in the data.
 
 :::
 
-Here the anomalies are much less obvious than in @fig-proj-11dto2d
+Here the anomalies are much less obvious than in @fig-proj-11dto2d.
 
 ### Robust principal components
 
@@ -247,6 +255,7 @@ Suppose we used the robust covariance matrix computed by `robustbase::covMCD()` 
 ```{r}
 #| label: robust-pca
 #| warning: false
+#| dependson: aotizhongxin
 Sigma <- as.matrix(az_aq) |> robustbase::covMcd(alpha = 0.9)
 robust_pca <- eigen(Sigma$cov)
 (as.matrix(az_aq) %*% robust_pca$vectors[, 1:2]) |>
@@ -290,6 +299,7 @@ The HDoutliers algorithm of @Wilkinson2017-rb was designed to address several pr
 
 ```{r}
 #| label: fig-stray
+#| fig-cap: "Stray outlier scores for the Old Faithful eruption durations. Higher scores indicate greater outlyingness."
 of_scores <- oldfaithful |>
   mutate(stray = stray_scores(duration))
 of_scores |> arrange(desc(stray))
@@ -319,6 +329,7 @@ of_scores |>
 ```{r}
 #| label: fig-dobin
 #| echo: false
+#| dependson: aotizhongxin
 dobin_scores <- dobin::dobin(az_aq)
 ```
 

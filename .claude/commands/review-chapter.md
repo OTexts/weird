@@ -15,12 +15,15 @@ Also update this skill to take account of any new issues you find when reviewing
 **Notation consistency**
 - Math symbols used consistently throughout (e.g. `\Pr` vs `\text{Pr}`, `\le` vs `\leq`, `\ge` vs `\geq`, `\bm{}` for vectors/matrices). The book uses `\le` and `\ge` (not `\leq`/`\geq`).
 - Parameter lists in pdfs match the parameterisation stated in the text
+- The sample size of the data is always $n$.
+- The data dimension is $m$ consistently throughout the book.
+- For regression problems, use $p$ for the number of predictors (including the intercept where included).
 - Bold notation applied consistently to vectors and matrices
 - Matrix transposes use `^\intercal`, not `'` or `^T` or `^\prime`.
 - Subscript/superscript placement correct (e.g. `$\bm{S}^*$` not `$\bm{S^*}$`)
 - Same symbol not used for two different things in the same chapter.
-- Distribution names use upright (non-italic) font: `N(0,1)` not `$N(0,1)$`. When parameters contain maths symbols, put only the parameters in maths: `N$(\mu, \sigma^2)$` or `$\text{N}(\mu, \sigma^2)$`.
 - Within a chapter, a quantity should use one consistent symbol.
+- Distribution names use upright (non-italic) font: `N(0,1)` not `$N(0,1)$`. When parameters contain maths symbols, put only the parameters in maths: `N$(\mu, \sigma^2)$` or `$\text{N}(\mu, \sigma^2)$`.
 - Compound expressions used as adjectives/quantifiers should be parenthesised in maths: `$(1-\beta)$ sample quantile`, not `$1-\beta$ sample quantile`.
 
 **Quarto / cross-references**

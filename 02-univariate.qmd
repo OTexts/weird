@@ -13,11 +13,11 @@ We are interested in data obtained from a range of possible sample spaces in thi
 ## Common distributions {#sec-common}
 
 Let $Y$ denote a continuous random variable taking values in $\mathbb{R}$ (the real numbers), with its cumulative probability distribution (cdf) given by
-$$F(y) = \text{Pr}(Y \le y).
+$$F(y) = \Pr(Y \le y).
 $$ {#eq-cdf}
 This function is monotonically increasing in $y$, and takes values between 0 and 1. Because $Y$ is a continuous random variable, $F(y)$ is a continuous function of $y$. The probability density function (pdf) is defined as the derivative of the cdf, so $f(y) = F'(y)$, assuming the derivative exists at $y$. The pdf is non-negative, and integrates to 1.
 
-The probability that $Y$ lies in the interval $[a,b]$ is given by $\text{Pr}(a \le Y \le b) = \int_a^b f(y)dy = F(b) - F(a)$.
+The probability that $Y$ lies in the interval $[a,b]$ is given by $\Pr(a \le Y \le b) = \int_a^b f(y)dy = F(b) - F(a)$.
 
 The expected value (or mean) of $Y$ is given by
 $$
@@ -34,7 +34,7 @@ The standard deviation is the square root of the variance.
 The simplest continuous distribution is the **Uniform** distribution, which takes two parameters, $a$ and $b$, and has pdf given by
 $$
   f(y;a,b) = \begin{cases}
-    \frac{1}{b-a} & \text{if } a \leq y \leq b, \\
+    \frac{1}{b-a} & \text{if } a \le y \le b, \\
     0 & \text{otherwise}.
   \end{cases}
 $$
@@ -81,7 +81,7 @@ Three $\chi^2$ distributions are shown in @fig-chisq.
 ```{r}
 #| label: fig-chisq
 #| message: false
-#| fig-cap: Probability density functions for three $\chi^2$ distributions. As the degrees of freedom $k$ increases, the distribution becomes more symmetric, and approximates the Normal distribution $N(k,2k)$.
+#| fig-cap: Probability density functions for three $\chi^2$ distributions. As the degrees of freedom $k$ increases, the distribution becomes more symmetric, and approximates the Normal distribution N$(k,2k)$.
 dist_chisq(c(1, 2, 5)) |>
   gg_density() +
   labs(x = "y", y = "Probability Density Function: f(y)") +
@@ -136,7 +136,7 @@ Three $\Gamma$ distributions are shown in @fig-gamma.
 
 ```{r}
 #| label: fig-gamma
-#| fig-cap: Probability density functions for three $\Gamma$ distributions. As $\alpha$ increases, the distribution converges to a $N(\alpha/\beta, \alpha/\beta^2)$ distribution.
+#| fig-cap: Probability density functions for three $\Gamma$ distributions. As $\alpha$ increases, the distribution converges to a N$(\alpha/\beta, \alpha/\beta^2)$ distribution.
 dist_gamma(c(1, 1, 2), c(1, 2, 1)) |>
   gg_density() +
   labs(x = "y", y = "Probability Density Function: f(y)")
@@ -191,7 +191,7 @@ A good introduction to other probability distributions on real sample spaces is 
 
 ## Probability integral transform {#sec-pit}
 
-The **probability integral transform** is a useful result that allows us to transform any continuous random variable into a uniform random variable. If $Y$ is a continuous random variable with cdf $F$, then the random variable $U = F(Y)$ has a U(0,1) distribution. This is because $\text{Pr}(U \le u) = \text{Pr}(F(Y) \le u) = \text{Pr}(Y \le F^{-1}(u)) = F(F^{-1}(u)) = u$ for $0 < u < 1$. The inverse is also true: if $U$ is a U(0,1) random variable, then the random variable $Y = F^{-1}(U)$ has distribution $F$. A useful consequence of this result is that it is possible to simulate from any continuous distribution by first simulating from a U(0,1) distribution, and then applying the inverse cdf of the desired distribution.
+The **probability integral transform** is a useful result that allows us to transform any continuous random variable into a uniform random variable. If $Y$ is a continuous random variable with cdf $F$, then the random variable $U = F(Y)$ has a U(0,1) distribution. This is because $\Pr(U \le u) = \Pr(F(Y) \le u) = \Pr(Y \le F^{-1}(u)) = F(F^{-1}(u)) = u$ for $0 < u < 1$. The inverse is also true: if $U$ is a U(0,1) random variable, then the random variable $Y = F^{-1}(U)$ has distribution $F$. A useful consequence of this result is that it is possible to simulate from any continuous distribution by first simulating from a U(0,1) distribution, and then applying the inverse cdf of the desired distribution.
 
 There is also a discrete version of the probability integral transform, but we will not need to use it in this book.
 
@@ -795,20 +795,20 @@ It is well known, due to the [central limit theorem](02-tools.html#sec-clt), tha
 
 If there exist sequences $\{a_n\}$ and $\{b_n\}$ such that
 $$
-  \Pr\left\{ \frac{(M_n - a_n)}{b_n} \leq z \right\} \rightarrow G(z) \quad \text{as} \quad n \to \infty,
+  \Pr\left\{ \frac{(M_n - a_n)}{b_n} \le z \right\} \rightarrow G(z) \quad \text{as} \quad n \to \infty,
 $$
 where $G$ is a non-degenerate cumulative distribution function, then $G$ belongs to one of the following families:
 \begin{align*}
   &\text{Gumbel} :  && G(z) = \exp\left(-\exp \left[- \Big(\frac{z-b}{a}\Big) \right] \right), \quad -\infty < z < \infty , \\
   &\text{Fréchet} : && G(z) =
     \begin{cases}
-      0 ,                                                           & z \leq b  , \\
+      0 ,                                                           & z \le b  , \\
       \exp \left( - \left( \frac{z-b}{a}\right)^{-\alpha} \right) , & z > b    ,
     \end{cases}                     \\
   &\text{Weibull} : && G(z) =
     \begin{cases}
       \exp \left( - \left(- \left[\frac{z-b}{a}\right]\right)^{\alpha} \right) , & z < b  ,    \\
-      1 ,                                                                        & z \geq b  ,
+      1 ,                                                                        & z \ge b  ,
     \end{cases}
 \end{align*}
 for parameters $a, b$ and $\alpha$ where $a, \alpha >0$.
@@ -832,7 +832,7 @@ where the domain of the function is $\{z: 1 + \xi (z - \mu_G)/\sigma_G >0 \}$. T
 
 To illustrate, suppose $F$ is a standard Normal distribution N(0,1) and we have $n=1000$ observations, $Y_1,\dots,Y_n$. Then we know that the distribution of the maximum is given by
 $$
-  \Pr\left\{ \max \{Y_1, \dots, Y_n\} \leq z \right\} = \left[ \Phi(z) \right]^n,
+  \Pr\left\{ \max \{Y_1, \dots, Y_n\} \le z \right\} = \left[ \Phi(z) \right]^n,
 $$
 so the density of the maximum is given by
 $$
@@ -865,7 +865,7 @@ c(
 
 The Peaks Over Threshold (POT) approach regards extremes as observations greater than a threshold $u$. The probability distribution of *exceedances* above a specified threshold $u$ can be expressed as the conditional distribution
 $$
-  H(y) = \Pr\left \{Y \leq u + y \mid Y > u \right \}
+  H(y) = \Pr\left \{Y \le u + y \mid Y > u \right \}
   = \frac{ F(u+y) - F(u)}{1 - F(u)}.
 $$ {#eq-POT3}
 When the distribution $F$ satisfies the FTG theorem, then [@coles2001introduction, p. 75] $H$ is well-approximated by a **Generalised Pareto Distribution** (GPD) defined by
