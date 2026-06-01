@@ -46,7 +46,7 @@ When we write this in matrix form, the projection of the $n \times 2$ data matri
 ```{r}
 #| label: fig-proj-geometry
 #| code-fold: true
-#| fig-cap: "Projection of standardised temperature and pressure from Aotizhongxin onto one dimension. The blue line shows the projection direction. Five randomly selected observations (in orange) are shown projecting onto the line, with the resulting scores shown as blue dots."
+#| fig-cap: "Projection of standardised temperature and pressure from Aotizhongxin onto one dimension. The blue line shows the projection direction $\bm{a}$. Five randomly selected observations (in orange) are shown projecting onto the line, with the resulting scores shown as blue dots."
 #| dependson: aotizhongxin
 set.seed(2)
 # The projection direction
@@ -138,7 +138,7 @@ $$
 
 ### General projections
 
-In the general case, a projection from $m$ dimensions to $k$ dimensions uses a $m \times k$ matrix $\bm{A}$ with orthonormal columns, $\bm{A}^\intercal\bm{A} = \bm{I}_k$. Writing the $n \times m$ data matrix as $\bm{Y}$, the projected scores form the $n \times k$ matrix
+In the general case, a projection from $m$ dimensions to $k$ dimensions uses an $m \times k$ matrix $\bm{A}$ with orthonormal columns, $\bm{A}^\intercal\bm{A} = \bm{I}_k$. Writing the $n \times m$ data matrix as $\bm{Y}$, the projected scores form the $n \times k$ matrix
 $$
 \bm{W} = \bm{Y}\bm{A}.
 $$
@@ -187,7 +187,7 @@ For an excellent introduction to interactively exploring all possible projection
 
 By far the most common projection method is **principal component analysis (PCA)**, which finds the projection directions that capture the most variance in the data. The first principal component is the direction of maximum variance, the second is the direction of maximum variance orthogonal to the first, and so on. Then the lower dimensional projection will contain as much of the variation of the original data as possible, given the number of dimensions in the projection.
 
-As in the previous section, let $\bm{Y}$ denote the $n\times m$ data matrix, and let $\bm{\Sigma}$ be its $m\times m$ covariance matrix. The projection scores are given by $\bm{W} = \bm{Y}\bm{A}$, where $\bm{A}$ is a $m \times k$ matrix with orthonormal columns.
+As in the previous sections, let $\bm{Y}$ denote the $n\times m$ data matrix, and let $\bm{\Sigma}$ be its $m\times m$ covariance matrix. The projection scores are given by $\bm{W} = \bm{Y}\bm{A}$, where $\bm{A}$ is an $m \times k$ matrix with orthonormal columns.
 
 For principal component projection, each column of $\bm{A}$ is found sequentially by maximising the variance of the scores it produces, subject to the orthonormality constraints. Specifically, the first direction $\bm{a}_1$ maximises $\text{Var}(\bm{a}_1^\intercal \bm{y}) = \bm{a}_1^\intercal \bm{\Sigma} \bm{a}_1$ subject to $\|\bm{a}_1\| = 1$. The second direction $\bm{a}_2$ maximises $\text{Var}(\bm{a}_2^\intercal \bm{y}) = \bm{a}_2^\intercal \bm{\Sigma} \bm{a}_2$ subject to $\|\bm{a}_2\| = 1$ and $\bm{a}_2^\intercal \bm{a}_1 = 0$, and so on.
 
