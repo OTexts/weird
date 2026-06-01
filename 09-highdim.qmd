@@ -41,47 +41,47 @@ for each observation $\bm{y}_i$, where $\bm{a}$ is a unit vector (i.e., $\|\bm{a
 
 When we write this in matrix form, the projection of the $n \times 2$ data matrix $\bm{Y}$ onto the vector $\bm{a}$ gives an $n$-vector of scores $\bm{w} = \bm{Y}\bm{a}$.
 
-@fig-proj-geometry shows an example using $\bm{a} = (-0.8, 0.6)^\intercal$ applied to the standardised temperature and pressure measurements at Aotizhongxin. The blue line is the projection direction. The five orange points are randomly selected observations, showing how they project onto the line. The resulting scores are the blue dots on the line.
+@fig-proj-geometry shows an example using $\bm{a} = (0.8, 0.6)^\intercal$ applied to the standardised carbon monoxide (`co`) and nitrogen dioxide (`no2`) measurements at Aotizhongxin. The blue line is the projection direction. The five orange points are randomly selected observations, showing how they project onto the line. The resulting scores are the blue dots on the line.
 
 ```{r}
 #| label: fig-proj-geometry
 #| code-fold: true
-#| fig-cap: "Projection of standardised temperature and pressure from Aotizhongxin onto one dimension. The blue line shows the projection direction $\bm{a}$. Five randomly selected observations (in orange) are shown projecting onto the line, with the resulting scores shown as blue dots."
+#| fig-cap: "Projection of standardised carbon monoxide and nitrogen dioxide from Aotizhongxin onto one dimension. The blue line shows the projection direction $\\bm{a}$. Five randomly selected observations (in orange) are shown projecting onto the line, with the resulting scores shown as blue dots."
 #| dependson: aotizhongxin
-set.seed(2)
+set.seed(4)
 # The projection direction
-a <- c(-0.8, 0.6)
+a <- c(0.8, 0.6)
 # Select five random observations to illustrate the projection
 show_pts <- az_aq |>
   slice_sample(n = 5) |>
   mutate(
-    w = a[1] * temperature + a[2] * pressure,
-    foot_temp = w * a[1],
-    foot_press = w * a[2]
+    w = a[1] * co + a[2] * no2,
+    foot_co = w * a[1],
+    foot_no2 = w * a[2]
   )
 # Construct the plot
-ggplot(az_aq, aes(x = temperature, y = pressure)) +
+ggplot(az_aq, aes(x = co, y = no2)) +
   geom_point(alpha = 0.2) +
   geom_abline(slope = a[2] / a[1], intercept = 0, color = "#0072B2") +
   geom_segment(
     data = show_pts,
-    aes(x = temperature, y = pressure, xend = foot_temp, yend = foot_press),
+    aes(x = co, y = no2, xend = foot_co, yend = foot_no2),
     color = "#D55E00",
   ) +
   geom_point(
     data = show_pts,
-    aes(x = foot_temp, y = foot_press),
+    aes(x = foot_co, y = foot_no2),
     color = "#0072B2",
     size = 3
   ) +
   geom_point(data = show_pts, color = "#D55E00", size = 2) +
   coord_equal() +
-  labs(x = "Standardised temperature", y = "Standardised pressure")
+  labs(x = "Standardised carbon monoxide", y = "Standardised nitrogen dioxide")
 ```
 
 Projections can be thought of like shadows. Imagine a light source shining on the data cloud from a direction perpendicular to $\bm{a}$; the projection scores are the positions of the shadows cast by the observations onto the line spanned by $\bm{a}$.
 
-The projection direction $\bm{a}$ can be any unit vector, so there are infinitely many ways to project the data. Each choice of $\bm{a}$ captures a different perspective on the joint variation in the data. Some directions may align with the main axis of variation (like the one shown in @fig-proj-geometry), giving a wide spread of scores; others may be nearly orthogonal to that axis, giving a narrow spread; still others may be perpendicular to the axes. For example $\bm{a} = (1, 0)^\intercal$ projects onto the temperature axis, while $\bm{a} = (0, 1)^\intercal$ projects onto the pressure axis.
+The projection direction $\bm{a}$ can be any unit vector, so there are infinitely many ways to project the data. Each choice of $\bm{a}$ captures a different perspective on the joint variation in the data. Some directions may align with the main axis of variation (like the one shown in @fig-proj-geometry), giving a wide spread of scores; others may be nearly orthogonal to that axis, giving a narrow spread; still others may be perpendicular to the axes. For example $\bm{a} = (1, 0)^\intercal$ projects onto the carbon monoxide axis, while $\bm{a} = (0, 1)^\intercal$ projects onto the nitrogen dioxide axis.
 
 The variance of the scores is a measure of how much of the joint variation is captured by that direction. The variance of the projection scores is
 $$
@@ -89,9 +89,11 @@ $$
 $$
 where $\bm{\Sigma}$ is the $2\times 2$ covariance matrix of the data $\bm{Y}$. The variance is maximised when $\bm{a}$ is the leading eigenvector of $\bm{\Sigma}$, and the maximum variance is the leading eigenvalue. This is the basis of principal component analysis, which we will discuss in the next section.
 
+The "residual" from the projection is the difference between the original observation and its projection onto the line. So for an observation $\bm{y}_i$, the residual is $\bm{r}_i = \bm{y}_i - \bm{a} w_i$. The magnitude of the residual is a measure of how much of the variation in that observation is not captured by the projection. (The length of each orange line in @fig-proj-geometry is the magnitude of the residual for the corresponding observation.) If the residual is large, it means that there are aspects of that observation that are not well represented by the projection direction $\bm{a}$. This is important for anomaly detection, because an observation that appears normal in one projection may have a large residual, indicating that it is an anomaly in another projection.
+
 ### Projecting from 3 to 2 dimensions
 
-@fig-aq3d shows the standardised temperature, pressure and dew point measurements at Aotizhongxin in a 3D scatterplot. What you see on the screen is a 2D projection of the 3D data. Think of a light source directly behind the screen, casting shadows of the data points onto the screen. The projection direction is perpendicular to the screen, so you are seeing the data from that perspective. As you rotate the plot, you are changing the projection direction, which gives different perspectives on the joint structure.
+Let's add a third variable, `pm2_5`, measuring the particulate matter with diameter less than 2.5 micrometers. @fig-aq3d shows the standardised `co`, `no2` and `pm2_5` measurements at Aotizhongxin in a 3D scatterplot. What you see on the screen is a 2D projection of the 3D data. Think of a light source directly behind the screen, casting shadows of the data points onto the screen. The projection direction is perpendicular to the screen, so you are seeing the data from that perspective. As you rotate the plot, you are changing the projection direction, which gives different perspectives on the joint structure.
 
 ::: {#fig-aq3d}
 
@@ -104,7 +106,7 @@ where $\bm{\Sigma}$ is the $2\times 2$ covariance matrix of the data $\bm{Y}$. T
 #| cache: false
 #| dependson: aotizhongxin
 rgl::plot3d(
-  az_aq[, c("temperature", "pressure", "dew_point")],
+  az_aq[, c("co", "no2", "pm2_5")],
   size = 4,
   alpha = 0.3
 )
@@ -112,7 +114,7 @@ rgl::plot3d(
 
 :::
 
-Interactive 3D scatterplot of the temperature, pressure and dew point at Aotizhongxin.
+Interactive 3D scatterplot of the carbon monoxide, nitrogen dioxide and particulate matter (diameter $< 2.5 \mu m$) at Aotizhongxin.
 
 :::
 
@@ -122,25 +124,30 @@ A pairwise scatterplot matrix, such as that shown in @fig-proj-pairs3, shows thr
 ```{r}
 #| label: fig-proj-pairs3
 #| code-fold: false
-#| fig-cap: "Pairwise scatterplots and correlations for standardised temperature, pressure and dew point at Aotizhongxin. All three pairs are strongly correlated, so the joint variation is nearly confined to a two-dimensional subspace."
+#| fig-cap: "Pairwise scatterplots and correlations for standardised carbon monoxide, nitrogen dioxide and particulate matter at Aotizhongxin. All three pairs are strongly correlated, so the joint variation is nearly confined to a two-dimensional subspace."
 #| dependson: aotizhongxin
 #| message: false
 #| warning: false
 az_aq |>
-  select(temperature, pressure, dew_point) |>
+  select(co, no2, pm2_5) |>
   GGally::ggpairs()
 ```
 
 A projection from $m = 3$ variables onto a 2-dimensional subspace is defined by a $3 \times 2$ matrix $\bm{A}$ where $\bm{A}^\intercal\bm{A} = \bm{I}_2$. In other words, the columns of $\bm{A}$ are "orthonormal": each column is a unit vector, and all columns are mutually orthogonal (i.e., $\bm{a}_i^\intercal\bm{a}_j = 0$ for any two distinct columns $i$ and $j$). The columns of $\bm{A}$ define the projection directions. The projection of $\bm{y}_i$ is
 $$
-\bm{w}_i = \bm{A}^\intercal \bm{y}_i.
+\bm{w}_i = \bm{A}^\intercal \bm{y}_i,
 $$
+and its residual is $\bm{r}_i = \bm{y}_i - \bm{A}\bm{w}_i$.
 
 ### General projections
 
 In the general case, a projection from $m$ dimensions to $k$ dimensions uses an $m \times k$ matrix $\bm{A}$ with orthonormal columns, $\bm{A}^\intercal\bm{A} = \bm{I}_k$. Writing the $n \times m$ data matrix as $\bm{Y}$, the projected scores form the $n \times k$ matrix
 $$
 \bm{W} = \bm{Y}\bm{A}.
+$$
+Their residuals are given by
+$$
+\bm{R} = \bm{Y} - \bm{W}\bm{A}^\intercal = \bm{Y}(\bm{I} - \bm{A}\bm{A}^\intercal).
 $$
 
 The Aotizhongxin station data `az_aq` contains `r english::words(NCOL(az_aq))` variables. We can project this `r NCOL(az_aq)`-dimensional space onto a 2-dimensional subspace defined by a $`r NCOL(az_aq)` \times 2$ matrix $\bm{A}$ with orthonormal columns. The resulting 2D projection will capture some aspects of the joint structure, but not all. For example, suppose we choose the following projection matrix $\bm{A}$:
@@ -242,11 +249,166 @@ Two-dimensional principal components projections of the 11D air quality and mete
 
 :::
 
-Here the anomalies are much less obvious than in @fig-proj-11dto2d.
+Here the anomalies are much less obvious than in @fig-proj-11dto2d. This is relatively common with PCA, because any anomalies can have a large influence on the variance structure of the data, and therefore on the principal components. If the anomalies dominate the variance, they can cause the principal components to point in a direction that does not capture the main body of the data, making it difficult to detect them in the projected space. This is an example of "masking", where the anomalies are masked due to their influence on the projection directions.
+
+### Types of anomalies
+
+@Hubert2005-qa introduced a useful framework for classifying observations in the context of PCA, based on two distances.
+
+The **score distance** measures how far an observation is from the centre *within* the PCA subspace. For an observation $\bm{y}_i$ with scores $\bm{w}_i = \bm{A}^\intercal \bm{y}_i$, it is
+$$
+\text{SD}_i = \sqrt{\sum_{j=1}^{k} \frac{w_{ij}^2}{\lambda_j}},
+$$
+where $\lambda_j$ is the variance of the $j$th principal component. This is the Mahalanobis distance of the projected observation from the centre of the PCA subspace. Observations with the largest score distances will be visible as potential anomalies in the PCA projection, because they lie far from the centre of the PCA subspace. They are called **leverage points** because they have a large influence on the estimation of the principal component directions.
+
+The **orthogonal distance** measures how far an observation lies *from* the PCA subspace; i.e., the magnitude of its residual:
+$$
+\text{OD}_i = \|\bm{r}_i\| = \|\bm{y}_i - \bm{A}\bm{w}_i\|.
+$$
+This provides a measure of how much information has not been captured by the $k$ components used in the projection. Observations with the largest orthogonal distances will not be visible as anomalies in the PCA projection, because they lie close to the centre of the PCA subspace, but they will be visible in the residuals. They are sometimes called **orthogonal outliers** because they lie far from the PCA subspace in a direction orthogonal to it.
+
+Using these two distances provides a rough classification of observations based on their score and orthogonal distances.
+
+::: {.stub-column}
+|                     | Small $\text{SD}_i$ | Large $\text{SD}_i$ |
+|---------------------|---------------------|---------------------|
+| Small $\text{OD}_i$ | Regular observation | Good leverage point |
+| Large $\text{OD}_i$ | Orthogonal outlier  | Bad leverage point  |
+:::
+
+* **Regular observations** have small score and small orthogonal distances, so they lie close to the centre of the PCA subspace, and are well represented by the projection.
+* **Good leverage points** have large score distances, but small orthogonal distances, so they lie far from the centre of the PCA subspace, but are still well represented by the projection. They inflate eigenvalues but do not distort the principal component directions. In fact, they can help improve the estimation of the principal component directions, because they provide more information about the structure of the data.
+* **Bad leverage points** have large score and large orthogonal distances, so they lie far from both the centre and the PCA subspace. They can pull the principal component directions towards themselves — the mechanism behind masking.
+* **Orthogonal outliers** have small score distances, but large orthogonal distances, so their projections lie close to the centre of the PCA subspace, but are not well represented by the projection. They will not be visible as anomalies in PCA projection, but will be visible in the residuals.
+
+This suggests we need to consider anomalies in both the projected space and the residual space. Alternatively, we need to find projections that reveal the anomalies in the projected space, and do not contain anomalies in the residual space.
+
+
+
+If the data were from a multivariate Normal distribution, then the score distances would follow a chi-squared distribution with $k$ degrees of freedom, and the orthogonal distances would follow a scaled chi-squared distribution with $m-k$ degrees of freedom. While we almost never believe that real data come from a multivariate Normal distribution, these results provide a useful reference point for understanding the geometry of the score and orthogonal distances, and for setting cutoffs to flag anomalies. We set cutoffs $c_\text{SD}$ and $c_\text{OD}$ such that observations with $\text{SD}_i > c_\text{SD}$ or $\text{OD}_i > c_\text{OD}$ are flagged as anomalies.
+
+Plotting $\text{OD}_i$ against $\text{SD}_i$ gives an **outlier map** that partitions observations into four types. @fig-pca-types illustrates the geometry for the standardised PM2.5, NO2 and CO measurements from Aotizhongxin fitted by two principal components, and @fig-outlier-map shows the resulting outlier map. These three combustion-related pollutants normally covary closely, so regular observations nearly all lie in a two-dimensional subspace; orthogonal outliers are days when one pollutant deviates from the pattern set by the other two.
+
+- **Regular observations** ($\text{SD}_i \le c_\text{SD}$, $\text{OD}_i \le c_\text{OD}$): lie close to the centre and within the PCA subspace.
+- **Good leverage points** ($\text{SD}_i > c_\text{SD}$, $\text{OD}_i \le c_\text{OD}$): lie within the subspace but far from the centre. They inflate eigenvalues but do not distort the principal component directions.
+- **Orthogonal outliers** ($\text{SD}_i \le c_\text{SD}$, $\text{OD}_i > c_\text{OD}$): appear unremarkable in the projected scores but lie far from the PCA subspace, visible only in the residuals.
+- **Bad leverage points** ($\text{SD}_i > c_\text{SD}$, $\text{OD}_i > c_\text{OD}$): lie far from both the centre and the subspace. They can pull the principal component directions towards themselves — the mechanism behind masking.
+
+```{r}
+#| label: pca-3d
+#| include: false
+#| warning: false
+#| dependson: aotizhongxin
+az_3d <- az_aq |> select(co, no2, pm2_5)
+pca_3d <- prcomp(az_3d, center=FALSE, scale = FALSE)
+A <- pca_3d$rotation[, 1:2]
+scores <- pca_3d$x[, 1:2]
+sd <- sqrt(scores[,1]^2/pca_3d$sdev[1]^2 + scores[,2]^2/pca_3d$sdev[2]^2)
+od <- sqrt(rowSums((az_3d - scores %*% t(A))^2))
+cutoff_sd <- sqrt(qchisq(0.975, df = 2))
+cutoff_od <- sqrt(qchisq(0.975, df = ncol(az_3d) - 2) * pca_3d$sdev[3]^2)
+types_3d <- tibble(sd = sd, od = od) |>
+  mutate(
+    type = case_when(
+      sd <= cutoff_sd & od <= cutoff_od ~ "Regular",
+      sd > cutoff_sd & od <= cutoff_od ~ "Good leverage point",
+      sd <= cutoff_sd & od > cutoff_od ~ "Orthogonal outlier",
+      TRUE ~ "Bad leverage point"
+    ),
+    type = factor(
+      type,
+      c("Regular", "Good leverage point", "Orthogonal outlier", "Bad leverage point")
+    )
+  )
+```
+
+::: {#fig-pca-types}
+
+::: {.figure-content}
+
+```{r}
+#| label: pca-types-plot
+#| webgl: true
+#| echo: false
+#| cache: false
+#| dependson: pca-3d
+type_colors <- c(
+  "Regular" = "#000000",
+  "Good leverage point" = "#0072B2",
+  "Orthogonal outlier" = "#E69F00",
+  "Bad leverage point" = "#D55E00"
+)
+rgl::plot3d(
+  az_3d,
+  col = type_colors[as.character(types_3d$type)],
+  alpha = ifelse(types_3d$type == "Regular", 0.25, 0.8),
+  size = 5,
+  xlab = "CO", ylab = "NO2", zlab = "PM2.5"
+)
+s1 <- seq(
+  min(scores[, 1]) * 1.4, max(scores[, 1]) * 1.4,
+  length.out = 20
+)
+s2 <- seq(
+  min(scores[, 2]) * 1.4, max(scores[, 2]) * 1.4,
+  length.out = 20
+)
+g <- expand.grid(s1 = s1, s2 = s2)
+plane_coords <- cbind(g$s1, g$s2) %*% t(A)
+rgl::surface3d(
+  matrix(plane_coords[, 1], 20, 20),
+  matrix(plane_coords[, 2], 20, 20),
+  matrix(plane_coords[, 3], 20, 20),
+  alpha = 0.25, color = "grey80", back = "culled"
+)
+proj_pts <- scores %*% t(A)
+show_idx <- which(types_3d$type != "Regular")
+az_mat <- as.matrix(az_3d)
+n_show <- length(show_idx)
+seg_mat <- matrix(NA, nrow = 2 * n_show, ncol = 3)
+seg_mat[seq(1, 2 * n_show, by = 2), ] <- az_mat[show_idx, ]
+seg_mat[seq(2, 2 * n_show, by = 2), ] <- proj_pts[show_idx, ]
+rgl::segments3d(
+  x = seg_mat[, 1], y = seg_mat[, 2], z = seg_mat[, 3],
+  col = "grey50", lwd = 1
+)
+```
+
+:::
+
+Interactive 3D scatter of standardised carbon monoxide, nitrogen dioxide and PM2.5 from Aotizhongxin (May 2014), coloured by outlier type: regular (black), good leverage point (blue), orthogonal outlier (orange), bad leverage point (red). The grey surface is the two-component PCA subspace; segments connect each non-regular observation to its projection on that surface.
+
+:::
+
+```{r}
+#| label: fig-outlier-map
+#| code-fold: true
+#| dependson: pca-3d
+#| fig-cap: "Outlier map for the standardised carbon monoxide, nitrogen dioxide and PM2.5 data from Aotizhongxin [@Hubert2005-qa]. Dashed lines show the cutoffs $c_{\\text{SD}}$ and $c_{\\text{OD}}$."
+ggplot(types_3d, aes(x = sd, y = od, color = type, shape = type)) +
+  geom_point(alpha = 0.7, size = 2) +
+  geom_vline(xintercept = cutoff_sd, linetype = "dashed", color = "grey50") +
+  geom_hline(yintercept = cutoff_od, linetype = "dashed", color = "grey50") +
+  scale_color_manual(
+    values = c(
+      "Regular" = "black",
+      "Good leverage point" = "#0072B2",
+      "Orthogonal outlier" = "#E69F00",
+      "Bad leverage point" = "#D55E00"
+    )
+  ) +
+  scale_shape_manual(
+    values = c(
+      "Regular" = 16, "Good leverage point" = 17,
+      "Orthogonal outlier" = 15, "Bad leverage point" = 18
+    )
+  ) +
+  labs(x = "Score distance", y = "Orthogonal distance", color = NULL, shape = NULL) +
+  guides(color = guide_legend(nrow = 2), shape = guide_legend(nrow = 2)) +
+  theme(legend.position = "bottom")
+```
 
 ### Robust principal components
-
-Anomalies are obviously going to affect the principal components, since they will affect the variance structure of the data. In some cases, the anomalies may be so extreme that they dominate the variance and cause the principal components to point in a direction that does not capture the main body of the data. This is another example of "masking", because the anomalies are masked by the influence they have on the principal components.
 
 There are several approaches to "robustifying" PCA, such as computing the eigenvectors of a robust covariance matrix, or using a different objective function that is less sensitive to outliers.
 
@@ -265,7 +427,21 @@ robust_pca <- eigen(Sigma$cov)
   labs(x = "Robust PC1", y = "Robust PC2")
 ```
 
-This has made almost no difference to the resulting
+This has made almost no difference to the resulting projection, so we will need another approach.
+
+The ROBPCA algorithm of @Hubert2005-qa is a more sophisticated method that combines projection pursuit with robust covariance estimation. It starts by finding an initial projection that captures the main structure of the data, then iteratively refines the projection directions to maximise a robust measure of variance. This method is designed to be more resistant to masking and swamping than classical PCA.
+
+```{r}
+#| label: robpca
+#| warning: false
+#| dependson: aotizhongxin
+robust_pca <- rospca::robpca(az_aq, kmax=2, skew = TRUE)
+as.matrix(az_aq) %*% robust_pca$loadings |>
+  as_tibble() |>
+  ggplot(aes(x = PC1, y = PC2)) +
+  geom_point(alpha = 0.2) +
+  labs(x = "Robust PC1", y = "Robust PC2")
+```
 
 
 ## Multi-dimensional scaling
