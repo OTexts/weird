@@ -139,6 +139,11 @@ td {
   background-color: lighten($theme-gray, 60%) !important;
 }
 
+.stub-column td:first-child {
+  background-color: lighten($theme-main, 40%) !important;
+  font-weight: bold;
+}
+
 blockquote {
   quotes: none;
   text-shadow: none;
