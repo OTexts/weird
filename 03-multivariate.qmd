@@ -231,15 +231,23 @@ The marginal cdfs are defined by $F_i(y) = \Pr(Y_i \le y)$, with corresponding m
 
 If the variables are independent, then the joint pdf is the product of the marginal pdfs, $f(\bm{y}) = \prod_{i=1}^m f_i(y_i)$.
 
-The expected value of $\bm{Y}$ is given by
+The expected value of $\bm{Y}$ is the vector of expectations of its components, and is given by
 $$
-\text{E}(\bm{Y}) = \int_{\mathbb{R}^m} \bm{y} f(\bm{y})d\bm{y},
+\text{E}(\bm{Y}) = \int_{\mathbb{R}^m} \bm{y} f(\bm{y})d\bm{y}.
 $$
-and the covariance matrix is given by
+The covariance matrix of $\bm{Y}$ is given by
 $$
 \text{Var}(\bm{Y}) = \text{E}[(\bm{Y}-\text{E}(\bm{Y}))(\bm{Y}-\text{E}(\bm{Y}))^\intercal].
 $$
 The covariance matrix is an $m\times m$ matrix, with $(i,j)$th element given by $\text{Cov}(Y_i,Y_j) = \text{E}[(Y_i-\text{E}(Y_i))(Y_j-\text{E}(Y_j))]$. The diagonal elements are the variances of the individual variables, while the off-diagonal elements are the covariances between the variables.
+
+The covariance matrix is always symmetric and positive semi-definite.
+
+Two useful results we will need are for the expectation and covariance of a linear transformation of a random vector. If $\bm{Y}$ is an $m$-dimensional random vector, and $\bm{A}$ is a $k\times m$ matrix, then
+\begin{align*}
+\text{E}(\bm{A}\bm{Y}) &= \bm{A}\text{E}(\bm{Y}), \\
+\text{Var}(\bm{A}\bm{Y}) &= \bm{A}\text{Var}(\bm{Y})\bm{A}^\intercal.
+\end{align*}
 
 ### Multivariate Normal distribution
 
