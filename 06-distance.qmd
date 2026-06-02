@@ -49,7 +49,7 @@ As temperatures increase above 20 degrees Celsius, ozone levels tend to increase
 Suppose our observations are denoted by $\bm{y}_1,\dots,\bm{y}_n$, each a vector of length $m$. In univariate data, the distance between any two observations is simply the absolute difference between the values. But in multivariate data, there are several different ways of measuring distances, even when the data are all numerical.
 
 Perhaps the most obvious way to define the distance between any two points $\bm{y}_i$ and $\bm{y}_j$ is to measure the length of the straight line between the points. This is commonly known as Euclidean distance, named after the famous Greek mathematician Euclid, and can be defined as
-$$\|\bm{y}_i - \bm{y}_j\|_2 = \sqrt{\sum_{k=1}^m (y_{ik}-y_{jk})^2}.$$
+$$\|\bm{y}_i - \bm{y}_j\| = \sqrt{\sum_{k=1}^m (y_{ik}-y_{jk})^2}.$$
 This is also known as the $L_2$ distance. For $m=1$ or $m=2$, it is the physical distance between the points when plotted on a strip plot or a scatterplot (provided there is no jittering used).
 
 The `dist()` function will return a distance matrix containing all pairwise distances between observations. Here is an example using only the first five observations of the `dongsi` data set, where each $\bm{y}_i$ is a vector of maximum daily temperature and mean daily ozone level. Because the distances are symmetric, only the lower triangle of the matrix is computed.
@@ -73,7 +73,7 @@ $$
 $$
 where $\bm{m}$ is the pointwise median and $\bm{U}^\intercal\bm{U} = \bm{S}_{\text{MCD}}^{-1}$ is the Cholesky decomposition of the inverse of the robust MCD covariance matrix (@sec-robust-cov). Then the Euclidean distance between the scaled observations $\bm{z}_i$ and $\bm{z}_j$ is given by
 $$
-  \|\bm{z}_i - \bm{z}_j\|_2 =
+  \|\bm{z}_i - \bm{z}_j\| =
    \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{U}^\intercal\bm{U} (\bm{y}_i - \bm{y}_j)} =
    \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{S}_{\text{MCD}}^{-1} (\bm{y}_i - \bm{y}_j)}.
 $$
@@ -96,7 +96,7 @@ head(z, 5) |>
 
 Rather than compute distances between observations, we can compute the distance of each observation from the centre of the data. For example, if we define the centre as the pointwise median, then Mahalanobis distance from the centre can be expressed as
 $$
-  d_i  =  \|\bm{z}_i\|_2 = \sqrt{(\bm{y}_i - \bm{m})^\intercal \bm{S}_{\text{MCD}}^{-1} (\bm{y}_i - \bm{m})}.
+  d_i  =  \|\bm{z}_i\| = \sqrt{(\bm{y}_i - \bm{m})^\intercal \bm{S}_{\text{MCD}}^{-1} (\bm{y}_i - \bm{m})}.
 $$
 That is, it is equivalent to the Euclidean distance of the scaled observation $\bm{z}_i$ from the origin. A large $d_i$ means the observation is far from the centre of the data and is potentially anomalous.
 
