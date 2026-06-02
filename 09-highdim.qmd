@@ -25,10 +25,11 @@ To keep the geometry simple, we will scale all variables to have mean zero and u
 #| code-fold: false
 az_aq <- air_quality |>
   filter(station == "Aotizhongxin", year == 2014, month == 5) |>
-  select(pm2_5:rainfall, wind_speed) |>
-  mvscale(center = mean, scale = sd, cov = NULL) |>
   tidyr::drop_na()
-az_aq
+Y <- az_aq |>
+  select(pm2_5:rainfall, wind_speed) |>
+  mvscale(center = mean, scale = sd, cov = NULL)
+Y
 ```
 
 ### Projecting from 2 to 1 dimension
@@ -52,7 +53,7 @@ set.seed(4)
 # The projection direction
 a <- c(0.8, 0.6)
 # Select five random observations to illustrate the projection
-show_pts <- az_aq |>
+show_pts <- Y |>
   slice_sample(n = 5) |>
   mutate(
     w = a[1] * co + a[2] * no2,
@@ -60,7 +61,7 @@ show_pts <- az_aq |>
     foot_no2 = w * a[2]
   )
 # Construct the plot
-ggplot(az_aq, aes(x = co, y = no2)) +
+ggplot(Y, aes(x = co, y = no2)) +
   geom_point(alpha = 0.2) +
   geom_abline(slope = a[2] / a[1], intercept = 0, color = "#0072B2") +
   geom_segment(
@@ -106,7 +107,7 @@ Let's add a third variable, `pm2_5`, measuring the particulate matter with diame
 #| cache: false
 #| dependson: aotizhongxin
 rgl::plot3d(
-  az_aq[, c("co", "no2", "pm2_5")],
+  Y[, c("co", "no2", "pm2_5")],
   size = 4,
   alpha = 0.3
 )
@@ -128,39 +129,40 @@ A pairwise scatterplot matrix, such as that shown in @fig-proj-pairs3, shows thr
 #| dependson: aotizhongxin
 #| message: false
 #| warning: false
-az_aq |>
+Y |>
   select(co, no2, pm2_5) |>
   GGally::ggpairs()
 ```
 
-A projection from $m = 3$ variables onto a 2-dimensional subspace is defined by a $3 \times 2$ matrix $\bm{A}$ where $\bm{A}^\intercal\bm{A} = \bm{I}_2$. In other words, the columns of $\bm{A}$ are "orthonormal": each column is a unit vector, and all columns are mutually orthogonal (i.e., $\bm{a}_i^\intercal\bm{a}_j = 0$ for any two distinct columns $i$ and $j$). The columns of $\bm{A}$ define the projection directions. The projection of $\bm{y}_i$ is
+### General projections
+
+A projection from $m$ variables onto a $k$-dimensional subspace is defined by a $m \times k$ matrix $\bm{A}$ where $\bm{A}^\intercal\bm{A} = \bm{I}_k$. In other words, the columns of $\bm{A}$ are "orthonormal": each column is a unit vector, and all columns are mutually orthogonal (i.e., $\bm{a}_i^\intercal\bm{a}_j = 0$ for any two distinct columns $i$ and $j$). The columns of $\bm{A}$ define the projection directions. The projection of $\bm{y}_i$ is
 $$
 \bm{w}_i = \bm{A}^\intercal \bm{y}_i,
 $$
 and its residual is $\bm{r}_i = \bm{y}_i - \bm{A}\bm{w}_i$.
 
-### General projections
-
-In the general case, a projection from $m$ dimensions to $k$ dimensions uses an $m \times k$ matrix $\bm{A}$ with orthonormal columns, $\bm{A}^\intercal\bm{A} = \bm{I}_k$. Writing the $n \times m$ data matrix as $\bm{Y}$, the projected scores form the $n \times k$ matrix
+In matrix form, the projected scores form the rows of the $n\times k$ matrix
 $$
-\bm{W} = \bm{Y}\bm{A}.
+\bm{W} = \bm{Y}\bm{A},
 $$
-Their residuals are given by
+and their residuals are given by
 $$
 \bm{R} = \bm{Y} - \bm{W}\bm{A}^\intercal = \bm{Y}(\bm{I} - \bm{A}\bm{A}^\intercal).
 $$
+The covariance matrix of the scores is given by
+$$
+  \text{Cov}(\bm{W}) = \bm{A}^\intercal \bm{\Sigma} \bm{A}.
+$$
 
-The Aotizhongxin station data `az_aq` contains `r english::words(NCOL(az_aq))` variables. We can project this `r NCOL(az_aq)`-dimensional space onto a 2-dimensional subspace defined by a $`r NCOL(az_aq)` \times 2$ matrix $\bm{A}$ with orthonormal columns. The resulting 2D projection will capture some aspects of the joint structure, but not all. For example, suppose we choose the following projection matrix $\bm{A}$:
+The Aotizhongxin station data contains `r english::words(NCOL(Y))` variables. We can project this `r NCOL(Y)`-dimensional space onto a 2-dimensional subspace defined by a $`r NCOL(Y)` \times 2$ matrix $\bm{A}$ with orthonormal columns. The resulting 2D projection will capture some aspects of the joint structure, but not all. For example, suppose we choose the following projection matrix $\bm{A}$:
 
 ```{r}
 #| label: 11dto2d
 #| include: false
-#A <- prcomp(az_aq)$rotation[, 1:2] %*%
-#  -matrix(c(1, 0, 0, 1), nrow = 2, ncol = 2) |>
-#  round(2)
-A <- dobin::dobin(az_aq)$rotation[, 1:2] |> round(2)
+A <- dobin::dobin(Y)$rotation[, 1:2] |> round(2)
 colnames(A) <- c("a1", "a2")
-rownames(A) <- colnames(az_aq)
+rownames(A) <- colnames(Y)
 ```
 
 ```{r}
@@ -177,8 +179,9 @@ Then the resulting 2D projection is shown in @fig-proj-11dto2d.
 #| code-fold: true
 #| fig-cap: "Projection of the 11 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace."
 #| dependson: 11dto2d
-W <- as.matrix(az_aq) %*% A
-as_tibble(W) |>
+W <- as.matrix(Y) %*% A |>
+  as_tibble()
+W |>
   ggplot(aes(x = a1, y = a2)) +
   geom_point(alpha = 0.2) +
   labs(x = "w1", y = "w2")
@@ -190,26 +193,87 @@ A few observations in this projection appear to be anomalies, but we may also ha
 
 For an excellent introduction to interactively exploring all possible projections, see @mulgar.
 
+## Types of projection anomalies
+
+There are two types of projection-based anomalies:
+
+1. **Anomalies in the projected space**. For example, they may be far from the other observations in the projection, or they may be in a region of the projection space that has low density. We can identify them by applying anomaly-detection methods to the projected scores.
+2. **Anomalies in the residual space**. For example, they may have a large residual, although they may not be unusual in the projected space. We can detect them by looking for observations with large residuals, or with unusual residual distance values. It is more difficult to look generally for anomalies in the residual space, because the residuals are still in a high-dimensional space.
+
+@fig-proj-11dto2d shows some potential anomalies in the projected space. Using KDE surprisals (@sec-kdesurprisals), we can flag the observations with the lowest density in the projection as potential anomalies. Here the threshold probability of 0.02 has been chosen after some experimentation.
+
+```{r}
+#| label: proj-kde
+#| code-fold: true
+#| dependson: fig-proj-11dto2d
+az_aq_proj <- az_aq |>
+  bind_cols(W) |>
+  mutate(prob = surprisals_prob(pick(a1, a2), loo = TRUE, approximation = "gpd"))
+az_aq_proj |>
+  filter(prob < 0.02)
+az_aq_proj |>
+  ggplot(aes(x = a1, y = a2, color = prob < 0.02)) +
+  geom_point()
+```
+
+Any of the methods discussed in @sec-distances could also be applied to the projected scores to flag anomalies in the projected space. Here we use an Isolation Forest to find the top 10 most anomalous observations.
+
+```{r}
+#| label: proj-isoforest
+#| code-fold: true
+#| dependson: fig-proj-11dto2d
+iso_model <- isotree::isolation.forest(W)
+az_aq_proj <- az_aq_proj |>
+  mutate(iso_score = predict(iso_model, W)) |>
+  arrange(desc(iso_score))
+threshold <- az_aq_proj$iso_score[10]
+az_aq_proj |>
+  ggplot(aes(x = a1, y = a2, color = iso_score >= threshold)) +
+  geom_point()
+```
+
+To find anomalies in the residual space, we first calculate the **orthogonal distances**, measuring how far an observation lies *from* the projection subspace; i.e., the magnitude of its residual:
+$$
+\text{OD}_i = \|\bm{r}_i\| = \|\bm{y}_i - \bm{A}\bm{w}_i\|.
+$$
+This provides a measure of how much information has *not* been captured by the $k$ components used in the projection. Observations with the largest orthogonal distances may not be visible as anomalies in the projection space, but they will be visible in the residuals.
+
+```{r}
+az_aq_proj <- az_aq_proj |>
+  mutate(od = sqrt(rowSums((Y - as.matrix(W) %*% t(A))^2))) |>
+  arrange(desc(od))
+az_aq_proj
+gg_hdrboxplot(az_aq_proj$od)
+threshold <- quantile(az_aq_proj$od, 0.99, type = 8)
+az_aq_proj |>
+  ggplot(aes(x = a1, y = a2, color = od >= threshold)) +
+  geom_point(alpha = 0.2 + 0.8 * (az_aq_proj$od >= threshold))
+```
+
 ## Principal component analysis {#sec-pca}
 
 By far the most common projection method is **principal component analysis (PCA)**, which finds the projection directions that capture the most variance in the data. The first principal component is the direction of maximum variance, the second is the direction of maximum variance orthogonal to the first, and so on. Then the lower dimensional projection will contain as much of the variation of the original data as possible, given the number of dimensions in the projection.
 
-As in the previous sections, let $\bm{Y}$ denote the $n\times m$ data matrix, and let $\bm{\Sigma}$ be its $m\times m$ covariance matrix. The projection scores are given by $\bm{W} = \bm{Y}\bm{A}$, where $\bm{A}$ is an $m \times k$ matrix with orthonormal columns.
+For principal component projection, each column of $\bm{A}$ is found sequentially by maximising the variance of the scores it produces, subject to the orthonormality constraints. If $\bm{\Sigma}$ is the $m\times m$ covariance matrix of the data $\bm{Y}$, then the first direction $\bm{a}_1$ maximises $\text{Var}(\bm{a}_1^\intercal \bm{y}) = \bm{a}_1^\intercal \bm{\Sigma} \bm{a}_1$ subject to $\|\bm{a}_1\| = 1$. The second direction $\bm{a}_2$ maximises $\text{Var}(\bm{a}_2^\intercal \bm{y}) = \bm{a}_2^\intercal \bm{\Sigma} \bm{a}_2$ subject to $\|\bm{a}_2\| = 1$ and $\bm{a}_2^\intercal \bm{a}_1 = 0$, and so on.
 
-For principal component projection, each column of $\bm{A}$ is found sequentially by maximising the variance of the scores it produces, subject to the orthonormality constraints. Specifically, the first direction $\bm{a}_1$ maximises $\text{Var}(\bm{a}_1^\intercal \bm{y}) = \bm{a}_1^\intercal \bm{\Sigma} \bm{a}_1$ subject to $\|\bm{a}_1\| = 1$. The second direction $\bm{a}_2$ maximises $\text{Var}(\bm{a}_2^\intercal \bm{y}) = \bm{a}_2^\intercal \bm{\Sigma} \bm{a}_2$ subject to $\|\bm{a}_2\| = 1$ and $\bm{a}_2^\intercal \bm{a}_1 = 0$, and so on.
+This solution is equivalent to finding the eigenvectors of $\bm{\Sigma}$, and the resulting projection scores are called the principal component scores. The first $k$ eigenvectors of $\bm{\Sigma}$ form the columns of $\bm{A}$.
 
-This solution is equivalent to finding the eigenvectors of $\bm{\Sigma}$, and the resulting projection scores are called the principal component scores. The first $k$ eigenvectors of $\bm{\Sigma}$ form the columns of $\bm{A}$, and the corresponding eigenvalues give the variance captured by each principal component.
+The covariance matrix of the scores is given by
+$$
+  \text{Cov}(\bm{W}) = \bm{A}^\intercal \bm{\Sigma} \bm{A} = \text{diag}(\lambda_1, \ldots, \lambda_k),
+$$
+where $\lambda_1 \ge \lambda_2 \ge \cdots \ge \lambda_k$ are the first $k$ eigenvalues of $\bm{\Sigma}$. The covariance matrix of the scores is diagonal, which means that the principal component scores are uncorrelated. The variance of the $j$th principal component score is $\lambda_j$, so the eigenvalues give the variance captured by each principal component. The proportion of variance in the original data that has been captured by the first $k$ principal components is given by the sum of the first $k$ eigenvalues divided by the sum of all eigenvalues.
 
-It is possible to calculate up to $k = \min(n, m)$ principal components, but in practice we often only use the first few that capture most of the variance. The proportion of variance in the original data that has been captured by the first $k$ principal components is given by the sum of the first $k$ eigenvalues divided by the sum of all eigenvalues.
+It is possible to calculate up to $k = \min(n, m)$ principal components, but in practice we often only use the first few that capture most of the variance.
 
-For the 11 air quality and meteorological variables from Aotizhongxin, the 11 principal components can be computed using `prcomp()` as follows.
+For the 11 air quality and meteorological variables from Aotizhongxin, the 11 principal components can be computed using `prcomp()`, or using `rrcov::PcaClassic()`. We will use the latter, because it will make it easier to compare with other methods.
 
 ```{r}
 #| label: pca
 #| code-fold: false
 #| dependson: aotizhongxin
-pca_res <- prcomp(az_aq, center = FALSE, scale = FALSE)
-pca_res$rotation
+pca_res <- rrcov::PcaClassic(Y)
+pca_res$loadings
 ```
 
 The total variance explained can also be computed from the `prcomp()` output.
@@ -218,14 +282,14 @@ The total variance explained can also be computed from the `prcomp()` output.
 #| label: pca-var
 #| code-fold: false
 #| dependson: pca
-100 * pca_res$sdev^2 / sum(pca_res$sdev^2)
+100 * pca_res$eigenvalues / sum(pca_res$eigenvalues)
 ```
 
 ```{r}
 #| label: pca-cumvar
 #| echo: false
 #| dependson: pca
-var_explained <- 100 * pca_res$sdev^2 / sum(pca_res$sdev^2)
+var_explained <- 100 * pca_res$eigenvalues / sum(pca_res$eigenvalues)
 cum_var_explained <- round(cumsum(var_explained))
 var_explained <- round(var_explained)
 ```
@@ -240,7 +304,7 @@ Using only the first two principal components gives the scores shown in @fig-pca
 #| label: pca-2d-plot
 #| code-fold: true
 #| dependson: pca
-pca_res$x[, 1:2] |>
+pca_res$scores[, 1:2] |>
   ggplot(aes(x = PC1, y = PC2)) +
   geom_point(alpha = 0.2)
 ```
@@ -249,23 +313,28 @@ Two-dimensional principal components projections of the 11D air quality and mete
 
 :::
 
-Here the anomalies are much less obvious than in @fig-proj-11dto2d. This is relatively common with PCA, because any anomalies can have a large influence on the variance structure of the data, and therefore on the principal components. If the anomalies dominate the variance, they can cause the principal components to point in a direction that does not capture the main body of the data, making it difficult to detect them in the projected space. This is an example of "masking", where the anomalies are masked due to their influence on the projection directions.
+Here the anomalies are much less obvious than in @fig-proj-11dto2d. This can happen for two reasons:
+
+1. The anomalies may not be visible in the first two principal components. If the anomalies are not aligned with the main axes of variation, they may be hidden in the lower variance components that we have not included in the projection.
+2. The anomalies can cause the principal components to point in a direction that does not capture the main body of the data, making it difficult to detect them in the projected space. This is an example of "masking", where the anomalies are masked due to their influence on the projection directions.
+
+###
 
 ### Types of anomalies
 
 @Hubert2005-qa introduced a useful framework for classifying observations in the context of PCA, based on two distances.
 
-The **score distance** measures how far an observation is from the centre *within* the PCA subspace. For an observation $\bm{y}_i$ with scores $\bm{w}_i = \bm{A}^\intercal \bm{y}_i$, it is
+The **score distance** is the Mahalanobis distance of the projected observation from the centre of the PCA subspace (@sec-distances). For an observation $\bm{y}_i$ with scores $\bm{w}_i = \bm{A}^\intercal \bm{y}_i$, it is
 $$
-\text{SD}_i = \sqrt{\sum_{j=1}^{k} \frac{w_{ij}^2}{\lambda_j}},
+\text{SD}_i = \sqrt{\sum_{j=1}^{k} w_{ij}^2/ \lambda_j}.
 $$
-where $\lambda_j$ is the variance of the $j$th principal component. This is the Mahalanobis distance of the projected observation from the centre of the PCA subspace. Observations with the largest score distances will be visible as potential anomalies in the PCA projection, because they lie far from the centre of the PCA subspace. They are called **leverage points** because they have a large influence on the estimation of the principal component directions.
+Observations with the largest score distances will be visible as potential anomalies in the PCA projection, because they lie far from the centre of the PCA subspace. They are called **leverage points** because they have a large influence on the estimation of the principal component directions.
 
 The **orthogonal distance** measures how far an observation lies *from* the PCA subspace; i.e., the magnitude of its residual:
 $$
 \text{OD}_i = \|\bm{r}_i\| = \|\bm{y}_i - \bm{A}\bm{w}_i\|.
 $$
-This provides a measure of how much information has not been captured by the $k$ components used in the projection. Observations with the largest orthogonal distances will not be visible as anomalies in the PCA projection, because they lie close to the centre of the PCA subspace, but they will be visible in the residuals. They are sometimes called **orthogonal outliers** because they lie far from the PCA subspace in a direction orthogonal to it.
+This provides a measure of how much information has *not* been captured by the $k$ components used in the projection. Observations with the largest orthogonal distances may not be visible as anomalies in the PCA projection, but they will be visible in the residuals.
 
 Using these two distances provides a rough classification of observations based on their score and orthogonal distances.
 
@@ -279,132 +348,49 @@ Using these two distances provides a rough classification of observations based 
 * **Regular observations** have small score and small orthogonal distances, so they lie close to the centre of the PCA subspace, and are well represented by the projection.
 * **Good leverage points** have large score distances, but small orthogonal distances, so they lie far from the centre of the PCA subspace, but are still well represented by the projection. They inflate eigenvalues but do not distort the principal component directions. In fact, they can help improve the estimation of the principal component directions, because they provide more information about the structure of the data.
 * **Bad leverage points** have large score and large orthogonal distances, so they lie far from both the centre and the PCA subspace. They can pull the principal component directions towards themselves — the mechanism behind masking.
-* **Orthogonal outliers** have small score distances, but large orthogonal distances, so their projections lie close to the centre of the PCA subspace, but are not well represented by the projection. They will not be visible as anomalies in PCA projection, but will be visible in the residuals.
+* **Orthogonal outliers** have small score distances, but large orthogonal distances, so their projections lie close to the centre of the PCA subspace, but are not well represented by the projection. They will not be visible as anomalies in PCA projection, but they will be visible in the residuals.
 
-This suggests we need to consider anomalies in both the projected space and the residual space. Alternatively, we need to find projections that reveal the anomalies in the projected space, and do not contain anomalies in the residual space.
+This suggests that we need to consider anomalies in both the projected space and the residual space. Alternatively, we need to find projections that reveal the anomalies in the projected space, and do not contain anomalies in the residual space.
 
+If the data were from a multivariate Normal distribution, then the score distances would approximately follow a chi-squared distribution with $k$ degrees of freedom. While we almost never believe that real data come from a multivariate Normal distribution, this provides a useful reference point for understanding the geometry of the score distances, and for setting a cutoff to classify points. We flag an observation as a high leverage point if $\text{SD}_i$ is larger than the 97.5% quantile of the chi-squared distribution with $k$ degrees of freedom. So under a Normal model, we would expect about 2.5% of the observations to have large score distances and be flagged as leverage points.
 
+The distribution of orthogonal distances is more complicated, but a common approach is to flag an observation as having a large orthogonal distance if $\text{OD}_i$ is greater than the 97.5% quantile of an appropriate Normal distribution. So again, about 2.5% of the observations would be expected to have large orthogonal distances under a Normal model.
 
-If the data were from a multivariate Normal distribution, then the score distances would follow a chi-squared distribution with $k$ degrees of freedom, and the orthogonal distances would follow a scaled chi-squared distribution with $m-k$ degrees of freedom. While we almost never believe that real data come from a multivariate Normal distribution, these results provide a useful reference point for understanding the geometry of the score and orthogonal distances, and for setting cutoffs to flag anomalies. We set cutoffs $c_\text{SD}$ and $c_\text{OD}$ such that observations with $\text{SD}_i > c_\text{SD}$ or $\text{OD}_i > c_\text{OD}$ are flagged as anomalies.
+Plotting $\text{OD}_i$ against $\text{SD}_i$ gives an **outlier map** that partitions observations into the four types. @fig-outlier-map illustrates the idea for the Aotizhongxin data using the two principal components shown in @fig-pca-2d.
 
-Plotting $\text{OD}_i$ against $\text{SD}_i$ gives an **outlier map** that partitions observations into four types. @fig-pca-types illustrates the geometry for the standardised PM2.5, NO2 and CO measurements from Aotizhongxin fitted by two principal components, and @fig-outlier-map shows the resulting outlier map. These three combustion-related pollutants normally covary closely, so regular observations nearly all lie in a two-dimensional subspace; orthogonal outliers are days when one pollutant deviates from the pattern set by the other two.
-
-- **Regular observations** ($\text{SD}_i \le c_\text{SD}$, $\text{OD}_i \le c_\text{OD}$): lie close to the centre and within the PCA subspace.
-- **Good leverage points** ($\text{SD}_i > c_\text{SD}$, $\text{OD}_i \le c_\text{OD}$): lie within the subspace but far from the centre. They inflate eigenvalues but do not distort the principal component directions.
-- **Orthogonal outliers** ($\text{SD}_i \le c_\text{SD}$, $\text{OD}_i > c_\text{OD}$): appear unremarkable in the projected scores but lie far from the PCA subspace, visible only in the residuals.
-- **Bad leverage points** ($\text{SD}_i > c_\text{SD}$, $\text{OD}_i > c_\text{OD}$): lie far from both the centre and the subspace. They can pull the principal component directions towards themselves — the mechanism behind masking.
-
-```{r}
-#| label: pca-3d
-#| include: false
-#| warning: false
-#| dependson: aotizhongxin
-az_3d <- az_aq |> select(co, no2, pm2_5)
-pca_3d <- prcomp(az_3d, center=FALSE, scale = FALSE)
-A <- pca_3d$rotation[, 1:2]
-scores <- pca_3d$x[, 1:2]
-sd <- sqrt(scores[,1]^2/pca_3d$sdev[1]^2 + scores[,2]^2/pca_3d$sdev[2]^2)
-od <- sqrt(rowSums((az_3d - scores %*% t(A))^2))
-cutoff_sd <- sqrt(qchisq(0.975, df = 2))
-cutoff_od <- sqrt(qchisq(0.975, df = ncol(az_3d) - 2) * pca_3d$sdev[3]^2)
-types_3d <- tibble(sd = sd, od = od) |>
-  mutate(
-    type = case_when(
-      sd <= cutoff_sd & od <= cutoff_od ~ "Regular",
-      sd > cutoff_sd & od <= cutoff_od ~ "Good leverage point",
-      sd <= cutoff_sd & od > cutoff_od ~ "Orthogonal outlier",
-      TRUE ~ "Bad leverage point"
-    ),
-    type = factor(
-      type,
-      c("Regular", "Good leverage point", "Orthogonal outlier", "Bad leverage point")
-    )
-  )
-```
-
-::: {#fig-pca-types}
-
-::: {.figure-content}
-
-```{r}
-#| label: pca-types-plot
-#| webgl: true
-#| echo: false
-#| cache: false
-#| dependson: pca-3d
-type_colors <- c(
-  "Regular" = "#000000",
-  "Good leverage point" = "#0072B2",
-  "Orthogonal outlier" = "#E69F00",
-  "Bad leverage point" = "#D55E00"
-)
-rgl::plot3d(
-  az_3d,
-  col = type_colors[as.character(types_3d$type)],
-  alpha = ifelse(types_3d$type == "Regular", 0.25, 0.8),
-  size = 5,
-  xlab = "CO", ylab = "NO2", zlab = "PM2.5"
-)
-s1 <- seq(
-  min(scores[, 1]) * 1.4, max(scores[, 1]) * 1.4,
-  length.out = 20
-)
-s2 <- seq(
-  min(scores[, 2]) * 1.4, max(scores[, 2]) * 1.4,
-  length.out = 20
-)
-g <- expand.grid(s1 = s1, s2 = s2)
-plane_coords <- cbind(g$s1, g$s2) %*% t(A)
-rgl::surface3d(
-  matrix(plane_coords[, 1], 20, 20),
-  matrix(plane_coords[, 2], 20, 20),
-  matrix(plane_coords[, 3], 20, 20),
-  alpha = 0.25, color = "grey80", back = "culled"
-)
-proj_pts <- scores %*% t(A)
-show_idx <- which(types_3d$type != "Regular")
-az_mat <- as.matrix(az_3d)
-n_show <- length(show_idx)
-seg_mat <- matrix(NA, nrow = 2 * n_show, ncol = 3)
-seg_mat[seq(1, 2 * n_show, by = 2), ] <- az_mat[show_idx, ]
-seg_mat[seq(2, 2 * n_show, by = 2), ] <- proj_pts[show_idx, ]
-rgl::segments3d(
-  x = seg_mat[, 1], y = seg_mat[, 2], z = seg_mat[, 3],
-  col = "grey50", lwd = 1
-)
-```
-
-:::
-
-Interactive 3D scatter of standardised carbon monoxide, nitrogen dioxide and PM2.5 from Aotizhongxin (May 2014), coloured by outlier type: regular (black), good leverage point (blue), orthogonal outlier (orange), bad leverage point (red). The grey surface is the two-component PCA subspace; segments connect each non-regular observation to its projection on that surface.
-
-:::
 
 ```{r}
 #| label: fig-outlier-map
 #| code-fold: true
 #| dependson: pca-3d
 #| fig-cap: "Outlier map for the standardised carbon monoxide, nitrogen dioxide and PM2.5 data from Aotizhongxin [@Hubert2005-qa]. Dashed lines show the cutoffs $c_{\\text{SD}}$ and $c_{\\text{OD}}$."
-ggplot(types_3d, aes(x = sd, y = od, color = type, shape = type)) +
+pca_res <- rrcov::PcaClassic(Y, k = 2)
+as_tibble(pca_res$scores) |>
+  mutate(
+    sd = pca_res$sd,
+    od = pca_res$od,
+    type = case_when(
+      sd <= pca_res$cutoff.sd & od <= pca_res$cutoff.od ~ "Regular",
+      sd > pca_res$cutoff.sd & od <= pca_res$cutoff.od ~ "Good leverage point",
+      sd <= pca_res$cutoff.sd & od > pca_res$cutoff.od ~ "Orthogonal outlier",
+      sd > pca_res$cutoff.sd & od > pca_res$cutoff.od ~ "Bad leverage point"
+    ),
+    type = factor(
+      type,
+      levels = c(
+        "Orthogonal outlier",
+        "Regular",
+        "Bad leverage point",
+        "Good leverage point"
+      )
+    )
+  ) |>
+  ggplot(aes(x = sd, y = od, color = type)) +
   geom_point(alpha = 0.7, size = 2) +
-  geom_vline(xintercept = cutoff_sd, linetype = "dashed", color = "grey50") +
-  geom_hline(yintercept = cutoff_od, linetype = "dashed", color = "grey50") +
-  scale_color_manual(
-    values = c(
-      "Regular" = "black",
-      "Good leverage point" = "#0072B2",
-      "Orthogonal outlier" = "#E69F00",
-      "Bad leverage point" = "#D55E00"
-    )
-  ) +
-  scale_shape_manual(
-    values = c(
-      "Regular" = 16, "Good leverage point" = 17,
-      "Orthogonal outlier" = 15, "Bad leverage point" = 18
-    )
-  ) +
+  geom_vline(xintercept = pca_res$cutoff.sd, linetype = "dashed", color = "grey50") +
+  geom_hline(yintercept = pca_res$cutoff.od, linetype = "dashed", color = "grey50") +
   labs(x = "Score distance", y = "Orthogonal distance", color = NULL, shape = NULL) +
-  guides(color = guide_legend(nrow = 2), shape = guide_legend(nrow = 2)) +
+  guides(color = guide_legend(nrow = 2)) +
   theme(legend.position = "bottom")
 ```
 
@@ -418,9 +404,9 @@ Suppose we used the robust covariance matrix computed by `robustbase::covMCD()` 
 #| label: robust-pca
 #| warning: false
 #| dependson: aotizhongxin
-Sigma <- as.matrix(az_aq) |> robustbase::covMcd(alpha = 0.9)
+Sigma <- as.matrix(Y) |> robustbase::covMcd(alpha = 0.9)
 robust_pca <- eigen(Sigma$cov)
-(as.matrix(az_aq) %*% robust_pca$vectors[, 1:2]) |>
+(as.matrix(Y) %*% robust_pca$vectors[, 1:2]) |>
   as_tibble() |>
   ggplot(aes(x = V1, y = V2)) +
   geom_point(alpha = 0.2) +
@@ -435,8 +421,9 @@ The ROBPCA algorithm of @Hubert2005-qa is a more sophisticated method that combi
 #| label: robpca
 #| warning: false
 #| dependson: aotizhongxin
-robust_pca <- rospca::robpca(az_aq, kmax=2, skew = TRUE)
-as.matrix(az_aq) %*% robust_pca$loadings |>
+robust_pca <- rospca::robpca(Y, kmax = 2, skew = TRUE)
+as.matrix(Y) %*%
+  robust_pca$loadings |>
   as_tibble() |>
   ggplot(aes(x = PC1, y = PC2)) +
   geom_point(alpha = 0.2) +
@@ -506,7 +493,7 @@ of_scores |>
 #| label: fig-dobin
 #| echo: false
 #| dependson: aotizhongxin
-dobin_scores <- dobin::dobin(az_aq)
+dobin_scores <- dobin::dobin(Y)
 ```
 
 

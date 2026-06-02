@@ -9293,7 +9293,7 @@
       "RemoteUsername": "robjhyndman",
       "RemotePkgRef": "robjhyndman/weird@main",
       "RemoteRef": "main",
-      "RemoteSha": "48c84183174f5f9880c221d48519e239342fbfcd",
+      "RemoteSha": "3870824541ed05af0423c351a4c4eb44cfb8f616",
       "NeedsCompilation": "no",
       "Author": "Rob Hyndman [aut, cre, cph] (ORCID: <https://orcid.org/0000-0002-2140-5352>), RStudio [cph]",
       "Maintainer": "Rob Hyndman <Rob.Hyndman@monash.edu>"
@@ -9338,7 +9338,7 @@
     },
     "xfun": {
       "Package": "xfun",
-      "Version": "0.57",
+      "Version": "0.58",
       "Source": "Repository",
       "Type": "Package",
       "Title": "Supporting Functions for Packages Maintained by 'Yihui Xie'",
@@ -9377,12 +9377,12 @@
       "URL": "https://github.com/yihui/xfun",
       "BugReports": "https://github.com/yihui/xfun/issues",
       "Encoding": "UTF-8",
-      "RoxygenNote": "7.3.3",
       "VignetteBuilder": "litedown",
+      "Config/roxygen2/version": "8.0.0",
       "NeedsCompilation": "yes",
       "Author": "Yihui Xie [aut, cre, cph] (ORCID: <https://orcid.org/0000-0003-0645-5666>, URL: https://yihui.org), Wush Wu [ctb], Daijiang Li [ctb], Xianying Tan [ctb], Salim Brüggemann [ctb] (ORCID: <https://orcid.org/0000-0002-5329-5987>), Christophe Dervieux [ctb]",
       "Maintainer": "Yihui Xie <xie@yihui.name>",
-      "Repository": "https://packagemanager.posit.co/cran/__linux__/noble/latest"
+      "Repository": "RSPM"
     },
     "xml2": {
       "Package": "xml2",
