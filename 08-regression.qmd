@@ -38,7 +38,7 @@ Many regression-based anomaly detection methods involve finding anomalies in the
 The diagonals of $\bm{H}$, given by
 $$
 h_i = \bm{x}_i^\intercal(\bm{X}^\intercal\bm{X})^{-1}\bm{x}_i,\qquad i=1,\dots,n,
-$$
+$$ {#eq-leverage}
 take values between 0 and 1. These are known as the "leverage" values [@faraway2004linear, p. 69], and measure how much each observation influences the corresponding fitted value. High leverage values (close to 1) correspond to observations that have a large influence on the estimated coefficients, and so leaving those observations out will lead to very different values for the fitted values and residuals. On the other hand, small leverage values (close to 0) correspond to observations that have little influence on the estimated coefficients, and so leaving those observations out will lead to similar values for the fitted values and residuals. Often high leverage values are those corresponding to anomalies in the predictor space (although not necessarily in the space of the response variable).
 
 A linear model can be estimated in R using the `stats::lm()` function, while `broom::augment()` computes the fitted values, residuals and leverage values.
