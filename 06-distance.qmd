@@ -741,7 +741,7 @@ The two largest ozone levels, and the coldest day, are again identified as the m
 ```{r}
 #| label: fig-iforest-of
 #| fig-cap: "Isolation Forest anomaly scores for the Dongsi air quality data. Anomalies are shown as observations with scores above 0.6, which are highlighted in blue."
-#| code-fold: false
+#| code-fold: true
 #| dependson: iforest-of
 grid_dongsi <- tidyr::expand_grid(
   max_temp = seq(-14, 42, length = 100),
