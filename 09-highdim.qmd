@@ -155,24 +155,19 @@ $$
   \text{Cov}(\bm{W}) = \bm{A}^\intercal \bm{\Sigma} \bm{A}.
 $$
 
-The Aotizhongxin station data contains `r english::words(NCOL(Y))` variables. We can project this `r NCOL(Y)`-dimensional space onto a 2-dimensional subspace defined by a $`r NCOL(Y)` \times 2$ matrix $\bm{A}$ with orthonormal columns. The resulting 2D projection will capture some aspects of the joint structure, but not all. For example, suppose we choose the following projection matrix $\bm{A}$:
+The Aotizhongxin station data contains `r english::words(NCOL(Y))` variables. We can project this `r NCOL(Y)`-dimensional space onto a 2-dimensional subspace defined by a $`r NCOL(Y)` \times 2$ matrix $\bm{A}$ with orthonormal columns. The resulting 2D projection will capture some aspects of the joint structure, but not all. For example, suppose we choose the following projection matrix $\bm{A}$, using a method that we will discuss later in @sec-dobin.
 
 ```{r}
 #| label: 11dto2d
-#| include: false
-A <- dobin::dobin(Y)$rotation[, 1:2] |> round(2)
+#| code-fold: false
+#| dependson: aotizhongxin
+A <- dobin::dobin(Y)$rotation[, 1:2]
 colnames(A) <- c("a1", "a2")
 rownames(A) <- colnames(Y)
-```
-
-```{r}
-#| label: 11dto2dA
-#| code-fold: false
-#| dependson: 11dto2d
 A
 ```
 
-Where these numbers come from will be revealed in @sec-dobin, but for now we will just use this projection matrix as an example. Then the resulting 2D projection is shown in @fig-proj-11dto2d.
+Then the resulting 2D projection is shown in @fig-proj-11dto2d.
 
 ```{r}
 #| label: fig-proj-11dto2d
@@ -199,6 +194,8 @@ There are two types of projection-based anomalies:
 
 1. **Anomalies in the projection space**. For example, they may be far from the other observations in the projection, or they may be in a region of the projection space that has low density. We can identify them by applying anomaly-detection methods to the projected scores.
 2. **Anomalies in the residual space**. For example, observations with large residuals, or observations that have otherwise unusual residual magnitudes. We can detect them by applying anomaly-detection methods to the residual magnitudes. It is not usually possibly to identify anomalies in the residual space by looking at the residuals themselves, because they are still in a high-dimensional space.
+
+### Anomalies in the projection space
 
 @fig-proj-11dto2d shows some potential anomalies in the projection space. The general distance-based and density-based anomaly detection methods discussed in @sec-distances and @sec-density-methods can be applied to the projected scores to flag these anomalies.
 
@@ -249,6 +246,8 @@ az_aq_proj |>
   scale_colour_manual(values = c("FALSE" = "#0072B2", "TRUE" = "black"))
 ```
 
+### Anomalies in the residuals space
+
 To find anomalies in the residual space, we first calculate the **orthogonal distances**, measuring how far an observation lies *from* the projection subspace; i.e., the magnitude of its residual:
 $$
 \text{OD}_i = \|\bm{r}_i\| = \|\bm{y}_i - \bm{A}\bm{w}_i\|.
@@ -284,6 +283,40 @@ az_aq_proj |>
 
 The observation with the most extreme orthogonal distance, is also the most extreme in the projection space, so it is visible as an anomaly in both spaces. However, the other observations with large orthogonal distances are not visible as anomalies in the projection space, illustrating the importance of considering both spaces when looking for anomalies.
 
+### Outlier map
+
+To explore outlying anomalies, we can look at the relationship between two different distances: the **score distance**, which measures how far an observation lies from the centre *within* the projection space, and the **orthogonal distance** (defined above), which measures how far it lies *from* the projection space.
+
+The **score distance** is the Mahalanobis distance of the projected observation from the centre of the projection subspace (@sec-distances). For an observation $\bm{y}_i$ with scores $\bm{w}_i = \bm{A}^\intercal \bm{y}_i$, it is
+$$
+\text{SD}_i = \sqrt{\bm{w}_i^\intercal (\bm{A}^\intercal \bm{\Sigma} \bm{A})^{-1} \bm{w}_i}.
+$$
+Observations with the largest score distances will be visible as potential anomalies, because they lie far from the centre of the projection subspace.
+
+```{r}
+#| label: score-distances
+#| code-fold: false
+#| dependson: fig-proj-11dto2d
+az_aq_proj <- az_aq_proj |>
+  mutate(sd = sqrt(diag(W %*% solve(t(A) %*% cov(Y) %*% A) %*% t(W))))
+```
+
+We can plot the orthogonal distance against the score distance to explore the relationship between these two types of anomalies. This is known as an "outlier map" [@Hubert2005-qa].
+
+```{r}
+#| label: fig-odsdplot
+#| code-fold: true
+#| dependson: score-distances
+#| fig-cap: "Orthogonal distance plotted against score distance for the 11 air quality and meteorological variables at Aotizhongxin projected onto a 2-dimensional subspace."
+az_aq_proj |>
+  ggplot(aes(x = sd, y = od)) +
+  geom_point(alpha = 0.4) +
+  labs(x = "Score distance", y = "Orthogonal distance")
+```
+
+Here there are two observations with large orthogonal distances, but moderate score distances, and one observation with both large orthogonal and score distances.
+
+
 ## Principal component analysis {#sec-pca}
 
 So far, we haven't said where the projection matrix $\bm{A}$ comes from. By far the most common projection method is **principal component analysis (PCA)**, which finds the projection directions that capture the most variance in the data. The first principal component is the direction of maximum variance, the second is the direction of maximum variance orthogonal to the first, and so on. Then the lower dimensional projection will contain as much of the variation of the original data as possible, given the number of dimensions in the projection.
@@ -306,29 +339,27 @@ For the 11 air quality and meteorological variables from Aotizhongxin, the 11 pr
 #| label: pca
 #| code-fold: false
 #| dependson: aotizhongxin
-pca_res <- rrcov::PcaClassic(Y)
+#| message: false
+library(rrcov)
+pca_res <- PcaClassic(Y)
 pca_res$loadings
 ```
 
-The total variance explained can also be computed from the output.
+The variance explained by the first $k$ components can also be computed from the output.
 
 ```{r}
 #| label: pca-var
 #| code-fold: false
 #| dependson: pca
-100 * pca_res$eigenvalues / sum(pca_res$eigenvalues)
+100 * cumsum(pca_res$eigenvalues) / sum(pca_res$eigenvalues)
 ```
 
 ```{r}
 #| label: pca-cumvar
 #| echo: false
 #| dependson: pca
-var_explained <- 100 * pca_res$eigenvalues / sum(pca_res$eigenvalues)
-cum_var_explained <- round(cumsum(var_explained))
-var_explained <- round(var_explained)
+cum_var_explained <- round(100 * cumsum(pca_res$eigenvalues) / sum(pca_res$eigenvalues))
 ```
-
-So the first three principal components capture about `r var_explained[1]` + `r var_explained[2]` + `r var_explained[3]` = `r cum_var_explained[3]`% of the variance in the data.
 
 Using only the first two principal components gives the scores shown in @fig-pca-2d.
 
@@ -350,19 +381,11 @@ Two-dimensional principal components projections of the 11D air quality and mete
 Here the anomalies are much less obvious than in @fig-proj-11dto2d. This can happen for two reasons:
 
 1. The anomalies may not be visible in the first two principal components. If the anomalies are not aligned with the main axes of variation, they may be hidden in the lower variance components that we have not included in the 2D projection. They may still be visible as residual anomalies.
-2. The anomalies can cause the principal components to point in a direction that does not capture the main body of the data, making it difficult to detect them in the projection space. This is an example of "masking", where the anomalies are masked due to their influence on the projection directions.
+2. The anomalies can cause the principal components to point in a direction that does not capture the main body of the data, making it difficult to detect them in the projection space. This is an example of "masking", where the anomalies are hidden due to their influence on the projection directions.
 
 ### Diagnostic plot
 
-@Hubert2005-qa introduced a useful framework for classifying observations in the context of PCA, based on two distances: the score distance and the orthogonal distance (which we have already seen).
-
-The **score distance** is the Mahalanobis distance of the projected observation from the centre of the PCA subspace (@sec-distances). For an observation $\bm{y}_i$ with scores $\bm{w}_i = \bm{A}^\intercal \bm{y}_i$, it is
-$$
-\text{SD}_i = \sqrt{\sum_{j=1}^{k} w_{ij}^2/ \lambda_j}.
-$$
-Observations with the largest score distances will be visible as potential anomalies in the PCA projection, because they lie far from the centre of the PCA subspace. They are called **leverage points** because they have a large influence on the estimation of the principal component directions.
-
-Using these two distances provides a rough classification of observations based on their score and orthogonal distances.
+@Hubert2005-qa introduced a useful framework for classifying observations in the context of PCA, based on the score distance and orthogonal distance.
 
 ::: {.stub-column}
 |                     | Small $\text{SD}_i$ | Large $\text{SD}_i$ |
@@ -380,7 +403,7 @@ If the data were from a multivariate Normal distribution, then the score distanc
 
 The distribution of orthogonal distances is more complicated, but a common approach is to flag an observation as having a large orthogonal distance if $\text{OD}_i$ is greater than the 97.5% quantile of an appropriate Normal distribution. So again, about 2.5% of the observations would be expected to have large orthogonal distances under a Normal model.
 
-Plotting $\text{OD}_i$ against $\text{SD}_i$ gives an **outlier map** that partitions observations into the four types. @fig-outlier-map illustrates the idea for the Aotizhongxin data using the two principal components shown in @fig-pca-2d.
+When combined with the outlier map shown above, these cutoffs partition the observations into the four types described in the table. @fig-outlier-map illustrates the idea for the Aotizhongxin data using the two principal components shown in @fig-pca-2d.
 
 
 ```{r}
@@ -509,7 +532,7 @@ of_scores |>
 
 * FastPCS::FastPCS
 
-## DOBIN
+## DOBIN {#sec-dobin}
 
 @Kandanaarachchi2020-lo
 
