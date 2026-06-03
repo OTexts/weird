@@ -444,7 +444,7 @@ oldfaithful |>
       leader_cluster = "Leader clustering"
     )
   ) |>
-  ggplot(aes(x = duration, y = waiting, color = cluster)) +
+  ggplot(aes(x = duration, y = waiting, colour = cluster)) +
   geom_point() +
   facet_wrap(~method) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
@@ -472,10 +472,10 @@ The DBSCAN algorithm is implemented in the `dbscan()` function in the `dbscan` p
 dbscan_clusters <- dbscan::dbscan(of_scaled, eps = 0.61, minPts = 20)
 oldfaithful |>
   mutate(dbscan_cluster = factor(dbscan_clusters$cluster)) |>
-  ggplot(aes(x = duration, y = waiting, color = dbscan_cluster)) +
+  ggplot(aes(x = duration, y = waiting, colour = dbscan_cluster)) +
   geom_point() +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)") +
-  scale_color_manual(
+  scale_colour_manual(
     values = c(
       `0` = "#444444",
       `1` = "#D55E0088",
@@ -487,7 +487,7 @@ oldfaithful |>
       `2` = "Cluster 2"
     )
   ) +
-  guides(color = guide_legend(title = "DBSCAN cluster"))
+  guides(colour = guide_legend(title = "DBSCAN cluster"))
 ```
 
 ### The $\delta$-neighbourhood graph

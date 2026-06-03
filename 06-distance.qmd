@@ -756,7 +756,7 @@ dongsi_if |>
   geom_contour(
     data = grid_dongsi,
     aes(x = max_temp, y = o3, z = score),
-    color = "grey85",
+    colour = "grey85",
     breaks = seq(0.35, 0.85, by = 0.025)
   ) +
   geom_point(aes(colour = score > 0.6)) +

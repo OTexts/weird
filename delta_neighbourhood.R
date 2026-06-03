@@ -4,7 +4,7 @@ delta_neighbourhood <- function(X, delta) {
     ggforce::geom_circle(
       aes(x0 = x, y0 = y, r = delta / 2),
       fill = "#56B4E9",
-      color = "transparent",
+      colour = "transparent",
       alpha = 0.3
     )
   # Draw lines between all pairs of points less than delta apart

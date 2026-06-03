@@ -428,7 +428,7 @@ for (i in seq_along(gmm_dist)) {
 }
 p +
   labs(x = "Duration", y = "Waiting time") +
-  scale_color_manual(name = "Weight", values = cols, breaks = w)
+  scale_colour_manual(name = "Weight", values = cols, breaks = w)
 ```
 
 When the components are added together, we get the density shown in @fig-gmm-density.
@@ -466,7 +466,7 @@ of
 of |>
   ggplot(aes(x = duration, y = waiting, colour = gmm_prob < 0.005)) +
   geom_point() +
-  scale_color_manual(values = c("#bbbbbb", "#c14b14"))
+  scale_colour_manual(values = c("#bbbbbb", "#c14b14"))
 ```
 
 The model has effectively highlighted the `r english::words(sum(of$gmm_prob < 0.005))` points that do not appear to belong to the two main clusters of observations.
@@ -581,7 +581,7 @@ of_scores |>
   ggplot(aes(x = duration, y = waiting, col = anomaly)) +
   geom_point() +
   labs(col = "Surprisal Probability < 0.005") +
-  scale_color_manual(values = c("#bbbbbb", "#c14b14"))
+  scale_colour_manual(values = c("#bbbbbb", "#c14b14"))
 ```
 
 In this case, the method has picked up several observations around the edge of the main clusters, and failed to identify some observations that appear to be more obvious anomaly candidates. The Gaussian copula approach is not well-suited to multimodal data.
