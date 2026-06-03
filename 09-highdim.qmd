@@ -197,10 +197,10 @@ For an excellent introduction to interactively exploring all possible projection
 
 There are two types of projection-based anomalies:
 
-1. **Anomalies in the projected space**. For example, they may be far from the other observations in the projection, or they may be in a region of the projection space that has low density. We can identify them by applying anomaly-detection methods to the projected scores.
+1. **Anomalies in the projection space**. For example, they may be far from the other observations in the projection, or they may be in a region of the projection space that has low density. We can identify them by applying anomaly-detection methods to the projected scores.
 2. **Anomalies in the residual space**. For example, observations with large residuals, or observations that have otherwise unusual residual magnitudes. We can detect them by applying anomaly-detection methods to the residual magnitudes. It is not usually possibly to identify anomalies in the residual space by looking at the residuals themselves, because they are still in a high-dimensional space.
 
-@fig-proj-11dto2d shows some potential anomalies in the projected space. The general distance-based and density-based anomaly detection methods discussed in @sec-distances and @sec-density-methods can be applied to the projected scores to flag these anomalies.
+@fig-proj-11dto2d shows some potential anomalies in the projection space. The general distance-based and density-based anomaly detection methods discussed in @sec-distances and @sec-density-methods can be applied to the projected scores to flag these anomalies.
 
 For example, using KDE surprisals (@sec-kdesurprisals), we can flag the observations with the lowest density in the projection as potential anomalies. Here the threshold probability of 0.02 has been chosen after some experimentation.
 
@@ -350,7 +350,7 @@ Two-dimensional principal components projections of the 11D air quality and mete
 Here the anomalies are much less obvious than in @fig-proj-11dto2d. This can happen for two reasons:
 
 1. The anomalies may not be visible in the first two principal components. If the anomalies are not aligned with the main axes of variation, they may be hidden in the lower variance components that we have not included in the 2D projection. They may still be visible as residual anomalies.
-2. The anomalies can cause the principal components to point in a direction that does not capture the main body of the data, making it difficult to detect them in the projected space. This is an example of "masking", where the anomalies are masked due to their influence on the projection directions.
+2. The anomalies can cause the principal components to point in a direction that does not capture the main body of the data, making it difficult to detect them in the projection space. This is an example of "masking", where the anomalies are masked due to their influence on the projection directions.
 
 ### Diagnostic plot
 
