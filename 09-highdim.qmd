@@ -38,7 +38,7 @@ The simplest case maps two variables to a single number. A projection onto a vec
 $$
 w_i = \bm{a}^\intercal \bm{y}_i = a_1 y_{i,1} + a_2 y_{i,2}
 $$
-for each observation $\bm{y}_i$, where $\bm{a}$ is a unit vector (i.e., $\|\bm{a}\| = \sqrt{a_1^2 + a_2^2} = 1$). The projection is a linear transformation that maps the 2D data cloud onto the line spanned by $\bm{a}$, with $w_i$ giving the position of the projected point along that line.
+for each observation $\bm{y}_i$, where $\bm{a}$ is a unit vector (i.e., $\|\bm{a}\| = \sqrt{a_1^2 + a_2^2} = 1$). The projection is a linear transformation that maps the 2D data cloud onto the line defined by $\bm{a}$, with $w_i$ giving the position of the projected point along that line.
 
 When we write this in matrix form, the projection of the $n \times 2$ data matrix $\bm{Y}$ onto the vector $\bm{a}$ gives an $n$-vector of scores $\bm{w} = \bm{Y}\bm{a}$.
 
@@ -63,34 +63,34 @@ show_pts <- Y |>
 # Construct the plot
 ggplot(Y, aes(x = co, y = no2)) +
   geom_point(alpha = 0.2) +
-  geom_abline(slope = a[2] / a[1], intercept = 0, color = "#0072B2") +
+  geom_abline(slope = a[2] / a[1], intercept = 0, colour = "#0072B2") +
   geom_segment(
     data = show_pts,
     aes(x = co, y = no2, xend = foot_co, yend = foot_no2),
-    color = "#D55E00",
+    colour = "#D55E00",
   ) +
   geom_point(
     data = show_pts,
     aes(x = foot_co, y = foot_no2),
-    color = "#0072B2",
+    colour = "#0072B2",
     size = 3
   ) +
-  geom_point(data = show_pts, color = "#D55E00", size = 2) +
+  geom_point(data = show_pts, colour = "#D55E00", size = 2) +
   coord_equal() +
   labs(x = "Standardised carbon monoxide", y = "Standardised nitrogen dioxide")
 ```
 
-Projections can be thought of like shadows. Imagine a light source shining on the data cloud from a direction perpendicular to $\bm{a}$; the projection scores are the positions of the shadows cast by the observations onto the line spanned by $\bm{a}$.
+Projections can be thought of like shadows. Imagine a light source shining on the data cloud from a direction perpendicular to $\bm{a}$; the projection scores are the positions of the shadows cast by the observations onto the line defined by $\bm{a}$.
 
-The projection direction $\bm{a}$ can be any unit vector, so there are infinitely many ways to project the data. Each choice of $\bm{a}$ captures a different perspective on the joint variation in the data. Some directions may align with the main axis of variation (like the one shown in @fig-proj-geometry), giving a wide spread of scores; others may be nearly orthogonal to that axis, giving a narrow spread; still others may be perpendicular to the axes. For example $\bm{a} = (1, 0)^\intercal$ projects onto the carbon monoxide axis, while $\bm{a} = (0, 1)^\intercal$ projects onto the nitrogen dioxide axis.
+The projection direction $\bm{a}$ can be any unit vector, so there are infinitely many ways to project the data. Each choice of $\bm{a}$ captures a different perspective on the joint variation in the data. Some directions may align with the main axis of variation (like the one shown in @fig-proj-geometry), giving a wide spread of scores; others may be nearly orthogonal to that axis, giving a narrow spread; still others may be perpendicular to the axes. For example, $\bm{a} = (1, 0)^\intercal$ projects onto the carbon monoxide axis, while $\bm{a} = (0, 1)^\intercal$ projects onto the nitrogen dioxide axis.
 
-The variance of the scores is a measure of how much of the joint variation is captured by that direction. The variance of the projection scores is
+The variance of the scores is a measure of how much of the joint variation is captured by that direction, and is given by
 $$
 \text{Var}(w) = \bm{a}^\intercal \bm{\Sigma} \bm{a},
 $$
-where $\bm{\Sigma}$ is the $2\times 2$ covariance matrix of the data $\bm{Y}$. The variance is maximised when $\bm{a}$ is the leading eigenvector of $\bm{\Sigma}$, and the maximum variance is the leading eigenvalue. This is the basis of principal component analysis, which we will discuss in the next section.
+where $\bm{\Sigma}$ is the $2\times 2$ covariance matrix of the data $\bm{Y}$. The variance is maximised when $\bm{a}$ is the leading eigenvector of $\bm{\Sigma}$; then the leading eigenvalue is the maximum variance. This is the basis of principal component analysis, which we will discuss in @sec-pca.
 
-The "residual" from the projection is the difference between the original observation and its projection onto the line. So for an observation $\bm{y}_i$, the residual is $\bm{r}_i = \bm{y}_i - \bm{a} w_i$. The magnitude of the residual is a measure of how much of the variation in that observation is not captured by the projection. (The length of each orange line in @fig-proj-geometry is the magnitude of the residual for the corresponding observation.) If the residual is large, it means that there are aspects of that observation that are not well represented by the projection direction $\bm{a}$. This is important for anomaly detection, because an observation that appears normal in one projection may have a large residual, indicating that it is an anomaly in another projection.
+The "residual" from the projection is the difference between the original observation and its projection onto the line. So for an observation $\bm{y}_i$, the residual is $\bm{r}_i = \bm{y}_i - \bm{a} w_i$. The magnitude of the residual is a measure of how much of the variation in that observation is not captured by the projection, and is known as the "orthogonal distance". (The length of each orange line in @fig-proj-geometry is the orthogonal distance for the corresponding observation.) If the residual is large, it means that there are aspects of that observation that are not well represented by the projection direction $\bm{a}$. This is important for anomaly detection, because an observation that appears normal in one projection may have a large residual, indicating that it is an anomaly in another projection.
 
 ### Projecting from 3 to 2 dimensions
 
@@ -107,7 +107,7 @@ Let's add a third variable, `pm2_5`, measuring the particulate matter with diame
 #| cache: false
 #| dependson: aotizhongxin
 rgl::plot3d(
-  Y[, c("co", "no2", "pm2_5")],
+  Y[, c("co", "pm2_5", "no2")],
   size = 4,
   alpha = 0.3
 )
@@ -172,19 +172,19 @@ rownames(A) <- colnames(Y)
 A
 ```
 
-Then the resulting 2D projection is shown in @fig-proj-11dto2d.
+Where these numbers come from will be revealed in @sec-dobin, but for now we will just use this projection matrix as an example. Then the resulting 2D projection is shown in @fig-proj-11dto2d.
 
 ```{r}
 #| label: fig-proj-11dto2d
 #| code-fold: true
 #| fig-cap: "Projection of the 11 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace."
 #| dependson: 11dto2d
-W <- as.matrix(Y) %*% A |>
-  as_tibble()
-W |>
+W <- as.matrix(Y) %*% A
+az_aq_proj <- az_aq |>
+  bind_cols(W)
+az_aq_proj |>
   ggplot(aes(x = a1, y = a2)) +
-  geom_point(alpha = 0.2) +
-  labs(x = "w1", y = "w2")
+  geom_point(alpha = 0.2, colour = "#0072B2")
 ```
 
 This is a 2D shadow of the original 11D data cloud. Each point in the plot corresponds to an 11D observation, and the axes correspond to the two projection directions defined by the columns of $\bm{A}$.
@@ -198,38 +198,55 @@ For an excellent introduction to interactively exploring all possible projection
 There are two types of projection-based anomalies:
 
 1. **Anomalies in the projected space**. For example, they may be far from the other observations in the projection, or they may be in a region of the projection space that has low density. We can identify them by applying anomaly-detection methods to the projected scores.
-2. **Anomalies in the residual space**. For example, they may have a large residual, although they may not be unusual in the projected space. We can detect them by looking for observations with large residuals, or with unusual residual distance values. It is more difficult to look generally for anomalies in the residual space, because the residuals are still in a high-dimensional space.
+2. **Anomalies in the residual space**. For example, observations with large residuals, or observations that have otherwise unusual residual magnitudes. We can detect them by applying anomaly-detection methods to the residual magnitudes. It is not usually possibly to identify anomalies in the residual space by looking at the residuals themselves, because they are still in a high-dimensional space.
 
-@fig-proj-11dto2d shows some potential anomalies in the projected space. Using KDE surprisals (@sec-kdesurprisals), we can flag the observations with the lowest density in the projection as potential anomalies. Here the threshold probability of 0.02 has been chosen after some experimentation.
+@fig-proj-11dto2d shows some potential anomalies in the projected space. The general distance-based and density-based anomaly detection methods discussed in @sec-distances and @sec-density-methods can be applied to the projected scores to flag these anomalies.
+
+For example, using KDE surprisals (@sec-kdesurprisals), we can flag the observations with the lowest density in the projection as potential anomalies. Here the threshold probability of 0.02 has been chosen after some experimentation.
 
 ```{r}
 #| label: proj-kde
-#| code-fold: true
+#| code-fold: false
 #| dependson: fig-proj-11dto2d
-az_aq_proj <- az_aq |>
-  bind_cols(W) |>
-  mutate(prob = surprisals_prob(pick(a1, a2), loo = TRUE, approximation = "gpd"))
+az_aq_proj <- az_aq_proj |>
+  mutate(
+    prob = surprisals_prob(pick(a1, a2), loo = TRUE, approximation = "gpd"),
+    surprisal_anomaly = prob < 0.02
+  )
 az_aq_proj |>
-  filter(prob < 0.02)
-az_aq_proj |>
-  ggplot(aes(x = a1, y = a2, color = prob < 0.02)) +
-  geom_point()
+  filter(surprisal_anomaly)
 ```
 
-Any of the methods discussed in @sec-distances could also be applied to the projected scores to flag anomalies in the projected space. Here we use an Isolation Forest to find the top 10 most anomalous observations.
+```{r}
+#| label: fig-proj-kde
+#| code-fold: true
+#| dependson: proj-kde
+#| fig-cap: "Projection of the 11 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace, with points coloured by whether their KDE surprisal probability is less than 0.02."
+az_aq_proj |>
+  ggplot(aes(x = a1, y = a2, colour = surprisal_anomaly)) +
+  geom_point(alpha = 0.2 + 0.8 * az_aq_proj$surprisal_anomaly) +
+  scale_colour_manual(values = c("FALSE" = "#0072B2", "TRUE" = "black"))
+```
+
+This shows that there was an unusual period between 8am and 12noon on 22 May 2024. These correspond to the cluster of five observations near the bottom of @fig-proj-kde. Further inspection shows that this was a period of high particulate matter (`pm2_5` and `pm10`), `co` and `dew_point`, and moderately high `so2`. The point on the far right of @fig-proj-kde corresponds to the last line of the table above. The observations at that time showed high `co` and `dew_point` and very high `rainfall`.
+
+Similar results are obtained with other anomaly detection methods. For example, in @fig-proj-isoforest we use an Isolation Forest to find the top 10 most anomalous observations.
 
 ```{r}
-#| label: proj-isoforest
+#| label: fig-proj-isoforest
 #| code-fold: true
 #| dependson: fig-proj-11dto2d
+#| fig-cap: "Projection of the 11 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace, with points coloured by whether their Isolation Forest score is in the top 10 most anomalous observations."
 iso_model <- isotree::isolation.forest(W)
 az_aq_proj <- az_aq_proj |>
-  mutate(iso_score = predict(iso_model, W)) |>
-  arrange(desc(iso_score))
-threshold <- az_aq_proj$iso_score[10]
+  mutate(
+    iso_score = predict(iso_model, W),
+    top_ten = iso_score > sort(iso_score, decreasing = TRUE)[10]
+  )
 az_aq_proj |>
-  ggplot(aes(x = a1, y = a2, color = iso_score >= threshold)) +
-  geom_point()
+  ggplot(aes(x = a1, y = a2, colour = top_ten)) +
+  geom_point(alpha = 0.2 + 0.8 * az_aq_proj$top_ten) +
+  scale_colour_manual(values = c("FALSE" = "#0072B2", "TRUE" = "black"))
 ```
 
 To find anomalies in the residual space, we first calculate the **orthogonal distances**, measuring how far an observation lies *from* the projection subspace; i.e., the magnitude of its residual:
@@ -239,20 +256,37 @@ $$
 This provides a measure of how much information has *not* been captured by the $k$ components used in the projection. Observations with the largest orthogonal distances may not be visible as anomalies in the projection space, but they will be visible in the residuals.
 
 ```{r}
+#| label: fig-proj-residuals1
+#| dependson: fig-proj-11dto2d
+#| code-fold: false
+#| fig-asp: 0.2
+#| fig-cap: HDR boxplot of the orthogonal distances of the observations from the projection subspace. Anomalies are shown in black.
+R <- Y - as.matrix(W) %*% t(A)
 az_aq_proj <- az_aq_proj |>
-  mutate(od = sqrt(rowSums((Y - as.matrix(W) %*% t(A))^2))) |>
-  arrange(desc(od))
-az_aq_proj
-gg_hdrboxplot(az_aq_proj$od)
+  mutate(od = sqrt(rowSums(R^2)))
+az_aq_proj |> arrange(desc(od))
+az_aq_proj |> gg_hdrboxplot(od)
+```
+
+We can highlight these residual anomalies in the projection space, as shown in @fig-proj-residuals2. The points with the largest orthogonal distances are highlighted in black.
+
+```{r}
+#| label: fig-proj-residuals2
+#| dependson: fig-proj-residuals1
+#| fig-cap: Projection of the 11 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace, with points coloured by whether their orthogonal distance from the projection subspace is in the top 1% of all orthogonal distances."
 threshold <- quantile(az_aq_proj$od, 0.99, type = 8)
 az_aq_proj |>
-  ggplot(aes(x = a1, y = a2, color = od >= threshold)) +
-  geom_point(alpha = 0.2 + 0.8 * (az_aq_proj$od >= threshold))
+  ggplot(aes(x = a1, y = a2, colour = od >= threshold)) +
+  geom_point(alpha = 0.2 + 0.8 * (az_aq_proj$od >= threshold)) +
+  scale_colour_manual(values = c("FALSE" = "#0072B2", "TRUE" = "black")) +
+  guides(colour = "none")
 ```
+
+The observation with the most extreme orthogonal distance, is also the most extreme in the projection space, so it is visible as an anomaly in both spaces. However, the other observations with large orthogonal distances are not visible as anomalies in the projection space, illustrating the importance of considering both spaces when looking for anomalies.
 
 ## Principal component analysis {#sec-pca}
 
-By far the most common projection method is **principal component analysis (PCA)**, which finds the projection directions that capture the most variance in the data. The first principal component is the direction of maximum variance, the second is the direction of maximum variance orthogonal to the first, and so on. Then the lower dimensional projection will contain as much of the variation of the original data as possible, given the number of dimensions in the projection.
+So far, we haven't said where the projection matrix $\bm{A}$ comes from. By far the most common projection method is **principal component analysis (PCA)**, which finds the projection directions that capture the most variance in the data. The first principal component is the direction of maximum variance, the second is the direction of maximum variance orthogonal to the first, and so on. Then the lower dimensional projection will contain as much of the variation of the original data as possible, given the number of dimensions in the projection.
 
 For principal component projection, each column of $\bm{A}$ is found sequentially by maximising the variance of the scores it produces, subject to the orthonormality constraints. If $\bm{\Sigma}$ is the $m\times m$ covariance matrix of the data $\bm{Y}$, then the first direction $\bm{a}_1$ maximises $\text{Var}(\bm{a}_1^\intercal \bm{y}) = \bm{a}_1^\intercal \bm{\Sigma} \bm{a}_1$ subject to $\|\bm{a}_1\| = 1$. The second direction $\bm{a}_2$ maximises $\text{Var}(\bm{a}_2^\intercal \bm{y}) = \bm{a}_2^\intercal \bm{\Sigma} \bm{a}_2$ subject to $\|\bm{a}_2\| = 1$ and $\bm{a}_2^\intercal \bm{a}_1 = 0$, and so on.
 
@@ -276,7 +310,7 @@ pca_res <- rrcov::PcaClassic(Y)
 pca_res$loadings
 ```
 
-The total variance explained can also be computed from the `prcomp()` output.
+The total variance explained can also be computed from the output.
 
 ```{r}
 #| label: pca-var
@@ -315,26 +349,18 @@ Two-dimensional principal components projections of the 11D air quality and mete
 
 Here the anomalies are much less obvious than in @fig-proj-11dto2d. This can happen for two reasons:
 
-1. The anomalies may not be visible in the first two principal components. If the anomalies are not aligned with the main axes of variation, they may be hidden in the lower variance components that we have not included in the projection.
+1. The anomalies may not be visible in the first two principal components. If the anomalies are not aligned with the main axes of variation, they may be hidden in the lower variance components that we have not included in the 2D projection. They may still be visible as residual anomalies.
 2. The anomalies can cause the principal components to point in a direction that does not capture the main body of the data, making it difficult to detect them in the projected space. This is an example of "masking", where the anomalies are masked due to their influence on the projection directions.
 
-###
+### Diagnostic plot
 
-### Types of anomalies
-
-@Hubert2005-qa introduced a useful framework for classifying observations in the context of PCA, based on two distances.
+@Hubert2005-qa introduced a useful framework for classifying observations in the context of PCA, based on two distances: the score distance and the orthogonal distance (which we have already seen).
 
 The **score distance** is the Mahalanobis distance of the projected observation from the centre of the PCA subspace (@sec-distances). For an observation $\bm{y}_i$ with scores $\bm{w}_i = \bm{A}^\intercal \bm{y}_i$, it is
 $$
 \text{SD}_i = \sqrt{\sum_{j=1}^{k} w_{ij}^2/ \lambda_j}.
 $$
 Observations with the largest score distances will be visible as potential anomalies in the PCA projection, because they lie far from the centre of the PCA subspace. They are called **leverage points** because they have a large influence on the estimation of the principal component directions.
-
-The **orthogonal distance** measures how far an observation lies *from* the PCA subspace; i.e., the magnitude of its residual:
-$$
-\text{OD}_i = \|\bm{r}_i\| = \|\bm{y}_i - \bm{A}\bm{w}_i\|.
-$$
-This provides a measure of how much information has *not* been captured by the $k$ components used in the projection. Observations with the largest orthogonal distances may not be visible as anomalies in the PCA projection, but they will be visible in the residuals.
 
 Using these two distances provides a rough classification of observations based on their score and orthogonal distances.
 
@@ -349,8 +375,6 @@ Using these two distances provides a rough classification of observations based 
 * **Good leverage points** have large score distances, but small orthogonal distances, so they lie far from the centre of the PCA subspace, but are still well represented by the projection. They inflate eigenvalues but do not distort the principal component directions. In fact, they can help improve the estimation of the principal component directions, because they provide more information about the structure of the data.
 * **Bad leverage points** have large score and large orthogonal distances, so they lie far from both the centre and the PCA subspace. They can pull the principal component directions towards themselves — the mechanism behind masking.
 * **Orthogonal outliers** have small score distances, but large orthogonal distances, so their projections lie close to the centre of the PCA subspace, but are not well represented by the projection. They will not be visible as anomalies in PCA projection, but they will be visible in the residuals.
-
-This suggests that we need to consider anomalies in both the projected space and the residual space. Alternatively, we need to find projections that reveal the anomalies in the projected space, and do not contain anomalies in the residual space.
 
 If the data were from a multivariate Normal distribution, then the score distances would approximately follow a chi-squared distribution with $k$ degrees of freedom. While we almost never believe that real data come from a multivariate Normal distribution, this provides a useful reference point for understanding the geometry of the score distances, and for setting a cutoff to classify points. We flag an observation as a high leverage point if $\text{SD}_i$ is larger than the 97.5% quantile of the chi-squared distribution with $k$ degrees of freedom. So under a Normal model, we would expect about 2.5% of the observations to have large score distances and be flagged as leverage points.
 
@@ -385,12 +409,12 @@ as_tibble(pca_res$scores) |>
       )
     )
   ) |>
-  ggplot(aes(x = sd, y = od, color = type)) +
+  ggplot(aes(x = sd, y = od, colour = type)) +
   geom_point(alpha = 0.7, size = 2) +
-  geom_vline(xintercept = pca_res$cutoff.sd, linetype = "dashed", color = "grey50") +
-  geom_hline(yintercept = pca_res$cutoff.od, linetype = "dashed", color = "grey50") +
-  labs(x = "Score distance", y = "Orthogonal distance", color = NULL, shape = NULL) +
-  guides(color = guide_legend(nrow = 2)) +
+  geom_vline(xintercept = pca_res$cutoff.sd, linetype = "dashed", colour = "grey50") +
+  geom_hline(yintercept = pca_res$cutoff.od, linetype = "dashed", colour = "grey50") +
+  labs(x = "Score distance", y = "Orthogonal distance", colour = NULL, shape = NULL) +
+  guides(colour = guide_legend(nrow = 2)) +
   theme(legend.position = "bottom")
 ```
 
