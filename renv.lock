@@ -800,44 +800,6 @@
       "Maintainer": "Dirk Eddelbuettel <edd@debian.org>",
       "Repository": "RSPM"
     },
-    "RcppEigen": {
-      "Package": "RcppEigen",
-      "Version": "0.3.4.0.2",
-      "Source": "Repository",
-      "Type": "Package",
-      "Title": "'Rcpp' Integration for the 'Eigen' Templated Linear Algebra Library",
-      "Date": "2024-08-23",
-      "Authors@R": "c(person(\"Doug\", \"Bates\", role = \"aut\", comment = c(ORCID = \"0000-0001-8316-9503\")), person(\"Dirk\", \"Eddelbuettel\", role = c(\"aut\", \"cre\"), email = \"edd@debian.org\", comment = c(ORCID = \"0000-0001-6419-907X\")), person(\"Romain\", \"Francois\", role = \"aut\", comment = c(ORCID = \"0000-0002-2444-4226\")), person(\"Yixuan\", \"Qiu\", role = \"aut\", comment = c(ORCID = \"0000-0003-0109-6692\")), person(\"Authors of\", \"Eigen\", role = \"cph\", comment = \"Authorship and copyright in included Eigen library as detailed in inst/COPYRIGHTS\"))",
-      "Copyright": "See the file COPYRIGHTS for various Eigen copyright details",
-      "Description": "R and 'Eigen' integration using 'Rcpp'. 'Eigen' is a C++ template library for linear algebra: matrices, vectors, numerical solvers and related algorithms.  It supports dense and sparse matrices on integer, floating point and complex numbers, decompositions of such matrices, and solutions of linear systems. Its performance on many algorithms is comparable with some of the best implementations based on 'Lapack' and level-3 'BLAS'. The 'RcppEigen' package includes the header files from the 'Eigen' C++ template library. Thus users do not need to install 'Eigen' itself in order to use 'RcppEigen'. Since version 3.1.1, 'Eigen' is licensed under the Mozilla Public License (version 2); earlier version were licensed under the GNU LGPL version 3 or later. 'RcppEigen' (the 'Rcpp' bindings/bridge to 'Eigen') is licensed under the GNU GPL version 2 or later, as is the rest of 'Rcpp'.",
-      "License": "GPL (>= 2) | file LICENSE",
-      "LazyLoad": "yes",
-      "Depends": [
-        "R (>= 3.6.0)"
-      ],
-      "LinkingTo": [
-        "Rcpp"
-      ],
-      "Imports": [
-        "Rcpp (>= 0.11.0)",
-        "stats",
-        "utils"
-      ],
-      "Suggests": [
-        "Matrix",
-        "inline",
-        "tinytest",
-        "pkgKitten",
-        "microbenchmark"
-      ],
-      "URL": "https://github.com/RcppCore/RcppEigen, https://dirk.eddelbuettel.com/code/rcpp.eigen.html",
-      "BugReports": "https://github.com/RcppCore/RcppEigen/issues",
-      "NeedsCompilation": "yes",
-      "Author": "Doug Bates [aut] (<https://orcid.org/0000-0001-8316-9503>), Dirk Eddelbuettel [aut, cre] (<https://orcid.org/0000-0001-6419-907X>), Romain Francois [aut] (<https://orcid.org/0000-0002-2444-4226>), Yixuan Qiu [aut] (<https://orcid.org/0000-0003-0109-6692>), Authors of Eigen [cph] (Authorship and copyright in included Eigen library as detailed in inst/COPYRIGHTS)",
-      "Maintainer": "Dirk Eddelbuettel <edd@debian.org>",
-      "Repository": "RSPM",
-      "Encoding": "UTF-8"
-    },
     "RcppEnsmallen": {
       "Package": "RcppEnsmallen",
       "Version": "0.3.10.0.1",
@@ -2555,25 +2517,6 @@
       "Author": "Hadley Wickham [cre, aut], Maximilian Girlich [aut], Mark Fairbanks [aut], Ryan Dickerson [aut], Posit Software, PBC [cph, fnd]",
       "Maintainer": "Hadley Wickham <hadley@posit.co>",
       "Repository": "https://packagemanager.posit.co/cran/__linux__/noble/latest"
-    },
-    "elasticnet": {
-      "Package": "elasticnet",
-      "Version": "1.3",
-      "Source": "Repository",
-      "Date": "2020-05-15",
-      "Title": "Elastic-Net for Sparse Estimation and Sparse PCA",
-      "Author": "Hui Zou <zouxx019@umn.edu> and Trevor Hastie <hastie@stanford.edu>",
-      "Maintainer": "Hui Zou <zouxx019@umn.edu>",
-      "Depends": [
-        "R (>= 2.10)",
-        "lars"
-      ],
-      "Description": "Provides functions for fitting the entire solution path of the Elastic-Net and also provides functions for doing sparse PCA.",
-      "License": "GPL (>= 2)",
-      "URL": "http://users.stat.umn.edu/~zouxx019/",
-      "NeedsCompilation": "no",
-      "Repository": "RSPM",
-      "Encoding": "UTF-8"
     },
     "english": {
       "Package": "english",
@@ -4985,25 +4928,6 @@
       "Maintainer": "Randy Lai <randy.cs.lai@gmail.com>",
       "Repository": "binary"
     },
-    "lars": {
-      "Package": "lars",
-      "Version": "1.3",
-      "Source": "Repository",
-      "Type": "Package",
-      "Date": "2022-04-12",
-      "Title": "Least Angle Regression, Lasso and Forward Stagewise",
-      "Author": "Trevor Hastie <hastie@stanford.edu> and Brad Efron  <brad@stat.stanford.edu>",
-      "Maintainer": "Trevor Hastie <hastie@stanford.edu>",
-      "Description": "Efficient procedures for fitting an entire lasso sequence with the cost of a single least squares fit. Least angle regression and infinitesimal forward stagewise regression are related to the lasso, as described in the paper below.",
-      "Depends": [
-        "R (>= 2.10)"
-      ],
-      "License": "GPL-2",
-      "URL": "https://doi.org/10.1214/009053604000000067",
-      "NeedsCompilation": "yes",
-      "Repository": "RSPM",
-      "Encoding": "UTF-8"
-    },
     "latex2exp": {
       "Package": "latex2exp",
       "Version": "0.9.8",
@@ -5673,44 +5597,6 @@
       "Author": "Hadley Wickham [aut, cre], Posit Software, PBC [cph, fnd]",
       "Maintainer": "Hadley Wickham <hadley@posit.co>",
       "Repository": "https://packagemanager.posit.co/cran/__linux__/noble/latest"
-    },
-    "mrfDepth": {
-      "Package": "mrfDepth",
-      "Version": "1.0.17",
-      "Source": "Repository",
-      "Type": "Package",
-      "Date": "2024-05-23",
-      "Title": "Depth Measures in Multivariate, Regression and Functional Settings",
-      "Description": "Tools to compute depth measures and implementations of related  tasks such as outlier detection, data exploration and  classification of multivariate, regression and functional data.",
-      "Authors@R": "c( person(given=\"Pieter\",family=\"Segaert\", role = c(\"aut\")), person(given=\"Mia\",family=\"Hubert\", role = c(\"aut\")), person(given=\"Peter\",family=\"Rousseeuw\", role = c(\"aut\")), person(given=\"Jakob\",family=\"Raymaekers\", role = c(\"aut\", \"cre\"),  email = \"jakob.raymaekers@kuleuven.be\"), person(given=\"Kaveh\",family=\"Vakili\", role = c(\"ctb\")) )",
-      "Depends": [
-        "R (>= 3.6.0)",
-        "ggplot2"
-      ],
-      "Imports": [
-        "abind",
-        "geometry",
-        "grid",
-        "matrixStats",
-        "reshape2",
-        "Rcpp (>= 0.12.6)"
-      ],
-      "Suggests": [
-        "robustbase"
-      ],
-      "LinkingTo": [
-        "RcppEigen (>= 0.3.2.9.0)",
-        "Rcpp (>= 0.12.6)",
-        "RcppArmadillo (>= 0.7.600.1.0)"
-      ],
-      "License": "GPL (>= 2)",
-      "LazyLoad": "yes",
-      "RoxygenNote": "7.1.2",
-      "NeedsCompilation": "yes",
-      "Author": "Pieter Segaert [aut], Mia Hubert [aut], Peter Rousseeuw [aut], Jakob Raymaekers [aut, cre], Kaveh Vakili [ctb]",
-      "Maintainer": "Jakob Raymaekers <jakob.raymaekers@kuleuven.be>",
-      "Repository": "RSPM",
-      "Encoding": "UTF-8"
     },
     "multicool": {
       "Package": "multicool",
@@ -7356,39 +7242,6 @@
       "License": "GPL (>= 2)",
       "NeedsCompilation": "yes",
       "Repository": "https://packagemanager.posit.co/cran/__linux__/noble/latest",
-      "Encoding": "UTF-8"
-    },
-    "rospca": {
-      "Package": "rospca",
-      "Version": "1.1.1",
-      "Source": "Repository",
-      "Date": "2024-11-30",
-      "Title": "Robust Sparse PCA using the ROSPCA Algorithm",
-      "Description": "Implementation of robust sparse PCA using the ROSPCA algorithm  of Hubert et al. (2016) <DOI:10.1080/00401706.2015.1093962>.",
-      "Authors@R": "c( person(\"Tom\", \"Reynkens\", email = \"tomreynkens.r@gmail.com\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0002-5516-5107\")),  person(\"Valentin\", \"Todorov\", role = \"ctb\", comment = \"Original R code for PcaHubert and diagnostic plot in rrcov package\"),  person(\"Mia\", \"Hubert\", role = \"ctb\"),  person(\"Eric\", \"Schmitt\", role = \"ctb\"),  person(\"Tim\", \"Verdonck\", role = \"ctb\"))",
-      "Maintainer": "Tom Reynkens <tomreynkens.r@gmail.com>",
-      "Depends": [
-        "R (>= 2.14.0)"
-      ],
-      "Imports": [
-        "stats",
-        "graphics",
-        "parallel",
-        "mrfDepth (>= 1.0.5)",
-        "robustbase (>= 0.92-6)",
-        "pcaPP",
-        "rrcov",
-        "elasticnet",
-        "mvtnorm",
-        "pracma"
-      ],
-      "License": "GPL (>= 2)",
-      "URL": "https://github.com/TReynkens/rospca",
-      "BugReports": "https://github.com/TReynkens/rospca/issues",
-      "ByteCompile": "yes",
-      "NeedsCompilation": "no",
-      "Author": "Tom Reynkens [aut, cre] (<https://orcid.org/0000-0002-5516-5107>), Valentin Todorov [ctb] (Original R code for PcaHubert and diagnostic plot in rrcov package), Mia Hubert [ctb], Eric Schmitt [ctb], Tim Verdonck [ctb]",
-      "Repository": "RSPM",
       "Encoding": "UTF-8"
     },
     "roxygen2": {
