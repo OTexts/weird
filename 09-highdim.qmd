@@ -317,6 +317,42 @@ az_aq_proj |>
 
 Here there are two observations with large orthogonal distances, but moderate score distances, and one observation with both large orthogonal and score distances.
 
+## Stahel-Donoho outlyingness {#sec-stahel-donoho}
+
+Stahel-Donoho outlyingness is a robust projection-based measure of how far each
+observation is from the main body of the data [@Stahel81;@Donoho81] in at least one projection.
+
+For any unit vector $\bm{a}$, project the data to one dimension via $\bm{a}^\intercal\bm{y}_i$, then scale the result using a robust z-score (@sec-scaling), adjusted for skewness [@Brys2005-pc]. The outlyingness of $\bm{y}_i$ is the largest standardised absolute z-score over all possible directions $\bm{a}$, so an observation is flagged when it looks extreme in at least one projection.
+
+In practice, the optimisation over all directions is approximated using many candidate projections. In R, `robustbase::adjOutlyingness()` provides an efficient implementation for computing these scores.
+
+We can apply this to the same standardised air quality and meteorological variables from Aotizhongxin used in @fig-proj-11dto2d. Because the outlyingness is maximised over all directions, it does not require us to choose a projection in advance: an observation receives a high score if it is extreme in *any* direction, whether that direction lies within the 2-dimensional projection or orthogonal to it.
+
+```{r}
+#| label: stahel-donoho
+#| code-fold: false
+#| dependson: fig-proj-11dto2d
+set.seed(1)
+ao <- robustbase::adjOutlyingness(Y)
+az_aq_proj <- az_aq_proj |>
+  mutate(top_1pc = ao$adjout > quantile(ao$adjout, prob = 0.99, type = 8))
+```
+
+@fig-stahel-donoho shows the 2-dimensional projection from @fig-proj-11dto2d, with the top 1% most outlying observations highlighted in black.
+
+```{r}
+#| label: fig-stahel-donoho
+#| code-fold: true
+#| dependson: stahel-donoho
+#| fig-cap: "Projection of the 11 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace, with the observations flagged by their Stahel–Donoho outlyingness highlighted in black."
+az_aq_proj |>
+  ggplot(aes(x = a1, y = a2, colour = top_1pc)) +
+  geom_point(alpha = 0.2 + 0.8 * az_aq_proj$top_1pc) +
+  scale_colour_manual(values = c("FALSE" = "#0072B2", "TRUE" = "black")) +
+  guides(colour = "none")
+```
+
+Clearly the 2D projection does not capture all the anomalies, but it does capture one or two of them. Also, the 1D projections used in the Stahel-Donoho method misses anomalies that can only be seen in multiple dimensions, such as the group of five observations near the bottom of @fig-stahel-donoho.
 
 ## Principal component analysis {#sec-pca}
 
@@ -513,23 +549,7 @@ The ROBPCA algorithm starts by finding an initial projection that captures the m
 
 ## Multidimensional scaling
 
-## Stahel-Donoho outlyingness
 
-Stahel-Donoho outlyingness is a robust projection-based measure of how far each
-observation is from the main body of the data [@Stahel81;@Donoho81].
-
-For any unit
-vector $\bm{a}$, project the data to one dimension via $\bm{a}^\intercal\bm{y}_i$, then
-standardise the distance from a robust centre using a robust scale estimate. The
-outlyingness of $\bm{y}_i$ is the largest standardised distance over all directions,
-so an observation is flagged when it looks extreme in at least one projection.
-
-This approach is useful in multivariate settings because it is affine equivariant and
-less sensitive to masking than classical Mahalanobis-distance methods. In practice,
-the optimisation over all directions is approximated using many candidate
-projections, and skewness-adjusted variants are often preferred [@Brys2005-pc]. In
-R, `robustbase::adjOutlyingness()` provides an efficient implementation for computing
-these scores.
 
 ## Stray and HDoutliers algorithms
 
