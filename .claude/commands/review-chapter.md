@@ -25,11 +25,16 @@ Also update this skill to take account of any new issues you find when reviewing
 - Within a chapter, a quantity should use one consistent symbol.
 - Distribution names use upright (non-italic) font: `N(0,1)` not `$N(0,1)$`. When parameters contain maths symbols, put only the parameters in maths: `N$(\mu, \sigma^2)$` or `$\text{N}(\mu, \sigma^2)$`.
 - Compound expressions used as adjectives/quantifiers should be parenthesised in maths: `$(1-\beta)$ sample quantile`, not `$1-\beta$ sample quantile`.
+- Two-author eponyms (named after two people) use an en-dash, not a hyphen, and should be consistent throughout: `Stahel--Donoho`, not `Stahel-Donoho`. (One-word-each compound modifiers like `projection-based` keep the hyphen.)
+- The source uses Pandoc dash markup, not literal Unicode dash characters: `--` for en-dashes (eponyms, number ranges) and `---` for parenthetical em-dashes. Replace any literal `–` or `—` with `--`/`---`.
+- Vector ↔ matrix notation: observations are column vectors $\bm{y}_i$ but are stored as *rows* of the data matrix $\bm{Y}$ (so the $i$th row is $\bm{y}_i^\intercal$). This flips multiplication order between the single-observation form ($\bm{w}_i = \bm{A}^\intercal\bm{y}_i$) and the matrix form ($\bm{W} = \bm{Y}\bm{A}$). Make the bridge explicit (transpose the vector equation and stack the rows), and write the single-observation projection as $\bm{A}^\intercal\bm{y}_i$ / $\bm{a}^\intercal\bm{y}_i$ rather than $\bm{y}_i^\intercal\bm{a}$ so it matches the general form.
 
 **Quarto / cross-references**
 - Cross-references use `@sec-label`, `@fig-label`, `@eq-label` syntax — not raw HTML links or raw text that is unlinked.
 - Sections are only numbered down to level 2 (##). So do not add labels to level 3 headers (###) or lower, and do not cross-reference level 3 sections or lower.
 - Equation labels should either be referenced elsewhere or be removed. Watch for typo'd labels (e.g. `eq-lookkde` for what should be `eq-loo-kde`).
+- Check `#| fig-cap:` values for balanced quotes — a stray trailing `"` with no opening quote (or vice versa) is a common YAML error. Either wrap the whole caption in `"..."` or leave it fully unquoted.
+- Captions should not introduce mathematical notation (e.g. $c_{\text{SD}}$) that is never defined in the surrounding text; use words instead, or define the symbol in the text.
 
 **Accuracy**
 - Variable counts in prose match the code

@@ -16,9 +16,9 @@ The curse of dimensionality (@sec-curse) makes it difficult to detect anomalies 
 
 ## Projections
 
-The simplest way to reduce the dimensionality of the data is to use **linear projections**: linear combinations of the original variables that map each $m$-dimensional observation to a lower-dimensional space. Different projection directions preserve different aspects of the joint structure, so the choice of direction matters. Understanding the geometry of projections sets the foundation for the methods described in the rest of this chapter.
+The simplest way to reduce the dimensionality of the data is to use **linear projections**: linear combinations of the original variables that map each $m$-dimensional observation to a lower-dimensional space. Different projection directions preserve different aspects of the joint structure, so the choice of direction matters. While anomalies may be hard to detect in the full high-dimensional space, they often become visible when viewed from the right projection direction. Understanding the geometry of projections sets the foundation for the methods described in the rest of this chapter.
 
-To keep the geometry simple, we will scale all variables to have mean zero and unit variance, although to preserve interpretability, no rotation will be applied. The ideas are illustrated using air quality and meteorological variables measured hourly at the Aotizhongxin monitoring station (at the Olympic Sports Centre) in Beijing, over May 2014.
+To keep the geometry simple, we will scale all variables to have mean zero and unit variance, although to preserve interpretability, no rotation will be applied in the scaling. The ideas are illustrated using air quality and meteorological variables measured hourly at the Aotizhongxin monitoring station (at the Olympic Sports Centre) in Beijing, over May 2014.
 
 ```{r}
 #| label: aotizhongxin
@@ -40,7 +40,11 @@ w_i = \bm{a}^\intercal \bm{y}_i = a_1 y_{i,1} + a_2 y_{i,2}
 $$
 for each observation $\bm{y}_i$, where $\bm{a}$ is a unit vector (i.e., $\|\bm{a}\| = \sqrt{a_1^2 + a_2^2} = 1$). The projection is a linear transformation that maps the 2D data cloud onto the line defined by $\bm{a}$, with $w_i$ giving the position of the projected point along that line.
 
-When we write this in matrix form, the projection of the $n \times 2$ data matrix $\bm{Y}$ onto the vector $\bm{a}$ gives an $n$-vector of scores $\bm{w} = \bm{Y}\bm{a}$.
+Throughout this book, each observation $\bm{y}_i$ is written either as a column vector, or as the $i$th *row* of the data matrix $\bm{Y}$; that is, the $i$th row of $\bm{Y}$ is $\bm{y}_i^\intercal$. We also store the data in the matrix form $\bm{Y}$, where the rows are the observations and the columns are the variables. This is the source of a notational subtlety: when we write a projection for a single observation, we use left multiplication $w_i = \bm{a}^\intercal\bm{y}_i$, but when we write it for the whole data matrix, we use right multiplication to get the $n$-vector of scores:
+$$
+  \bm{w} = \bm{Y}\bm{a}.
+$$
+These are equivalent, and are linked by a transpose: $\bm{w}^\intercal = \bm{a}^\intercal \bm{Y}^\intercal$.
 
 @fig-proj-geometry shows an example using $\bm{a} = (0.8, 0.6)^\intercal$ applied to the standardised carbon monoxide (`co`) and nitrogen dioxide (`no2`) measurements at Aotizhongxin. The blue line is the projection direction. The five orange points are randomly selected observations, showing how they project onto the line. The resulting scores are the blue dots on the line.
 
@@ -94,7 +98,7 @@ The "residual" from the projection is the difference between the original observ
 
 ### Projecting from 3 to 2 dimensions
 
-Let's add a third variable, `pm2_5`, measuring the particulate matter with diameter less than 2.5 micrometers. @fig-aq3d shows the standardised `co`, `no2` and `pm2_5` measurements at Aotizhongxin in a 3D scatterplot. What you see on the screen is a 2D projection of the 3D data. Think of a light source directly behind the screen, casting shadows of the data points onto the screen. The projection direction is perpendicular to the screen, so you are seeing the data from that perspective. As you rotate the plot, you are changing the projection direction, which gives different perspectives on the joint structure.
+Let's add a third variable, `pm2_5`, measuring the particulate matter with diameter less than 2.5 micrometres. @fig-aq3d shows the standardised `co`, `no2` and `pm2_5` measurements at Aotizhongxin in a 3D scatterplot. What you see on the screen is a 2D projection of the 3D data. Think of a light source directly behind the screen, casting shadows of the data points onto the screen. The projection direction is perpendicular to the screen, so you are seeing the data from that perspective. As you rotate the plot, you are changing the projection direction, which gives different perspectives on the joint structure.
 
 ::: {#fig-aq3d}
 
@@ -116,7 +120,7 @@ rgl::plot3d(
 
 :::
 
-Interactive 3D scatterplot of the carbon monoxide, nitrogen dioxide and particulate matter (diameter $< 2.5 \mu m$) at Aotizhongxin.
+Interactive 3D scatterplot of the carbon monoxide, nitrogen dioxide and particulate matter (diameter $< 2.5\ \mu\text{m}$) at Aotizhongxin.
 
 :::
 
@@ -137,19 +141,19 @@ Y |>
 
 ### General projections
 
-A projection from $m$ variables onto a $k$-dimensional subspace is defined by a $m \times k$ matrix $\bm{A}$ where $\bm{A}^\intercal\bm{A} = \bm{I}_k$. In other words, the columns of $\bm{A}$ are "orthonormal": each column is a unit vector, and all columns are mutually orthogonal (i.e., $\bm{a}_i^\intercal\bm{a}_j = 0$ for any two distinct columns $i$ and $j$). The columns of $\bm{A}$ define the projection directions. The projection of $\bm{y}_i$ is
+A projection from $m$ variables onto a $k$-dimensional subspace is defined by an $m \times k$ matrix $\bm{A}$ where $\bm{A}^\intercal\bm{A} = \bm{I}_k$. In other words, the columns of $\bm{A}$ are "orthonormal": each column is a unit vector, and all columns are mutually orthogonal (i.e., $\bm{a}_i^\intercal\bm{a}_j = 0$ for any two distinct columns $i$ and $j$). The columns of $\bm{A}$ define the projection directions. The projection of $\bm{y}_i$ is the $k$-vector
 $$
 \bm{w}_i = \bm{A}^\intercal \bm{y}_i,
 $$
 and its residual is $\bm{r}_i = \bm{y}_i - \bm{A}\bm{w}_i$.
 
-In matrix form, the projected scores form the rows of the $n\times k$ matrix
+As before, the matrix form follows by transposing the score equation and stacking the rows to get the projected scores as the rows of the $n\times k$ matrix
 $$
 \bm{W} = \bm{Y}\bm{A},
 $$
-and their residuals are given by
+and their residuals as the rows of
 $$
-\bm{R} = \bm{Y} - \bm{W}\bm{A}^\intercal = \bm{Y}(\bm{I} - \bm{A}\bm{A}^\intercal).
+\bm{R} = \bm{Y} - \bm{W}\bm{A}^\intercal = \bm{Y}(\bm{I}_m - \bm{A}\bm{A}^\intercal).
 $$
 The covariance matrix of the scores is given by
 $$
@@ -194,7 +198,7 @@ For an excellent introduction to interactively exploring all possible projection
 There are two types of projection-based anomalies:
 
 1. **Anomalies in the projection space**. For example, they may be far from the other observations in the projection, or they may be in a region of the projection space that has low density. We can identify them by applying anomaly-detection methods to the projected scores.
-2. **Anomalies in the residual space**. For example, observations with large residuals, or observations that have otherwise unusual residual magnitudes. We can detect them by applying anomaly-detection methods to the residual magnitudes. It is not usually possibly to identify anomalies in the residual space by looking at the residuals themselves, because they are still in a high-dimensional space.
+2. **Anomalies in the residual space**. For example, observations with large residuals, or observations that have otherwise unusual residual magnitudes. We can detect them by applying anomaly-detection methods to the residual magnitudes. It is not usually possible to identify anomalies in the residual space by looking at the residuals themselves, because they are still in a high-dimensional space.
 
 ### Anomalies in the projection space
 
@@ -226,7 +230,7 @@ az_aq_proj |>
   scale_colour_manual(values = c("FALSE" = "#0072B2", "TRUE" = "black"))
 ```
 
-This shows that there was an unusual period between 8am and 12noon on 22 May 2024. These correspond to the cluster of five observations near the bottom of @fig-proj-kde. Further inspection shows that this was a period of high particulate matter (`pm2_5` and `pm10`), `co` and `dew_point`, and moderately high `so2`. The point on the far right of @fig-proj-kde corresponds to the last line of the table above. The observations at that time showed high `co` and `dew_point` and very high `rainfall`.
+This shows that there was an unusual period between 8am and 12noon on 22 May 2014. These correspond to the cluster of five observations near the bottom of @fig-proj-kde. Further inspection shows that this was a period of high particulate matter (`pm2_5` and `pm10`), `co` and `dew_point`, and moderately high `so2`. The point on the far right of @fig-proj-kde corresponds to the last line of the table above. The observations at that time showed high `co` and `dew_point` and very high `rainfall`.
 
 Similar results are obtained with other anomaly detection methods. For example, in @fig-proj-isoforest we use an Isolation Forest to find the top 10 most anomalous observations.
 
@@ -273,7 +277,7 @@ We can highlight these residual anomalies in the projection space, as shown in @
 ```{r}
 #| label: fig-proj-residuals2
 #| dependson: fig-proj-residuals1
-#| fig-cap: Projection of the 11 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace, with points coloured by whether their orthogonal distance from the projection subspace is in the top 1% of all orthogonal distances."
+#| fig-cap: "Projection of the 11 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace, with points coloured by whether their orthogonal distance from the projection subspace is in the top 1% of all orthogonal distances."
 threshold <- quantile(az_aq_proj$od, 0.99, type = 8)
 az_aq_proj |>
   ggplot(aes(x = a1, y = a2, colour = od >= threshold)) +
@@ -282,7 +286,7 @@ az_aq_proj |>
   guides(colour = "none")
 ```
 
-The observation with the most extreme orthogonal distance, is also the most extreme in the projection space, so it is visible as an anomaly in both spaces. However, the other observations with large orthogonal distances are not visible as anomalies in the projection space, illustrating the importance of considering both spaces when looking for anomalies.
+The observation with the most extreme orthogonal distance is also the most extreme in the projection space, so it is visible as an anomaly in both spaces. However, the other observations with large orthogonal distances are not visible as anomalies in the projection space, illustrating the importance of considering both spaces when looking for anomalies.
 
 ### Outlier map
 
@@ -317,12 +321,12 @@ az_aq_proj |>
 
 Here there are two observations with large orthogonal distances, but moderate score distances, and one observation with both large orthogonal and score distances.
 
-## Stahel-Donoho outlyingness {#sec-stahel-donoho}
+## Stahel--Donoho outlyingness {#sec-stahel-donoho}
 
-Stahel-Donoho outlyingness is a robust projection-based measure of how far each
+Stahel--Donoho outlyingness is a robust projection-based measure of how far each
 observation is from the main body of the data [@Stahel81;@Donoho81] in at least one projection.
 
-For any unit vector $\bm{a}$, project the data to one dimension via $\bm{a}^\intercal\bm{y}_i$, then scale the result using a robust z-score (@sec-scaling), adjusted for skewness [@Brys2005-pc]. The outlyingness of $\bm{y}_i$ is the largest standardised absolute z-score over all possible directions $\bm{a}$, so an observation is flagged when it looks extreme in at least one projection.
+For any unit vector $\bm{a}$, project the data to one dimension via $\bm{a}^\intercal\bm{y}_i$, then scale the result using a robust z-score (@sec-scaling), adjusted for skewness [@Brys2005-pc]. The outlyingness of $\bm{y}_i$ is the largest absolute z-score over all possible directions $\bm{a}$, so an observation is flagged when it looks extreme in at least one projection.
 
 In practice, the optimisation over all directions is approximated using many candidate projections. In R, `robustbase::adjOutlyingness()` provides an efficient implementation for computing these scores.
 
@@ -344,7 +348,7 @@ az_aq_proj <- az_aq_proj |>
 #| label: fig-stahel-donoho
 #| code-fold: true
 #| dependson: stahel-donoho
-#| fig-cap: "Projection of the 11 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace, with the observations flagged by their Stahel–Donoho outlyingness highlighted in black."
+#| fig-cap: "Projection of the 11 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace, with the observations flagged by their Stahel--Donoho outlyingness highlighted in black."
 az_aq_proj |>
   ggplot(aes(x = a1, y = a2, colour = top_1pc)) +
   geom_point(alpha = 0.2 + 0.8 * az_aq_proj$top_1pc) +
@@ -352,7 +356,7 @@ az_aq_proj |>
   guides(colour = "none")
 ```
 
-Clearly the 2D projection does not capture all the anomalies, but it does capture one or two of them. Also, the 1D projections used in the Stahel-Donoho method misses anomalies that can only be seen in multiple dimensions, such as the group of five observations near the bottom of @fig-stahel-donoho.
+Clearly the 2D projection does not capture all the anomalies, but it does capture one or two of them. Because it relies on one-dimensional projections, the Stahel--Donoho measure can miss anomalies that only appear unusual when considering multiple variables jointly.
 
 ## Principal component analysis {#sec-pca}
 
@@ -368,7 +372,7 @@ $$
 $$
 where $\lambda_1 \ge \lambda_2 \ge \cdots \ge \lambda_k$ are the first $k$ eigenvalues of $\bm{\Sigma}$. The covariance matrix of the scores is diagonal, which means that the principal component scores are uncorrelated. The variance of the $j$th principal component score is $\lambda_j$, so the eigenvalues give the variance captured by each principal component. The proportion of variance in the original data that has been captured by the first $k$ principal components is given by the sum of the first $k$ eigenvalues divided by the sum of all eigenvalues.
 
-It is possible to calculate up to $k = \min(n, m)$ principal components, but in practice we often only use the first few that capture most of the variance.
+It is possible to calculate up to $k = \min(n-1, m)$ principal components, but in practice we often only use the first few that capture most of the variance.
 
 For the 11 air quality and meteorological variables from Aotizhongxin, the 11 principal components can be computed using `prcomp()`, or using `rrcov::PcaClassic()`. We will use the latter, because it will make it easier to compare with other methods.
 
@@ -411,14 +415,14 @@ pca_res$scores[, 1:2] |>
   geom_point(alpha = 0.2)
 ```
 
-Two-dimensional principal components projections of the 11D air quality and meteorological data from Aotizhongxin. The first two principal components capture about `r cum_var_explained[2]`% of the variance in the data.
+Two-dimensional principal component projection of the 11 air quality and meteorological variables from Aotizhongxin. The first two principal components capture about `r cum_var_explained[2]`% of the variance in the data.
 
 :::
 
 Here the anomalies are much less obvious than in @fig-proj-11dto2d. This can happen for two reasons:
 
 1. If the anomalies are not aligned with the main axes of variation, they may be hidden in the lower variance components that we have not included in the 2D projection, although they may be visible in the residuals.
-2. The anomalies can cause the principal components to point in a direction that does not capture the main body of the data, making it difficult to detect them in the projection space. This is an example of "masking", where the anomalies are hidden due to their influence on the projection directions.
+2. Because PCA maximises variance, even a small number of extreme observations can dominate the covariance structure. Thus, anomalies can cause the principal components to point in a direction that does not capture the main body of the data, making it difficult to detect them in the projection space. This is an example of "masking", where the anomalies are hidden due to their influence on the projection directions.
 
 ### Diagnostic plot
 
@@ -433,7 +437,7 @@ To distinguish these two situations, @Hubert2005-qa introduced a useful framewor
 
 * **Regular observations** have small score and small orthogonal distances, so they lie close to the centre of the PCA subspace, and are well represented by the projection.
 * **Good leverage points** have large score distances, but small orthogonal distances, so they lie far from the centre of the PCA subspace, but are still well represented by the projection. They inflate eigenvalues but do not distort the principal component directions. In fact, they can help improve the estimation of the principal component directions, because they provide more information about the structure of the data.
-* **Bad leverage points** have large score and large orthogonal distances, so they lie far from both the centre and the PCA subspace. They can pull the principal component directions towards themselves — the mechanism behind masking.
+* **Bad leverage points** have large score and large orthogonal distances, so they lie far from both the centre and the PCA subspace. They can pull the principal component directions towards themselves---the mechanism behind masking.
 * **Orthogonal outliers** have small score distances, but large orthogonal distances, so their projections lie close to the centre of the PCA subspace, but are not well represented by the projection. They will not be visible as anomalies in PCA projection, but they will be visible in the residuals.
 
 If the data were from a multivariate Normal distribution, then the score distances would approximately follow a chi-squared distribution with $k$ degrees of freedom. While we almost never believe that real data come from a multivariate Normal distribution, this provides a useful reference point for understanding the geometry of the score distances, and for setting a cutoff to classify points. We flag an observation as a high leverage point if $\text{SD}_i$ is larger than the 97.5% quantile of the chi-squared distribution with $k$ degrees of freedom. So under a Normal model, we would expect about 2.5% of the observations to have large score distances and be flagged as leverage points.
@@ -447,7 +451,7 @@ When combined with the outlier map shown above, these cutoffs partition the obse
 #| label: fig-pca-outliermap
 #| code-fold: true
 #| dependson: pca
-#| fig-cap: "Outlier map for the standardised carbon monoxide, nitrogen dioxide and PM2.5 data from Aotizhongxin [@Hubert2005-qa]. Dashed lines show the cutoffs $c_{\\text{SD}}$ and $c_{\\text{OD}}$."
+#| fig-cap: "Outlier map for the 11 air quality and meteorological variables at Aotizhongxin [@Hubert2005-qa]. Dashed lines show the score-distance and orthogonal-distance cutoffs."
 outlier_map <- function(Y, k, pca_fn = rrcov::PcaClassic, guide = FALSE, ...) {
   pca_res <- pca_fn(Y, k = k, ...)
   df <- as_tibble(pca_res$scores) |>
@@ -546,9 +550,9 @@ Now there are far fewer bad leverage points, and the map changes much less as we
 
 The ROBPCA algorithm proceeds in three stages, combining projection pursuit ideas (used to obtain a robust starting point) with robust covariance estimation (used to refine the result).
 
-**Stage 1: Reduce the working dimension.** When $m$ is large, the $n$ observations span a subspace of dimension at most $n-1$. A singular value decomposition of the mean-centred data matrix is used to express the data in this subspace without any loss of information. This is purely an affine transformation — no components are discarded yet — and it ensures that the subsequent steps operate in a space of dimension no larger than $\min(n-1, m)$.
+**Stage 1: Reduce the working dimension.** When $m$ is large, the $n$ observations span a subspace of dimension at most $n-1$. A singular value decomposition of the mean-centred data matrix is used to express the data in this subspace without any loss of information. This is purely an affine transformation---no components are discarded yet---and it ensures that the subsequent steps operate in a space of dimension no larger than $\min(n-1, m)$.
 
-**Stage 2: Find a robust subspace.** For each observation, the Stahel–Donoho outlyingness (@sec-stahel-donoho) is computed by projecting onto many candidate directions and recording the largest robustly standardised distance from the centre. The $h$ least-outlying observations are retained, where $h = \lceil \alpha n \rceil$ for some $\alpha$ between 0.5 and 1 (the default is $\alpha = 0.75$); a larger $\alpha$ gives more efficient estimates, while a smaller $\alpha$ gives greater robustness. The eigenvalues of the covariance matrix of these $h$ points are used to choose the number of components $k$ (for example, using a scree plot or a proportion-of-variance criterion), and the data are projected onto the first $k$ eigenvectors.
+**Stage 2: Find a robust subspace.** For each observation, the Stahel--Donoho outlyingness (@sec-stahel-donoho) is computed by projecting onto many candidate directions and recording the largest robustly standardised distance from the centre. The $h$ least-outlying observations are retained, where $h = \lceil \alpha n \rceil$ for some $\alpha$ between 0.5 and 1 (the default is $\alpha = 0.75$); a larger $\alpha$ gives more efficient estimates, while a smaller $\alpha$ gives greater robustness. The eigenvalues of the covariance matrix of these $h$ points are used to choose the number of components $k$ (for example, using a scree plot or a proportion-of-variance criterion), and the data are projected onto the first $k$ eigenvectors.
 
 **Stage 3: Robustly estimate the centre and scatter.** Within this $k$-dimensional subspace, the minimum covariance determinant (MCD) estimator is applied to obtain a robust centre $\hat{\bm{\mu}}$ and scatter matrix $\bm{S}$. The estimate is then reweighted to improve efficiency, downweighting observations whose robust distance is large. The eigenvectors of $\bm{S}$ give the final robust principal component directions, which are transformed back to the original $m$-dimensional space. The score and orthogonal distances are computed exactly as before, but using the robust centre and the robust loadings, so that the bad leverage points no longer distort the projection.
 
