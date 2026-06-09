@@ -46,7 +46,9 @@ $$
 $$
 These are equivalent, and are linked by a transpose: $\bm{w}^\intercal = \bm{a}^\intercal \bm{Y}^\intercal$.
 
-@fig-proj-geometry shows an example using $\bm{a} = (0.8, 0.6)^\intercal$ applied to the standardised carbon monoxide (`co`) and nitrogen dioxide (`no2`) measurements at Aotizhongxin. The blue line is the projection direction. The five orange points are randomly selected observations, showing how they project onto the line. The resulting scores are the blue dots on the line.
+To illustrate the idea, let's set $\bm{a} = (0.8, 0.6)^\intercal$. Note that this is a unit vector: $\sqrt{0.8^2 + 0.6^2} = 1$. The projection direction is a line through the origin with slope $0.6/0.8 = 0.75$. This means that the projection will capture variation in both variables, but with greater weight on the first variable than the second.
+
+ @fig-proj-geometry shows an example using this value of $\bm{a}$ applied to the standardised carbon monoxide (`co`) and nitrogen dioxide (`no2`) measurements at Aotizhongxin. The blue line is the projection direction. The five orange points are randomly selected observations, showing how they project onto the line. The resulting scores are the blue dots on the line.
 
 ```{r}
 #| label: fig-proj-geometry
