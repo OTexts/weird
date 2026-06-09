@@ -162,7 +162,7 @@ $$
   \text{Cov}(\bm{W}) = \bm{A}^\intercal \bm{\Sigma} \bm{A}.
 $$
 
-The Aotizhongxin station data contains `r english::words(NCOL(Y))` variables. We can project this `r NCOL(Y)`-dimensional space onto a 2-dimensional subspace defined by a $`r NCOL(Y)` \times 2$ matrix $\bm{A}$ with orthonormal columns. The resulting 2D projection will capture some aspects of the joint structure, but not all. For example, suppose we choose the following projection matrix $\bm{A}$, using a method that we will discuss later in @sec-dobin.
+The Aotizhongxin station data contains `r english::words(NCOL(Y))` variables. We can project this `r NCOL(Y)`-dimensional space onto a 2-dimensional subspace defined by an $`r NCOL(Y)` \times 2$ matrix $\bm{A}$ with orthonormal columns. The resulting 2D projection will capture some aspects of the joint structure, but not all. For example, suppose we choose the following projection matrix $\bm{A}$, using a method that we will discuss later in @sec-dobin.
 
 ```{r}
 #| label: 11dto2d
@@ -179,17 +179,36 @@ Then the resulting 2D projection is shown in @fig-proj-11dto2d.
 ```{r}
 #| label: fig-proj-11dto2d
 #| code-fold: true
-#| fig-cap: "Projection of the 11 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace."
+#| fig-cap: "Projection of the 11 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace. Each blue point is the projection of an 11-dimensional observation onto the 2D subspace defined by the columns of $\\bm{A}$. The orange arrows show the axes of the original 11D space, with the length of each arrow indicating how much of the variation in the corresponding variable is captured by the projection. Only the longest arrows are labelled."
 #| dependson: 11dto2d
 W <- as.matrix(Y) %*% A
 az_aq_proj <- az_aq |>
   bind_cols(W)
+arrow_scale <- 3.5
 az_aq_proj |>
   ggplot(aes(x = a1, y = a2)) +
-  geom_point(alpha = 0.2, colour = "#0072B2")
+  geom_point(alpha = 0.2, colour = "#0072B2") +
+  geom_segment(
+    data = A,
+    aes(x = 0, y = 0, xend = arrow_scale * a1, yend = arrow_scale * a2),
+    arrow = arrow(length = unit(1 / 2, 'picas'), type = "closed", angle = 15),
+    colour = "#c14b14",
+    alpha = 0.5
+  ) +
+  ggrepel::geom_text_repel(
+    #geom_text(
+    data = as.data.frame(A) |>
+      tibble::rownames_to_column("varname") |>
+      filter(a1^2 + a2^2 > 0.1),
+    aes(label = varname, x = arrow_scale * a1, y = arrow_scale * a2),
+    colour = "#c14b14",
+    size = 3,
+    nudge_x = 0.3,
+    min.segment.length = 2
+  )
 ```
 
-This is a 2D shadow of the original 11D data cloud. Each point in the plot corresponds to an 11D observation, and the axes correspond to the two projection directions defined by the columns of $\bm{A}$.
+This is a 2D shadow of the original 11D data cloud. Each point in the plot corresponds to an 11D observation, and the arrows show the directions of the original variables in the projection. The length of each arrow indicates how much of the variation in that variable is captured by the projection: the longer the arrow, the more that variable contributes to the projection. In this example, an increase in any variable will lead to an increase in `a1`, an increase in any variable other than `pm_25` will lead to an increase in `a2`, and an increase in `pm_25` will lead to a decrease in `a2`. The arrows help us to interpret individual points in the projection: the cluster of five points at the bottom of the plot probably correspond to high `pm_25` values, while the point on the far right could be high in any of the variables (or high on average across all variables).
 
 A few observations in this projection appear to be anomalies, but we may also have missed some anomalies that are only visible in other projections. This illustrates the challenge of anomaly detection in high dimensions: we may not know which projection will reveal the anomalies, and there are infinitely many projections to choose from.
 
