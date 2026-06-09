@@ -10,15 +10,15 @@ options(rgl.useNULL = TRUE)
 rgl::setupKnitr()
 ```
 
-Suppose we have observations $\bm{y}_1, \ldots, \bm{y}_n$, where each observation is of length $m$. We can think of each observation as a point in $m$-dimensional space. Our data can be represented as an $n \times m$ matrix $\bm{Y}$, where each row is an observation and each column is a variable. In this chapter, we will focus on the case where $m$ is large, which we will refer to as "high-dimensional" data.
+Suppose we have observations $\bm{y}_1, \ldots, \bm{y}_n$, where each observation is of length $m$. We can think of each observation as a point in $m$-dimensional space. In this chapter, it will be helpful to switch between this view of the data as a collection of vectors, and the matrix view of the data where each observation is one row of an $n \times m$ data matrix $\bm{Y}$. That is, the $i$th row of $\bm{Y}$ is $\bm{y}_i^\intercal$. This is usually how data is stored in practice (think of a tibble or data frame in R), where the columns correspond to the variables and the rows correspond to the observations.
 
-The curse of dimensionality (@sec-curse) makes it difficult to detect anomalies once the number of variables grows too large. In practice, even a moderate number of variables (e.g., $m > 5$) can cause problems for some methods. The high-dimensional methods described in this chapter are designed to address these challenges, by reducing the dimensionality of the data while preserving the relevant structure for anomaly detection.
+The curse of dimensionality (@sec-curse) makes it difficult to detect anomalies once the number of variables, $m$, grows too large. In practice, even a moderate number of variables (e.g., $m > 5$) can cause problems for some methods. The high-dimensional methods described in this chapter are designed to address these challenges, by reducing the dimensionality of the data while preserving the relevant structure for anomaly detection.
 
 ## Projections
 
 The simplest way to reduce the dimensionality of the data is to use **linear projections**: linear combinations of the original variables that map each $m$-dimensional observation to a lower-dimensional space. Different projection directions preserve different aspects of the joint structure, so the choice of direction matters. While anomalies may be hard to detect in the full high-dimensional space, they often become visible when viewed from the right projection direction. Understanding the geometry of projections sets the foundation for the methods described in the rest of this chapter.
 
-To keep the geometry simple, we will scale all variables to have mean zero and unit variance, although to preserve interpretability, no rotation will be applied in the scaling. The ideas are illustrated using air quality and meteorological variables measured hourly at the Aotizhongxin monitoring station (at the Olympic Sports Centre) in Beijing, over May 2014.
+To keep the geometry simple, we will scale all variables to have mean zero and unit variance, although to preserve interpretability, no rotation will be applied in the scaling (@sec-scaling). The ideas throughout the chapter will be illustrated using air quality and meteorological variables measured hourly at the Aotizhongxin monitoring station (at the Olympic Sports Centre) in Beijing, over May 2014.
 
 ```{r}
 #| label: aotizhongxin
@@ -40,7 +40,7 @@ w_i = \bm{a}^\intercal \bm{y}_i = a_1 y_{i,1} + a_2 y_{i,2}
 $$
 for each observation $\bm{y}_i$, where $\bm{a}$ is a unit vector (i.e., $\|\bm{a}\| = \sqrt{a_1^2 + a_2^2} = 1$). The projection is a linear transformation that maps the 2D data cloud onto the line defined by $\bm{a}$, with $w_i$ giving the position of the projected point along that line.
 
-Throughout this book, each observation $\bm{y}_i$ is written either as a column vector, or as the $i$th *row* of the data matrix $\bm{Y}$; that is, the $i$th row of $\bm{Y}$ is $\bm{y}_i^\intercal$. We also store the data in the matrix form $\bm{Y}$, where the rows are the observations and the columns are the variables. This is the source of a notational subtlety: when we write a projection for a single observation, we use left multiplication $w_i = \bm{a}^\intercal\bm{y}_i$, but when we write it for the whole data matrix, we use right multiplication to get the $n$-vector of scores:
+Switching between the vector and matrix views of the data is the source of a notational subtlety: when we write a projection for a single observation, we use left multiplication $w_i = \bm{a}^\intercal\bm{y}_i$, but when we write it for the whole data matrix, we use right multiplication to get the $n$-vector of scores:
 $$
   \bm{w} = \bm{Y}\bm{a}.
 $$
