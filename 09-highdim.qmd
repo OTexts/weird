@@ -219,13 +219,13 @@ For an excellent introduction to interactively exploring all possible projection
 There are two types of projection-based anomalies:
 
 1. **Anomalies in the projection space**. For example, they may be far from the other observations in the projection, or they may be in a region of the projection space that has low density. We can identify them by applying anomaly-detection methods to the projected scores.
-2. **Anomalies in the residual space**. For example, observations with large residuals, or observations that have otherwise unusual residual magnitudes. We can detect them by applying anomaly-detection methods to the residual magnitudes. It is not usually possible to identify anomalies in the residual space by looking at the residuals themselves, because they are still in a high-dimensional space.
+2. **Anomalies in the residual space**. For example, observations with large residuals, or observations that have otherwise unusual residual magnitudes. We can detect them by applying anomaly-detection methods to the residual *magnitudes*. It is not usually possible to identify anomalies in the residual space by looking at the residuals themselves, because they are still in a high-dimensional space.
 
 ### Anomalies in the projection space
 
-@fig-proj-11dto2d shows some potential anomalies in the projection space. The general distance-based and density-based anomaly detection methods discussed in @sec-distances and @sec-density-methods can be applied to the projected scores to flag these anomalies.
+@fig-proj-11dto2d shows some potential anomalies in the projection space. The general distance-based and density-based anomaly detection methods discussed in @sec-distance-methods and @sec-density-methods can be applied to the projected scores to flag these anomalies.
 
-For example, using KDE surprisals (@sec-kdesurprisals), we can flag the observations with the lowest density in the projection as potential anomalies. Here the threshold probability of 0.02 has been chosen after some experimentation.
+For example, using KDE surprisals (@sec-kdesurprisals), we can flag the observations with the lowest density in the projection as potential anomalies. Here the threshold probability of 0.02 has been chosen after some experimentation. 
 
 ```{r}
 #| label: proj-kde
@@ -240,6 +240,8 @@ az_aq_proj |>
   filter(surprisal_anomaly)
 ```
 
+This shows that there was an unusual period between 8am and 12noon on 22 May 2014. These correspond to the cluster of five observations near the bottom of @fig-proj-kde. 
+
 ```{r}
 #| label: fig-proj-kde
 #| code-fold: true
@@ -251,7 +253,7 @@ az_aq_proj |>
   scale_colour_manual(values = c("FALSE" = "#0072B2", "TRUE" = "black"))
 ```
 
-This shows that there was an unusual period between 8am and 12noon on 22 May 2014. These correspond to the cluster of five observations near the bottom of @fig-proj-kde. Further inspection shows that this was a period of high particulate matter (`pm2_5` and `pm10`), `co` and `dew_point`, and moderately high `so2`. The point on the far right of @fig-proj-kde corresponds to the last line of the table above. The observations at that time showed high `co` and `dew_point` and very high `rainfall`.
+Further inspection shows that this was a period of high particulate matter (`pm2_5` and `pm10`), `co` and `dew_point`, and moderately high `so2`. The point on the far right of @fig-proj-kde corresponds to the last line of the table above. The observations at that time showed high `co` and `dew_point` and very high `rainfall`.
 
 Similar results are obtained with other anomaly detection methods. For example, in @fig-proj-isoforest we use an Isolation Forest to find the top 10 most anomalous observations.
 
