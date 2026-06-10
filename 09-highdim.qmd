@@ -300,24 +300,7 @@ az_aq_proj |>
 
 Further inspection shows that this was a period of high particulate matter (`pm2_5` and `pm10`), `co` and `dew_point`, and moderately high `so2`. The point on the far right of @fig-proj-kde corresponds to the last line of the table above. The observations at that time showed high `co` and `dew_point` and very high `rainfall`.
 
-Similar results are obtained with other anomaly detection methods. For example, in @fig-proj-isoforest we use an Isolation Forest to find the top 10 most anomalous observations.
-
-```{r}
-#| label: fig-proj-isoforest
-#| code-fold: true
-#| dependson: fig-proj-11dto2d
-#| fig-cap: "Projection of the 11 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace, with points coloured by whether their Isolation Forest score is in the top 10 most anomalous observations."
-iso_model <- isotree::isolation.forest(W)
-az_aq_proj <- az_aq_proj |>
-  mutate(
-    iso_score = predict(iso_model, W),
-    top_ten = iso_score > sort(iso_score, decreasing = TRUE)[10]
-  )
-az_aq_proj |>
-  ggplot(aes(x = a1, y = a2, colour = top_ten)) +
-  geom_point(alpha = 0.2 + 0.8 * az_aq_proj$top_ten) +
-  scale_colour_manual(values = c("FALSE" = "#0072B2", "TRUE" = "black"))
-```
+Similar results are obtained with other anomaly detection methods. 
 
 ### Anomalies in the residual space
 
