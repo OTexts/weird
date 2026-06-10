@@ -405,8 +405,8 @@ For the 11 air quality and meteorological variables from Aotizhongxin, the 11 pr
 #| dependson: aotizhongxin
 #| message: false
 library(rrcov)
-pca_res <- PcaClassic(Y)
-pca_res$loadings
+pca <- PcaClassic(Y)
+pca$loadings
 ```
 
 The variance explained by the first $k$ components can also be computed from the output.
@@ -415,14 +415,14 @@ The variance explained by the first $k$ components can also be computed from the
 #| label: pca-var
 #| code-fold: false
 #| dependson: pca
-100 * cumsum(pca_res$eigenvalues) / sum(pca_res$eigenvalues)
+100 * cumsum(pca$eigenvalues) / sum(pca$eigenvalues)
 ```
 
 ```{r}
 #| label: pca-cumvar
 #| echo: false
 #| dependson: pca
-cum_var_explained <- round(100 * cumsum(pca_res$eigenvalues) / sum(pca_res$eigenvalues))
+cum_var_explained <- round(100 * cumsum(pca$eigenvalues) / sum(pca$eigenvalues))
 ```
 
 Using only the first two principal components gives the scores shown in @fig-pca-2d.
@@ -434,11 +434,11 @@ Using only the first two principal components gives the scores shown in @fig-pca
 #| code-fold: true
 #| dependson: pca
 arrow_scale <- 7
-pca_res$scores[, 1:2] |>
+pca$scores[, 1:2] |>
   ggplot(aes(x = PC1, y = PC2)) +
   geom_point(alpha = 0.2) +
   geom_segment(
-    data = pca_res$loadings,
+    data = pca$loadings,
     aes(x = 0, y = 0, xend = arrow_scale * PC1, yend = arrow_scale * PC2),
     arrow = arrow(length = unit(1 / 2, 'picas'), type = "closed", angle = 15),
     colour = "#c14b14",
@@ -446,8 +446,8 @@ pca_res$scores[, 1:2] |>
   ) +
   ggrepel::geom_text_repel(
     #geom_text(
-    data = pca_res$loadings,
-    aes(label = rownames(pca_res$loadings), x = arrow_scale * PC1, y = arrow_scale * PC2),
+    data = pca$loadings,
+    aes(label = rownames(pca$loadings), x = arrow_scale * PC1, y = arrow_scale * PC2),
     colour = "#c14b14",
     size = 3,
     nudge_x = 0.3,
@@ -493,16 +493,16 @@ When combined with the outlier map shown above, these cutoffs partition the obse
 #| dependson: pca
 #| fig-cap: "Outlier map for the 11 air quality and meteorological variables at Aotizhongxin [@Hubert2005-qa]. Dashed lines show the score-distance and orthogonal-distance cutoffs."
 outlier_map <- function(Y, k, pca_fn = rrcov::PcaClassic, guide = FALSE, ...) {
-  pca_res <- pca_fn(Y, k = k, ...)
-  df <- as_tibble(pca_res$scores) |>
+  pca <- pca_fn(Y, k = k, ...)
+  df <- as_tibble(pca$scores) |>
     mutate(
-      sd = pca_res$sd,
-      od = pca_res$od,
+      sd = pca$sd,
+      od = pca$od,
       type = case_when(
-        sd <= pca_res$cutoff.sd & od <= pca_res$cutoff.od ~ "Regular",
-        sd > pca_res$cutoff.sd & od <= pca_res$cutoff.od ~ "Good leverage point",
-        sd <= pca_res$cutoff.sd & od > pca_res$cutoff.od ~ "Orthogonal outlier",
-        sd > pca_res$cutoff.sd & od > pca_res$cutoff.od ~ "Bad leverage point"
+        sd <= pca$cutoff.sd & od <= pca$cutoff.od ~ "Regular",
+        sd > pca$cutoff.sd & od <= pca$cutoff.od ~ "Good leverage point",
+        sd <= pca$cutoff.sd & od > pca$cutoff.od ~ "Orthogonal outlier",
+        sd > pca$cutoff.sd & od > pca$cutoff.od ~ "Bad leverage point"
       ),
       type = factor(
         type,
@@ -517,8 +517,8 @@ outlier_map <- function(Y, k, pca_fn = rrcov::PcaClassic, guide = FALSE, ...) {
   p <- df |>
     ggplot(aes(x = sd, y = od, colour = type)) +
     geom_point(alpha = 0.7, size = 2) +
-    geom_vline(xintercept = pca_res$cutoff.sd, linetype = "dashed", colour = "grey50") +
-    geom_hline(yintercept = pca_res$cutoff.od, linetype = "dashed", colour = "grey50") +
+    geom_vline(xintercept = pca$cutoff.sd, linetype = "dashed", colour = "grey50") +
+    geom_hline(yintercept = pca$cutoff.od, linetype = "dashed", colour = "grey50") +
     labs(
       x = "Score distance",
       y = "Orthogonal distance",
