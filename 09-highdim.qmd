@@ -336,7 +336,7 @@ This provides a measure of how much information has *not* been captured by the $
 R <- Y - as.matrix(W) %*% t(A)
 az_aq_proj <- az_aq_proj |>
   mutate(od = sqrt(rowSums(R^2)))
-az_aq_proj |> arrange(desc(od))
+az_aq_proj |> filter(od > sort(az_aq_proj$od, decreasing = TRUE)[10])
 az_aq_proj |> gg_hdrboxplot(od)
 ```
 
@@ -680,7 +680,7 @@ az_aq_proj <- az_aq_proj |>
   mutate(fpcs = fpcs$distance)
 az_aq_proj |>
   select(day, hour, fpcs) |>
-  arrange(desc(fpcs))
+  filter(fpcs > sort(fpcs, decreasing = TRUE)[10])
 ```
 
 Because the outlyingness is a distance in the full `r NCOL(Yf)`-dimensional space, there is no single projection that displays it faithfully: an observation can be highly outlying because of a combination of variables that no two-dimensional view captures. So rather than plotting the scores on a projection chosen by some other method, we show their distribution directly in @fig-fastpcs, as a highest-density-region boxplot (@sec-hdr).
