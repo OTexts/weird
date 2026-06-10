@@ -398,7 +398,7 @@ For any unit vector $\bm{a}$, project the data to one dimension via $\bm{a}^\int
 
 In practice, the optimisation over all directions is approximated using many candidate projections. In R, `robustbase::adjOutlyingness()` provides an efficient implementation for computing these scores.
 
-We can apply this to the same standardised air quality and meteorological variables from Aotizhongxin used in @fig-proj-11dto2d. Because the outlyingness is maximised over all directions, it does not require us to choose a projection in advance: an observation receives a high score if it is extreme in *any* direction, whether that direction lies within the 2-dimensional projection or orthogonal to it.
+We can apply this to the same standardised air quality and meteorological variables from Aotizhongxin used in @fig-proj-11dto2d. Because the outlyingness is maximised over all directions, it does not require us to choose a projection in advance: an observation receives a high score if it is extreme in *any* direction. 
 
 ```{r}
 #| label: stahel-donoho
@@ -406,24 +406,12 @@ We can apply this to the same standardised air quality and meteorological variab
 #| dependson: fig-proj-11dto2d
 set.seed(1)
 ao <- robustbase::adjOutlyingness(Y)
-az_aq_proj <- az_aq_proj |>
-  mutate(sd_out = log(ao$adjout))
-```
-
-Because the outlyingness is maximised over all directions, there is no single projection that displays it faithfully. So rather than highlighting the scores on a projection chosen by some other method, we show their distribution directly in @fig-stahel-donoho, as a highest-density-region boxplot (@sec-hdr).
-
-```{r}
-#| label: fig-stahel-donoho
-#| code-fold: true
-#| fig-asp: 0.2
-#| dependson: stahel-donoho
-#| fig-cap: "Distribution of the Stahel--Donoho outlyingness (on a log scale) for the Aotizhongxin observations, shown as a highest-density-region boxplot. The bulk of observations have low outlyingness, with a well-separated group of strongly anomalous observations to the right."
 az_aq_proj |>
-  gg_hdrboxplot(sd_out) +
-  labs(x = "Stahel-Donoho outlyingness (log scale)")
+  mutate(sd_out = ao$adjout) |>
+  filter(sd_out > sort(ao$adjout, decreasing = TRUE)[10])
 ```
 
-The outlyingness scores span many orders of magnitude, so we plot them on a log scale. Most observations have low outlyingness, but a small group is so extreme in some projection direction that it separates clearly from the bulk; these are the flagged anomalies. Many of them are the same points identified by their orthogonal distance in @fig-proj-residuals2. Because the Stahel--Donoho measure relies on one-dimensional projections, it can miss anomalies that only appear unusual when several variables are considered jointly.
+The top 10 most anomalous observations by this measure are shown above; many of them are the same points identified by their orthogonal distance in @fig-proj-residuals2. Because the Stahel--Donoho measure relies on one-dimensional projections, it can miss anomalies that only appear unusual when several variables are considered jointly.
 
 ## Principal component analysis {#sec-pca}
 
@@ -694,7 +682,7 @@ Because the outlyingness is a distance in the full `r NCOL(Yf)`-dimensional spac
 az_aq_proj |> gg_hdrboxplot(fpcs)
 ```
 
-Most observations form a dense cluster of low scores, with a long tail of increasingly outlying points trailing off to the right. Unlike the Stahel--Donoho scores in @fig-stahel-donoho, which flag an observation that is extreme in its single most revealing projection, the FastPCS index measures outlyingness relative to the robust covariance of the clean subset, and so accounts for the joint structure of all the variables at once.
+Most observations form a dense cluster of low scores, with a long tail of increasingly outlying points trailing off to the right. Unlike the Stahel--Donoho outlyingness (@sec-stahel-donoho), which flags an observation that is extreme in its single most revealing projection, the FastPCS index measures outlyingness relative to the robust covariance of the clean subset, and so accounts for the joint structure of all the variables at once.
 
 
 ## Stray and HDoutliers algorithms
