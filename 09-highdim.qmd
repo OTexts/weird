@@ -459,7 +459,7 @@ Two-dimensional principal component projection of the 11 air quality and meteoro
 
 :::
 
-Here the anomalies are much less obvious than in @fig-proj-11dto2d. This can happen for two reasons:
+Compare this to the projection shown in @fig-proj-11dto2d. The variables here are much more evenly weighted, with both positive and negative weights causing the 11D axes (shown in orange) to point in diverse directions. Also, the anomalies are now much less obvious than in @fig-proj-11dto2d. This can happen for two reasons:
 
 1. If the anomalies are not aligned with the main axes of variation, they may be hidden in the lower variance components that we have not included in the 2D projection, although they may be visible in the residuals.
 2. Because PCA maximises variance, even a small number of extreme observations can dominate the covariance structure. Thus, anomalies can cause the principal components to point in a direction that does not capture the main body of the data, making it difficult to detect them in the projection space. This is an example of "masking", where the anomalies are hidden due to their influence on the projection directions.
