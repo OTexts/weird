@@ -372,6 +372,8 @@ az_aq_proj |>
 
 Here there is one observation with both large orthogonal and score distances, and two observations with large orthogonal distances but moderate score distances.
 
+Remember that not all anomalies correspond to large distances. So the outlier map miss anomalies that lie in a low-density region of either the projection space or the residual space, but which are not far from the centre. Those in the projection space are better caught using a density-based method applied to the scores, as we illustrated in @fig-proj-kde. Anomalies that lie in low-density regions of the residual space, but which have small orthogonal distances, are much harder to spot.
+
 ## Stahel--Donoho outlyingness {#sec-stahel-donoho}
 
 Stahel--Donoho outlyingness is a robust projection-based measure of how far each
