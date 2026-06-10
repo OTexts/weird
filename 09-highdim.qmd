@@ -244,7 +244,7 @@ Then the resulting 2D projection is shown in @fig-proj-11dto2d.
 
 ```{r}
 #| label: fig-proj-11dto2d
-#| code-fold: true
+#| code-fold: false
 #| fig-cap: "Projection of the 11 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace. Each blue point is the projection of an 11-dimensional observation onto the 2D subspace defined by the columns of $\\bm{A}$. The orange arrows show the axes of the original 11D space, with the length of each arrow indicating how much of the variation in the corresponding variable is captured by the projection. Only the longest arrows are labelled."
 #| dependson: 11dto2d
 W <- as.matrix(Y) %*% A
@@ -319,7 +319,8 @@ This provides a measure of how much information has *not* been captured by the $
 R <- Y - as.matrix(W) %*% t(A)
 az_aq_proj <- az_aq_proj |>
   mutate(od = sqrt(rowSums(R^2)))
-az_aq_proj |> filter(od > sort(az_aq_proj$od, decreasing = TRUE)[10])
+az_aq_proj |>
+  filter(od > sort(od, decreasing = TRUE)[10])
 az_aq_proj |> gg_hdrboxplot(od)
 ```
 
@@ -393,7 +394,7 @@ set.seed(1)
 ao <- robustbase::adjOutlyingness(Y)
 az_aq_proj |>
   mutate(sd_out = ao$adjout) |>
-  filter(sd_out > sort(ao$adjout, decreasing = TRUE)[10])
+  filter(sd_out > sort(sd_out, decreasing = TRUE)[10])
 ```
 
 The top 10 most anomalous observations by this measure are shown above; many of them are the same points identified by their orthogonal distance in @fig-proj-residuals2. Because the Stahel--Donoho measure relies on one-dimensional projections, it can miss anomalies that only appear unusual when several variables are considered jointly.
@@ -448,7 +449,7 @@ Using only the first two principal components gives the scores shown in @fig-pca
 
 ```{r}
 #| label: pca-2d-plot
-#| code-fold: true
+#| code-fold: false
 #| dependson: pca
 biplot_projection(pca)
 ```
@@ -585,7 +586,8 @@ The first two robust principal components are shown in @fig-pca-robpca. Compared
 
 ```{r}
 #| label: fig-pca-robpca
-#| 
+#| code-fold: false
+#| fig-cap: Two-dimensional robust principal component projection of the 11 air quality and meteorological variables from Aotizhongxin.
 biplot_projection(pca_robpca)
 ```
 
@@ -612,17 +614,18 @@ Now there are far fewer bad leverage points than in @fig-pca-outliermaps, and th
 If we take the four components found by ROBPCA, and add in the orthogonal distances as a fifth dimension, then we can apply a distance-based anomaly detection method to find the most anomalous observations in this 5D space. For example, we can use an Isolation Forest to find the top 10 most anomalous observations.
 
 ```{r}
-W <- pca_robpca$scores |>
+W_od <- pca_robpca$scores |>
   as_tibble() |>
   mutate(OD = pca_robpca$od)
-iso_model <- isotree::isolation.forest(W)
+iso_model <- isotree::isolation.forest(W_od)
 az_aq_proj |>
-  mutate(iso_score = predict(iso_model, W)) |>
+  mutate(iso_score = predict(iso_model, W_od)) |>
   filter(iso_score > sort(iso_score, decreasing = TRUE)[10])
 ```
 
 
 ## FastPCS {#sec-fastpcs}
+
 ROBPCA and the **Projection Congruent Subset (PCS)** method of @Vakili2014-yc share the same basic strategy. Each one first identifies a *clean subset* of the data --- a group of $h$ observations taken to be free of anomalies --- and then estimates a centre and covariance matrix from that subset alone. Because the anomalies are excluded before the covariance is estimated, they cannot distort it. What differs between the two methods is how the clean subset is chosen. ROBPCA selects the $h$ observations with the smallest Stahel--Donoho outlyingness (@sec-stahel-donoho). PCS instead searches directly for the subset whose members stay grouped most tightly *together*.
 
 The idea behind PCS is that a clean group of observations stays clustered no matter which direction we view it from, whereas a subset that mixes in some anomalies will spread apart when viewed from at least some directions. To measure this, PCS projects the data onto many one-dimensional directions. For a candidate subset, it compares how tightly the subset's members cluster along each direction with how tightly the closest $h$ points cluster along that same direction. Averaging over many directions gives a score that is small when the subset is genuinely cohesive and large when it contains anomalies. The subset with the smallest score is the projection congruent subset.
@@ -636,11 +639,9 @@ The `FastPCS()` function in the `FastPCS` package computes this efficiently, usi
 #| code-fold: false
 #| dependson: aotizhongxin
 #| message: false
-library(FastPCS)
-Yf <- az_aq |>
-  select(pm2_5:o3, temperature:dew_point, wind_speed) |>
-  mvscale(center = mean, scale = sd, cov = NULL)
-fpcs <- FastPCS(as.matrix(Yf))
+fpcs_fit <- Y |>
+  select(-rainfall) |>
+  FastPCS::FastPCS()
 ```
 
 The algorithm returns a robust centre and covariance matrix, estimated from the projection congruent subset, together with the robust Mahalanobis distance (@sec-distances) of every observation from that centre. This distance is the FastPCS outlyingness index: observations far from the clean subset receive large values, while the bulk of the data sits close to the centre.
@@ -650,13 +651,12 @@ The algorithm returns a robust centre and covariance matrix, estimated from the 
 #| code-fold: false
 #| dependson: fastpcs
 az_aq_proj <- az_aq_proj |>
-  mutate(fpcs = fpcs$distance)
+  mutate(fpcs = fpcs_fit$distance)
 az_aq_proj |>
-  select(day, hour, fpcs) |>
   filter(fpcs > sort(fpcs, decreasing = TRUE)[10])
 ```
 
-Because the outlyingness is a distance in the full `r NCOL(Yf)`-dimensional space, there is no single projection that displays it faithfully: an observation can be highly outlying because of a combination of variables that no two-dimensional view captures. So rather than plotting the scores on a projection chosen by some other method, we show their distribution directly in @fig-fastpcs, as a highest-density-region boxplot (@sec-hdr).
+Because the outlyingness is a distance in the full `r NCOL(Y)-1`-dimensional space, there is no single projection that displays it faithfully: an observation can be highly outlying because of a combination of variables that no two-dimensional view captures. So we show their distribution directly in @fig-fastpcs, as a highest-density-region boxplot (@sec-hdr).
 
 ```{r}
 #| label: fig-fastpcs
