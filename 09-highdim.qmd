@@ -10,6 +10,40 @@ options(rgl.useNULL = TRUE)
 rgl::setupKnitr()
 ```
 
+```{r}
+#| label: biplot-projection
+#| code-fold: true
+# Draw a 2D projection (scores) with the original variable axes overlaid as
+# arrows (loadings), as in a biplot. `arrow_scale` stretches the arrows to a
+# readable length; only loadings longer than `label_threshold` are labelled.
+biplot_projection <- function(scores, loadings, arrow_scale = 1, label_threshold = 0) {
+  scores <- as.data.frame(scores)
+  axis_labels <- colnames(scores)[1:2]
+  colnames(scores)[1:2] <- c("x", "y")
+  loadings <- as.data.frame(loadings) |>
+    tibble::rownames_to_column("varname")
+  colnames(loadings)[2:3] <- c("x", "y")
+  ggplot(scores, aes(x = x, y = y)) +
+    geom_point(alpha = 0.2, colour = "#0072B2") +
+    geom_segment(
+      data = loadings,
+      aes(x = 0, y = 0, xend = arrow_scale * x, yend = arrow_scale * y),
+      arrow = arrow(length = unit(1 / 2, "picas"), type = "closed", angle = 15),
+      colour = "#c14b14",
+      alpha = 0.5
+    ) +
+    ggrepel::geom_text_repel(
+      data = dplyr::filter(loadings, x^2 + y^2 > label_threshold),
+      aes(label = varname, x = arrow_scale * x, y = arrow_scale * y),
+      colour = "#c14b14",
+      size = 3,
+      nudge_x = 0.3,
+      min.segment.length = 2
+    ) +
+    labs(x = axis_labels[1], y = axis_labels[2])
+}
+```
+
 Suppose we have observations $\bm{y}_1, \ldots, \bm{y}_n$, where each observation is of length $m$. We can think of each observation as a point in $m$-dimensional space. In this chapter, it will be helpful to switch between this view of the data as a collection of vectors, and the matrix view of the data where each observation is one row of an $n \times m$ data matrix $\bm{Y}$. That is, the $i$th row of $\bm{Y}$ is $\bm{y}_i^\intercal$. This is usually how data is stored in practice (think of a tibble or data frame in R), where the columns correspond to the variables and the rows correspond to the observations.
 
 The curse of dimensionality (@sec-curse) makes it difficult to detect anomalies once the number of variables, $m$, grows too large. In practice, even a moderate number of variables (e.g., $m > 5$) can cause problems for some methods. The high-dimensional methods described in this chapter are designed to address these challenges, by reducing the dimensionality of the data while preserving the relevant structure for anomaly detection.
@@ -184,28 +218,7 @@ Then the resulting 2D projection is shown in @fig-proj-11dto2d.
 W <- as.matrix(Y) %*% A
 az_aq_proj <- az_aq |>
   bind_cols(W)
-arrow_scale <- 3.5
-az_aq_proj |>
-  ggplot(aes(x = a1, y = a2)) +
-  geom_point(alpha = 0.2, colour = "#0072B2") +
-  geom_segment(
-    data = A,
-    aes(x = 0, y = 0, xend = arrow_scale * a1, yend = arrow_scale * a2),
-    arrow = arrow(length = unit(1 / 2, 'picas'), type = "closed", angle = 15),
-    colour = "#c14b14",
-    alpha = 0.5
-  ) +
-  ggrepel::geom_text_repel(
-    #geom_text(
-    data = as.data.frame(A) |>
-      tibble::rownames_to_column("varname") |>
-      filter(a1^2 + a2^2 > 0.1),
-    aes(label = varname, x = arrow_scale * a1, y = arrow_scale * a2),
-    colour = "#c14b14",
-    size = 3,
-    nudge_x = 0.3,
-    min.segment.length = 2
-  )
+biplot_projection(W, A, arrow_scale = 3.5, label_threshold = 0.1)
 ```
 
 This is a 2D shadow of the original 11D data cloud. Each point in the plot corresponds to an 11D observation, and the arrows show the directions of the original variables in the projection. The length of each arrow indicates how much of the variation in that variable is captured by the projection: the longer the arrow, the more that variable contributes to the projection. In this example, an increase in any variable will lead to an increase in `a1`, an increase in any variable other than `pm_25` will lead to an increase in `a2`, and an increase in `pm_25` will lead to a decrease in `a2`. The arrows help us to interpret individual points in the projection: the cluster of five points at the bottom of the plot probably correspond to high `pm_25` values, while the point on the far right could be high in any of the variables (or high on average across all variables).
@@ -433,26 +446,7 @@ Using only the first two principal components gives the scores shown in @fig-pca
 #| label: pca-2d-plot
 #| code-fold: true
 #| dependson: pca
-arrow_scale <- 7
-pca$scores[, 1:2] |>
-  ggplot(aes(x = PC1, y = PC2)) +
-  geom_point(alpha = 0.2, colour = "#0072B2") +
-  geom_segment(
-    data = pca$loadings,
-    aes(x = 0, y = 0, xend = arrow_scale * PC1, yend = arrow_scale * PC2),
-    arrow = arrow(length = unit(1 / 2, 'picas'), type = "closed", angle = 15),
-    colour = "#c14b14",
-    alpha = 0.5
-  ) +
-  ggrepel::geom_text_repel(
-    #geom_text(
-    data = pca$loadings,
-    aes(label = rownames(pca$loadings), x = arrow_scale * PC1, y = arrow_scale * PC2),
-    colour = "#c14b14",
-    size = 3,
-    nudge_x = 0.3,
-    min.segment.length = 2
-  )
+biplot_projection(pca$scores[, 1:2], pca$loadings[, 1:2], arrow_scale = 7)
 ```
 
 Two-dimensional principal component projection of the 11 air quality and meteorological variables from Aotizhongxin. The first two principal components capture about `r cum_var_explained[2]`% of the variance in the data.
