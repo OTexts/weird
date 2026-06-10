@@ -566,9 +566,36 @@ This can be seen in the second-largest score distance in the $k=4$ plot. The cor
 
 Notice that we now also have some bad leverage values in $k=3$ and $k=4$. So the third and subsequent principal components are being pulled towards some anomalies, making them harder to identify in the lower dimensional space. This could be masking some of the anomalies.
 
-### Robust principal components
+## Robust principal components
 
-There are several approaches to "robustifying" PCA, such as computing the eigenvectors of a robust covariance matrix, or using a different objective function that is less sensitive to outliers. One approach is the ROBPCA algorithm of @Hubert2005-qa, which combines projection pursuit with robust covariance estimation. Before describing the algorithm, let's see its effect on the outlier maps.
+There are several approaches to "robustifying" PCA, such as computing the eigenvectors of a robust covariance matrix, or using a different objective function that is less sensitive to outliers. One approach is the ROBPCA algorithm of @Hubert2005-qa, which proceeds in three stages, using robust outlier scores to find a clean starting point and then refining it with robust covariance estimation.
+
+**Stage 1: Reduce the working dimension.** When the number of variables $m$ is large, the data may not actually fill all $m$ dimensions. So this first stage identifies the subspace that the data genuinely occupies --- at most $\min(n-1, m)$ dimensions --- without discarding any information. This makes the subsequent steps faster and numerically better behaved.
+
+**Stage 2: Find a robust subspace.** For each observation, the Stahel--Donoho outlyingness (@sec-stahel-donoho) is computed to measure how far it lies from the bulk of the data. A clean subset of the $h$ least-outlying observations is retained (by default $h = 0.75n$; reducing this gives greater robustness at the cost of some efficiency). Standard PCA is applied to this clean subset of data, so the resulting components are not pulled towards the anomalies. The number of components $k$ is chosen automatically from the eigenvalues of the clean-subset covariance matrix.
+
+**Stage 3: Robustly estimate the centre and spread.** Within the $k$-dimensional subspace found in Stage 2, the MCD estimator (@sec-robust-cov) is applied to obtain a robust centre $\hat{\bm{\mu}}$ and covariance matrix $\bm{S}$. The eigenvectors of $\bm{S}$ give the final robust principal component directions. Because the projection directions are estimated from the bulk of the data rather than from all observations, anomalies cannot pull the components towards themselves. 
+
+This is implemented in the `rrcov::PcaHubert()` function, which chooses four dimensions for the Aotizhongxin data, and gives the loadings shown below.
+
+```{r}
+pca_robpca <- PcaHubert(Y)
+pca_robpca$loadings
+```
+
+The first two robust principal components are shown in @fig-pca-robpca. Compared to @fig-pca-2d, these two plots are quite similar, although PC2 has been flipped to point in the opposite direction. The main differences are in the higher principal components, which are not shown here, but which are more influenced by the anomalies in the standard PCA than in the ROBPCA.
+
+```{r}
+#| label: fig-pca-robpca
+#| 
+biplot_projection(
+  pca_robpca$scores[, 1:2],
+  pca_robpca$loadings[, 1:2],
+  arrow_scale = 7.5
+)
+```
+
+@fig-pca-outliermap2 shows the outlier maps for the Aotizhongxin data using the ROBPCA algorithm.
 
 ```{r}
 #| label: fig-pca-outliermap2
@@ -586,20 +613,22 @@ patchwork::wrap_plots(
 )
 ```
 
-Now there are far fewer bad leverage points, and the map changes much less as we increase $k$. This suggests that the ROBPCA algorithm has found projection directions that are less influenced by the anomalies, so they are easier to identify in the projection space.
+Now there are far fewer bad leverage points than in @fig-pca-outliermaps, and the map changes much less as we increase $k$. This suggests that the ROBPCA algorithm has found projection directions that are less influenced by the anomalies, so they are easier to identify in the projection space.
 
-The ROBPCA algorithm proceeds in three stages, combining projection pursuit ideas (used to obtain a robust starting point) with robust covariance estimation (used to refine the result).
+If we take the four components found by ROBPCA, and add in the orthogonal distances as a fifth dimension, then we can apply a distance-based anomaly detection method to find the most anomalous observations in this 5D space. For example, we can use an Isolation Forest to find the top 10 most anomalous observations.
 
-**Stage 1: Reduce the working dimension.** When $m$ is large, the $n$ observations span a subspace of dimension at most $n-1$. A singular value decomposition of the mean-centred data matrix is used to express the data in this subspace without any loss of information. This is purely an affine transformation---no components are discarded yet---and it ensures that the subsequent steps operate in a space of dimension no larger than $\min(n-1, m)$.
+```{r}
+W <- pca_robpca$scores |>
+  as_tibble() |>
+  mutate(OD = pca_robpca$od)
+iso_model <- isotree::isolation.forest(W)
+az_aq_proj |>
+  mutate(iso_score = predict(iso_model, W)) |>
+  filter(iso_score > sort(iso_score, decreasing = TRUE)[10])
+```
 
-**Stage 2: Find a robust subspace.** For each observation, the Stahel--Donoho outlyingness (@sec-stahel-donoho) is computed by projecting onto many candidate directions and recording the largest robustly standardised distance from the centre. The $h$ least-outlying observations are retained, where $h = \lceil \alpha n \rceil$ for some $\alpha$ between 0.5 and 1 (the default is $\alpha = 0.75$); a larger $\alpha$ gives more efficient estimates, while a smaller $\alpha$ gives greater robustness. The eigenvalues of the covariance matrix of these $h$ points are used to choose the number of components $k$ (for example, using a scree plot or a proportion-of-variance criterion), and the data are projected onto the first $k$ eigenvectors.
 
-**Stage 3: Robustly estimate the centre and scatter.** Within this $k$-dimensional subspace, the minimum covariance determinant (MCD) estimator is applied to obtain a robust centre $\hat{\bm{\mu}}$ and scatter matrix $\bm{S}$. The estimate is then reweighted to improve efficiency, downweighting observations whose robust distance is large. The eigenvectors of $\bm{S}$ give the final robust principal component directions, which are transformed back to the original $m$-dimensional space. The score and orthogonal distances are computed exactly as before, but using the robust centre and the robust loadings, so that the bad leverage points no longer distort the projection.
-
-Because the projection directions are estimated from the bulk of the data rather than from all observations, anomalies cannot pull the components towards themselves. This is why the outlier maps in @fig-pca-outliermap2 show so few bad leverage points and change little as $k$ increases.
-
-
-## Multidimensional scaling
+## FastPCS {#sec-fastpcs}
 
 
 ## Stray and HDoutliers algorithms
