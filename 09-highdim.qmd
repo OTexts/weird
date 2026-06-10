@@ -375,24 +375,23 @@ We can apply this to the same standardised air quality and meteorological variab
 set.seed(1)
 ao <- robustbase::adjOutlyingness(Y)
 az_aq_proj <- az_aq_proj |>
-  mutate(top_1pc = ao$adjout > quantile(ao$adjout, prob = 0.99, type = 8))
+  mutate(sd_out = log(ao$adjout))
 ```
 
-@fig-stahel-donoho shows the 2-dimensional projection from @fig-proj-11dto2d, with the top 1% most outlying observations highlighted in black.
+Because the outlyingness is maximised over all directions, there is no single projection that displays it faithfully. So rather than highlighting the scores on a projection chosen by some other method, we show their distribution directly in @fig-stahel-donoho, as a highest-density-region boxplot (@sec-hdr).
 
 ```{r}
 #| label: fig-stahel-donoho
 #| code-fold: true
+#| fig-asp: 0.2
 #| dependson: stahel-donoho
-#| fig-cap: "Projection of the 11 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace, with the observations flagged by their Stahel--Donoho outlyingness highlighted in black."
+#| fig-cap: "Distribution of the Stahel--Donoho outlyingness (on a log scale) for the Aotizhongxin observations, shown as a highest-density-region boxplot. The bulk of observations have low outlyingness, with a well-separated group of strongly anomalous observations to the right."
 az_aq_proj |>
-  ggplot(aes(x = a1, y = a2, colour = top_1pc)) +
-  geom_point(alpha = 0.2 + 0.8 * az_aq_proj$top_1pc) +
-  scale_colour_manual(values = c("FALSE" = "#0072B2", "TRUE" = "black")) +
-  guides(colour = "none")
+  gg_hdrboxplot(sd_out) +
+  labs(x = "Stahel-Donoho outlyingness (log scale)")
 ```
 
-Clearly the 2D projection does not capture all the anomalies, but it does capture one or two of them. Also, many of these are the same points that were identified in @fig-proj-residuals2. Because it relies on one-dimensional projections, the Stahel--Donoho measure can miss anomalies that only appear unusual when considering multiple variables jointly.
+The outlyingness scores span many orders of magnitude, so we plot them on a log scale. Most observations have low outlyingness, but a small group is so extreme in some projection direction that it separates clearly from the bulk; these are the flagged anomalies. Many of them are the same points identified by their orthogonal distance in @fig-proj-residuals2. Because the Stahel--Donoho measure relies on one-dimensional projections, it can miss anomalies that only appear unusual when several variables are considered jointly.
 
 ## Principal component analysis {#sec-pca}
 
