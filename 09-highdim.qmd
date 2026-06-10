@@ -14,15 +14,47 @@ rgl::setupKnitr()
 #| label: biplot-projection
 #| code-fold: true
 # Draw a 2D projection (scores) with the original variable axes overlaid as
-# arrows (loadings), as in a biplot. `arrow_scale` stretches the arrows to a
-# readable length; only loadings longer than `label_threshold` are labelled.
-biplot_projection <- function(scores, loadings, arrow_scale = 1, label_threshold = 0) {
+# arrows (loadings), as in a biplot. Pass `object` (the output of `prcomp()` or
+# an rrcov `Pca*` function) to take the scores and loadings from it; otherwise
+# supply `scores` and `loadings` directly. The arrows are stretched by a common
+# factor so the longest just reaches the edge of the point cloud, and only
+# loadings longer than `label_threshold` are labelled.
+biplot_projection <- function(
+  object = NULL,
+  scores = NULL,
+  loadings = NULL,
+  label_threshold = 0
+) {
+  if (!is.null(object)) {
+    if (inherits(object, "prcomp")) {
+      scores <- object$x[, 1:2]
+      loadings <- object$rotation[, 1:2]
+    } else if (methods::is(object, "Pca")) {
+      scores <- object$scores[, 1:2]
+      loadings <- object$loadings[, 1:2]
+    } else {
+      stop("`object` must be the output of prcomp() or an rrcov Pca* function")
+    }
+  }
   scores <- as.data.frame(scores)
   axis_labels <- colnames(scores)[1:2]
   colnames(scores)[1:2] <- c("x", "y")
   loadings <- as.data.frame(loadings) |>
     tibble::rownames_to_column("varname")
   colnames(loadings)[2:3] <- c("x", "y")
+  # Largest common scale keeping every arrow tip inside the score bounding
+  # box: for each arrow take the binding axis, then the tightest arrow wins.
+  sx <- ifelse(
+    loadings$x > 0,
+    max(scores$x) / loadings$x,
+    ifelse(loadings$x < 0, min(scores$x) / loadings$x, Inf)
+  )
+  sy <- ifelse(
+    loadings$y > 0,
+    max(scores$y) / loadings$y,
+    ifelse(loadings$y < 0, min(scores$y) / loadings$y, Inf)
+  )
+  arrow_scale <- min(pmin(sx, sy))
   ggplot(scores, aes(x = x, y = y)) +
     geom_point(alpha = 0.2, colour = "#0072B2") +
     geom_segment(
@@ -218,7 +250,7 @@ Then the resulting 2D projection is shown in @fig-proj-11dto2d.
 W <- as.matrix(Y) %*% A
 az_aq_proj <- az_aq |>
   bind_cols(W)
-biplot_projection(W, A, arrow_scale = 3.5, label_threshold = 0.1)
+biplot_projection(scores = W, loadings = A, label_threshold = 0.1)
 ```
 
 This is a 2D shadow of the original 11D data cloud. Each point in the plot corresponds to an 11D observation, and the arrows show the directions of the original variables in the projection. The length of each arrow indicates how much of the variation in that variable is captured by the projection: the longer the arrow, the more that variable contributes to the projection. In this example, an increase in any variable will lead to an increase in `a1`, an increase in any variable other than `pm_25` will lead to an increase in `a2`, and an increase in `pm_25` will lead to a decrease in `a2`. The arrows help us to interpret individual points in the projection: the cluster of five points at the bottom of the plot probably correspond to high `pm_25` values, while the point on the far right could be high in any of the variables (or high on average across all variables).
@@ -445,7 +477,7 @@ Using only the first two principal components gives the scores shown in @fig-pca
 #| label: pca-2d-plot
 #| code-fold: true
 #| dependson: pca
-biplot_projection(pca$scores[, 1:2], pca$loadings[, 1:2], arrow_scale = 7)
+biplot_projection(pca)
 ```
 
 Two-dimensional principal component projection of the 11 air quality and meteorological variables from Aotizhongxin. The first two principal components capture about `r cum_var_explained[2]`% of the variance in the data.
@@ -581,11 +613,7 @@ The first two robust principal components are shown in @fig-pca-robpca. Compared
 ```{r}
 #| label: fig-pca-robpca
 #| 
-biplot_projection(
-  pca_robpca$scores[, 1:2],
-  pca_robpca$loadings[, 1:2],
-  arrow_scale = 7.5
-)
+biplot_projection(pca_robpca)
 ```
 
 @fig-pca-outliermap2 shows the outlier maps for the Aotizhongxin data using the ROBPCA algorithm.
