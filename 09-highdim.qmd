@@ -436,7 +436,7 @@ Using only the first two principal components gives the scores shown in @fig-pca
 arrow_scale <- 7
 pca$scores[, 1:2] |>
   ggplot(aes(x = PC1, y = PC2)) +
-  geom_point(alpha = 0.2) +
+  geom_point(alpha = 0.2, colour = "#0072B2") +
   geom_segment(
     data = pca$loadings,
     aes(x = 0, y = 0, xend = arrow_scale * PC1, yend = arrow_scale * PC2),
