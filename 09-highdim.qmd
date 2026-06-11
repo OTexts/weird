@@ -613,8 +613,6 @@ of_scores |>
 @Talagala2019-zv, @Wilkinson2017-rb
 
 
-* FastPCS::FastPCS
-
 ## DOBIN {#sec-dobin}
 
 @Kandanaarachchi2020-lo
