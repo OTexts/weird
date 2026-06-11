@@ -10,72 +10,6 @@ options(rgl.useNULL = TRUE)
 rgl::setupKnitr()
 ```
 
-```{r}
-#| label: biplot-projection
-#| code-fold: true
-# Draw a 2D projection (scores) with the original variable axes overlaid as
-# arrows (loadings), as in a biplot. Pass `object` (the output of `prcomp()` or
-# an rrcov `Pca*` function) to take the scores and loadings from it; otherwise
-# supply `scores` and `loadings` directly. The arrows are stretched by a common
-# factor so the longest just reaches the edge of the point cloud, and only
-# loadings longer than `label_threshold` are labelled.
-biplot_projection <- function(
-  object = NULL,
-  scores = NULL,
-  loadings = NULL,
-  label_threshold = 0
-) {
-  if (!is.null(object)) {
-    if (inherits(object, "prcomp")) {
-      scores <- object$x[, 1:2]
-      loadings <- object$rotation[, 1:2]
-    } else if (methods::is(object, "Pca")) {
-      scores <- object$scores[, 1:2]
-      loadings <- object$loadings[, 1:2]
-    } else {
-      stop("`object` must be the output of prcomp() or an rrcov Pca* function")
-    }
-  }
-  scores <- as.data.frame(scores)
-  axis_labels <- colnames(scores)[1:2]
-  colnames(scores)[1:2] <- c("x", "y")
-  loadings <- as.data.frame(loadings) |>
-    tibble::rownames_to_column("varname")
-  colnames(loadings)[2:3] <- c("x", "y")
-  # Largest common scale keeping every arrow tip inside the score bounding
-  # box: for each arrow take the binding axis, then the tightest arrow wins.
-  sx <- ifelse(
-    loadings$x > 0,
-    max(scores$x) / loadings$x,
-    ifelse(loadings$x < 0, min(scores$x) / loadings$x, Inf)
-  )
-  sy <- ifelse(
-    loadings$y > 0,
-    max(scores$y) / loadings$y,
-    ifelse(loadings$y < 0, min(scores$y) / loadings$y, Inf)
-  )
-  arrow_scale <- min(pmin(sx, sy))
-  ggplot(scores, aes(x = x, y = y)) +
-    geom_point(alpha = 0.2, colour = "#0072B2") +
-    geom_segment(
-      data = loadings,
-      aes(x = 0, y = 0, xend = arrow_scale * x, yend = arrow_scale * y),
-      arrow = arrow(length = unit(1 / 2, "picas"), type = "closed", angle = 15),
-      colour = "#c14b14",
-      alpha = 0.5
-    ) +
-    ggrepel::geom_text_repel(
-      data = dplyr::filter(loadings, x^2 + y^2 > label_threshold),
-      aes(label = varname, x = arrow_scale * x, y = arrow_scale * y),
-      colour = "#c14b14",
-      size = 3,
-      nudge_x = 0.3,
-      min.segment.length = 2
-    ) +
-    labs(x = axis_labels[1], y = axis_labels[2])
-}
-```
-
 Suppose we have observations $\bm{y}_1, \ldots, \bm{y}_n$, where each observation is of length $m$. We can think of each observation as a point in $m$-dimensional space. In this chapter, it will be helpful to switch between this view of the data as a collection of vectors, and the matrix view of the data where each observation is one row of an $n \times m$ data matrix $\bm{Y}$. That is, the $i$th row of $\bm{Y}$ is $\bm{y}_i^\intercal$. This is usually how data is stored in practice (think of a tibble or data frame in R), where the columns correspond to the variables and the rows correspond to the observations.
 
 The curse of dimensionality (@sec-curse) makes it difficult to detect anomalies once the number of variables, $m$, grows too large. In practice, even a moderate number of variables (e.g., $m > 5$) can cause problems for some methods. The high-dimensional methods described in this chapter are designed to address these challenges, by reducing the dimensionality of the data while preserving the relevant structure for anomaly detection.
@@ -250,7 +184,7 @@ Then the resulting 2D projection is shown in @fig-proj-11dto2d.
 W <- as.matrix(Y) %*% A
 az_aq_proj <- az_aq |>
   bind_cols(W)
-biplot_projection(scores = W, loadings = A, label_threshold = 0.1)
+biplot_projection(scores = W, loadings = A, label_threshold = 0.1, alpha = 0.2)
 ```
 
 This is a 2D shadow of the original 11D data cloud. Each point in the plot corresponds to an 11D observation, and the arrows show the directions of the original variables in the projection. The length of each arrow indicates how much of the variation in that variable is captured by the projection: the longer the arrow, the more that variable contributes to the projection. In this example, an increase in any variable will lead to an increase in `a1`, an increase in any variable other than `pm_25` will lead to an increase in `a2`, and an increase in `pm_25` will lead to a decrease in `a2`. The arrows help us to interpret individual points in the projection: the cluster of five points at the bottom of the plot probably correspond to high `pm_25` values, while the point on the far right could be high in any of the variables (or high on average across all variables).
@@ -451,7 +385,7 @@ Using only the first two principal components gives the scores shown in @fig-pca
 #| label: pca-2d-plot
 #| code-fold: false
 #| dependson: pca
-biplot_projection(pca)
+biplot_projection(pca, alpha = 0.2)
 ```
 
 Two-dimensional principal component projection of the 11 air quality and meteorological variables from Aotizhongxin. The first two principal components capture about `r cum_var_explained[2]`% of the variance in the data.
@@ -485,80 +419,47 @@ The distribution of orthogonal distances is more complicated, but a common appro
 
 When combined with the outlier map shown above, these cutoffs partition the observations into the four types described in the table. @fig-pca-outliermap illustrates the idea for the Aotizhongxin data using the two principal components shown in @fig-pca-2d.
 
-
 ```{r}
 #| label: fig-pca-outliermap
-#| code-fold: true
 #| dependson: pca
-#| fig-cap: "Outlier map for the 11 air quality and meteorological variables at Aotizhongxin [@Hubert2005-qa]. Dashed lines show the score-distance and orthogonal-distance cutoffs."
-outlier_map <- function(Y, k, pca_fn = rrcov::PcaClassic, guide = FALSE, ...) {
-  pca <- pca_fn(Y, k = k, ...)
-  df <- as_tibble(pca$scores) |>
-    mutate(
-      sd = pca$sd,
-      od = pca$od,
-      type = case_when(
-        sd <= pca$cutoff.sd & od <= pca$cutoff.od ~ "Regular",
-        sd > pca$cutoff.sd & od <= pca$cutoff.od ~ "Good leverage point",
-        sd <= pca$cutoff.sd & od > pca$cutoff.od ~ "Orthogonal outlier",
-        sd > pca$cutoff.sd & od > pca$cutoff.od ~ "Bad leverage point"
-      ),
-      type = factor(
-        type,
-        levels = c(
-          "Orthogonal outlier",
-          "Regular",
-          "Bad leverage point",
-          "Good leverage point"
-        )
-      )
-    )
-  p <- df |>
-    ggplot(aes(x = sd, y = od, colour = type)) +
-    geom_point(alpha = 0.7, size = 2) +
-    geom_vline(xintercept = pca$cutoff.sd, linetype = "dashed", colour = "grey50") +
-    geom_hline(yintercept = pca$cutoff.od, linetype = "dashed", colour = "grey50") +
-    labs(
-      x = "Score distance",
-      y = "Orthogonal distance",
-      title = paste0("PCA with ", k, " component", ifelse(k == 1, "", "s"))
-    ) +
-    scale_colour_manual(
-      values = c(
-        "Regular" = "#0072B2",
-        "Good leverage point" = "#009E73",
-        "Orthogonal outlier" = "#D55E00",
-        "Bad leverage point" = "black"
-      )
-    )
-  if (guide) {
-    p <- p + guides(colour = guide_legend(nrow = 2)) + theme(legend.position = "bottom")
-  } else {
-    p <- p + guides(colour = "none")
-  }
-  return(p)
-}
-outlier_map(Y, 2, guide = TRUE)
+#| code-fold: false
+#| fig-cap: "Outlier map for the Aotizhongxin data, using the first two principal components in the projection. The vertical and horizontal dashed lines show the cutoffs for large orthogonal and score distances, respectively. The points are coloured according to their classification based on these cutoffs."
+outlier_map(PcaClassic(Y, k = 2))
 ```
 
 Here we can see that there are no points that are particularly bad leverage points (the two black points are very close to the cutoff). So the most anomalous observations are orthogonal outliers in the residual space, but these are not having a strong effect on the first two principal component directions.
 
 We can repeat this analysis using different values of $k$, the number of principal components used in the projection. As $k$ increases, more of the variance is captured by the projection, which can cause the orthogonal distances to decrease, and the score distances to increase, because the projection is capturing more of the structure of the data. Any outlying anomalies that are not well represented by the first few principal components will have large orthogonal distances, but as we include more components, they may become better represented in the projection. This can lead to some anomalies being classified as good leverage points in higher dimensions, even if they were orthogonal outliers in lower dimensions.
 
+```{r}
+#| eval: false
+#| echo: true
+outlier_map(PcaClassic(Y, k = 1))
+outlier_map(PcaClassic(Y, k = 2))
+outlier_map(PcaClassic(Y, k = 3))
+outlier_map(PcaClassic(Y, k = 4))
+```
 
 ```{r}
 #| label: fig-pca-outliermaps
-#| code-fold: true
+#| echo: false
 #| dependson: fig-pca-outliermap
 #| fig-cap: "Outlier maps for the Aotizhongxin data, using different numbers of principal components in the projection."
+maps <- lapply(1:4, function(k) outlier_map(PcaClassic(Y, k)))
+# Extract one shared legend from a panel containing all four categories
+g <- ggplotGrob(maps[[2]] + theme(legend.title = element_blank()))
+legend <- g$grobs[[which(g$layout$name == "guide-box-bottom")]]
+# Drop the per-panel legends and place the shared one across the bottom
 patchwork::wrap_plots(
-  outlier_map(Y, 1),
-  outlier_map(Y, 2),
-  outlier_map(Y, 3),
-  outlier_map(Y, 4),
-  ncol = 2,
-  byrow = TRUE
-)
+  maps[[1]],
+  maps[[2]],
+  maps[[3]],
+  maps[[4]],
+  patchwork::wrap_elements(legend),
+  design = "AB\nCD\nEE",
+  heights = c(1, 1, 0.18)
+) &
+  theme(legend.position = "none")
 ```
 
 This can be seen in the second-largest score distance in the $k=4$ plot. The corresponding observation was an orthogonal outlier in the other plots, but is now a good leverage point, because it is now well represented in the projection.
@@ -588,25 +489,44 @@ The first two robust principal components are shown in @fig-pca-robpca. Compared
 #| label: fig-pca-robpca
 #| code-fold: false
 #| fig-cap: Two-dimensional robust principal component projection of the 11 air quality and meteorological variables from Aotizhongxin.
-biplot_projection(pca_robpca)
+biplot_projection(pca_robpca, alpha = 0.2)
 ```
 
 @fig-pca-outliermap2 shows the outlier maps for the Aotizhongxin data using the ROBPCA algorithm.
 
 ```{r}
+#| eval: false
+#| echo: true
+outlier_map(PcaHubert(Y, k = 1, skew = ))
+outlier_map(PcaHubert(Y, k = 2, skew = TRUE, mcd = FALSE))
+outlier_map(PcaHubert(Y, k = 3, skew = TRUE, mcd = FALSE))
+outlier_map(PcaHubert(Y, k = 4, skew = TRUE, mcd = FALSE))
+```
+
+
+```{r}
 #| label: fig-pca-outliermap2
-#| code-fold: true
+#| echo: false
 #| dependson: fig-pca-outliermap
 #| fig-cap: "Outlier maps for the Aotizhongxin data, using different numbers of principal components in the projection."
 #| message: false
+maps <- lapply(1:4, function(k) {
+  outlier_map(PcaHubert(Y, k, skew = TRUE, mcd = FALSE), alpha = 0.9)
+})
+# Extract one shared legend from a panel containing all four categories
+g <- ggplotGrob(maps[[2]] + theme(legend.title = element_blank()))
+legend <- g$grobs[[which(g$layout$name == "guide-box-bottom")]]
+# Drop the per-panel legends and place the shared one across the bottom
 patchwork::wrap_plots(
-  outlier_map(Y, 1, pca_fn = rrcov::PcaHubert, alpha = 0.9, skew = TRUE, mcd = FALSE),
-  outlier_map(Y, 2, pca_fn = rrcov::PcaHubert, alpha = 0.9, skew = TRUE, mcd = FALSE),
-  outlier_map(Y, 3, pca_fn = rrcov::PcaHubert, alpha = 0.9, skew = TRUE, mcd = FALSE),
-  outlier_map(Y, 4, pca_fn = rrcov::PcaHubert, alpha = 0.9, skew = TRUE, mcd = FALSE),
-  ncol = 2,
-  byrow = TRUE
-)
+  maps[[1]],
+  maps[[2]],
+  maps[[3]],
+  maps[[4]],
+  patchwork::wrap_elements(legend),
+  design = "AB\nCD\nEE",
+  heights = c(1, 1, 0.18)
+) &
+  theme(legend.position = "none")
 ```
 
 Now there are far fewer bad leverage points than in @fig-pca-outliermaps, and the map changes much less as we increase $k$. This suggests that the ROBPCA algorithm has found projection directions that are less influenced by the anomalies, so they are easier to identify in the projection space.
