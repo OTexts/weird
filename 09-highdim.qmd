@@ -143,26 +143,37 @@ Y |>
 
 ### General projections
 
-A projection from $m$ variables onto a $k$-dimensional subspace is defined by an $m \times k$ matrix $\bm{A}$ where $\bm{A}^\intercal\bm{A} = \bm{I}_k$. In other words, the columns of $\bm{A}$ are "orthonormal": each column is a unit vector, and all columns are mutually orthogonal (i.e., $\bm{a}_i^\intercal\bm{a}_j = 0$ for any two distinct columns $i$ and $j$). The columns of $\bm{A}$ define the projection directions. The projection of $\bm{y}_i$ is the $k$-vector
+A projection from $m$ variables onto a $k$-dimensional subspace is defined by an $m \times k$ **mapping matrix** $\bm{A}$ where $\bm{A}^\intercal\bm{A} = \bm{I}_k$. In other words, the columns of $\bm{A}$ are "orthonormal": each column is a unit vector, and all columns are mutually orthogonal (i.e., $\bm{a}_i^\intercal\bm{a}_j = 0$ for any two distinct columns $i$ and $j$). The columns of $\bm{A}$ define the projection directions. The projection of $\bm{y}_i$ is the $k$-vector of scores
 $$
-\bm{w}_i = \bm{A}^\intercal \bm{y}_i,
+\bm{w}_i = \bm{A}^\intercal \bm{y}_i.
 $$
-and its residual is $\bm{r}_i = \bm{y}_i - \bm{A}\bm{w}_i$.
 
-As before, the matrix form follows by transposing the score equation and stacking the rows to get the projected scores as the rows of the $n\times k$ matrix
+Recall that in the 2-dimensional example of @fig-proj-geometry, the score $w_i$ gave the position of a point *along* the projection line, while the projected point itself sat in the plane at $\bm{a}w_i$. The same two descriptions apply here. The scores $\bm{w}_i$ are the coordinates of the projection *within* the $k$-dimensional subspace, generalising the position along the line. To place the projected point back *in the original $m$-dimensional space*, generalising $\bm{a}w_i$, we reconstruct it as $\bm{A}\bm{w}_i$.
+
+Mapping into the subspace and back out again can be combined into a single step. Substituting $\bm{w}_i = \bm{A}^\intercal\bm{y}_i$ gives $\bm{A}\bm{w}_i = \bm{A}\bm{A}^\intercal\bm{y}_i$, so the projected point is $\bm{P}\bm{y}_i$, where
+$$
+  \bm{P} = \bm{A}\bm{A}^\intercal
+$$
+is called the **projection matrix**. It sends each observation directly to its shadow in the subspace: $\bm{P}\bm{y}_i$ is the point of the subspace closest to $\bm{y}_i$. Whatever remains,
+$$
+  \bm{r}_i = \bm{y}_i - \bm{P}\bm{y}_i = (\bm{I}_m - \bm{P})\bm{y}_i,
+$$
+is the residual --- the part of the observation orthogonal to the subspace, whose length is the orthogonal distance we met in the 2-dimensional case.
+
+As before, the matrix forms follow by transposing these expressions and stacking the rows. The scores are the rows of the $n\times k$ matrix
 $$
 \bm{W} = \bm{Y}\bm{A},
 $$
-and their residuals as the rows of
+and the residuals are the rows of
 $$
-\bm{R} = \bm{Y} - \bm{W}\bm{A}^\intercal = \bm{Y}(\bm{I}_m - \bm{A}\bm{A}^\intercal).
+\bm{R} = \bm{Y} - \bm{W}\bm{A}^\intercal = \bm{Y}(\bm{I}_m - \bm{P}).
 $$
 The covariance matrix of the scores is given by
 $$
   \text{Cov}(\bm{W}) = \bm{A}^\intercal \bm{\Sigma} \bm{A}.
 $$
 
-The Aotizhongxin station data contains `r english::words(NCOL(Y))` variables. We can project this `r NCOL(Y)`-dimensional space onto a 2-dimensional subspace defined by an $`r NCOL(Y)` \times 2$ matrix $\bm{A}$ with orthonormal columns. The resulting 2D projection will capture some aspects of the joint structure, but not all. For example, suppose we choose the following projection matrix $\bm{A}$, using a method that we will discuss later in @sec-dobin.
+The Aotizhongxin station data contains `r english::words(NCOL(Y))` variables. We can project this `r NCOL(Y)`-dimensional space onto a 2-dimensional subspace defined by an $`r NCOL(Y)` \times 2$ matrix $\bm{A}$ with orthonormal columns. The resulting 2D projection will capture some aspects of the joint structure, but not all. For example, suppose we choose the following mapping matrix $\bm{A}$, using a method that we will discuss later in @sec-dobin.
 
 ```{r}
 #| label: 11dto2d
@@ -195,7 +206,7 @@ For an excellent introduction to interactively exploring all possible projection
 
 ### Regression projections
 
-We have, in fact, already met projections in @sec-ols. Ordinary least squares produces fitted values $\hat{\bm{y}} = \bm{H}\bm{y}$ via the hat matrix $\bm{H} = \bm{X}(\bm{X}^\intercal\bm{X})^{-1}\bm{X}^\intercal$, which is the orthogonal projection of the response vector onto the subspace spanned by the predictor columns. Like $\bm{A}\bm{A}^\intercal$, the hat matrix is a genuine orthogonal projector ($\bm{H} = \bm{H}^\intercal = \bm{H}^2$); indeed, if the predictor columns were orthonormal, then $\bm{X}^\intercal\bm{X} = \bm{I}$ and $\bm{H}$ would reduce to $\bm{X}\bm{X}^\intercal$, exactly the form $\bm{A}\bm{A}^\intercal$. The key difference is *what* is being projected: here we project each observation onto a subspace of the **variable** space to reduce dimension, whereas regression projects the **response** vector onto the column space of the **predictors**. In both cases the residual is the part of the vector orthogonal to the subspace, so the orthogonal distance (the magnitude of the residual $\bm{r}_i$ defined above) plays the same role as the regression residual $\bm{e} = (\bm{I}-\bm{H})\bm{y}$.
+We have, in fact, already met projections in @sec-ols. Ordinary least squares produces fitted values $\hat{\bm{y}} = \bm{H}\bm{y}$ via the hat matrix $\bm{H} = \bm{X}(\bm{X}^\intercal\bm{X})^{-1}\bm{X}^\intercal$, which is the orthogonal projection of the response vector onto the subspace spanned by the predictor columns. Like the projection matrix $\bm{P} = \bm{A}\bm{A}^\intercal$, the hat matrix is symmetric and idempotent ($\bm{H} = \bm{H}^\intercal = \bm{H}^2$), so it too is a projection matrix; indeed, if the predictor columns were orthonormal, then $\bm{X}^\intercal\bm{X} = \bm{I}$ and $\bm{H}$ would reduce to $\bm{X}\bm{X}^\intercal$, exactly the form of $\bm{P}$. The key difference is *what* is being projected: here we project each observation onto a subspace of the **variable** space to reduce dimension, whereas regression projects the **response** vector onto the column space of the **predictors**. In both cases the residual is the part of the vector orthogonal to the subspace, so the orthogonal distance (the magnitude of the residual $\bm{r}_i$ defined above) plays the same role as the regression residual $\bm{e} = (\bm{I}-\bm{H})\bm{y}$.
 
 ## Types of projection anomalies
 
@@ -339,7 +350,7 @@ The top 10 most anomalous observations by this measure are shown above; many of 
 
 ## Principal component analysis {#sec-pca}
 
-So far, we haven't said where the projection matrix $\bm{A}$ comes from. By far the most common projection method is **principal component analysis (PCA)**, which finds the projection directions that capture the most variance in the data. The first principal component is the direction of maximum variance, the second is the direction of maximum variance orthogonal to the first, and so on. Then the lower dimensional projection will contain as much of the variation of the original data as possible, given the number of dimensions in the projection.
+So far, we haven't said where the mapping matrix $\bm{A}$ comes from. By far the most common projection method is **principal component analysis (PCA)**, which finds the projection directions that capture the most variance in the data. The first principal component is the direction of maximum variance, the second is the direction of maximum variance orthogonal to the first, and so on. Then the lower dimensional projection will contain as much of the variation of the original data as possible, given the number of dimensions in the projection.
 
 For principal component projection, each column of $\bm{A}$ is found sequentially by maximising the variance of the scores it produces, subject to the orthonormality constraints. If $\bm{\Sigma}$ is the $m\times m$ covariance matrix of the data $\bm{Y}$, then the first direction $\bm{a}_1$ maximises $\text{Var}(\bm{a}_1^\intercal \bm{y}) = \bm{a}_1^\intercal \bm{\Sigma} \bm{a}_1$ subject to $\|\bm{a}_1\| = 1$. The second direction $\bm{a}_2$ maximises $\text{Var}(\bm{a}_2^\intercal \bm{y}) = \bm{a}_2^\intercal \bm{\Sigma} \bm{a}_2$ subject to $\|\bm{a}_2\| = 1$ and $\bm{a}_2^\intercal \bm{a}_1 = 0$, and so on.
 
@@ -552,7 +563,7 @@ az_aq_proj |>
 
 ## DOBIN {#sec-dobin}
 
-The projection matrix $\bm{A}$ can be found in many ways, and the choice of method can have a big impact on the anomalies that are visible in the projection space. We have already seen how PCA can be distorted by anomalies, and how ROBPCA can mitigate this by finding more robust projection directions. Another approach is to find projections that are explicitly designed to make anomalies more visible.
+The mapping matrix $\bm{A}$ can be found in many ways, and the choice of method can have a big impact on the anomalies that are visible in the projection space. We have already seen how PCA can be distorted by anomalies, and how ROBPCA can mitigate this by finding more robust projection directions. Another approach is to find projections that are explicitly designed to make anomalies more visible.
 
 **DOBIN** (Distance based Outlier BasIs using Neighbours) is one such method [@Kandanaarachchi2020-lo]. Where PCA looks for the directions of maximum variance (@sec-pca), DOBIN looks for directions in which near neighbours are pushed far apart, on the grounds that an anomaly is an observation lying much further from its neighbours than is typical. Like PCA, it produces an orthonormal basis and is only a dimension-reduction step rather than an anomaly detector in itself; the resulting coordinates are then handed to one of the distance- or density-based methods of the earlier chapters. The aim is that, because the basis is built to expose anomalies, fewer components are needed to reveal them than with PCA.
 
@@ -570,7 +581,7 @@ $$
 $$
 Subsequent directions follow the same recipe applied to what is left over: after removing the part of each $\bm{z}_\ell$ lying along $\bm{a}_1$, the second direction $\bm{a}_2$ is the normalised sum of the residual vectors, and so on. This is much like the orthogonalisation behind PCA (@sec-pca), except that at each step DOBIN maximises a sum of neighbour distances rather than a variance. The result is an orthonormal basis $\bm{A} = [\,\bm{a}_1\ \bm{a}_2\ \cdots]$ whose leading columns point in the directions where neighbours are most stretched apart. Projecting the data onto these columns, $\bm{W} = \bm{Y}\bm{A}$, gives the DOBIN coordinates, exactly as for any other projection in @sec-projections.
 
-In fact we have already seen the result. The two-dimensional projection in @fig-proj-11dto2d was the DOBIN projection of the Aotizhongxin data, and the anomalies it revealed --- in both the projection space (@fig-proj-kde) and the residual space (@fig-proj-residuals2) --- were found in exactly this basis. The columns of the projection matrix used there are the first two DOBIN vectors.
+In fact we have already seen the result. The two-dimensional projection in @fig-proj-11dto2d was the DOBIN projection of the Aotizhongxin data, and the anomalies it revealed --- in both the projection space (@fig-proj-kde) and the residual space (@fig-proj-residuals2) --- were found in exactly this basis. The columns of the mapping matrix used there are the first two DOBIN vectors.
 
 ```{r}
 #| label: dobin
