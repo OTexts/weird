@@ -403,6 +403,8 @@ $$
 $$
 where $\mu = \text{E}(y \mid \bm{x})$ denotes the conditional mean, $\bm{\theta}$ is a vector of any other parameters, $\ell()$ is a link function (mapping the mean to an unbounded scale), and each $g_k$ function is smooth. If $f$ is Normal, $\bm{\theta} = \sigma^2$, $\ell$ is the identity, and $g_k(u) = \beta_k u$, then this reduces to the linear Gaussian model (@eq-gaussian-regression).
 
+### Example: Cricket not-outs
+
 ```{r}
 #| label: cricket-setup
 #| include: false

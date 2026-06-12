@@ -104,6 +104,8 @@ When looking for anomalies, it is important to consider all the variables togeth
 
 The "curse of dimensionality" refers to the increasing sparseness of space as the number of dimensions increases.
 
+### Points in the corners
+
 Suppose we observed a high-dimensional data set of independent U(-1,1) variables, and consider the proportion of points that lie outside the unit sphere (in the corners of the space) as the number of dimensions increases.
 First, let's visualise what this means in 1, 2 and 3 dimensions. In 1 dimension, the unit sphere is just the interval [-1,1], so no points lie outside this interval. In 2 dimensions, the unit sphere is the circle with radius 1, sitting snugly within a square of side length 2, as shown in @fig-curse2d.
 
@@ -170,6 +172,8 @@ tibble(m = seq(10)) |>
 ```
 
 Remarkably, by 10 dimensions, almost all points lie outside the unit sphere, and live in the corners of the space; almost no points are in the centre of the space. This occurs because, with enough variables, at least one of the univariate observations is going to lie in the tails of the distribution, and so the multivariate observation will not lie near the centre of the space.
+
+### The size of neighbourhoods
 
 Another way to think about this is to consider hypercubes that contain 50% of the observations. These must have sides of length $2^{1-1/m}$, in order for the volume of the hypercube to be $2^{m-1}$, exactly half of the entire space. For $m=1$, the hypercube is a unit interval; for $m=2$, it is a square of side length $\sqrt{2} \approx 1.41$ as shown in @fig-hypercube; for $m=3$, the central cube must have side length $2^{2/3} \approx 1.59$; and so on.
 

@@ -202,6 +202,8 @@ This is a 2D shadow of the original 11D data cloud. Each point in the plot corre
 
 A few observations in this projection appear to be anomalies, but we may also have missed some anomalies that are only visible in other projections. This illustrates the challenge of anomaly detection in high dimensions: we may not know which projection will reveal the anomalies, and there are infinitely many projections to choose from.
 
+### A tour of projections
+
 For an excellent introduction to interactively exploring all possible projections, see @mulgar.
 
 ### Regression projections
@@ -352,6 +354,8 @@ The top 10 most anomalous observations by this measure are shown above. Without 
 
 So far, we haven't said where the mapping matrix $\bm{A}$ comes from. By far the most common projection method is **principal component analysis (PCA)**, which finds the projection directions that capture the most variance in the data. The first principal component is the direction of maximum variance, the second is the direction of maximum variance orthogonal to the first, and so on. Then the lower dimensional projection will contain as much of the variation of the original data as possible, given the number of dimensions in the projection.
 
+### Finding the principal components
+
 For principal component projection, each column of $\bm{A}$ is found sequentially by maximising the variance of the scores it produces, subject to the orthonormality constraints. If $\bm{\Sigma}$ is the $m\times m$ covariance matrix of the data $\bm{Y}$, then the first direction $\bm{a}_1$ maximises $\text{Var}(\bm{a}_1^\intercal \bm{y}) = \bm{a}_1^\intercal \bm{\Sigma} \bm{a}_1$ subject to $\|\bm{a}_1\| = 1$. The second direction $\bm{a}_2$ maximises $\text{Var}(\bm{a}_2^\intercal \bm{y}) = \bm{a}_2^\intercal \bm{\Sigma} \bm{a}_2$ subject to $\|\bm{a}_2\| = 1$ and $\bm{a}_2^\intercal \bm{a}_1 = 0$, and so on.
 
 This solution is equivalent to finding the eigenvectors of $\bm{\Sigma}$, and the resulting projection scores are called the principal component scores. The first $k$ eigenvectors of $\bm{\Sigma}$ form the columns of $\bm{A}$, so PCA simply chooses the orthonormal basis (@sec-projections) that captures the most variance.
@@ -363,6 +367,8 @@ $$
 where $\lambda_1 \ge \lambda_2 \ge \cdots \ge \lambda_k$ are the first $k$ eigenvalues of $\bm{\Sigma}$. The covariance matrix of the scores is diagonal, which means that the principal component scores are uncorrelated. The variance of the $j$th principal component score is $\lambda_j$, so the eigenvalues give the variance captured by each principal component. The proportion of variance in the original data that has been captured by the first $k$ principal components is given by the sum of the first $k$ eigenvalues divided by the sum of all eigenvalues.
 
 It is possible to calculate up to $k = \min(n-1, m)$ principal components, but in practice we often only use the first few that capture most of the variance.
+
+### Air quality example
 
 For the 11 air quality and meteorological variables from Aotizhongxin, the 11 principal components can be computed using `prcomp()`, or using `rrcov::PcaClassic()`. We will use the latter, because it will make it easier to compare with other methods.
 
@@ -446,6 +452,8 @@ outlier_map(PcaClassic(Y, k = 2))
 
 Here we can see that there are no points that are particularly bad leverage points (the two black points are very close to the cutoff). So the most anomalous observations are orthogonal outliers in the residual space, but these are not having a strong effect on the first two principal component directions.
 
+### Varying the number of components
+
 We can repeat this analysis using different values of $k$, the number of principal components used in the projection. As $k$ increases, more of the variance is captured by the projection, which can cause the orthogonal distances to decrease, and the score distances to increase, because the projection is capturing more of the structure of the data. Any outlying anomalies that are not well represented by the first few principal components will have large orthogonal distances, but as we include more components, they may become better represented in the projection. This can lead to some anomalies being classified as good leverage points in higher dimensions, even if they were orthogonal outliers in lower dimensions.
 
 ```{r}
@@ -488,11 +496,15 @@ Notice that we now also have some bad leverage values in $k=3$ and $k=4$. So the
 
 There are several approaches to "robustifying" PCA, such as computing the eigenvectors of a robust covariance matrix, or using a different objective function that is less sensitive to outliers. One approach is the ROBPCA algorithm of @Hubert2005-qa, which proceeds in three stages, using robust outlier scores to find a clean starting point and then refining it with robust covariance estimation.
 
+### The ROBPCA algorithm
+
 **Stage 1: Reduce the working dimension.** When the number of variables $m$ is large, the data may not actually fill all $m$ dimensions. So this first stage identifies the subspace that the data genuinely occupies --- at most $\min(n-1, m)$ dimensions --- without discarding any information. This makes the subsequent steps faster and numerically better behaved.
 
 **Stage 2: Find a robust subspace.** For each observation, the Stahel--Donoho outlyingness (@sec-stahel-donoho) is computed to measure how far it lies from the bulk of the data. A clean subset of the $h$ least-outlying observations is retained (by default $h = 0.75n$; reducing this gives greater robustness at the cost of some efficiency). Standard PCA is applied to this clean subset of data, so the resulting components are not pulled towards the anomalies. The number of components $k$ is chosen automatically from the eigenvalues of the clean-subset covariance matrix.
 
 **Stage 3: Robustly estimate the centre and spread.** Within the $k$-dimensional subspace found in Stage 2, the MCD estimator (@sec-robust-cov) is applied to obtain a robust centre $\hat{\bm{\mu}}$ and covariance matrix $\bm{S}$. The eigenvectors of $\bm{S}$ give the final robust principal component directions. Because the projection directions are estimated from the bulk of the data rather than from all observations, anomalies cannot pull the components towards themselves. 
+
+### Air quality example
 
 This is implemented in the `rrcov::PcaHubert()` function, which chooses four dimensions for the Aotizhongxin data, and gives the loadings shown below.
 
@@ -553,6 +565,8 @@ patchwork::wrap_plots(
 
 Now there are far fewer bad leverage points than in @fig-pca-outliermaps, and the map changes much less as we increase $k$. This suggests that the ROBPCA algorithm has found projection directions that are less influenced by the anomalies, so they are easier to identify in the projection space.
 
+### Combining components with orthogonal distances
+
 If we take the four components found by ROBPCA, and add in the orthogonal distances as a fifth dimension, then we can apply a distance-based anomaly detection method to find the most anomalous observations in this 5D space. For example, we can use an Isolation Forest to find the top 10 most anomalous observations.
 
 ```{r}
@@ -576,6 +590,8 @@ The mapping matrix $\bm{A}$ can be found in many ways, and the choice of method 
 
 **DOBIN** (Distance based Outlier BasIs using Neighbours) is one such method [@Kandanaarachchi2020-lo]. Where PCA looks for the directions of maximum variance (@sec-pca), DOBIN looks for directions in which near neighbours are pushed far apart, on the grounds that an anomaly is an observation lying much further from its neighbours than is typical. Like PCA, it produces an orthonormal basis and is only a dimension-reduction step rather than an anomaly detector in itself; the resulting coordinates are then handed to one of the distance- or density-based methods of the earlier chapters. The aim is that, because the basis is built to expose anomalies, fewer components are needed to reveal them than with PCA.
 
+### How DOBIN works
+
 DOBIN is built on a simple way of rewriting squared distances. Recall from @sec-distances that the squared Euclidean distance between two observations $\bm{y}_i$ and $\bm{y}_j$ is the sum of the squared differences in each variable, $\|\bm{y}_i-\bm{y}_j\|^2 = \sum_\ell (y_{i,\ell}-y_{j,\ell})^2$. Collecting these per-variable terms into a vector $\bm{z}_{ij}$, whose $\ell$th entry is $(y_{i,\ell}-y_{j,\ell})^2$, the distance becomes the sum of the entries of $\bm{z}_{ij}$, that is $\|\bm{y}_i-\bm{y}_j\|^2 = \bm{1}^\intercal\bm{z}_{ij}$. Replacing the equal weights $\bm{1}$ by non-negative weights $\bm{a}$ gives a weighted squared distance $\bm{a}^\intercal\bm{z}_{ij}$. Distance has become a *linear* function of the weights, which turns the search for a direction that stretches distances into an easy problem.
 
 We do not want to stretch all pairwise distances, only those relevant to anomaly detection. Two observations on opposite edges of the data cloud are far apart, but pulling them further apart reveals nothing about anomalies. DOBIN therefore restricts attention to pairs of near neighbours (@sec-nn): for each observation it forms the vectors $\bm{z}_{ij}$ to its nearest neighbours, and keeps only those pairs whose distance falls in the upper tail (by default, above the 95th percentile). The retained vectors $\{\bm{z}_\ell\}$ make up the *Y space*. Because an anomaly sits far from its neighbours, it contributes several of the largest vectors to this set, so the Y space magnifies the very observations we are trying to find.
@@ -585,6 +601,8 @@ $$
 \bm{a}_1 = \frac{\sum_\ell \bm{z}_\ell}{\big\|\sum_\ell \bm{z}_\ell\big\|}.
 $$
 Subsequent directions follow the same recipe applied to what is left over: after removing the part of each $\bm{z}_\ell$ lying along $\bm{a}_1$, the second direction $\bm{a}_2$ is the normalised sum of the residual vectors, and so on. This is much like the orthogonalisation behind PCA (@sec-pca), except that at each step DOBIN maximises a sum of neighbour distances rather than a variance. The result is an orthonormal basis $\bm{A} = [\bm{a}_1\ \bm{a}_2\ \cdots]$ whose leading columns point in the directions where neighbours are most stretched apart. Projecting the data onto these columns, $\bm{W} = \bm{Y}\bm{A}$, gives the DOBIN coordinates, exactly as for any other projection in @sec-projections.
+
+### Air quality example
 
 In fact we have already seen the result. The two-dimensional projection in @fig-proj-11dto2d was the DOBIN projection of the Aotizhongxin data, and the anomalies it revealed --- in both the projection space (@fig-proj-kde) and the residual space (@fig-proj-residuals2) --- were found in this basis. The columns of the mapping matrix used there are the first two DOBIN vectors.
 

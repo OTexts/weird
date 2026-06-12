@@ -580,6 +580,8 @@ pgrubbsdf |>
   coord_cartesian(xlim = c(4, 7500))
 ```
 
+### Examples
+
 We can apply the test using the `grubbs_anomalies()` function to our six examples.
 
 ```{r}
@@ -707,6 +709,8 @@ dixondf |>
   theme(axis.text.x = element_text(size = 8)) +
   coord_cartesian(xlim = c(4, 96))
 ```
+
+### Examples
 
 We can apply the test using the `dixon_anomalies()` function, which does a two-sided test of both minimum and maximum observations.
 

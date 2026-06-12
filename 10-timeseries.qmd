@@ -563,6 +563,8 @@ pbs |>
 
 Here there has been a sudden drop in sales at the end of 2005, most likely because of some products no longer being eligible for subsidy. There can also be sudden jumps in sales when a new product becomes available, or a new class of drugs is added to the scheme.
 
+### The surveillance algorithm
+
 The goal of surveillance is to identify these anomalies as soon as they occur. We can do this by fitting a model to the data, and then comparing the observed values to the model's forecasts. If the observed values are very different from the forecast, then we have an anomaly.
 
 Statistical forecasting models provide forecasts in the form of probability distributions. Let $y_t$ denote the observation of a time series at time $t$. Then a forecast can be expressed as a conditional distribution
@@ -583,6 +585,8 @@ For each $t = I,I+1,\dots$, and for all series $i=1,\dots,M$:
 
 * Fit a time series model to the series $y_{i,1},\dots,y_{i,t}$, and estimate the one-step forecast density, $f_{i,t+1}(y \mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$.
 * Compute the surprisal: $s_{i,t+1} = -\log f_{i,t+1}(y_{i,t+1}\mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$, and the surprisal probabilities: $\Pr(S > s_{i,t+1})$.
+
+### A first iteration
 
 To illustrate, let's apply this to the `pbs` data. Starting with $I=36$ (3 years of data), we will fit ETS models to all available series [Ch 8, @fpp3], and forecast one step ahead in each case. Then we repeat the exercise using 37 observations, then 38 observations, and so on. This is known as a "rolling origin forecast" because the forecast rolls forward by one period each iteration. The process can be illustrated as in @fig-tscvplots.
 
@@ -675,6 +679,8 @@ pbs_fc |>
 ```
 
 The shaded regions show 80% and 95% prediction intervals for the forecast distribution. The observation is outside the 95% prediction interval, indicating that it is a possible anomaly. The surprisal probability in this case is about `r sprintf("%.3f", pbs_compare$prob[1])`.
+
+### Rolling forward through the data
 
 So far, we have just produced forecasts for time $t=37$, using a training set comprising data up to time $t=36$. This process is repeated as we increase the size of the training set. The following code block carries out the calculations in a loop.
 
