@@ -597,6 +597,8 @@ The central idea is to reduce any high-dimensional problem to one dimension usin
 
 The other distinguishing feature of HDoutliers is that it applies extreme value theory (@sec-evt) to determine when a nearest-neighbour distance is "unusually large". After sorting the nearest-neighbour distances, the gaps between the largest of them are, by Weissman's spacing theorem, approximately independent exponential random variables whenever the underlying distribution is in the domain of attraction of the Gumbel distribution. HDoutliers therefore takes the smallest half of the distances to be typical, fits an exponential distribution to the upper-tail spacings of that typical set, and sets the threshold at its upper $1-\alpha$ point. It then works upwards through the remaining distances one at a time: each candidate that exceeds the current threshold is flagged as an anomaly, while each one that does not is absorbed into the typical set and the threshold re-estimated. Because the cutoff is a quantile of a fitted distribution, it carries a genuine probability, and the user controls the false-discovery rate directly through the significance level $\alpha$.
 
+An implementation of the HDoutliers algorithm is available in the `HDoutliers` package.
+
 ## Stray algorithm {#sec-stray}
 
 The **stray** algorithm of @Talagala2019-zv ("Search and TRace AnomalY") is a modification of the HDoutliers algorithm, but omitting the clustering step, and replacing nearest-neighbour distances with $k$-nearest-neighbour distances. 
