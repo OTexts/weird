@@ -33,6 +33,7 @@ Also update this skill to take account of any new issues you find when reviewing
 - Cross-references use `@sec-label`, `@fig-label`, `@eq-label` syntax — not raw HTML links or raw text that is unlinked.
 - Sections are only numbered down to level 2 (##). So do not add labels to level 3 headers (###) or lower, and do not cross-reference level 3 sections or lower.
 - Equation labels should either be referenced elsewhere or be removed. Watch for typo'd labels (e.g. `eq-lookkde` for what should be `eq-loo-kde`).
+- Figures should be cross-referenced from the prose, not just placed near the relevant text. Check every `fig-` label is referenced by at least one `@fig-...`; if a figure is never referenced, add a natural reference (often the lead-in sentence implicitly points to it — make the link explicit).
 - Check `#| fig-cap:` values for balanced quotes — a stray trailing `"` with no opening quote (or vice versa) is a common YAML error. Either wrap the whole caption in `"..."` or leave it fully unquoted.
 - Captions should not introduce mathematical notation (e.g. $c_{\text{SD}}$) that is never defined in the surrounding text; use words instead, or define the symbol in the text.
 
@@ -45,6 +46,8 @@ Also update this skill to take account of any new issues you find when reviewing
 - A score distance $\text{SD}_i$ is the *square root* of a Mahalanobis form, so it is the *squared* distance that follows a chi-squared distribution, and the cutoff is the *square root* of the chi-squared quantile. Check this is stated precisely.
 - Missing words in sentences (especially in figure captions auto-generated from incomplete text)
 - Subject-verb agreement with citations: `@key` with multi-author works renders as "Author1 & Author2 (year)" and takes a plural verb ("show", "argue"); single-author renders as "Author (year)" and takes a singular verb.
+- Subject-verb agreement with collective subjects: "the cluster of five points ... correspond" should be "corresponds" — the head noun ("cluster") is singular even when followed by a plural of-phrase.
+- Geometric descriptions must match the example that follows: e.g. directions that "project onto the carbon monoxide axis" ($\bm{a}=(1,0)^\intercal$) are *aligned with* the coordinate axes, not "perpendicular to the axes".
 - Check that referenced citation keys exist in `weird.bib`.
 
 **Clarity for 3rd year undergraduates**

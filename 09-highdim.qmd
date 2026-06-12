@@ -48,7 +48,7 @@ These are equivalent, and are linked by a transpose: $\bm{w}^\intercal = \bm{a}^
 
 To illustrate the idea, let's set $\bm{a} = (0.8, 0.6)^\intercal$. Note that this is a unit vector: $\sqrt{0.8^2 + 0.6^2} = 1$. The projection direction is a line through the origin with slope $0.6/0.8 = 0.75$. This means that the projection will capture variation in both variables, but with greater weight on the first variable than the second.
 
- @fig-proj-geometry shows an example using this value of $\bm{a}$ applied to the standardised carbon monoxide (`co`) and nitrogen dioxide (`no2`) measurements at Aotizhongxin. The blue line is the projection direction. The five orange points are randomly selected observations, showing how they project onto the line. The resulting scores are the blue dots on the line.
+@fig-proj-geometry shows an example using this value of $\bm{a}$ applied to the standardised carbon monoxide (`co`) and nitrogen dioxide (`no2`) measurements at Aotizhongxin. The blue line is the projection direction. The five orange points are randomly selected observations, showing how they project onto the line. The resulting scores are the blue dots on the line.
 
 ```{r}
 #| label: fig-proj-geometry
@@ -88,7 +88,7 @@ ggplot(Y, aes(x = co, y = no2)) +
 
 Projections can be thought of like shadows. Imagine a light source shining on the data cloud from a direction perpendicular to $\bm{a}$; the projection scores are the positions of the shadows cast by the observations onto the line defined by $\bm{a}$.
 
-The projection direction $\bm{a}$ can be any unit vector, so there are infinitely many ways to project the data. Each choice of $\bm{a}$ captures a different perspective on the joint variation in the data. Some directions may align with the main axis of variation (like the one shown in @fig-proj-geometry), giving a wide spread of scores; others may be nearly orthogonal to that axis, giving a narrow spread; still others may be perpendicular to the axes. For example, $\bm{a} = (1, 0)^\intercal$ projects onto the carbon monoxide axis, while $\bm{a} = (0, 1)^\intercal$ projects onto the nitrogen dioxide axis.
+The projection direction $\bm{a}$ can be any unit vector, so there are infinitely many ways to project the data. Each choice of $\bm{a}$ captures a different perspective on the joint variation in the data. Some directions may align with the main axis of variation (like the one shown in @fig-proj-geometry), giving a wide spread of scores; others may be nearly orthogonal to that axis, giving a narrow spread; still others may align with the original coordinate axes. For example, $\bm{a} = (1, 0)^\intercal$ projects onto the carbon monoxide axis, while $\bm{a} = (0, 1)^\intercal$ projects onto the nitrogen dioxide axis.
 
 The variance of the scores is a measure of how much of the joint variation is captured by that direction, and is given by
 $$
@@ -198,7 +198,7 @@ az_aq_proj <- az_aq |>
 biplot_projection(scores = W, loadings = A, label_threshold = 0.1, alpha = 0.2)
 ```
 
-This is a 2D shadow of the original 11D data cloud. Each point in the plot corresponds to an 11D observation, and the arrows show the directions of the original variables in the projection. The length of each arrow indicates how much of the variation in that variable is captured by the projection: the longer the arrow, the more that variable contributes to the projection. In this example, an increase in any variable will lead to an increase in `a1`, an increase in any variable other than `pm2_5` will lead to an increase in `a2`, and an increase in `pm2_5` will lead to a decrease in `a2`. The arrows help us to interpret individual points in the projection: the cluster of five points at the bottom of the plot probably correspond to high `pm2_5` values, while the point on the far right could be high in any of the variables (or high on average across all variables).
+This is a 2D shadow of the original 11D data cloud. Each point in the plot corresponds to an 11D observation, and the arrows show the directions of the original variables in the projection. The length of each arrow indicates how much of the variation in that variable is captured by the projection: the longer the arrow, the more that variable contributes to the projection. In this example, an increase in any variable will lead to an increase in `a1`, an increase in any variable other than `pm2_5` will lead to an increase in `a2`, and an increase in `pm2_5` will lead to a decrease in `a2`. The arrows help us to interpret individual points in the projection: the cluster of five points at the bottom of the plot probably corresponds to high `pm2_5` values, while the point on the far right could be high in any of the variables (or high on average across all variables).
 
 A few observations in this projection appear to be anomalies, but we may also have missed some anomalies that are only visible in other projections. This illustrates the challenge of anomaly detection in high dimensions: we may not know which projection will reveal the anomalies, and there are infinitely many projections to choose from.
 
@@ -273,7 +273,7 @@ az_aq_proj |>
 az_aq_proj |> gg_hdrboxplot(od)
 ```
 
-We can highlight these residual anomalies in the projection space, as shown in @fig-proj-residuals2. The points with the largest orthogonal distances are highlighted in black.
+@fig-proj-residuals1 shows an HDR boxplot of the orthogonal distances, with the most extreme observations marked as anomalies. We can highlight these residual anomalies in the projection space, as shown in @fig-proj-residuals2. The points with the largest orthogonal distances are highlighted in black.
 
 ```{r}
 #| label: fig-proj-residuals2
@@ -320,7 +320,7 @@ az_aq_proj |>
   labs(x = "Score distance", y = "Orthogonal distance")
 ```
 
-Here there is one observation with both large orthogonal and score distances, and two observations with large orthogonal distances but moderate score distances.
+In @fig-odsdplot there is one observation with both large orthogonal and score distances, and two observations with large orthogonal distances but moderate score distances.
 
 Remember that not all anomalies correspond to large distances. So the outlier map may miss anomalies that lie in a low-density region of either the projection space or the residual space, but which are not far from the centre. Those in the projection space are better caught using a density-based method applied to the scores, as we illustrated in @fig-proj-kde. Anomalies that lie in low-density regions of the residual space, but which have small orthogonal distances, are much harder to spot.
 
