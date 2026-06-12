@@ -552,13 +552,13 @@ az_aq_proj |>
 
 ## FastPCS {#sec-fastpcs}
 
-ROBPCA and the **Projection Congruent Subset (PCS)** method of @Vakili2014-yc share the same basic strategy. Each one first identifies a *clean subset* of the data --- a group of $h$ observations taken to be free of anomalies --- and then estimates a centre and covariance matrix from that subset alone. Because the anomalies are excluded before the covariance is estimated, they cannot distort it. What differs between the two methods is how the clean subset is chosen. ROBPCA selects the $h$ observations with the smallest Stahel--Donoho outlyingness (@sec-stahel-donoho). PCS instead searches directly for the subset whose members stay grouped most tightly *together*.
+ROBPCA and the Fast Projection Congruent Subset (FastPCS) method of @Vakili2014-yc share the same basic strategy. Each one first identifies a clean subset of the data --- a group of $h$ observations taken to be free of anomalies --- and then estimates a centre and covariance matrix from that subset alone. Because the anomalies are excluded before the covariance is estimated, they cannot distort it. What differs between the two methods is how the clean subset is chosen. ROBPCA selects the $h$ observations with the smallest Stahel--Donoho outlyingness (@sec-stahel-donoho), while FastPCS searches for the subset whose members stay grouped most tightly together.
 
-The idea behind PCS is that a clean group of observations stays clustered no matter which direction we view it from, whereas a subset that mixes in some anomalies will spread apart when viewed from at least some directions. To measure this, PCS projects the data onto many one-dimensional directions. For a candidate subset, it compares how tightly the subset's members cluster along each direction with how tightly the closest $h$ points cluster along that same direction. Averaging over many directions gives a score that is small when the subset is genuinely cohesive and large when it contains anomalies. The subset with the smallest score is the projection congruent subset.
+The idea is that a clean group of observations should stay packed together no matter which direction we view it from, whereas a subset that mixes in outlying anomalies will look stretched out from at least some viewpoints. FastPCS turns this into a score. It examines many one-dimensional projections of the data, and along each one it identifies the $h$ observations that fall closest together. A candidate subset earns a good score on that projection when its own members largely coincide with this tightest group, and a poor score when many of its members instead lie spread out along the fringes. Averaging over many directions measures how consistently cohesive the candidate subset is: the score is small only when the subset stays compact across the widest range of viewpoints. The subset that minimises this is the "projection congruent subset", and it is taken to be the clean data from which the centre and covariance are then estimated.
 
-The advantage of judging a subset by its own internal cohesion is that the score does not depend on where the anomalies happen to lie. Whether they form a tight cluster, a single repeated point, or a streak along one direction, the clean subset still stands out as the most cohesive group. This makes PCS reliable even when a large fraction of the observations are anomalous --- a situation that can mislead methods which estimate a robust covariance matrix directly, such as the MCD (@sec-robust-cov).
+This approach tends to perform better than ROBPCA when there are many anomalies, because it does not rely on the outlyingness of individual observations, which can be distorted by the presence of multiple anomalies. Instead, it relies on the internal cohesion of the subset, which is more robust to the configuration of the anomalies.
 
-The `FastPCS()` function in the `FastPCS` package computes this efficiently, using projection directions generated from small random subsets of the data [@Vakili2014-yc]. The method does need each variable to genuinely vary across the observations: if more than half of them share an identical value on some variable, the clean subset is no longer well defined and the algorithm fails. For the Aotizhongxin data this rules out `rainfall`, which is zero for 96% of the hours, so we drop it here. The PCA-based methods avoid this problem because their first stage collapses the data onto the subspace it actually occupies.
+The method does require every variable to vary across the observations. If more than half of all observations share an identical value on some variable, FastPCS then treats those tied observations as the clean subset, the covariance estimated from them collapses, and the algorithm stops with an error. For the Aotizhongxin data this rules out `rainfall`, which is zero for `r round(100 * mean(az_aq$rainfall == 0))`% of the hours, so we drop it before fitting. The PCA-based methods avoid this problem because their first stage collapses the data onto the subspace with highest variation.
 
 ```{r}
 #| label: fastpcs
@@ -570,7 +570,7 @@ fpcs_fit <- Y |>
   FastPCS::FastPCS()
 ```
 
-The algorithm returns a robust centre and covariance matrix, estimated from the projection congruent subset, together with the robust Mahalanobis distance (@sec-distances) of every observation from that centre. This distance is the FastPCS outlyingness index: observations far from the clean subset receive large values, while the bulk of the data sits close to the centre.
+The algorithm returns a robust centre and covariance matrix, estimated from the projection congruent subset, together with the robust Mahalanobis distance (@sec-distances) of every observation from that centre. This distance is the FastPCS outlyingness index, and corresponds to the PCA score distances: observations far from the clean subset receive large values, while the bulk of the data sits close to the centre.
 
 ```{r}
 #| label: fastpcs-scores
@@ -582,18 +582,8 @@ az_aq_proj |>
   filter(fpcs > sort(fpcs, decreasing = TRUE)[10])
 ```
 
-Because the outlyingness is a distance in the full `r NCOL(Y)-1`-dimensional space, there is no single projection that displays it faithfully: an observation can be highly outlying because of a combination of variables that no two-dimensional view captures. So we show their distribution directly in @fig-fastpcs, as a highest-density-region boxplot (@sec-hdr).
+Compared to ROBPCA, FastPCS has identified more anomalies on 31 May 2014, a day with an unusual culmination of poor air quality across multiple pollutants simultaneously (high particulates, CO, ozone, and SO₂ all peaking together), with warm temperatures and low wind speeds which would have inhibited dispersion.
 
-```{r}
-#| label: fig-fastpcs
-#| code-fold: true
-#| fig-asp: 0.2
-#| dependson: fastpcs-scores
-#| fig-cap: "Distribution of the FastPCS outlyingness index for the Aotizhongxin observations, shown as a highest-density-region boxplot. The bulk of the data has low outlyingness, with a tail of anomalous observations receiving much larger values."
-az_aq_proj |> gg_hdrboxplot(fpcs)
-```
-
-Most observations form a dense cluster of low scores, with a long tail of increasingly outlying points trailing off to the right. Unlike the Stahel--Donoho outlyingness (@sec-stahel-donoho), which flags an observation that is extreme in its single most revealing projection, the FastPCS index measures outlyingness relative to the robust covariance of the clean subset, and so accounts for the joint structure of all the variables at once.
 
 
 ## Stray and HDoutliers algorithms
