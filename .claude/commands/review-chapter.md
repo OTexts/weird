@@ -40,7 +40,9 @@ Also update this skill to take account of any new issues you find when reviewing
 - Variable counts in prose match the code
 - Index variables are consistent (e.g. vector of length $m$ indexed to $m$, not $n$ which is used for sample size)
 - Values quoted in text match values in code
-- Figure captions describe what is actually shown
+- Inline-code variable names in prose must match the actual column names used in the code (e.g. `pm2_5`, not `pm_25`).
+- Figure captions describe what is actually shown — watch for captions copy-pasted between sibling figures (e.g. a ROBPCA outlier-map grid reusing the classic-PCA caption verbatim).
+- A score distance $\text{SD}_i$ is the *square root* of a Mahalanobis form, so it is the *squared* distance that follows a chi-squared distribution, and the cutoff is the *square root* of the chi-squared quantile. Check this is stated precisely.
 - Missing words in sentences (especially in figure captions auto-generated from incomplete text)
 - Subject-verb agreement with citations: `@key` with multi-author works renders as "Author1 & Author2 (year)" and takes a plural verb ("show", "argue"); single-author renders as "Author (year)" and takes a singular verb.
 - Check that referenced citation keys exist in `weird.bib`.

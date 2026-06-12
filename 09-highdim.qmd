@@ -198,7 +198,7 @@ az_aq_proj <- az_aq |>
 biplot_projection(scores = W, loadings = A, label_threshold = 0.1, alpha = 0.2)
 ```
 
-This is a 2D shadow of the original 11D data cloud. Each point in the plot corresponds to an 11D observation, and the arrows show the directions of the original variables in the projection. The length of each arrow indicates how much of the variation in that variable is captured by the projection: the longer the arrow, the more that variable contributes to the projection. In this example, an increase in any variable will lead to an increase in `a1`, an increase in any variable other than `pm_25` will lead to an increase in `a2`, and an increase in `pm_25` will lead to a decrease in `a2`. The arrows help us to interpret individual points in the projection: the cluster of five points at the bottom of the plot probably correspond to high `pm_25` values, while the point on the far right could be high in any of the variables (or high on average across all variables).
+This is a 2D shadow of the original 11D data cloud. Each point in the plot corresponds to an 11D observation, and the arrows show the directions of the original variables in the projection. The length of each arrow indicates how much of the variation in that variable is captured by the projection: the longer the arrow, the more that variable contributes to the projection. In this example, an increase in any variable will lead to an increase in `a1`, an increase in any variable other than `pm2_5` will lead to an increase in `a2`, and an increase in `pm2_5` will lead to a decrease in `a2`. The arrows help us to interpret individual points in the projection: the cluster of five points at the bottom of the plot probably correspond to high `pm2_5` values, while the point on the far right could be high in any of the variables (or high on average across all variables).
 
 A few observations in this projection appear to be anomalies, but we may also have missed some anomalies that are only visible in other projections. This illustrates the challenge of anomaly detection in high dimensions: we may not know which projection will reveal the anomalies, and there are infinitely many projections to choose from.
 
@@ -322,7 +322,7 @@ az_aq_proj |>
 
 Here there is one observation with both large orthogonal and score distances, and two observations with large orthogonal distances but moderate score distances.
 
-Remember that not all anomalies correspond to large distances. So the outlier map miss anomalies that lie in a low-density region of either the projection space or the residual space, but which are not far from the centre. Those in the projection space are better caught using a density-based method applied to the scores, as we illustrated in @fig-proj-kde. Anomalies that lie in low-density regions of the residual space, but which have small orthogonal distances, are much harder to spot.
+Remember that not all anomalies correspond to large distances. So the outlier map may miss anomalies that lie in a low-density region of either the projection space or the residual space, but which are not far from the centre. Those in the projection space are better caught using a density-based method applied to the scores, as we illustrated in @fig-proj-kde. Anomalies that lie in low-density regions of the residual space, but which have small orthogonal distances, are much harder to spot.
 
 ## Stahel--Donoho outlyingness {#sec-stahel-donoho}
 
@@ -410,7 +410,7 @@ Two-dimensional principal component projection of the 11 air quality and meteoro
 Compare this to the projection shown in @fig-proj-11dto2d. The variables here are much more evenly weighted, with both positive and negative weights causing the 11D axes (shown in orange) to point in diverse directions. Also, the anomalies are now much less obvious than in @fig-proj-11dto2d. This can happen for two reasons:
 
 1. If the anomalies are not aligned with the main axes of variation, they may be hidden in the lower variance components that we have not included in the 2D projection, although they may be visible in the residuals.
-2. Because PCA maximises variance, even a small number of extreme observations can dominate the covariance structure. Thus, anomalies can cause the principal components to point in a direction that does not capture the main body of the data, making it difficult to detect them in the projection space. This is an example of "masking", where the anomalies are hidden due to their influence on the projection directions.
+2. Because PCA maximises variance, even a small number of extreme observations can dominate the covariance structure. Thus, anomalies can cause the principal components to point in a direction that does not capture the main body of the data, making it difficult to detect them in the projection space. This is an example of masking (@sec-ols), where the anomalies are hidden due to their influence on the projection directions.
 
 ### Diagnostic plot
 
@@ -430,7 +430,7 @@ To distinguish these two situations, @Hubert2005-qa introduced a useful framewor
 
 This "leverage" vocabulary is borrowed directly from regression (@sec-ols). There, the leverage $h_i = \bm{x}_i^\intercal(\bm{X}^\intercal\bm{X})^{-1}\bm{x}_i$ measures how far an observation lies from the centre of the predictor space, exactly as the score distance does here within the projection subspace; both are Mahalanobis-type distances that flag observations which are extreme *within* the subspace but not necessarily anomalous in their residuals. The regression residual then plays the role of the orthogonal distance. The good/bad distinction is identical too: a high-leverage point in regression is *good* if it falls close to the fitted line (small residual) and *bad* if it pulls the line towards itself (large residual), causing the masking described in @sec-ols. In the same way, a high-score-distance point here is a good leverage point if its orthogonal distance is small, and a bad leverage point if its orthogonal distance is also large, so that it can pull the principal component directions towards itself and mask its own anomaly.
 
-If the data were from a multivariate Normal distribution, then the score distances would approximately follow a chi-squared distribution with $k$ degrees of freedom. While we almost never believe that real data come from a multivariate Normal distribution, this provides a useful reference point for understanding the geometry of the score distances, and for setting a cutoff to classify points. We flag an observation as a high leverage point if $\text{SD}_i$ is larger than the 97.5% quantile of the chi-squared distribution with $k$ degrees of freedom. So under a Normal model, we would expect about 2.5% of the observations to have large score distances and be flagged as leverage points.
+If the data were from a multivariate Normal distribution, then the squared score distances would approximately follow a chi-squared distribution with $k$ degrees of freedom. While we almost never believe that real data come from a multivariate Normal distribution, this provides a useful reference point for understanding the geometry of the score distances, and for setting a cutoff to classify points. We flag an observation as a high leverage point if $\text{SD}_i$ is larger than the square root of the 97.5% quantile of the chi-squared distribution with $k$ degrees of freedom. So under a Normal model, we would expect about 2.5% of the observations to have large score distances and be flagged as leverage points.
 
 The distribution of orthogonal distances is more complicated, but a common approach is to flag an observation as having a large orthogonal distance if $\text{OD}_i$ is greater than the 97.5% quantile of an appropriate Normal distribution. So again, about 2.5% of the observations would be expected to have large orthogonal distances under a Normal model.
 
@@ -449,6 +449,7 @@ Here we can see that there are no points that are particularly bad leverage poin
 We can repeat this analysis using different values of $k$, the number of principal components used in the projection. As $k$ increases, more of the variance is captured by the projection, which can cause the orthogonal distances to decrease, and the score distances to increase, because the projection is capturing more of the structure of the data. Any outlying anomalies that are not well represented by the first few principal components will have large orthogonal distances, but as we include more components, they may become better represented in the projection. This can lead to some anomalies being classified as good leverage points in higher dimensions, even if they were orthogonal outliers in lower dimensions.
 
 ```{r}
+#| label: pca-outliermaps-code
 #| eval: false
 #| echo: true
 outlier_map(PcaClassic(Y, k = 1))
@@ -460,7 +461,7 @@ outlier_map(PcaClassic(Y, k = 4))
 ```{r}
 #| label: fig-pca-outliermaps
 #| echo: false
-#| dependson: fig-pca-outliermap
+#| dependson: aotizhongxin
 #| fig-cap: "Outlier maps for the Aotizhongxin data, using different numbers of principal components in the projection."
 maps <- lapply(1:4, function(k) outlier_map(PcaClassic(Y, k)))
 # Extract one shared legend from a panel containing all four categories
@@ -496,6 +497,8 @@ There are several approaches to "robustifying" PCA, such as computing the eigenv
 This is implemented in the `rrcov::PcaHubert()` function, which chooses four dimensions for the Aotizhongxin data, and gives the loadings shown below.
 
 ```{r}
+#| label: robpca
+#| dependson: aotizhongxin
 pca_robpca <- PcaHubert(Y)
 pca_robpca$loadings
 ```
@@ -505,6 +508,7 @@ The first two robust principal components are shown in @fig-pca-robpca. Compared
 ```{r}
 #| label: fig-pca-robpca
 #| code-fold: false
+#| dependson: robpca
 #| fig-cap: Two-dimensional robust principal component projection of the 11 air quality and meteorological variables from Aotizhongxin.
 biplot_projection(pca_robpca, alpha = 0.2)
 ```
@@ -512,20 +516,21 @@ biplot_projection(pca_robpca, alpha = 0.2)
 @fig-pca-outliermap2 shows the outlier maps for the Aotizhongxin data using the ROBPCA algorithm.
 
 ```{r}
+#| label: pca-outliermap2-code
 #| eval: false
 #| echo: true
-outlier_map(PcaHubert(Y, k = 1, skew = ))
-outlier_map(PcaHubert(Y, k = 2, skew = TRUE, mcd = FALSE))
-outlier_map(PcaHubert(Y, k = 3, skew = TRUE, mcd = FALSE))
-outlier_map(PcaHubert(Y, k = 4, skew = TRUE, mcd = FALSE))
+outlier_map(PcaHubert(Y, k = 1, skew = TRUE, mcd = FALSE), alpha = 0.9)
+outlier_map(PcaHubert(Y, k = 2, skew = TRUE, mcd = FALSE), alpha = 0.9)
+outlier_map(PcaHubert(Y, k = 3, skew = TRUE, mcd = FALSE), alpha = 0.9)
+outlier_map(PcaHubert(Y, k = 4, skew = TRUE, mcd = FALSE), alpha = 0.9)
 ```
 
 
 ```{r}
 #| label: fig-pca-outliermap2
 #| echo: false
-#| dependson: fig-pca-outliermap
-#| fig-cap: "Outlier maps for the Aotizhongxin data, using different numbers of principal components in the projection."
+#| dependson: aotizhongxin
+#| fig-cap: "Outlier maps for the Aotizhongxin data computed with the ROBPCA algorithm, using different numbers of principal components in the projection."
 #| message: false
 maps <- lapply(1:4, function(k) {
   outlier_map(PcaHubert(Y, k, skew = TRUE, mcd = FALSE), alpha = 0.9)
@@ -551,6 +556,9 @@ Now there are far fewer bad leverage points than in @fig-pca-outliermaps, and th
 If we take the four components found by ROBPCA, and add in the orthogonal distances as a fifth dimension, then we can apply a distance-based anomaly detection method to find the most anomalous observations in this 5D space. For example, we can use an Isolation Forest to find the top 10 most anomalous observations.
 
 ```{r}
+#| label: robpca-iso
+#| code-fold: false
+#| dependson: robpca
 W_od <- pca_robpca$scores |>
   as_tibble() |>
   mutate(OD = pca_robpca$od)
@@ -593,7 +601,7 @@ Two cautions are worth noting. First, because the Y space is built from element-
 
 The remaining methods in this chapter detect anomalies directly, rather than producing a projection that is handed to a separate detector. The first of them is the Fast Projection Congruent Subset (FastPCS) method of @Vakili2014-yc. Like ROBPCA (@sec-robpca), FastPCS builds a clean subset of data intended to be free of anomalies, but it uses this subset to build a standalone detector rather than a projection. Also, rather than identify the clean subset using the Stahel--Donoho outlyingness, it uses a different criterion based on the internal cohesion of the subset.
 
-The idea is that a clean group of observations should stay packed together no matter which direction we view it from, whereas a subset that mixes in outlying anomalies will look stretched out from at least some viewpoints. FastPCS turns this into a score. It examines many one-dimensional projections of the data, and along each one it identifies the $h$ observations that fall closest together. A candidate subset earns a good score on that projection when its own members largely coincide with this tightest group, and a poor score when many of its members instead lie spread out along the fringes. Averaging over many directions measures how consistently cohesive the candidate subset is: the score is small only when the subset stays compact across the widest range of viewpoints. The subset that minimises this is the "projection congruent subset", and it is taken to be the clean data
+The idea is that a clean group of observations should stay packed together no matter which direction we view it from, whereas a subset that mixes in outlying anomalies will look stretched out from at least some viewpoints. FastPCS turns this into a score. It examines many one-dimensional projections of the data, and along each one it identifies the $h$ observations that fall closest together. A candidate subset earns a good score on that projection when its own members largely coincide with this tightest group, and a poor score when many of its members instead lie spread out along the fringes. Averaging over many directions measures how consistently cohesive the candidate subset is: the score is small only when the subset stays compact across the widest range of viewpoints. The subset that minimises this is the "projection congruent subset", and it is taken to be the clean data.
 
 FastPCS estimates a centre and covariance matrix from this clean subset of the data. Because the anomalies are excluded before the covariance is estimated, they cannot distort it. The method does require every variable to vary across the observations. If more than half of all observations share an identical value on some variable, FastPCS then treats those tied observations as the clean subset, the covariance estimated from them collapses, and the algorithm stops with an error. 
 
@@ -632,7 +640,7 @@ The methods considered so far all work by estimating a centre and a covariance, 
 3. Data with a large number of observations.
 4. Data where anomalies occur in small clusters, rather than as isolated points.
 
-The central idea is to reduce any high-dimensional problem to one dimension using nearest-neighbour distances (@sec-nn). Each observation is scored by the distance $d_{i,1}$ to its nearest neighbour, $d_{i,1}$, equivalent to the kNN anomaly score of @sec-knn-scores with $k=1$, and an anomaly is an observation whose nearest-neighbour distance is unusually large because it sits far from the rest of the data. The remaining machinery exists to make this single idea work across the four situations above. Categorical variables are first converted to continuous scores using correspondence analysis. When there are very many variables, the data are replaced by a few random projections (@sec-projections); these are intended to approximate the pairwise distances, while sidestepping the curse of dimensionality that makes nearest-neighbour distances uninformative in high dimensions. When there are very many observations, computing all $n(n-1)/2$ pairwise distances is too expensive (@sec-nn), so the leader algorithm (@sec-clustering) is run first: in a single pass it groups the observations into clusters of radius $\delta$ and keeps one leader from each, and the nearest-neighbour distances are then computed only between the leaders. Because a whole cluster of nearby anomalies is represented by a single leader, this also lets the method flag clusters of anomalies, not just isolated points.
+The central idea is to reduce any high-dimensional problem to one dimension using nearest-neighbour distances (@sec-nn). Each observation is scored by the distance $d_{i,1}$ to its nearest neighbour, which is equivalent to the kNN anomaly score of @sec-knn-scores with $k=1$; an anomaly is an observation whose nearest-neighbour distance is unusually large because it sits far from the rest of the data. The remaining machinery exists to make this single idea work across the four situations above. Categorical variables are first converted to continuous scores using correspondence analysis. When there are very many variables, the data are replaced by a few random projections (@sec-projections); these are intended to approximate the pairwise distances, while sidestepping the curse of dimensionality that makes nearest-neighbour distances uninformative in high dimensions. When there are very many observations, computing all $n(n-1)/2$ pairwise distances is too expensive (@sec-nn), so the leader algorithm (@sec-clustering) is run first: in a single pass it groups the observations into clusters of radius $\delta$ and keeps one leader from each, and the nearest-neighbour distances are then computed only between the leaders. Because a whole cluster of nearby anomalies is represented by a single leader, this also lets the method flag clusters of anomalies, not just isolated points.
 
 The other distinguishing feature of HDoutliers is that it applies extreme value theory (@sec-evt) to determine when a nearest-neighbour distance is "unusually large". After sorting the nearest-neighbour distances, the gaps between the largest of them are, by Weissman's spacing theorem, approximately independent exponential random variables whenever the underlying distribution is in the domain of attraction of the Gumbel distribution. HDoutliers therefore takes the smallest half of the distances to be typical, fits an exponential distribution to the upper-tail spacings of that typical set, and sets the threshold at its upper $1-\alpha$ point. It then works upwards through the remaining distances one at a time: each candidate that exceeds the current threshold is flagged as an anomaly, while each one that does not is absorbed into the typical set and the threshold re-estimated. Because the cutoff is a quantile of a fitted distribution, it carries a genuine probability, and the user controls the false-discovery rate directly through the significance level $\alpha$.
 
