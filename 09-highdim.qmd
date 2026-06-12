@@ -14,7 +14,7 @@ Suppose we have observations $\bm{y}_1, \ldots, \bm{y}_n$, where each observatio
 
 The curse of dimensionality (@sec-curse) makes it difficult to detect anomalies once the number of variables, $m$, grows too large. In practice, even a moderate number of variables (e.g., $m > 5$) can cause problems for some methods. The high-dimensional methods described in this chapter are designed to address these challenges, by reducing the dimensionality of the data while preserving the relevant structure for anomaly detection.
 
-## Projections
+## Projections {#sec-projections}
 
 The simplest way to reduce the dimensionality of the data is to use **linear projections**: linear combinations of the original variables that map each $m$-dimensional observation to a lower-dimensional space. Different projection directions preserve different aspects of the joint structure, so the choice of direction matters. While anomalies may be hard to detect in the full high-dimensional space, they often become visible when viewed from the right projection direction. Understanding the geometry of projections sets the foundation for the methods described in the rest of this chapter.
 
@@ -584,29 +584,41 @@ az_aq_proj |>
 
 Compared to ROBPCA, FastPCS has identified more anomalies on 31 May 2014, a day with an unusual culmination of poor air quality across multiple pollutants simultaneously (high particulates, CO, ozone, and SO₂ all peaking together), with warm temperatures and low wind speeds which would have inhibited dispersion.
 
+## HDoutliers algorithm {#sec-hdoutliers}
 
-
-## Stray and HDoutliers algorithms
-
-The HDoutliers algorithm of @Wilkinson2017-rb was designed to address several problems in anomaly detection:
+The methods considered so far all work by estimating a centre and a covariance, and then measuring how far each observation lies from that centre. The HDoutliers algorithm of @Wilkinson2017-rb takes a different approach, based on the distances between observations rather than their distance from a centre. It was designed to address several problems at once:
 
 1. Data containing a mixture of categorical and continuous variables.
 2. Data with high dimensionality (a large number of variables).
 3. Data with a large number of observations.
 4. Data where anomalies occur in small clusters, rather than as isolated points.
 
+The central idea is to reduce any high-dimensional problem to one dimension using nearest-neighbour distances (@sec-nn). Each observation is scored by the distance $d_{i,1}$ to its nearest neighbour, $d_{i,1}$, equivalent to the kNN anomaly score of @sec-knn-scores with $k=1$, and an anomaly is an observation whose nearest-neighbour distance is unusually large because it sits far from the rest of the data. The remaining machinery exists to make this single idea work across the four situations above. Categorical variables are first converted to continuous scores using correspondence analysis. When there are very many variables, the data are replaced by a few random projections (@sec-projections); these are intended to approximate the pairwise distances, while sidestepping the curse of dimensionality that makes nearest-neighbour distances uninformative in high dimensions. When there are very many observations, computing all $n(n-1)/2$ pairwise distances is too expensive (@sec-nn), so the leader algorithm (@sec-clustering) is run first: in a single pass it groups the observations into clusters of radius $\delta$ and keeps one leader from each, and the nearest-neighbour distances are then computed only between the leaders. Because a whole cluster of nearby anomalies is represented by a single leader, this also lets the method flag clusters of anomalies, not just isolated points.
+
+The other distinguishing feature of HDoutliers is that it applies extreme value theory (@sec-evt) to determine when a nearest-neighbour distance is "unusually large". After sorting the nearest-neighbour distances, the gaps between the largest of them are, by Weissman's spacing theorem, approximately independent exponential random variables whenever the underlying distribution is in the domain of attraction of the Gumbel distribution. HDoutliers therefore takes the smallest half of the distances to be typical, fits an exponential distribution to the upper-tail spacings of that typical set, and sets the threshold at its upper $1-\alpha$ point. It then works upwards through the remaining distances one at a time: each candidate that exceeds the current threshold is flagged as an anomaly, while each one that does not is absorbed into the typical set and the threshold re-estimated. Because the cutoff is a quantile of a fitted distribution, it carries a genuine probability, and the user controls the false-discovery rate directly through the significance level $\alpha$.
+
+## Stray algorithm {#sec-stray}
+
+The **stray** algorithm of @Talagala2019-zv ("Search and TRace AnomalY") is a modification of the HDoutliers algorithm, but omitting the clustering step, and replacing nearest-neighbour distances with $k$-nearest-neighbour distances. 
+
+The leader algorithm is both the slowest part of HDoutliers on large high-dimensional data and the source of its main weakness. Two anomalous clusters lying near each other become each other's nearest neighbours and so hide one another (a form of the masking seen in @sec-knn-scores), while a dense cluster of typical points may collapse to a single leader that is then wrongly flagged as isolated. Stray avoids clustering altogether, but deals with clusters of anomalies by using $k$-nearest-neighbour distances rather than just the single nearest neighbour. 
+
+Recall from @sec-knn-scores that $d_{i,k}$ denotes the distance from observation $\bm{y}_i$ to its $k$th nearest neighbour, so that $d_{i,1} \le d_{i,2} \le \cdots \le d_{i,k}$ are its neighbour distances ranked from closest to furthest. Stray finds the largest jump between one of these distances and the next (counting the step from the observation itself to $d_{i,1}$), and scores the observation by the distance at which this largest jump occurs. Picture stepping outward from the observation: at first we pass through any points packed tightly around it, and then at some radius we cross an empty gap into the main body of the data. The stray score is the radius at which that crossing happens. A typical point in a dense region reaches the bulk on its very first step, so it scores low; a lone anomaly is already far from its nearest neighbour, so the largest jump comes immediately, and it scores high.
+
+This is also what lets stray detect clusters of anomalies. A small group of anomalies sitting together but far from everything else behaves like the tight neighbourhood above: its members are the first few points we step through, and the same large jump to the bulk follows. Each member is therefore flagged, even though its nearest-neighbour distance $d_{i,1}$ is small enough that the single-neighbour score of HDoutliers would treat it as typical. The value of $k$ sets how large such a group can be and still be caught, since only the first $k$ neighbours are examined: a group of up to around $k$ points is stepped across before the jump is reached, whereas a larger group fills the whole window, never reaches the bulk within $k$ steps, and is read as an ordinary dense patch of typical data. Setting $k = 1$ recovers the HDoutliers nearest-neighbour score; a larger $k$ guards against larger clusters of anomalies, at the risk of dismissing genuinely small anomalous groups as normal.
+
+Without the clustering step, stray is also faster than HDoutliers. It uses kd-trees (@sec-nn) for the neighbour search, and returns both an anomaly score and a binary classification. The weird package provides `stray_scores()` for the score and `stray_anomalies()` for the classification. Applying it to the same standardised air quality and meteorological variables from Aotizhongxin used in @fig-proj-11dto2d:
+
 ```{r}
-#| label: fig-stray
-#| fig-cap: "Stray outlier scores for the Old Faithful eruption durations. Higher scores indicate greater outlyingness."
-of_scores <- oldfaithful |>
-  mutate(stray = stray_scores(duration))
-of_scores |> arrange(desc(stray))
-of_scores |>
-  ggplot(aes(x = duration, y = stray)) +
-  geom_point()
+#| label: stray
+#| code-fold: false
+#| dependson: fig-proj-11dto2d
+az_aq_proj |>
+  mutate(stray = stray_scores(Y)) |>
+  filter(stray > sort(stray, decreasing = TRUE)[10])
 ```
 
-@Talagala2019-zv, @Wilkinson2017-rb
+The most anomalous hours again centre on 31 May 2014, the same day of simultaneously poor air quality picked out by FastPCS (@sec-fastpcs). Because stray works from nearest-neighbour distances rather than a fitted covariance, it makes no assumption about the shape of the bulk of the data, and so can flag anomalies that sit away from an elliptical centre in ways the projection-based methods may miss.
 
 
 ## DOBIN {#sec-dobin}
