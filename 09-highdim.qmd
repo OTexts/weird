@@ -346,7 +346,7 @@ az_aq_proj |>
   filter(sd_out > sort(sd_out, decreasing = TRUE)[10])
 ```
 
-The top 10 most anomalous observations by this measure are shown above; many of them are the same points identified by their orthogonal distance in @fig-proj-residuals2. Because the Stahel--Donoho measure relies on one-dimensional projections, it can miss anomalies that only appear unusual when several variables are considered jointly.
+The top 10 most anomalous observations by this measure are shown above. Without our having to choose a projection in advance, it recovers the residual-space anomalies of @fig-proj-residuals2 --- including the run of hours early on 11 May --- because an observation that is extreme in any single direction is found by maximising over all directions. The price is the opposite blind spot: because the measure relies on one-dimensional projections, it can miss anomalies that only appear unusual when several variables are considered jointly.
 
 ## Principal component analysis {#sec-pca}
 
@@ -568,6 +568,8 @@ az_aq_proj |>
   filter(iso_score > sort(iso_score, decreasing = TRUE)[10])
 ```
 
+These are the most extreme hours by this combined measure: the isolated points and the extreme hours late on 31 May that the other methods also single out.
+
 ## DOBIN {#sec-dobin}
 
 The mapping matrix $\bm{A}$ can be found in many ways, and the choice of method can have a big impact on the anomalies that are visible in the projection space. We have already seen how PCA can be distorted by anomalies, and how ROBPCA can mitigate this by finding more robust projection directions. Another approach is to find projections that are explicitly designed to make anomalies more visible.
@@ -596,6 +598,25 @@ round(A, 2)
 The first DOBIN vector $\bm{a}_1$ gives positive weights to all variables, so an observation moves out along the first DOBIN coordinate when *all* of the air-quality and meteorological variables are jointly elevated. This is why the hours flagged in @fig-proj-kde corresponded to a period of simultaneously high particulates, carbon monoxide and dew point: such hours sit furthest from their neighbours along $\bm{a}_1$. The second DOBIN vector $\bm{a}_2$ is dominated by `pm2_5`, with the opposite sign to the other variables, and so separates hours whose fine-particulate level is unusual relative to everything else. Unlike the principal component loadings in @fig-pca-2d, the DOBIN loadings remain easy to read in terms of the original variables, which is a deliberate feature of the method.
 
 Two cautions are worth noting. First, because the Y space is built from element-wise squared differences, DOBIN is not invariant to rotations of the input space: starting from a rotated set of variables would give a different basis. This is the price of working one variable at a time, and it is also what keeps the loadings interpretable. (If rotation invariance matters more than interpretability, one can run PCA first and apply DOBIN to the principal component scores.) Second, like every projection method in this chapter, DOBIN only reduces the dimension; the anomalies must still be found by applying a distance- or density-based method to the resulting coordinates, as we did in @sec-projections.
+
+So far we have used only the two leading DOBIN directions, because @sec-projections needed a basis we could plot. DOBIN is not limited to two dimensions, though, and giving it more components lets it expose anomalies that a 2D view cannot. Following the recipe we used for ROBPCA (@sec-robpca), we take the first four DOBIN components --- the same number ROBPCA chose --- add the orthogonal distance as a fifth coordinate, and pass the result to an isolation forest.
+
+```{r}
+#| label: dobin-detect
+#| code-fold: false
+#| dependson: aotizhongxin
+A4 <- dobin::dobin(Y)$rotation[, 1:4]
+colnames(A4) <- paste0("a", 1:4)
+W4 <- as.matrix(Y) %*% A4
+W4_od <- as_tibble(W4) |>
+  mutate(OD = sqrt(rowSums((as.matrix(Y) - W4 %*% t(A4))^2)))
+iso_model <- isotree::isolation.forest(W4_od)
+az_aq_proj |>
+  mutate(iso_score = predict(iso_model, W4_od)) |>
+  filter(iso_score > sort(iso_score, decreasing = TRUE)[10])
+```
+
+With only four components, the isolation forest flags both the morning cluster of 22 May seen in @fig-proj-kde and the extreme hours late on 31 May, together with the isolated points the other methods also identify. A handful of components from a basis built to expose anomalies is enough to surface these episodes.
 
 ## FastPCS {#sec-fastpcs}
 
@@ -629,7 +650,7 @@ az_aq_proj |>
   filter(fpcs > sort(fpcs, decreasing = TRUE)[10])
 ```
 
-Compared to ROBPCA, FastPCS has identified more anomalies on 31 May 2014, a day with an unusual culmination of poor air quality across multiple pollutants simultaneously (high particulates, CO, ozone, and SO₂ all peaking together), with warm temperatures and low wind speeds which would have inhibited dispersion.
+Where the earlier methods flagged only the most extreme hours of 31 May 2014, FastPCS resolves the whole daytime build-up of that day --- a run of hours dominated by extreme carbon monoxide and sulphur dioxide (both around four standard deviations above their means), together with warm temperatures, a high dew point and low wind speeds that would have inhibited dispersion. This sustained episode is the distinctive contribution of FastPCS.
 
 ## HDoutliers algorithm {#sec-hdoutliers}
 
@@ -670,7 +691,7 @@ az_aq_proj |>
   filter(stray > sort(stray, decreasing = TRUE)[10])
 ```
 
-The most anomalous hours again centre on 31 May 2014, the same day of simultaneously poor air quality picked out by FastPCS (@sec-fastpcs). Because stray works from nearest-neighbour distances rather than a fitted covariance, it makes no assumption about the shape of the bulk of the data, and so can flag anomalies that sit away from an elliptical centre in ways the projection-based methods may miss.
+Stray confirms the extreme hours of 31 May and the isolated points the other methods agree on, but it reaches them without fitting any covariance: working only from nearest-neighbour distances, it makes no assumption about the shape of the bulk of the data, and so can flag anomalies that sit away from an elliptical centre --- here it also picks up the transition late on 29--30 May.
 
 ## Multidimensional scaling
 
