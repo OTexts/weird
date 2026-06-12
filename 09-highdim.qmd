@@ -472,7 +472,7 @@ This can be seen in the second-largest score distance in the $k=4$ plot. The cor
 
 Notice that we now also have some bad leverage values in $k=3$ and $k=4$. So the third and subsequent principal components are being pulled towards some anomalies, making them harder to identify in the lower dimensional space. This could be masking some of the anomalies.
 
-## Robust principal components
+## Robust principal components {#sec-robpca}
 
 There are several approaches to "robustifying" PCA, such as computing the eigenvectors of a robust covariance matrix, or using a different objective function that is less sensitive to outliers. One approach is the ROBPCA algorithm of @Hubert2005-qa, which proceeds in three stages, using robust outlier scores to find a clean starting point and then refining it with robust covariance estimation.
 
@@ -550,9 +550,42 @@ az_aq_proj |>
 ```
 
 
+## DOBIN {#sec-dobin}
+
+The projection matrix $\bm{A}$ can be found in many ways, and the choice of method can have a big impact on the anomalies that are visible in the projection space. We have already seen how PCA can be distorted by anomalies, and how ROBPCA can mitigate this by finding more robust projection directions. Another approach is to find projections that are explicitly designed to make anomalies more visible.
+
+**DOBIN** (Distance based Outlier BasIs using Neighbours) is one such method [@Kandanaarachchi2020-lo]. Where PCA looks for the directions of maximum variance (@sec-pca), DOBIN looks for directions in which near neighbours are pushed far apart, on the grounds that an anomaly is an observation lying much further from its neighbours than is typical. Like PCA, it produces an orthonormal basis and is only a dimension-reduction step rather than an anomaly detector in itself; the resulting coordinates are then handed to one of the distance- or density-based methods of the earlier chapters. The aim is that, because the basis is built to expose anomalies, fewer components are needed to reveal them than with PCA.
+
+DOBIN is built on a simple way of rewriting squared distances. For two observations $\bm{y}_i$ and $\bm{y}_j$, form the vector of element-wise squared differences
+$$
+\bm{z}_{ij} = (\bm{y}_i - \bm{y}_j) \circ (\bm{y}_i - \bm{y}_j),
+$$
+where $\circ$ denotes the element-wise product, so that the $\ell$th entry of $\bm{z}_{ij}$ is $(y_{i,\ell}-y_{j,\ell})^2$. The squared Euclidean distance (@sec-distances) between the two observations is then just the sum of these entries, $\|\bm{y}_i-\bm{y}_j\|^2 = \bm{1}^\intercal\bm{z}_{ij}$, and a weighted squared distance with non-negative weights $\bm{a}$ is $\bm{a}^\intercal\bm{z}_{ij}$. Distance has become a *linear* function of the weights, which turns the search for a direction that stretches distances into an easy problem.
+
+We do not want to stretch all pairwise distances, only those relevant to anomaly detection. Two observations on opposite edges of the data cloud are far apart, but pulling them further apart reveals nothing about anomalies. DOBIN therefore restricts attention to pairs of near neighbours (@sec-nn): for each observation it forms the vectors $\bm{z}_{ij}$ to its nearest neighbours, and keeps only those pairs whose distance falls in the upper tail (by default, above the 95th percentile). The retained vectors $\{\bm{z}_\ell\}$ make up what the authors call the *Y space*. Because an anomaly sits far from its neighbours, it contributes several of the largest vectors to this set, so the Y space magnifies the very observations we are trying to find.
+
+The first DOBIN direction is the unit vector $\bm{a}_1$ that makes these retained neighbour distances as large as possible on average; that is, it maximises $\sum_\ell \bm{a}^\intercal\bm{z}_\ell$ subject to $\|\bm{a}\|=1$. Because the objective is linear in $\bm{a}$, the solution is immediate --- the best direction is simply the normalised sum of the Y-space vectors,
+$$
+\bm{a}_1 = \frac{\sum_\ell \bm{z}_\ell}{\big\|\sum_\ell \bm{z}_\ell\big\|}.
+$$
+Subsequent directions follow the same recipe applied to what is left over: after removing the part of each $\bm{z}_\ell$ lying along $\bm{a}_1$, the second direction $\bm{a}_2$ is the normalised sum of the residual vectors, and so on. This is much like the orthogonalisation behind PCA (@sec-pca), except that at each step DOBIN maximises a sum of neighbour distances rather than a variance. The result is an orthonormal basis $\bm{A} = [\,\bm{a}_1\ \bm{a}_2\ \cdots]$ whose leading columns point in the directions where neighbours are most stretched apart. Projecting the data onto these columns, $\bm{W} = \bm{Y}\bm{A}$, gives the DOBIN coordinates, exactly as for any other projection in @sec-projections.
+
+In fact we have already seen the result. The two-dimensional projection in @fig-proj-11dto2d was the DOBIN projection of the Aotizhongxin data, and the anomalies it revealed --- in both the projection space (@fig-proj-kde) and the residual space (@fig-proj-residuals2) --- were found in exactly this basis. The columns of the projection matrix used there are the first two DOBIN vectors.
+
+```{r}
+#| label: dobin
+#| code-fold: false
+#| dependson: 11dto2d
+round(A, 2)
+```
+
+The first DOBIN vector $\bm{a}_1$ gives positive weights to all variables, so an observation moves out along the first DOBIN coordinate when *all* of the air-quality and meteorological variables are jointly elevated. This is why the hours flagged in @fig-proj-kde corresponded to a period of simultaneously high particulates, carbon monoxide and dew point: such hours sit furthest from their neighbours along $\bm{a}_1$. The second DOBIN vector $\bm{a}_2$ is dominated by `pm2_5`, with the opposite sign to the other variables, and so separates hours whose fine-particulate level is unusual relative to everything else. Unlike the principal component loadings in @fig-pca-2d, the DOBIN loadings remain easy to read in terms of the original variables, which is a deliberate feature of the method.
+
+Two cautions are worth noting. First, because the Y space is built from element-wise squared differences, DOBIN is not invariant to rotations of the input space: starting from a rotated set of variables would give a different basis. This is the price of working one variable at a time, and it is also what keeps the loadings interpretable. (If rotation invariance matters more than interpretability, one can run PCA first and apply DOBIN to the principal component scores.) Second, like every projection method in this chapter, DOBIN only reduces the dimension; the anomalies must still be found by applying a distance- or density-based method to the resulting coordinates, as we did in @sec-projections.
+
 ## FastPCS {#sec-fastpcs}
 
-ROBPCA and the Fast Projection Congruent Subset (FastPCS) method of @Vakili2014-yc share the same basic strategy. Each one first identifies a clean subset of the data --- a group of $h$ observations taken to be free of anomalies --- and then estimates a centre and covariance matrix from that subset alone. Because the anomalies are excluded before the covariance is estimated, they cannot distort it. What differs between the two methods is how the clean subset is chosen. ROBPCA selects the $h$ observations with the smallest Stahel--Donoho outlyingness (@sec-stahel-donoho), while FastPCS searches for the subset whose members stay grouped most tightly together.
+The remaining methods in this chapter detect anomalies directly, rather than producing a projection that is handed to a separate detector. The first of them, the Fast Projection Congruent Subset (FastPCS) method of @Vakili2014-yc, returns to the clean-subset strategy of ROBPCA (@sec-robpca), but uses it to build a standalone detector rather than a projection. Like ROBPCA, it first identifies a clean subset of the data --- a group of $h$ observations taken to be free of anomalies --- and then estimates a centre and covariance matrix from that subset alone. Because the anomalies are excluded before the covariance is estimated, they cannot distort it. What differs between the two methods is how the clean subset is chosen. ROBPCA selects the $h$ observations with the smallest Stahel--Donoho outlyingness (@sec-stahel-donoho), while FastPCS searches for the subset whose members stay grouped most tightly together.
 
 The idea is that a clean group of observations should stay packed together no matter which direction we view it from, whereas a subset that mixes in outlying anomalies will look stretched out from at least some viewpoints. FastPCS turns this into a score. It examines many one-dimensional projections of the data, and along each one it identifies the $h$ observations that fall closest together. A candidate subset earns a good score on that projection when its own members largely coincide with this tightest group, and a poor score when many of its members instead lie spread out along the fringes. Averaging over many directions measures how consistently cohesive the candidate subset is: the score is small only when the subset stays compact across the widest range of viewpoints. The subset that minimises this is the "projection congruent subset", and it is taken to be the clean data from which the centre and covariance are then estimated.
 
@@ -624,18 +657,6 @@ az_aq_proj |>
 ```
 
 The most anomalous hours again centre on 31 May 2014, the same day of simultaneously poor air quality picked out by FastPCS (@sec-fastpcs). Because stray works from nearest-neighbour distances rather than a fitted covariance, it makes no assumption about the shape of the bulk of the data, and so can flag anomalies that sit away from an elliptical centre in ways the projection-based methods may miss.
-
-
-## DOBIN {#sec-dobin}
-
-@Kandanaarachchi2020-lo
-
-```{r}
-#| label: fig-dobin
-#| echo: false
-#| dependson: aotizhongxin
-dobin_scores <- dobin::dobin(Y)
-```
 
 ## Multidimensional scaling
 
