@@ -607,16 +607,19 @@ The leader algorithm is both the slowest part of HDoutliers on large high-dimens
 
 Recall from @sec-knn-scores that $d_{i,k}$ denotes the distance from observation $\bm{y}_i$ to its $k$th nearest neighbour, so that $d_{i,1} \le d_{i,2} \le \cdots \le d_{i,k}$ are its neighbour distances ranked from closest to furthest. Stray finds the largest jump between one of these distances and the next (counting the step from the observation itself to $d_{i,1}$), and scores the observation by the distance at which this largest jump occurs. Picture stepping outward from the observation: at first we pass through any points packed tightly around it, and then at some radius we cross an empty gap into the main body of the data. The stray score is the radius at which that crossing happens. A typical point in a dense region reaches the bulk on its very first step, so it scores low; a lone anomaly is already far from its nearest neighbour, so the largest jump comes immediately, and it scores high.
 
-This is also what lets stray detect clusters of anomalies. A small group of anomalies sitting together but far from everything else behaves like the tight neighbourhood above: its members are the first few points we step through, and the same large jump to the bulk follows. Each member is therefore flagged, even though its nearest-neighbour distance $d_{i,1}$ is small enough that the single-neighbour score of HDoutliers would treat it as typical. The value of $k$ sets how large such a group can be and still be caught, since only the first $k$ neighbours are examined: a group of up to around $k$ points is stepped across before the jump is reached, whereas a larger group fills the whole window, never reaches the bulk within $k$ steps, and is read as an ordinary dense patch of typical data. Setting $k = 1$ recovers the HDoutliers nearest-neighbour score; a larger $k$ guards against larger clusters of anomalies, at the risk of dismissing genuinely small anomalous groups as normal.
+This is also what lets stray detect clusters of anomalies. A small group of anomalies sitting together but far from everything else behaves like the tight neighbourhood above: its members are the first few points we step through, and the same large jump to the bulk of the data follows. Each member is therefore flagged, even though its nearest-neighbour distance $d_{i,1}$ is small enough that the single-neighbour score of HDoutliers would treat it as typical. The value of $k$ sets how large such a group can be and still be caught, since only the first $k$ neighbours are examined: a group of up to around $k$ points is stepped across before the jump is reached, whereas a larger group fills the whole window, never reaches the bulk within $k$ steps, and is read as an ordinary dense patch of typical data. Setting $k = 1$ recovers the HDoutliers nearest-neighbour score; a larger $k$ guards against larger clusters of anomalies, at the risk of dismissing genuinely small anomalous groups as normal.
 
-Without the clustering step, stray is also faster than HDoutliers. It uses kd-trees (@sec-nn) for the neighbour search, and returns both an anomaly score and a binary classification. The weird package provides `stray_scores()` for the score and `stray_anomalies()` for the classification. Applying it to the same standardised air quality and meteorological variables from Aotizhongxin used in @fig-proj-11dto2d:
+Without the clustering step, stray is also faster than HDoutliers. It uses kd-trees (@sec-nn) for the neighbour search, and returns both an anomaly score and a binary classification. The weird package provides `stray_scores()` for the score and `stray_anomalies()` for the classification. Applying it to the same standardised air quality and meteorological variables from Aotizhongxin used previously:
 
 ```{r}
 #| label: stray
 #| code-fold: false
 #| dependson: fig-proj-11dto2d
 az_aq_proj |>
-  mutate(stray = stray_scores(Y)) |>
+  mutate(
+    stray = stray_scores(Y),
+    stray_anomaly = stray_anomalies(Y)
+  ) |>
   filter(stray > sort(stray, decreasing = TRUE)[10])
 ```
 
