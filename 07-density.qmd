@@ -239,7 +239,7 @@ $$
 
 Identifying anomalies using KDE surprisals is related to the "local outlier factor" method (@sec-lof). However, the local outlier factor method is based on the ratio of the density at a point to the average density at its neighbours, while the KDE surprisal method is based on the density at a point alone. This means that the KDE surprisal method is more likely to identify points in low density regions as anomalies.
 
-## LOO surprisals
+## LOO surprisals {#sec-loo-surprisals}
 
 If the density $f$ has been estimated from the data (whether from a parametric model or a nonparametric method such as KDE), then there is a problem of circular reasoning. Any genuine anomalies may affect the estimated density, and then they may not appear to be anomalies. Therefore, it is sometimes useful to consider the leave-one-out (LOO) estimate given by $f_{-i}$. That is, $f_{-i}$ is the density estimate using all observations other than the $i$th observation. Then an unusual observation can't influence the density estimate, giving us a better measure of how anomalous it really is. In this case, we will call the associated surprisal, a "LOO surprisal", given by $s_{-i} = -\log f_{-i}(\bm{y}_i)$.
 
@@ -258,7 +258,7 @@ The largest possible LOO kde surprisal is infinite, occurring when there are no 
 
 The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2. It computes surprisal probabilities using a GPD approximation applied to the LOO kde surprisals, where the bandwidth is chosen using the "lookout" method. These probabilities can be calculated using the `surprisals_prob()` function with `loo = TRUE`, `approximation = "gpd"`, and `method = "lookout"`.
 
-## Example: Old Faithful eruption durations
+## Example: Old Faithful eruption durations {#sec-oldfaithful-density}
 
 Let's apply the kde surprisals method to the Old Faithful eruptions contained in the `oldfaithful` data set. We will use the LOO KDE surprisal probabilities to identify anomalies in the eruption durations.
 
@@ -341,7 +341,7 @@ oldfaithful |>
   gg_hdrboxplot(duration, waiting, show_points = TRUE)
 ```
 
-## Gaussian mixture model surprisal probabilities
+## Gaussian mixture model surprisal probabilities {#sec-gmm-surprisal}
 
 A Gaussian mixture model (GMM) is a flexible parametric model for the joint distribution of the data, which can capture multimodality and other complex features. It comprises a weighted sum of multivariate Normal distributions, each with its own mean vector and covariance matrix. That is,
 $$

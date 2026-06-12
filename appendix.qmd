@@ -13,7 +13,7 @@ source("before-each-chapter.R")
 
 Working with multivariate data inevitably involves writing some of the ideas using matrix expressions and matrix algebra. In this appendix, a few of the results that we need are collected for convenient reference. Readers who have not previously studied matrix algebra are recommended to do some self-study using a good introductory textbook such as @Gentle07 or @Searle06.
 
-## Identity matrix
+## Identity matrix {#sec-identity-matrix}
 
 The identity matrix is like the number 1: multiplying a matrix by the identity matrix leaves the matrix unchanged. The identity matrix is a square matrix with ones on the diagonal and zeros elsewhere, denoted by $\bm{I}$. Sometimes we will use subscripts to denote the size of the identity matrix; e.g. $\bm{I}_n$ is an $n \times n$ identity matrix.
 
@@ -22,7 +22,7 @@ I3 <- diag(3)
 I3
 ```
 
-## Matrices and directions
+## Matrices and directions {#sec-matrices-directions}
 
 A matrix can be applied to a vector $\bm{v}$ by matrix multiplication, producing a new vector $\bm{A}\bm{v}$. Geometrically, this transforms $\bm{v}$, generally changing both its length and the direction it points. Different starting vectors are typically transformed in different ways: a matrix may stretch some directions, shrink or rotate others, or even collapse two distinct directions onto the same output.
 
@@ -84,7 +84,7 @@ For a rank-deficient example, the matrix $\begin{pmatrix} 1 & 2 \\ 2 & 4 \end{pm
 qr(matrix(c(1, 2, 2, 4), 2, 2))$rank
 ```
 
-## Matrix inverse
+## Matrix inverse {#sec-matrix-inverse}
 
 The inverse $\bm{A}^{-1}$ of a matrix $\bm{A}$ is the matrix analogue of $1/x$ for a number: multiplying by it undoes what $\bm{A}$ did. Just as $1/x$ does not exist when $x = 0$, a matrix inverse does not always exist. When it does, $\bm{A}$ is called **invertible** (or **non-singular**); otherwise it is called **singular**. Only square, full-rank matrices have inverses; a rank-deficient matrix has lost information that the inverse would need to recover.
 
@@ -98,7 +98,7 @@ Ainv
 Ainv %*% A
 ```
 
-## Determinants
+## Determinants {#sec-determinants}
 
 The **determinant** of a square matrix measures how much the matrix stretches or shrinks space when applied to vectors. A determinant of zero means the matrix has collapsed at least one direction down to nothing — which is why such a matrix cannot be inverted: the information lost in the flattening cannot be recovered. So a square matrix is singular (equivalently, rank-deficient) if and only if its determinant is zero.
 
@@ -118,7 +118,7 @@ The determinant of a matrix can be computed using the `det` function in R.
 det(A)
 ```
 
-## Eigenvalues and eigenvectors
+## Eigenvalues and eigenvectors {#sec-eigen}
 
 Some matrices have special directions along which they only stretch or shrink vectors (possibly reversing them), without rotating them to point a different way. Any nonzero vector along such a direction is called an **eigenvector**, and the corresponding stretching factor is the **eigenvalue**. Formally, a nonzero vector $\bm{v}$ is an eigenvector of $\bm{A}$, with eigenvalue $\lambda$, if $\bm{A}\bm{v} = \lambda \bm{v}$. A square matrix has full rank (see @sec-rank) if and only if all of its eigenvalues are nonzero.
 
@@ -130,7 +130,7 @@ eigen(A)
 
 Eigenvectors are essential tools in dimension reduction (@sec-highdim).
 
-## Positive definite matrices
+## Positive definite matrices {#sec-positive-definite}
 
 Just as some numerical values must be positive (for example, a distance or a variance), or at least non-negative, sometimes we need something similar for matrices.
 

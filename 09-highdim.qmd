@@ -210,7 +210,7 @@ For an excellent introduction to interactively exploring all possible projection
 
 We have, in fact, already met projections in @sec-ols. Ordinary least squares produces fitted values $\hat{\bm{y}} = \bm{H}\bm{y}$ via the hat matrix $\bm{H} = \bm{X}(\bm{X}^\intercal\bm{X})^{-1}\bm{X}^\intercal$, which is the orthogonal projection of the response vector onto the subspace spanned by the predictor columns. Like the projection matrix $\bm{P} = \bm{A}\bm{A}^\intercal$, the hat matrix is symmetric and idempotent ($\bm{H} = \bm{H}^\intercal = \bm{H}^2$), so it too is a projection matrix; indeed, if the predictor columns were orthonormal, then $\bm{X}^\intercal\bm{X} = \bm{I}$ and $\bm{H}$ would reduce to $\bm{X}\bm{X}^\intercal$, exactly the form of $\bm{P}$. The key difference is *what* is being projected: here we project each observation onto a subspace of the **variable** space to reduce dimension, whereas regression projects the **response** vector onto the column space of the **predictors**. In both cases the residual is the part of the vector orthogonal to the subspace, so the orthogonal distance (the magnitude of the residual $\bm{r}_i$ defined above) plays the same role as the regression residual $\bm{e} = (\bm{I}-\bm{H})\bm{y}$.
 
-## Types of projection anomalies
+## Types of projection anomalies {#sec-projection-anomalies}
 
 There are two types of projection-based anomalies:
 
@@ -711,6 +711,6 @@ az_aq_proj |>
 
 Stray confirms the extreme hours of 31 May and the isolated points the other methods agree on, but it reaches them without fitting any covariance: working only from nearest-neighbour distances, it makes no assumption about the shape of the bulk of the data, and so can flag anomalies that sit away from an elliptical centre --- here it also picks up the transition late on 29--30 May.
 
-## Multidimensional scaling
+## Multidimensional scaling {#sec-mds}
 
-## Comparisons using the O3 plot
+## Comparisons using the O3 plot {#sec-o3}

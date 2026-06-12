@@ -69,7 +69,7 @@ library(broom)
 library(tsibbledata)
 ```
 
-## Time series anomaly detection paradigms
+## Time series anomaly detection paradigms {#sec-ts-paradigms}
 
 Time series data are observations that are collected over time. In this book, we will only consider time series that are observed at regular intervals, such as annually, monthly, or hourly.
 
@@ -128,7 +128,7 @@ patchwork::wrap_plots(p1, p2, p3, ncol = 1)
 
 We will discuss each of these paradigms in turn.
 
-## Weird times
+## Weird times {#sec-weird-times}
 
 As a vehicle of illustration, we will consider French mortality rates, disaggregated by age and sex. These are obtained from the @HMD. We will consider male and female data from `r min(fr_mortality$Year)` to `r max(fr_mortality$Year)` over ages `r min(fr_mortality$Age)` to `r max(fr_mortality$Age)`, giving `r fr_mortality |> select(Age, Sex) |> distinct() |> NROW()` separate time series, each of length `r max(fr_mortality$Year) - min(fr_mortality$Year) + 1`. In fact, the top plot in @fig-tsparadigms shows the male mortality rates for 25-year-olds over this time period.
 
@@ -439,7 +439,7 @@ pcs |>
 
 As expected, many of the same weeks identified earlier in an analysis of individual series have been returned. The probability of false positives increases with both the length of each series, and the number of each series. So we have used a larger probability threshold here than in the analysis of individual series. Conversely, some anomalies might appear to be marginal in the individual series, but when the series are combined like this, the anomalous periods may be clearer. This appears to be the case in weeks 3 and 4 of 2020, where unusually low mortality rates are seen, probably because of restricted movements due to growing uncertainty associated with the spread of COVID-19. (The earlier analysis only showed an anomaly in this period for 85+ year olds in 2020 W3.) Unusually low mortality rates have also been identified in Weeks 13 and 15 of 2021, probably also due to restricted movements, especially of older people.
 
-## Weird series
+## Weird series {#sec-weird-series}
 
 Next we consider unusual series within a large collection of time series.
 
@@ -530,7 +530,7 @@ PBS |>
 
 Similarly, one of these series contains only zeros apart from in one month. The other two contain only zeros for the period when observations were recorded.
 
-## Surveillance
+## Surveillance {#sec-surveillance}
 
 In surveillance, we are interested in identifying anomalies in real time, either within one series or across several time series. This is common in monitoring systems, where we want to identify unusual behaviour as soon as it occurs. For example, in a manufacturing plant, we may want to identify when a machine is not operating as expected, and take action to prevent further problems. In retail, we may want to identify when sales are unusually high or low, and adjust stock levels if necessary.
 

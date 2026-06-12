@@ -10,7 +10,7 @@ Most readers will have first come across anomaly detection using boxplots, inven
 
 In this chapter, we will describe the original boxplot method, along with some variations that have been developed to address some of the limitations of the original approach.
 
-## Univariate data depth
+## Univariate data depth {#sec-univariate-depth}
 
 For univariate data, the **depth** of an observation is a measure of how deeply buried it is when all observations are ordered. That is, how far would you need to count from either the smallest or largest observation until you encountered the observation of interest. So the minimum and maximum both have depth 1, while the sample median has the largest depth of $(n+1)/2$.
 
@@ -79,7 +79,7 @@ The output also provides 95% confidence intervals based on @eq-sample-quantile-d
 batave |> quantile(prob = c(0.5^(4:1), 1 - 0.5^(2:4)), type = 8)
 ```
 
-## Tukey's boxplots
+## Tukey's boxplots {#sec-tukey-boxplots}
 
 @fig-cricketbox shows a boxplot of the cricket batting average data.
 
@@ -178,7 +178,7 @@ oldfaithful |>
 
 Quite a few "anomalies" are shown, including the three abnormally short eruptions we identified earlier. But the remaining "anomalies" are not particularly unusual observations. All the points below 180 seconds are identified as anomalies, even though we know that observations in the region between 100 and 140 are not unusual for this geyser. Because the boxplot does not allow for more than one mode, all the points in the second smaller cluster are identified as anomalies. The points around 300 seconds are also not really anomalies --- these are just values in the upper tail of the distribution for eruptions.
 
-## Modified IQR boxplots
+## Modified IQR boxplots {#sec-modified-iqr}
 
 ```{r}
 #| label: modifiediqr
@@ -286,7 +286,7 @@ stopifnot(identical(c(n1, n2, n3, n4, n5, n6), c(1L, 273L, 1L, 1L, 23L, 13L)))
 
 This is an improvement on the original boxplot approach, and it finds the true anomalies in the `cricket_batting` data and the `n01b` data. But it also identifies many false anomalies in the other data sets, especially those that are not Normally distributed. The assumption of Normality means that the method is not a good choice for most data sets.
 
-## Letter value plots
+## Letter value plots {#sec-letter-value}
 
 The problem that boxplots have with large data sets was also addressed by @Hofmann2017-hz who introduced "letter-value" plots, a variation of boxplots that replace the whiskers with a variable number of letter values. In these plots, each pair of letter values marks the boundaries of a box. The box bounded by the fourths is the same as the box of a boxplot; the additional boxes extend to successive letter values until the quantiles corresponding to the letter values can no longer be estimated sufficiently accurately from the available data.
 
@@ -453,7 +453,7 @@ A simple way to define a multivariate median is the "centre of gravity" of all p
 
 In @fig-depthregions, the points of maximum depth are shown in the central green region. The centre of gravity of this region is the yellow point in the middle.
 
-## Bagplots
+## Bagplots {#sec-bagplots}
 
 The bagplot was proposed by @bagplot as a bivariate version of a boxplot, constructed using similar principles. Like a univariate boxplot, the bivariate bagplot has a central point (the depth median), an inner region (the "bag"), and an outer region (the "loop"), beyond which outliers are shown as individual points.
 
@@ -502,7 +502,7 @@ oldfaithful |>
 
 The idea of depth regions and the depth median can be easily generalised to data with more than two dimensions [@rousseeuw1998computing]. Consequently, it would be possible to define a higher-dimensional version of the bagplot, although it would be difficult to plot it in four or more dimensions. In any case, we will consider approaches to handle high-dimensional data in @sec-highdim.
 
-## HDR boxplots
+## HDR boxplots {#sec-hdr-boxplots}
 
 We can compute HDRs from a kernel density estimate to find regions of the sample space where observations are unlikely to occur.
 
@@ -563,7 +563,7 @@ oldfaithful |>
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 
-## Summary
+## Summary {#sec-boxplots-summary}
 
 Boxplots, letter value plots, bagplots, and HDR boxplots are all extremely useful tools in exploratory data analysis, and deserve to be widely applied. They are particularly useful in summarising univariate and bivariate data distributions. However, as we have seen, none of them are effective at anomaly detection, and only HDR boxplots allow for data with multiple modes.
 

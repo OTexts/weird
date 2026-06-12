@@ -321,7 +321,7 @@ mixture_plot
 
 Here, the 10%, 20%, 30% and 40% HDRs contain disconnected regions, but for the larger HDRs, there is just one region for each.
 
-## Multivariate quantiles
+## Multivariate quantiles {#sec-mv-quantiles}
 
 Unlike the univariate case, there is no unique definition of a multivariate quantile. There are many different definitions, and each has its own advantages and disadvantages.
 
@@ -749,7 +749,7 @@ Notice that the contours are larger and smoother than in @fig-ofbivariate2. In g
 
 There is a rich literature on multivariate kernel density estimation. Good starting points are @Scott2015 or @chacon2018multivariate. The idea of using the cluster merge distances to compute the bandwidth matrix is due to @lookout and @lookout2, although they framed it in terms of topological data analysis rather than clustering.
 
-## Conditional probability distributions
+## Conditional probability distributions {#sec-conditional}
 
 A fundamental concept in statistics is a **conditional probability distribution**; that is, the distribution of a random variable conditional on the values of other (possibly random) variables.
 

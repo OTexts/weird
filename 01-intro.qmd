@@ -10,7 +10,7 @@ Data analysis is about finding the stories hidden in the mass of information tha
 
 Anomalies are often a nuisance. For example, they may be simply recording errors that are contaminating our data. We want to find them, remove them, and get on with analysing the bulk of the data. At other times, anomalies are the observations we care about. They tell us things that might otherwise go unnoticed if we only consider how the majority of observations behave. Whether we want to remove them or study them, we first need to find them.
 
-## Definitions
+## Definitions {#sec-definitions}
 
 An anomaly is an observation that behaves differently from the bulk of the data. Anomalies are also called "outliers", "novelties", "deviants", "abnormalities" or "discordants". I prefer to use "anomalies" as it is a more general term than outliers, and it is more widely used than the other options.
 
@@ -90,7 +90,7 @@ This example reveals some lessons about anomaly detection:
 
 As this episode illustrates, anomaly detection is inseparable from the context, and from the assumptions we make about stability and variability.
 
-## Approaches to anomaly detection
+## Approaches to anomaly detection {#sec-approaches}
 
 We will take a probabilistic perspective on anomaly detection, where we aim to estimate the likelihood of each observation. Consequently, we will need to introduce (or revise) some material on probability distributions and related tools in @sec-univariate and @sec-multivariate.
 
@@ -140,7 +140,7 @@ That makes it difficult to measure how good an anomaly detection algorithm perfo
 
 In this book, we will use data sets of each type when testing different anomaly detection methods. @sec-data discusses the main examples we will be using throughout the book.
 
-## Spurious anomalies and undetected anomalies
+## Spurious anomalies and undetected anomalies {#sec-spurious}
 
 **Spurious anomalies** occur when a true observation is identified as anomalous, while **undetected anomalies** occur when an anomalous observation is not detected. Thus, when our purpose is anomaly detection, an undetected anomaly is a "false negative" while a spurious anomaly is a "false positive". We can only really be sure about which observations are spurious or undetected anomalies when the data are synthetic. However, in some real data examples, there are such extreme anomalies that we will proceed under the assumption that we know that these are true anomalies.
 

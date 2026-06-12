@@ -395,7 +395,7 @@ if (NROW(shiraz_surprise) != 8L) {
 
 This shows the value of computing surprisal probabilities on the conditional distribution. The eight observations are not simply those with the highest prices, but those whose price is anomalous given their points values. There are three wines with prices above $300 that are not identified as anomalous, because they have corresponding high points values.
 
-## GAM surprisals
+## GAM surprisals {#sec-gam-surprisals}
 
 In some applications, it is not appropriate to assume the conditional density is Gaussian, or that the relationships are linear. One useful model that allows for non-Gaussian densities, and non-linear relationships, is a generalised additive model or GAM. Under this model, the conditional density is given by [@Wood2017gam]
 $$

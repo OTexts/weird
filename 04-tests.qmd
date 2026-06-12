@@ -317,7 +317,7 @@ Notice how the departures from normality, either via skewness (for the $\chi^2$ 
 
 Even if we were prepared to believe that the data come from a Normal distribution, we need to adjust the threshold to allow for the sample size. This is the idea behind the next methods we will consider.
 
-## Peirce's and Chauvenet's criteria
+## Peirce's and Chauvenet's criteria {#sec-peirce-chauvenet}
 
 ### Peirce's criterion {-}
 
@@ -419,7 +419,7 @@ nanomalies <- nanomalies |>
 stopifnot(nanomalies$Chauvenet == nanomalies$Peirce + c(0, 0, 0, 0, 2, 1))
 ```
 
-## Grubbs' test
+## Grubbs' test {#sec-grubbs}
 
 By the 20th century, the concept of hypothesis testing had been developed, and the $t$-distribution had been discovered, and both were applied to the identification of anomalies using $z$-scores. Many tests were developed under different assumptions about the underlying distribution and what was assumed to be known [@Hawkins1980]. We will mention just two of them here, as they are the most widely used.
 
@@ -626,7 +626,7 @@ stopifnot(nanomalies$Grubbs == c(1, 1, 0, 0, 6, 1))
 
 The clear failure is with the $\text{t}_3$ distribution which has no real anomalies. A spurious anomaly is also detected in the $\chi^2_4$ example, and real anomalies are missed in the Old Faithful data and in `n01b`.
 
-## Dixon's Q test
+## Dixon's Q test {#sec-dixon}
 
 The z-score tests above all measure the distance of an observation from the centre of the distribution. A different approach looks instead at the **gaps** between consecutive order statistics (see @sec-gaps): if a value is anomalous, we expect a noticeably large gap between it and its nearest neighbour in the sorted data. @Dixon1950 introduced the first widely-used test of this type.
 
@@ -923,7 +923,7 @@ While the method worked well for the cricket batting averages, it identified `r 
 
 Like all methods in this chapter, both the normalised gap score and the transformed-gap test depend on an assumed null distribution, and so the results depend on the adequacy of the model. Related extreme-spacing ideas underlie the HDoutliers and stray algorithms discussed in @sec-distance-methods, where gaps in nearest-neighbour distances are used rather than gaps in the raw univariate data.
 
-## Summary
+## Summary {#sec-tests-summary}
 
 We can summarise the results of the various tests used here in the following table.
 

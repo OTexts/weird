@@ -36,7 +36,7 @@ We will denote the functional data as $y_i(x)$. Here, $i$ is a discrete index ov
 
 It is possible to have multiple indexes (e.g., mortality rates for males and females, or for different countries, or both), and the function may be defined over more than one variable (e.g., mortality rates over age and BMI). It is also possible to have multivariate observations (e.g., mortality and fertility rates).
 
-## Interpolation and smoothing
+## Interpolation and smoothing {#sec-interpolation}
 
 The distinguishing feature of functional data is that we think of the data as smooth and continuous functions. In practice, our observations are usually at discrete values, even though the underlying functions are continuous. In @fig-fr-mortality, for example, we observe the mortality rate for discrete ages 0, 1, 2, \dots, while we think of the rate as defined for any age $x \in [0,\infty)$.
 
@@ -99,7 +99,7 @@ fr_smooth |>
 
 ```
 
-## Dimension reduction using basis functions
+## Dimension reduction using basis functions {#sec-basis-functions}
 
 We can approximate functional data using a linear combination of basis functions:
 $$
@@ -190,7 +190,7 @@ pca_scores |>
 
 ```
 
-## Anomalies in the principal component space
+## Anomalies in the principal component space {#sec-functional-pca}
 
 
 
@@ -208,6 +208,6 @@ pca_scores |>
   ggrepel::geom_label_repel(data = outliers, aes(label = Year), )
 ```
 
-## Functional depth measures
+## Functional depth measures {#sec-functional-depth}
 
 There are several existing approaches to identifying functional outliers, summarised in @hubert2015multivariate, almost all based on functional depth.
