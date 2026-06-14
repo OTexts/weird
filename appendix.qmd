@@ -11,7 +11,7 @@ code-fold: false
 source("before-each-chapter.R")
 ```
 
-Working with multivariate data inevitably involves writing some of the ideas using matrix expressions and matrix algebra. In this appendix, a few of the results that we need are collected for convenient reference. Readers who have not previously studied matrix algebra are recommended to do some self-study using a good introductory textbook such as @Gentle07 or @Searle06.
+Working with multivariate data inevitably involves writing some of the ideas using matrix expressions and matrix algebra. In this appendix, a few of the results that we need are collected for convenient reference. Readers who have not previously studied matrix algebra are recommended to do some self-study using a good introductory textbook such as @johnston2021introduction.
 
 ## Vectors {#sec-vectors}
 
@@ -42,11 +42,10 @@ A **matrix** is a rectangular array of numbers, denoted by $\bm{A} = (a_{ij})$, 
 
 Two matrices $\bm{A}$ and $\bm{B}$ can be added together if they are of the same dimensions, and the sum $\bm{A} + \bm{B}$ is the matrix of the same dimensions whose $(i,j)$th entry is $a_{ij} + b_{ij}$. 
 
-A matrix can also be multiplied by another matrix if the number of columns of $\bm{A}$ matches the number of rows of $\bm{B}$. The product $\bm{A}\bm{B}$ is then defined by
+A matrix can also be multiplied by another matrix if the number of columns of $\bm{A}$ matches the number of rows of $\bm{B}$. If $\bm{A}$ is an $m \times p$ matrix and $\bm{B}$ is a $p \times n$ matrix, the product $\bm{A}\bm{B}$ is the $m \times n$ matrix with $(i,j)$th element given by
 $$
-  (\bm{A}\bm{B})_{ij} = \sum_{k=1}^p a_{ik} b_{kj},
+  (\bm{A}\bm{B})_{ij} = \sum_{k=1}^p a_{ik} b_{kj}.
 $$
-where $p$ is the number of columns of $\bm{A}$ (equivalently, the number of rows of $\bm{B}$). The product $\bm{A}\bm{B}$ is an $m \times q$ matrix, where $q$ is the number of columns of $\bm{B}$. 
 
 In R, matrix multiplication uses the `%*%` operator; the ordinary `*` operator instead multiplies matrices element by element, which is a different operation. For example:
 
