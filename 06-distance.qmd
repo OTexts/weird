@@ -1,6 +1,7 @@
 # Distance-based methods {#sec-distance-methods}
 
 ```{r}
+#| label: setup6
 #| include: false
 #| cache: false
 source("before-each-chapter.R")

@@ -1,6 +1,7 @@
 # Univariate probability distributions {#sec-univariate}
 
 ```{r}
+#| label: setup2
 #| include: false
 #| cache: false
 source("before-each-chapter.R")

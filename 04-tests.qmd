@@ -1,6 +1,7 @@
 # Statistical tests {#sec-tests}
 
 ```{r}
+#| label: setup4
 #| include: false
 #| cache: false
 source("before-each-chapter.R")

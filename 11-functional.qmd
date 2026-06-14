@@ -1,6 +1,7 @@
 # Functional data {#sec-functional}
 
 ```{r}
+#| label: setup12
 #| include: false
 #| cache: false
 source("before-each-chapter.R")
@@ -96,7 +97,6 @@ fr_smooth |>
       name = "Mortality rate"
     )
   )
-
 ```
 
 ## Dimension reduction using basis functions {#sec-basis-functions}
@@ -187,7 +187,6 @@ pca_scores |>
 pca_scores |>
   ggplot(aes(x = .fittedPC1, y = .fittedPC2)) +
   geom_point()
-
 ```
 
 ## Anomalies in the principal component space {#sec-functional-pca}
@@ -195,7 +194,6 @@ pca_scores |>
 
 
 ```{r}
-
 # Find outliers in the PCs
 pca_no_year <- pca_scores |> select(-Year)
 pca_scores <- pca_scores |>

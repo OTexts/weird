@@ -1,6 +1,7 @@
 # Boxplots {#sec-boxplots}
 
 ```{r}
+#| label: setup5
 #| include: false
 #| cache: false
 source("before-each-chapter.R")
@@ -240,7 +241,7 @@ barbato_anomaly <- function(y, extreme = FALSE) {
   n <- length(y)
   q1 <- quantile(y, 0.25, na.rm = TRUE, type = 8)
   q3 <- quantile(y, 0.75, na.rm = TRUE, type = 8)
-  threshold <- (1.5 + 1.5 * extreme) * (q3 - q1) * (1 + 0.1*log(n / 10))
+  threshold <- (1.5 + 1.5 * extreme) * (q3 - q1) * (1 + 0.1 * log(n / 10))
   return(y > q3 + threshold | y < q1 - threshold)
 }
 cricket_batting |>

@@ -1,7 +1,7 @@
 # Regression methods {#sec-regression-methods}
 
 ```{r}
-#| label: setup
+#| label: setup8
 #| include: false
 #| cache: false
 source("before-each-chapter.R")

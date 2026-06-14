@@ -1,6 +1,7 @@
 # Multivariate probability distributions {#sec-multivariate}
 
 ```{r}
+#| label: setup3
 #| include: false
 #| cache: false
 source("before-each-chapter.R")

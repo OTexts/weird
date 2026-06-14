@@ -1,6 +1,7 @@
 # Density-based methods {#sec-density-methods}
 
 ```{r}
+#| label: setup7
 #| include: false
 #| cache: false
 source("before-each-chapter.R")

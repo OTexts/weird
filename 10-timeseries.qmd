@@ -1,6 +1,7 @@
 # Time series data {#sec-timeseries}
 
 ```{r}
+#| label: setup10
 #| include: false
 #| cache: false
 source("before-each-chapter.R")

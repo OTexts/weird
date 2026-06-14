@@ -1,7 +1,7 @@
 # High-dimensional methods {#sec-highdim}
 
 ```{r}
-#| label: setup
+#| label: setup9
 #| include: false
 #| cache: false
 source("before-each-chapter.R")

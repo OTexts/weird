@@ -1,6 +1,7 @@
 # Introduction {#sec-intro}
 
 ```{r}
+#| label: setup1
 #| include: false
 #| cache: false
 source("before-each-chapter.R")
