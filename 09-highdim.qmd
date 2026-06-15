@@ -636,6 +636,84 @@ az_aq_proj |>
 
 With only four components, the isolation forest flags both the morning cluster of 22 May seen in @fig-proj-kde and the extreme hours late on 31 May, together with the isolated points the other methods also identify. A handful of components from a basis built to expose anomalies is enough to surface these episodes.
 
+## Multidimensional scaling {#sec-mds}
+
+All the projection methods so far have started from the data matrix $\bm{Y}$ and produced a low-dimensional set of coordinates. **Multidimensional scaling (MDS)** instead starts from the $n\times n$ matrix $\bm{D}$ of pairwise distances $d_{ij} = \|\bm{y}_i - \bm{y}_j\|$ between observations (@sec-distances), and looks for a configuration of points $\bm{w}_1, \dots, \bm{w}_n$ in a low-dimensional space, usually $k = 2$ or $3$ dimensions, whose distances $\|\bm{w}_i - \bm{w}_j\|$ reproduce the given $d_{ij}$ as closely as possible [@Borg2005; @Cox2001]. The result is a "map" in which similar observations are placed close together and dissimilar observations far apart, much like reconstructing a map of cities from a table of the distances between them. More generally, the entries $d_{ij}$ need only be *dissimilarities*: measures of how different two observations are. Every distance is a dissimilarity, but a dissimilarity need not satisfy the triangle inequality, and we return to this extra generality when we discuss non-metric scaling below.
+
+Working from a matrix of distances, rather than directly from the data, is what distinguishes MDS from PCA. Any of the distance measures of @sec-distances can be used, including non-Euclidean ones, so MDS applies whenever we can measure how far apart two observations are but cannot form a numerical data matrix --- for example, with mixed categorical and numerical variables, distances between nodes in a network, or edit distances between genomic sequences. For anomaly detection, the embedding plays the same role as a projection: an observation that is far from all the others in the original distances is placed far from the bulk of the points in the low-dimensional map, where it can be passed to one of the distance- or density-based detectors of @sec-distance-methods or @sec-density-methods.
+
+### Classical scaling
+
+The oldest form of MDS is **classical scaling** [@Torgerson1952], which solves the problem by an eigendecomposition and so is closely related to PCA. From the matrix of squared distances $\bm{D}^{(2)} = (d_{ij}^2)$, we form the doubly centred matrix
+$$
+  \bm{B} = -\tfrac12 \bm{J} \bm{D}^{(2)} \bm{J}, 
+$$
+where $\bm{J} = \bm{I}_n - \tfrac1n \bm{1}\bm{1}^\intercal$ is the centring matrix that subtracts the row and column means. If the $d_{ij}$ are the Euclidean distances between the rows of a centred coordinate matrix $\bm{W}$, then $\bm{B} = \bm{W}\bm{W}^\intercal$ is exactly the matrix whose $(i,j)$th entry is the product $\bm{w}_i^\intercal\bm{w}_j$ of the coordinates of observations $i$ and $j$. We then take the eigendecomposition (@sec-eigen) $\bm{B} = \bm{V}\bm{\Lambda}\bm{V}^\intercal$, with eigenvalues $\lambda_1 \ge \lambda_2 \ge \cdots \ge 0$, and read off the $k$-dimensional configuration as
+$$
+  \bm{W}_k = \bm{V}_k \bm{\Lambda}_k^{1/2},
+$$
+the first $k$ eigenvectors scaled by the square roots of their eigenvalues. As with PCA, the eigenvalues say how much structure each dimension captures, so a few large eigenvalues followed by a sharp drop indicates that a low-dimensional map will represent the distances well.
+
+This is exactly the same as PCA when $\bm{D}$ contains the Euclidean distances between the observations. Then $\bm{B}$ and the covariance matrix $\bm{\Sigma}$ share the same nonzero eigenvalues (up to the factor $n-1$), and the classical scaling coordinates $\bm{W}_k$ coincide with the principal component scores of @sec-pca, up to a reflection of the axes. Classical scaling is therefore PCA computed from the distance matrix instead of from the data, and it is useful precisely when the distances are *not* Euclidean, or when only a matrix of distances is available. (However, note that the eigenvalues of $\bm{B}$ can be negative when the distances are not Euclidean, and these are discarded.)
+
+### Metric and non-metric scaling
+
+Classical scaling reproduces the distances through an eigendecomposition, but we can instead choose the configuration directly to minimise a measure of misfit. **Metric MDS** places the points so that the fitted distances $\|\bm{w}_i - \bm{w}_j\|$ match the input distances $d_{ij}$, minimising a loss function known as the *stress*,
+$$
+  \text{Stress} = \sqrt{\frac{\sum_{i<j}\left(\|\bm{w}_i - \bm{w}_j\| - \hat{d}_{ij}\right)^2}{\sum_{i<j} \|\bm{w}_i - \bm{w}_j\|^2}},
+$$
+where the *disparities* $\hat{d}_{ij}$ are a fixed transformation of the input distances --- the identity, $\hat{d}_{ij} = d_{ij}$, in the simplest case. There is no closed-form solution, so the configuration is found by iterative optimisation, starting from the classical scaling solution. A common variant is the @Sammon1969 mapping, which weights each term by $1/d_{ij}$ so that small distances, describing the local structure, are reproduced more faithfully than large ones.
+
+**Non-metric MDS** [@Kruskal1964] relaxes the requirement that the actual values of the $d_{ij}$ be reproduced, asking only that their *rank order* be preserved. This is where the more general notion of dissimilarity matters: the disparities $\hat{d}_{ij}$ are now allowed to be any monotonically increasing transformation of the $d_{ij}$, obtained by isotonic regression (a monotone least squares fit) of the fitted distances on the ranked dissimilarities. The configuration and the transformation are updated alternately until the stress converges. This is the appropriate method when the dissimilarities are ordinal or only loosely calibrated --- for example, subjective similarity ratings, which may not even satisfy the triangle inequality --- because only their ordering is assumed to carry meaning. It is also more robust to a few large dissimilarities, since these need only be reproduced in rank, not in size.
+
+### Air quality example
+
+We illustrate using the same standardised air quality and meteorological variables from Aotizhongxin. We first compute the Euclidean distance matrix, and then apply classical scaling using `cmdscale()`.
+
+```{r}
+#| label: mds-classical
+#| code-fold: false
+#| dependson: aotizhongxin
+D <- dist(Y)
+cs <- cmdscale(D, k = 2, eig = TRUE)
+```
+
+For a non-Euclidean view, we apply non-metric MDS to the same distance matrix using `MASS::isoMDS()`, which reports the final stress as a percentage.
+
+```{r}
+#| label: mds-nonmetric
+#| code-fold: false
+#| dependson: mds-classical
+nm <- MASS::isoMDS(D, k = 2, trace = FALSE)
+```
+
+@fig-mds shows the two configurations side by side. The classical scaling map reproduces the PCA projection, while the non-metric map preserves only the ordering of the distances, which pulls the bulk of the observations together and pushes the most isolated hours further out. 
+
+```{r}
+#| label: fig-mds
+#| code-fold: true
+#| dependson: mds-nonmetric
+#| fig-cap: "Two-dimensional multidimensional scaling maps of the 11 air quality and meteorological variables from Aotizhongxin, computed from the Euclidean distance matrix. Left: classical scaling, which reproduces the principal component projection of @fig-pca-2d up to a reflection. Right: non-metric scaling, which preserves only the rank order of the distances."
+bind_rows(
+  tibble(x = cs$points[, 1], y = cs$points[, 2], method = "Classical scaling"),
+  tibble(x = nm$points[, 1], y = nm$points[, 2], method = "Non-metric scaling")
+) |>
+  ggplot(aes(x = x, y = y)) +
+  geom_point(alpha = 0.2) +
+  facet_wrap(~method, scales = "free") +
+  labs(x = "First coordinate", y = "Second coordinate")
+```
+
+The two extreme anomalies in the non-metric scaling map are from 19 May and 31 May:
+
+```{r}
+az_aq[nm$points[, 2] < -50, ]
+```
+
+Because non-metric scaling preserves only the rank order of the distances, it can push anomalies to be even more extreme.
+
+Like PCA and DOBIN, MDS is a dimension-reduction step rather than an anomaly detector in itself: the resulting coordinates are handed to one of the distance- or density-based methods of the earlier chapters. Its distinctive feature is that it begins from a matrix of pairwise distances --- or, more generally, dissimilarities --- so it can be applied to data for which no natural coordinates exist.
+
 ## FastPCS {#sec-fastpcs}
 
 The remaining methods in this chapter detect anomalies directly, rather than producing a projection that is handed to a separate detector. The first of them is the Fast Projection Congruent Subset (FastPCS) method of @Vakili2014-yc. Like ROBPCA (@sec-robpca), FastPCS builds a clean subset of data intended to be free of anomalies, but it uses this subset to build a standalone detector rather than a projection. Also, rather than identify the clean subset using the Stahel--Donoho outlyingness, it uses a different criterion based on the internal cohesion of the subset.
@@ -710,7 +788,5 @@ az_aq_proj |>
 ```
 
 Stray confirms the extreme hours of 31 May and the isolated points the other methods agree on, but it reaches them without fitting any covariance: working only from nearest-neighbour distances, it makes no assumption about the shape of the bulk of the data, and so can flag anomalies that sit away from an elliptical centre --- here it also picks up the transition late on 29--30 May.
-
-## Multidimensional scaling {#sec-mds}
 
 ## Comparisons using the O3 plot {#sec-o3}
