@@ -1,4 +1,4 @@
-remotes::install_github("robjhyndman/weird-package")
+#remotes::install_github("robjhyndman/weird")
 library(weird)
 
 oldfaithful |>
