@@ -4,17 +4,24 @@
 #| label: setup6
 #| include: false
 #| cache: false
+
 source("before-each-chapter.R")
 ```
 
-Distance-based anomaly detection methods identify anomalies as observations that are far from the bulk of the data. Some methods measure distance from a global centre; others use distances to neighbouring observations. Before introducing these methods, we first discuss how distances between multivariate observations are measured.
+Distance-based anomaly detection methods identify anomalies as observations that are far from the bulk of the data.
+Some methods measure distance from a global centre; others use distances to neighbouring observations.
+Before introducing these methods, we first discuss how distances between multivariate observations are measured.
 
-Throughout this chapter, we will illustrate the methods using daily average ozone levels and maximum temperatures from the Dongsi neighbourhood of Beijing, China, from March 2013 to February 2017. The data are shown in @fig-dongsi.
+Throughout this chapter, we will illustrate the methods using daily average ozone levels and maximum temperatures from the Dongsi neighbourhood of Beijing, China, from March 2013 to February 2017.
+The data are shown in @fig-dongsi.
 
 ```{r}
 #| label: fig-dongsi
 #| code-fold: false
-#| fig-cap: "Daily ozone and maximum temperature data from the Dongsi neighbourhood of Beijing, from March 2013 to February 2017. Days with more than 2 missing hourly values in either variable are excluded."
+#| fig-cap: >-
+#|   Daily ozone and maximum temperature data from the Dongsi neighbourhood of Beijing, from March 2013 to February 2017.
+#|   Days with more than 2 missing hourly values in either variable are excluded.
+
 dongsi <- air_quality |>
   filter(station == "Dongsi") |>
   mutate(date = lubridate::ymd(paste(year, month, day, sep = "-"))) |>
@@ -39,52 +46,73 @@ dongsi |>
 ```{r}
 #| label: hottest-day
 #| include: false
+
 hottest_day <- which.max(dongsi$max_temp)
 coldest_day <- which.min(dongsi$max_temp)
 ```
 
-As temperatures increase above 20 degrees Celsius, ozone levels tend to increase, although the hottest day over this period (`r dongsi$max_temp[hottest_day]` degrees on `r format(dongsi$date[hottest_day], "%d %B %Y")`) had a relatively moderate average ozone level of `r sprintf("%.1f", dongsi$o3[hottest_day])` $\mu g m^{-3}$ (micrograms per cubic meter). There are two clear anomalies in the ozone variable, with levels above 250 $\mu g m^{-3}$, which are much higher than the other observations (and perhaps recording errors). There was also an unusually cold day on `r format(dongsi$date[coldest_day], "%d %B %Y")`, which had a maximum temperature of only `r dongsi$max_temp[coldest_day]` degrees. This is also a potential anomaly.
+As temperatures increase above 20 degrees Celsius, ozone levels tend to increase, although the hottest day over this period (`r dongsi$max_temp[hottest_day]` degrees on `r format(dongsi$date[hottest_day], "%d %B %Y")`) had a relatively moderate average ozone level of `r sprintf("%.1f", dongsi$o3[hottest_day])` $\mu g m^{-3}$ (micrograms per cubic meter).
+There are two clear anomalies in the ozone variable, with levels above 250 $\mu g m^{-3}$, which are much higher than the other observations (and perhaps recording errors).
+There was also an unusually cold day on `r format(dongsi$date[coldest_day], "%d %B %Y")`, which had a maximum temperature of only `r dongsi$max_temp[coldest_day]` degrees.
+This is also a potential anomaly.
 
 ## Measuring distances {#sec-distances}
 
-Suppose our observations are denoted by $\bm{y}_1,\dots,\bm{y}_n$, each a vector of length $m$. In univariate data, the distance between any two observations is simply the absolute difference between the values. But in multivariate data, there are several different ways of measuring distances, even when the data are all numerical.
+Suppose our observations are denoted by $\bm{y}_1,\dots,\bm{y}_n$, each a vector of length $m$.
+In univariate data, the distance between any two observations is simply the absolute difference between the values.
+But in multivariate data, there are several different ways of measuring distances, even when the data are all numerical.
 
-Perhaps the most obvious way to define the distance between any two points $\bm{y}_i$ and $\bm{y}_j$ is to measure the length of the straight line between the points. This is commonly known as Euclidean distance, named after the famous Greek mathematician Euclid, and can be defined as
-$$\|\bm{y}_i - \bm{y}_j\| = \sqrt{\sum_{k=1}^m (y_{ik}-y_{jk})^2}.$$
-This is also known as the $L_2$ distance. For $m=1$ or $m=2$, it is the physical distance between the points when plotted on a strip plot or a scatterplot (provided there is no jittering used).
+Perhaps the most obvious way to define the distance between any two points $\bm{y}_i$ and $\bm{y}_j$ is to measure the length of the straight line between the points.
+This is commonly known as Euclidean distance, named after the famous Greek mathematician Euclid, and can be defined as
+$$
+  \|\bm{y}_i - \bm{y}_j\| = \sqrt{\sum_{k = 1}^m (y_{ik} - y_{jk})^2}.
+$$
+This is also known as the $L_2$ distance.
+For $m = 1$ or $m = 2$, it is the physical distance between the points when plotted on a strip plot or a scatterplot (provided there is no jittering used).
 
-The `dist()` function will return a distance matrix containing all pairwise distances between observations. Here is an example using only the first five observations of the `dongsi` data set, where each $\bm{y}_i$ is a vector of maximum daily temperature and mean daily ozone level. Because the distances are symmetric, only the lower triangle of the matrix is computed.
+The `dist()` function will return a distance matrix containing all pairwise distances between observations.
+Here is an example using only the first five observations of the `dongsi` data set, where each $\bm{y}_i$ is a vector of maximum daily temperature and mean daily ozone level.
+Because the distances are symmetric, only the lower triangle of the matrix is computed.
 
 ```{r}
 #| label: dist-example
 #| code-fold: false
+
 head(dongsi, 5)
 head(dongsi, 5) |>
   select(-date) |>
   dist()
 ```
 
-Other distance measures also exist, including $L_1$ (Manhattan), $L_p$ (Minkowski), and $L_\infty$ (Chebyshev) distances [@Borg2005]. The argument `method` in the `dist()` function specifies the type of distance to compute, with the default being Euclidean distance.
+Other distance measures also exist, including $L_1$ (Manhattan), $L_p$ (Minkowski), and $L_\infty$ (Chebyshev) distances [@Borg2005].
+The argument `method` in the `dist()` function specifies the type of distance to compute, with the default being Euclidean distance.
 
-A problem with all of these distances is that variables with large ranges dominate the calculation. For example, in the Dongsi air quality data, ozone levels range from 0 to over 500 $\mu g m^{-3}$, while maximum temperatures range from -14 to 41 degrees. So the distance between two observations will be dominated by the difference in ozone levels, and the difference in temperatures will have a smaller influence on the distance. Consequently, it is often preferable to scale the variables before computing distances, as discussed in @sec-scaling.
+A problem with all of these distances is that variables with large ranges dominate the calculation.
+For example, in the Dongsi air quality data, ozone levels range from 0 to over 500 $\mu g m^{-3}$, while maximum temperatures range from -14 to 41 degrees.
+So the distance between two observations will be dominated by the difference in ozone levels, and the difference in temperatures will have a smaller influence on the distance.
+Consequently, it is often preferable to scale the variables before computing distances, as discussed in @sec-scaling.
 
 We define the scaled observations as the robust multivariate z-scores, given by
 $$
   \bm{z}_i = \bm{U}(\bm{y}_i - \bm{m}),
 $$
-where $\bm{m}$ is the pointwise median and $\bm{U}^\intercal\bm{U} = \bm{S}_{\text{MCD}}^{-1}$ is the Cholesky decomposition of the inverse of the robust MCD covariance matrix (@sec-robust-cov). Then the Euclidean distance between the scaled observations $\bm{z}_i$ and $\bm{z}_j$ is given by
+where $\bm{m}$ is the pointwise median and $\bm{U}^\intercal\bm{U} = \bm{S}_{\text{MCD}}^{-1}$ is the Cholesky decomposition of the inverse of the robust MCD covariance matrix (@sec-robust-cov).
+Then the Euclidean distance between the scaled observations $\bm{z}_i$ and $\bm{z}_j$ is given by
 $$
-  \|\bm{z}_i - \bm{z}_j\| =
-   \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{U}^\intercal\bm{U} (\bm{y}_i - \bm{y}_j)} =
-   \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{S}_{\text{MCD}}^{-1} (\bm{y}_i - \bm{y}_j)}.
+  \|\bm{z}_i
+  - \bm{z}_j\| = \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{U}^\intercal\bm{U} (\bm{y}_i - \bm{y}_j)}
+                          = \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{S}_{\text{MCD}}^{-1} (\bm{y}_i - \bm{y}_j)}.
 $$
-This combination of first scaling using a covariance matrix (or its estimate) and then computing a Euclidean distance, is known as the **Mahalanobis distance**, named after the Indian statistician Prasanta Chandra Mahalanobis. It is a multivariate generalisation of the number of standard deviations separating two observations, and accounts for both the different scales of the variables and the correlations between them.
+This combination of first scaling using a covariance matrix (or its estimate) and then computing a Euclidean distance, is known as the **Mahalanobis distance**, named after the Indian statistician Prasanta Chandra Mahalanobis.
+It is a multivariate generalisation of the number of standard deviations separating two observations, and accounts for both the different scales of the variables and the correlations between them.
 
-We compute the scaled Dongsi air quality data using `mvscale()`, and then the Euclidean distances using `dist()` in order to obtain the Mahalanobis distances between the original observations. The first five rows of the scaled data are shown, and the resulting distance matrix is displayed.
+We compute the scaled Dongsi air quality data using `mvscale()`, and then the Euclidean distances using `dist()` in order to obtain the Mahalanobis distances between the original observations.
+The first five rows of the scaled data are shown, and the resulting distance matrix is displayed.
 
 ```{r}
 #| label: zscores
 #| code-fold: false
+
 z <- dongsi |>
   select(-date) |>
   mvscale()
@@ -95,21 +123,28 @@ head(z, 5) |>
 
 ## Mahalanobis anomaly scores {#sec-mahal-scores}
 
-Rather than compute distances between observations, we can compute the distance of each observation from the centre of the data. For example, if we define the centre as the pointwise median, then Mahalanobis distance from the centre can be expressed as
+Rather than compute distances between observations, we can compute the distance of each observation from the centre of the data.
+For example, if we define the centre as the pointwise median, then Mahalanobis distance from the centre can be expressed as
 $$
-  d_i  =  \|\bm{z}_i\| = \sqrt{(\bm{y}_i - \bm{m})^\intercal \bm{S}_{\text{MCD}}^{-1} (\bm{y}_i - \bm{m})}.
+  d_i = \|\bm{z}_i\|
+      = \sqrt{(\bm{y}_i - \bm{m})^\intercal \bm{S}_{\text{MCD}}^{-1} (\bm{y}_i - \bm{m})}.
 $$
-That is, it is equivalent to the Euclidean distance of the scaled observation $\bm{z}_i$ from the origin. A large $d_i$ means the observation is far from the centre of the data and is potentially anomalous.
+That is, it is equivalent to the Euclidean distance of the scaled observation $\bm{z}_i$ from the origin.
+A large $d_i$ means the observation is far from the centre of the data and is potentially anomalous.
 
-If the data were multivariate Normal, then we would expect the squared $d_i$ distances to follow a chi-squared distribution with $m$ degrees of freedom, where $m$ is the number of variables. This provides a natural threshold for flagging anomalies: we can flag $\bm{y}_i$ as an anomaly if $d_i > \sqrt{\chi^2_{m,1-\alpha}}$, where $\chi^2_{m,1-\alpha}$ is the $(1-\alpha)$-quantile of the chi-squared distribution with $m$ degrees of freedom.
+If the data were multivariate Normal, then we would expect the squared $d_i$ distances to follow a chi-squared distribution with $m$ degrees of freedom, where $m$ is the number of variables.
+This provides a natural threshold for flagging anomalies: we can flag $\bm{y}_i$ as an anomaly if $d_i > \sqrt{\chi^2_{m,1 - \alpha}}$, where $\chi^2_{m,1 - \alpha}$ is the $(1 - \alpha)$-quantile of the chi-squared distribution with $m$ degrees of freedom.
 
 We apply this to the Dongsi air quality data, using the scaled data `z` already computed in @sec-distances, and setting $\alpha = 0.001$ (so only 1 in 1000 non-anomalous observations would be expected to exceed the threshold).
 
 ```{r}
 #| label: fig-mahal-scores
-#| fig-cap: "Mahalanobis anomaly scores for the Dongsi air quality data. Observations flagged as anomalies (using a threshold based on the 0.999 quantile of the chi-squared distribution) are shown in blue."
+#| fig-cap: >-
+#|   Mahalanobis anomaly scores for the Dongsi air quality data.
+#|   Observations flagged as anomalies (using a threshold based on the 0.999 quantile of the chi-squared distribution) are shown in blue.
 #| code-fold: false
 #| dependson: zscores
+
 dongsi |>
   mutate(
     d = sqrt(z$z1^2 + z$z2^2),
@@ -120,9 +155,11 @@ dongsi |>
   labs(x = "Maximum temperature", y = "Ozone level")
 ```
 
-@fig-mahal-scores shows that the coldest day has been flagged as an anomaly, along with the two extreme ozone levels. In addition, the next two highest ozone levels have also been flagged as anomalies, although they are not far from the main data cloud, and are probably best understood as non-anomalous observations.
+@fig-mahal-scores shows that the coldest day has been flagged as an anomaly, along with the two extreme ozone levels.
+In addition, the next two highest ozone levels have also been flagged as anomalies, although they are not far from the main data cloud, and are probably best understood as non-anomalous observations.
 
-In this analysis, we have used robust measures of the centre and covariance of the data, to avoid the anomalies influencing the distance calculations. If we had used the non-robust mean and covariance, then the two extreme ozone levels would have had a large influence on the centre and spread of the data, and consequently the resulting distances would not have been very meaningful.
+In this analysis, we have used robust measures of the centre and covariance of the data, to avoid the anomalies influencing the distance calculations.
+If we had used the non-robust mean and covariance, then the two extreme ozone levels would have had a large influence on the centre and spread of the data, and consequently the resulting distances would not have been very meaningful.
 
 In the next approach, non-robust measures are used, but with a subset of observations that is believed to be free of anomalies.
 
@@ -130,53 +167,86 @@ In the next approach, non-robust measures are used, but with a subset of observa
 
 Francis Bacon wrote:
 
-> "Whoever knows the ways of Nature will more easily notice her deviations; and, on the other hand, whoever knows her deviations will more accurately describe her ways." [@Bacon1620, Book II, Aphorism 29]
+> "Whoever knows the ways of Nature will more easily notice her deviations; and, on the other hand, whoever knows her deviations will more accurately describe her ways."
+> [@Bacon1620, Book II, Aphorism 29]
 
-Inspired by this aphorism, @Billor2000 developed the BACON algorithm for multivariate outlier detection. The name also stands for "Blocked Adaptive Computationally efficient Outlier Nominator". The idea is to identify a clean subset of the data that is free of outliers, known as the "basic subset", and then use that subset to estimate the centre and spread of the data, and identify outliers as those observations that are far from that centre (as measured by the Mahalanobis distance). At each iteration, every observation whose Mahalanobis distance from the current basic subset falls below a data-adaptive threshold is admitted simultaneously. This process typically converges in a few iterations regardless of sample size. The algorithm is implemented in the `robustX::BACON()` function, which is designed to handle both multivariate data and regression data. We will discuss the regression version in @sec-bacon-reg.
+Inspired by this aphorism, @Billor2000 developed the BACON algorithm for multivariate outlier detection.
+The name also stands for "Blocked Adaptive Computationally efficient Outlier Nominator".
+The idea is to identify a clean subset of the data that is free of outliers, known as the "basic subset", and then use that subset to estimate the centre and spread of the data, and identify outliers as those observations that are far from that centre (as measured by the Mahalanobis distance).
+At each iteration, every observation whose Mahalanobis distance from the current basic subset falls below a data-adaptive threshold is admitted simultaneously.
+This process typically converges in a few iterations regardless of sample size.
+The algorithm is implemented in the `robustX::BACON()` function, which is designed to handle both multivariate data and regression data.
+We will discuss the regression version in @sec-bacon-reg.
 
-Given $n$ observations $\bm{y}_1, \dots, \bm{y}_n$, each of length $m$, let $B$ denote the current basic subset, and let $\bar{\bm{y}}_B$ and $\bm{S}_B$ be the mean vector and covariance matrix of the observations in $B$. These are non-robust measures of centre and spread, but because the basic subset is designed to be free of outliers, they should be reasonably accurate estimates of the centre and spread of the clean data. The algorithm proceeds as follows:
+Given $n$ observations $\bm{y}_1, \dots, \bm{y}_n$, each of length $m$, let $B$ denote the current basic subset, and let $\bar{\bm{y}}_B$ and $\bm{S}_B$ be the mean vector and covariance matrix of the observations in $B$.
+These are non-robust measures of centre and spread, but because the basic subset is designed to be free of outliers, they should be reasonably accurate estimates of the centre and spread of the clean data.
+The algorithm proceeds as follows:
 
-**Step 1: Initialise the basic subset**. Choose an initial $B$ of size $s = cm$, where $c$ is a small integer (set to 4 by default), and $m$ is the dimension of each observation $\bm{y}_i$. Several initialisation strategies are available. The default in `BACON()` is to compute the Mahalanobis distances from the full-data mean $\bar{\bm{y}}$ and covariance $\bm{S}$, and select the $s$ observations with the smallest distances. An alternative initialisation strategy is to compute distances from the univariate medians rather than the full-data mean. This is more robust to outliers, but the nominated outliers can change if the data are rotated or rescaled. Another strategy is to select $s$ observations at random. Because the initial subset is not anchored to the data centre, this can be more effective when the data are multimodal, but results may vary across runs.
+**Step 1: Initialise the basic subset**.
+Choose an initial $B$ of size $s = cm$, where $c$ is a small integer (set to 4 by default), and $m$ is the dimension of each observation $\bm{y}_i$.
+Several initialisation strategies are available.
+The default in `BACON()` is to compute the Mahalanobis distances from the full-data mean $\bar{\bm{y}}$ and covariance $\bm{S}$, and select the $s$ observations with the smallest distances.
+An alternative initialisation strategy is to compute distances from the univariate medians rather than the full-data mean.
+This is more robust to outliers, but the nominated outliers can change if the data are rotated or rescaled.
+Another strategy is to select $s$ observations at random.
+Because the initial subset is not anchored to the data centre, this can be more effective when the data are multimodal, but results may vary across runs.
 
-**Step 2: Compute discrepancies**. For each observation $\bm{y}_i$, compute the Mahalanobis distance from the basic subset:
+**Step 2: Compute discrepancies**.
+For each observation $\bm{y}_i$, compute the Mahalanobis distance from the basic subset:
 $$
   d_i(\bar{\bm{y}}_B, \bm{S}_B) = \sqrt{(\bm{y}_i - \bar{\bm{y}}_B)^\intercal \bm{S}_B^{-1} (\bm{y}_i - \bar{\bm{y}}_B)}.
 $$
 
-**Step 3: Expand the basic subset**. Update $B$ by admitting every observation with
+**Step 3: Expand the basic subset**.
+Update $B$ by admitting every observation with
 $$
-  d_i(\bar{\bm{y}}_B, \bm{S}_B) < c_{nmr}\sqrt{\chi^2_{m,1-\alpha}},
+  d_i(\bar{\bm{y}}_B, \bm{S}_B) < c_{nmr}\sqrt{\chi^2_{m,1 - \alpha}},
 $$
-where $\chi^2_{m,1-\alpha}$ is the $(1 - \alpha)$-quantile of the chi-squared distribution with $m$ degrees of freedom, and $c_{nmr} = c_{nm} + c_{hr}$ is a correction factor, where
+where $\chi^2_{m,1 - \alpha}$ is the $(1 - \alpha)$-quantile of the chi-squared distribution with $m$ degrees of freedom, and $c_{nmr} = c_{nm} + c_{hr}$ is a correction factor, where
 \begin{align*}
-  c_{nm} &= 1 + \frac{m+1}{n-m} + \frac{2}{n-1-3m} \\
-  c_{hr} &= \max\{0, (h-r)/(h+r)\},
+  c_{nm} & = 1 + \frac{m + 1}{n - m} + \frac{2}{n - 1 - 3m} \\
+  c_{hr} & = \max\{0, (h - r)/(h + r)\},
 \end{align*}
-$h = \lfloor(n + m + 1)/2\rfloor$, and $r$ is the number of observations in the current basic subset $B$. The correction factor $c_{nmr}$ inflates the threshold when the current basic subset of size $r$ is small relative to the target size $h$. This is because a small basic subset selected for being close to the data centre will have artificially compressed spread, so the Mahalanobis distances computed from it need to be inflated to something closer to what they would be from a full clean sample. As $r$ grows toward $h$, $c_{hr} \to 0$.
+$h = \lfloor(n + m + 1)/2\rfloor$, and $r$ is the number of observations in the current basic subset $B$.
+The correction factor $c_{nmr}$ inflates the threshold when the current basic subset of size $r$ is small relative to the target size $h$.
+This is because a small basic subset selected for being close to the data centre will have artificially compressed spread, so the Mahalanobis distances computed from it need to be inflated to something closer to what they would be from a full clean sample.
+As $r$ grows toward $h$, $c_{hr} \to 0$.
 
-**Step 4: Iterate**. Repeat Steps 2 and 3 until the size of $B$ no longer changes.
+**Step 4: Iterate**.
+Repeat Steps 2 and 3 until the size of $B$ no longer changes.
 
-**Step 5: Nominate outliers**. All observations excluded from the final $B$ are nominated as outliers.
+**Step 5: Nominate outliers**.
+All observations excluded from the final $B$ are nominated as outliers.
 
-At each step the algorithm only needs to compare $n$ distances against a single threshold, an $O(n)$ operation. By adding multiple observations at each iteration, BACON eliminates the need for many iterations, making it practical for data sets of millions of observations.
+At each step the algorithm only needs to compare $n$ distances against a single threshold, an $O(n)$ operation.
+By adding multiple observations at each iteration, BACON eliminates the need for many iterations, making it practical for data sets of millions of observations.
 
 ### Example: Dongsi air quality data
 
-We apply `robustX::BACON()` to the Dongsi air quality data. Because the Mahalanobis distance is used in the algorithm, there is no need to scale the data first. (The robust MCD covariance estimate we have been using is different from the standard covariance estimate used by BACON, but it shouldn't make much difference on a data set without outliers.) The default initialisation strategy is used, which selects the $s = cm = 4 \times 2 = 8$ observations with the smallest Mahalanobis distances from the full-data mean and covariance.
+We apply `robustX::BACON()` to the Dongsi air quality data.
+Because the Mahalanobis distance is used in the algorithm, there is no need to scale the data first.
+(The robust MCD covariance estimate we have been using is different from the standard covariance estimate used by BACON, but it shouldn't make much difference on a data set without outliers.)
+The default initialisation strategy is used, which selects the $s = cm = 4 \times 2 = 8$ observations with the smallest Mahalanobis distances from the full-data mean and covariance.
 
 ```{r}
 #| label: bacon-of
 #| code-fold: false
+
 bacon <- dongsi |>
   select(-date) |>
   robustX::BACON()
 ```
 
-The output shows the number of observations in each basic subset over the iterations. The algorithm converges in `r english::words(bacon$steps)` iterations, with the final basic subset containing `r sum(bacon$subset)` observations. The remaining `r english::words(NROW(dongsi) - sum(bacon$subset))` observations are nominated as outliers. The result contains a Mahalanobis distance in `$dis` for each observation, and a logical vector `$subset` that is `TRUE` for observations belonging to the final basic subset (the non-outliers). We attach these to the data and examine the nominated outliers.
+The output shows the number of observations in each basic subset over the iterations.
+The algorithm converges in `r english::words(bacon$steps)` iterations, with the final basic subset containing `r sum(bacon$subset)` observations.
+The remaining `r english::words(NROW(dongsi) - sum(bacon$subset))` observations are nominated as outliers.
+The result contains a Mahalanobis distance in `$dis` for each observation, and a logical vector `$subset` that is `TRUE` for observations belonging to the final basic subset (the non-outliers).
+We attach these to the data and examine the nominated outliers.
 
 ```{r}
 #| label: bacon-results
 #| code-fold: false
+
 aq_bacon <- dongsi |>
   mutate(
     distance = bacon$dis,
@@ -191,20 +261,27 @@ Only the two extreme ozone measurements have been identified as anomalies.
 
 ## Nearest neighbours {#sec-nn}
 
-The approaches discussed so far have scored each observation by its distance from a global centre. We now turn to methods that use the distances between each observation and its nearest neighbours, focusing on local structure rather than global structure. This local perspective is particularly useful for multimodal data, where no single centre can adequately represent the bulk of the data.
+The approaches discussed so far have scored each observation by its distance from a global centre.
+We now turn to methods that use the distances between each observation and its nearest neighbours, focusing on local structure rather than global structure.
+This local perspective is particularly useful for multimodal data, where no single centre can adequately represent the bulk of the data.
 
-If there are $n$ observations, then there are $n(n-1)/2$ pairwise distances to compute, so this is an $O(n^2)$ operation which can take a long time for large $n$.
+If there are $n$ observations, then there are $n(n - 1)/2$ pairwise distances to compute, so this is an $O(n^2)$ operation which can take a long time for large $n$.
 
-Some algorithms only compute the pairwise distances of the $k$ nearest observations, although finding those observations requires some additional distances to be computed. For some types of distances, efficient solutions are available using kd trees [@Bentley1975;@Arya1998] that find the $k$ nearest neighbours to each observation in $O(n\log(n))$ time.
+Some algorithms only compute the pairwise distances of the $k$ nearest observations, although finding those observations requires some additional distances to be computed.
+For some types of distances, efficient solutions are available using kd trees [@Bentley1975;@Arya1998] that find the $k$ nearest neighbours to each observation in $O(n\log(n))$ time.
 
-The calculation of $k$ nearest neighbours is useful for more than anomaly detection problems. It is also the basis of a popular classification method due to the Berkeley statisticians Evelyn Fix and Joe Hodges [@knn] which is often known as the "kNN algorithm".
+The calculation of $k$ nearest neighbours is useful for more than anomaly detection problems.
+It is also the basis of a popular classification method due to the Berkeley statisticians Evelyn Fix and Joe Hodges [@knn] which is often known as the "kNN algorithm".
 
-Suppose we use the Dongsi air quality data to find observations that are neighbours in the (`o3`, `max_temp`) space. The `dbscan` package uses kd trees to quickly identify the $k$ nearest neighbours to each observation. We will use the scaled data `z` computed in @sec-distances to find the 5 nearest neighbours to each observation.
+Suppose we use the Dongsi air quality data to find observations that are neighbours in the (`o3`, `max_temp`) space.
+The `dbscan` package uses kd trees to quickly identify the $k$ nearest neighbours to each observation.
+We will use the scaled data `z` computed in @sec-distances to find the 5 nearest neighbours to each observation.
 
 ```{r}
 #| label: knn
 #| code-fold: false
 #| dependson: zscores
+
 # Find 5 nearest neighbours to each observation
 knn <- dbscan::kNN(z, k = 5)
 # First observation in the data set
@@ -213,12 +290,14 @@ dongsi[1, ]
 dongsi[knn$id[1, ], ]
 ```
 
-For large data sets, approximations are available which speed up the computation even more, but are less accurate in finding the $k$ nearest neighbours. The `approx` argument specifies a distance tolerance which makes the process faster for large data sets, although the neighbours returned may not be the exact nearest neighbours.
+For large data sets, approximations are available which speed up the computation even more, but are less accurate in finding the $k$ nearest neighbours.
+The `approx` argument specifies a distance tolerance which makes the process faster for large data sets, although the neighbours returned may not be the exact nearest neighbours.
 
 ```{r}
 #| label: ann
 #| code-fold: false
 #| dependson: zscores
+
 # Find 5 approximate nearest neighbours to each observation
 kann <- dbscan::kNN(z, k = 5, approx = 2)
 # Five closest observations
@@ -229,14 +308,18 @@ In this case, the same five observations have been found.
 
 ## kNN anomaly scores {#sec-knn-scores}
 
-The simplest way to use nearest neighbours for anomaly detection is to score each observation by its distance to its $k$-th nearest neighbour. Let $d_{i,k}$ denote the distance between observation $\bm{y}_i$ and its $k$-th nearest neighbour. A large $d_{i,k}$ means the observation is far from its neighbourhood and is likely anomalous; a small value indicates a dense neighbourhood and a typical observation.
+The simplest way to use nearest neighbours for anomaly detection is to score each observation by its distance to its $k$-th nearest neighbour.
+Let $d_{i,k}$ denote the distance between observation $\bm{y}_i$ and its $k$-th nearest neighbour.
+A large $d_{i,k}$ means the observation is far from its neighbourhood and is likely anomalous; a small value indicates a dense neighbourhood and a typical observation.
 
-The `dbscan::kNNdist()` function computes $d_{i,k}$ for every observation. Here we apply it to the scaled Dongsi air quality data with $k = 20$, chosen after experimenting with various values.
+The `dbscan::kNNdist()` function computes $d_{i,k}$ for every observation.
+Here we apply it to the scaled Dongsi air quality data with $k = 20$, chosen after experimenting with various values.
 
 ```{r}
 #| label: knn-scores
 #| code-fold: false
 #| dependson: zscores
+
 dongsi_knn <- dongsi |>
   mutate(score = dbscan::kNNdist(z, k = 20))
 dongsi_knn |> arrange(desc(score))
@@ -244,14 +327,19 @@ dongsi_knn |> arrange(desc(score))
 
 ```{r}
 #| label: fig-knn-scores
-#| fig-cap: "Extreme kNN anomaly scores for the Dongsi air quality data, using the distance to the 20th nearest neighbour on the scaled data. Points with scores exceeding the 99.5th percentile are highlighted."
+#| fig-cap: >-
+#|   Extreme kNN anomaly scores for the Dongsi air quality data, using the distance to the 20th nearest neighbour on the scaled data.
+#|   Points with scores exceeding the 99.5th percentile are highlighted.
 #| dependson: knn-scores
+
 threshold <- quantile(dongsi_knn$score, 0.995)
 dongsi_knn |>
   mutate(anomaly = score > threshold) |>
   ggplot(aes(x = max_temp, y = o3)) +
   geom_point(aes(colour = anomaly)) +
-  scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = discrete_colours[2])) +
+  scale_colour_manual(
+    values = c("FALSE" = "grey70", "TRUE" = discrete_colours[2])
+  ) +
   labs(x = "Maximum temperature", y = "Ozone level") +
   guides(colour = "none")
 ```
@@ -259,28 +347,39 @@ dongsi_knn |>
 ```{r}
 #| label: knn-scores-check
 #| include: false
+
 stopifnot(sum(dongsi_knn$score > threshold) == 7)
 ```
 
-The two extreme ozone levels, and the very cold day, have all been identified as anomalies. In addition, four other days whose ozone levels are at the top edge of the main data cluster have also been flagged as anomalies, but none of the three hottest days have been flagged as anomalies.
+The two extreme ozone levels, and the very cold day, have all been identified as anomalies.
+In addition, four other days whose ozone levels are at the top edge of the main data cluster have also been flagged as anomalies, but none of the three hottest days have been flagged as anomalies.
 
-A feature of the kNN anomaly score is that $d_{i,k}$ is an absolute distance. It does not adjust for the sparseness of the neighbourhood, so an observation in a naturally sparse region of the data will receive a higher score than one in a naturally dense region, even if it is no more unusual relative to its local neighbours. Often this is what we want, but in some applications we want to find observations that are anomalies in their local neighbourhood. The local outlier factor, introduced in the next section, is designed to address this issue.
+A feature of the kNN anomaly score is that $d_{i,k}$ is an absolute distance.
+It does not adjust for the sparseness of the neighbourhood, so an observation in a naturally sparse region of the data will receive a higher score than one in a naturally dense region, even if it is no more unusual relative to its local neighbours.
+Often this is what we want, but in some applications we want to find observations that are anomalies in their local neighbourhood.
+The local outlier factor, introduced in the next section, is designed to address this issue.
 
 ## Local outlier factors {#sec-lof}
 
-A popular way of using $k$-nearest neighbours for anomaly detection is via local outlier factors [@lof]. This is designed to find observations that are unusual relative to their local neighbourhood, rather than anomalous relative to the global structure of the data.
+A popular way of using $k$-nearest neighbours for anomaly detection is via local outlier factors [@lof].
+This is designed to find observations that are unusual relative to their local neighbourhood, rather than anomalous relative to the global structure of the data.
 
 Suppose we write the distance between observations $\bm{y}_i$ and $\bm{y}_j$ as $\|\bm{y}_i - \bm{y}_j\|$, and let $d_{i,k}$ be the distance between observation $\bm{y}_i$ and its $k$th nearest neighbour (as defined in @sec-knn-scores).
 
-Let $N_{i,k}$ be the set of $k$ nearest neighbours within $d_{i,k}$ of $\bm{y}_i$. (If there are multiple observations all exactly $d_{i,k}$ from $\bm{y}_i$, then $N_{i,k}$ may contain more than $k$ observations, but we will ignore that issue here.)
+Let $N_{i,k}$ be the set of $k$ nearest neighbours within $d_{i,k}$ of $\bm{y}_i$.
+(If there are multiple observations all exactly $d_{i,k}$ from $\bm{y}_i$, then $N_{i,k}$ may contain more than $k$ observations, but we will ignore that issue here.)
 
 Note that an observation $\bm{y}_j$ may be within $N_{i,k}$ while $\bm{y}_i$ does not fall within $N_{j,k}$, as shown in @fig-njk.
 
 ```{r}
 #| label: fig-njk
-#| fig-cap: "A synthetic data set of 11 observations. Nearest neighbourhoods containing five observations each are shown for $\\bm{y}_1$ (in orange) and $\\bm{y}_2$ (in blue). The neighbourhood of $\\bm{y}_1$ contains $\\bm{y}_2$ in its nearest five observations, but $\\bm{y}_2$ does not include $\\bm{y}_1$ in its nearest five observations."
+#| fig-cap: >-
+#|   A synthetic data set of 11 observations.
+#|   Nearest neighbourhoods containing five observations each are shown for $\bm{y}_1$ (in orange) and $\bm{y}_2$ (in blue).
+#|   The neighbourhood of $\bm{y}_1$ contains $\bm{y}_2$ in its nearest five observations, but $\bm{y}_2$ does not include $\bm{y}_1$ in its nearest five observations.
 #| warning: false
 #| echo: false
+
 set.seed(2)
 df <- tibble(
   x = c(rnorm(5), rnorm(6, 5, 1)),
@@ -335,34 +434,43 @@ df |>
   theme_void()
 ```
 
-Let $r_k(i,j) = \max(d_{j,k}, \|\bm{y}_i-\bm{y}_j\|)$ be the "reachability" of $\bm{y}_i$ from $\bm{y}_j$. Thus, $r_k(i,j)$ is the distance between observations $\bm{y}_i$ and $\bm{y}_j$ when they are far from each other, but is equal to $d_{j,k}$ if $\bm{y}_i$ is one of the $k$ nearest neighbours of $\bm{y}_j$. The reachability is a truncated variant of the usual Euclidean distance $\|\bm{y}_i-\bm{y}_j\|$ so that it is not less than $d_{j,k}$.
+Let $r_k(i,j) = \max(d_{j,k}, \|\bm{y}_i - \bm{y}_j\|)$ be the "reachability" of $\bm{y}_i$ from $\bm{y}_j$.
+Thus, $r_k(i,j)$ is the distance between observations $\bm{y}_i$ and $\bm{y}_j$ when they are far from each other, but is equal to $d_{j,k}$ if $\bm{y}_i$ is one of the $k$ nearest neighbours of $\bm{y}_j$.
+The reachability is a truncated variant of the usual Euclidean distance $\|\bm{y}_i - \bm{y}_j\|$ so that it is not less than $d_{j,k}$.
 
 The average reachability of $\bm{y}_i$ *from* its nearest neighbours is given by
 $$
   \bar{r}_{i,k} = k^{-1} \sum_{\bm{y}_j \in N_{i,k}} r_k(i,j)
 $$
-This is not the same as the average reachability of the neighbours *from* $\bm{y}_i$ which, by definition, would be $d_{i,k}$. An observation will have high average reachability if it is far from its neighbours, whereas it will have low average reachability if it has many close neighbours.
+This is not the same as the average reachability of the neighbours *from* $\bm{y}_i$ which, by definition, would be $d_{i,k}$.
+An observation will have high average reachability if it is far from its neighbours, whereas it will have low average reachability if it has many close neighbours.
 
 Then the local outlier factor for observation $\bm{y}_i$ is given by
 $$
-\ell_{i,k} = \frac{\bar{r}_{i,k}}{k}\sum_{\bm{y}_j \in N_{i,k}} \bar{r}^{-1}_{j,k}.
+  \ell_{i,k} = \frac{\bar{r}_{i,k}}{k}\sum_{\bm{y}_j \in N_{i,k}} \bar{r}^{-1}_{j,k}.
 $$
 Thus, it is the product of $\bar{r}_{i,k}$ and the average value of $\bar{r}^{-1}_{j,k}$ for points within its neighbourhood.
 
-This provides a relative measure of the density of each observation compared to its neighbours. An observation is regarded as an anomaly if it is in a low-density region while its neighbours are in higher density regions. A value of $\ell_{i,k}$ much greater than 1 shows that the observation has much larger average reachability compared to its neighbours, and so is regarded as an anomaly.
+This provides a relative measure of the density of each observation compared to its neighbours.
+An observation is regarded as an anomaly if it is in a low-density region while its neighbours are in higher density regions.
+A value of $\ell_{i,k}$ much greater than 1 shows that the observation has much larger average reachability compared to its neighbours, and so is regarded as an anomaly.
 
-One problem with this definition is that $\ell_{i,k}$ can be infinite. If the data set contains at least $k+1$ identical observations, then the average reachability $\bar{r}_{j,k}$ will be 0 if $\bm{y}_j$ is one of the group of identical observations. Consequently, $\ell_{i,k} = \infty$ if $\bm{y}_i$ is a neighbour to one of the group of identical observations. In this book we use a slightly different definition from that used elsewhere and replace these infinite values with 1s (indicating they have similar reachability to their identical neighbours).
+One problem with this definition is that $\ell_{i,k}$ can be infinite.
+If the data set contains at least $k + 1$ identical observations, then the average reachability $\bar{r}_{j,k}$ will be 0 if $\bm{y}_j$ is one of the group of identical observations.
+Consequently, $\ell_{i,k} = \infty$ if $\bm{y}_i$ is a neighbour to one of the group of identical observations.
+In this book we use a slightly different definition from that used elsewhere and replace these infinite values with 1s (indicating they have similar reachability to their identical neighbours).
 
 Another problem is that it can be difficult to determine an appropriate value for $k$.
 
 ### Example: Dongsi air quality data
 
-Let's apply the idea to the bivariate Dongsi air quality data using the scaled variables `z`, with $k=20$ nearest neighbours.
+Let's apply the idea to the bivariate Dongsi air quality data using the scaled variables `z`, with $k = 20$ nearest neighbours.
 
 ```{r}
 #| label: ofscores
 #| dependson: zscores
 #| code-fold: false
+
 dongsi_scores <- dongsi |>
   mutate(lof = lof_scores(z, k = 20))
 dongsi_scores |> arrange(desc(lof))
@@ -372,32 +480,43 @@ Here the same two extreme ozone observations have been identified, along with th
 
 ```{r}
 #| label: fig-ofscores
-#| fig-cap: "Local outlier factors for the Dongsi air quality data. Points with LOF scores exceeding the 99.5th percentile are highlighted."
+#| fig-cap: >-
+#|   Local outlier factors for the Dongsi air quality data.
+#|   Points with LOF scores exceeding the 99.5th percentile are highlighted.
 #| dependson: ofscores
+
 threshold <- quantile(dongsi_scores$lof, 0.995)
 dongsi_scores |>
   mutate(anomaly = lof > threshold) |>
   ggplot(aes(x = max_temp, y = o3)) +
   geom_point(aes(colour = anomaly)) +
-  scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = discrete_colours[2])) +
+  scale_colour_manual(
+    values = c("FALSE" = "grey70", "TRUE" = discrete_colours[2])
+  ) +
   labs(x = "Maximum temperature", y = "Ozone level") +
   guides(colour = "none")
 ```
 
-@fig-ofscores shows the most extreme local outlier factors across the (`max_temp`, `o3`) space. The most extreme anomalies are shown again, but different observations are identified around the edges of the  cluster. The local outlier factor has identified observations that are in low-density regions relative to their neighbours, regardless of how far they are from the centre of the data.
-
+@fig-ofscores shows the most extreme local outlier factors across the (`max_temp`, `o3`) space.
+The most extreme anomalies are shown again, but different observations are identified around the edges of the cluster.
+The local outlier factor has identified observations that are in low-density regions relative to their neighbours, regardless of how far they are from the centre of the data.
 
 ## GLOSH scores {#sec-glosh}
 
-The **Global-Local Outlier Score from Hierarchies** (GLOSH) was proposed by @glosh as part of the HDBSCAN clustering framework. Like LOF, it measures how crowded each observation's neighbourhood is compared to surrounding neighbourhoods, but it does so by looking at a full hierarchy of clusters rather than just the immediate $k$ neighbours. The "global--local" label reflects the fact that each observation is compared to a reference chosen *locally* from its own cluster, while the resulting scores are normalised to a common scale that makes them comparable *globally* across the whole data set.
+The **Global-Local Outlier Score from Hierarchies** (GLOSH) was proposed by @glosh as part of the HDBSCAN clustering framework.
+Like LOF, it measures how crowded each observation's neighbourhood is compared to surrounding neighbourhoods, but it does so by looking at a full hierarchy of clusters rather than just the immediate $k$ neighbours.
+The "global--local" label reflects the fact that each observation is compared to a reference chosen *locally* from its own cluster, while the resulting scores are normalised to a common scale that makes them comparable *globally* across the whole data set.
 
 ### Mutual reachability distances
 
-The starting point is the core distance $d_{i,k}$ introduced in @sec-knn-scores --- that is, the distance from $\bm{y}_i$ to its $k$-th nearest neighbour. The **mutual reachability distance** between observations $\bm{y}_i$ and $\bm{y}_j$ is a smoothed version of the usual distance:
+The starting point is the core distance $d_{i,k}$ introduced in @sec-knn-scores --- that is, the distance from $\bm{y}_i$ to its $k$-th nearest neighbour.
+The **mutual reachability distance** between observations $\bm{y}_i$ and $\bm{y}_j$ is a smoothed version of the usual distance:
 $$
   d_\text{mreach}(\bm{y}_i, \bm{y}_j) = \max(d_{i,k},\, d_{j,k},\, \|\bm{y}_i - \bm{y}_j\|).
 $$
-This is always at least as large as the actual distance between the two points, and it can never fall below the larger of the two core distances. The effect is that very close pairs sitting inside a tightly packed region cannot drag the inter-point distance arbitrarily low: their mutual reachability is held up by the local core distance. This stabilises the hierarchy that is built next.
+This is always at least as large as the actual distance between the two points, and it can never fall below the larger of the two core distances.
+The effect is that very close pairs sitting inside a tightly packed region cannot drag the inter-point distance arbitrarily low: their mutual reachability is held up by the local core distance.
+This stabilises the hierarchy that is built next.
 
 ### The HDBSCAN hierarchy
 
@@ -409,30 +528,40 @@ As distance threshold $\varepsilon$ increases from very small to very large, the
 - As $\varepsilon$ increases, observations one by one cease to be noise and join clusters; clusters appear, grow, and eventually merge with each other.
 - At very large $\varepsilon$, every observation is absorbed into one all-encompassing cluster.
 
-For each observation $\bm{y}_i$, let $\varepsilon_i = d_{i,k}$. This is the smallest distance threshold at which $\bm{y}_i$ qualifies as a core point: for $\varepsilon \ge \varepsilon_i$ it can belong to a cluster, but as soon as $\varepsilon$ drops below $\varepsilon_i$ it falls back into noise. So $\varepsilon_i$ is the distance threshold at which $\bm{y}_i$ *joins* a cluster going upwards, or equivalently the threshold at which it *leaves* its cluster going downwards. Points with many close neighbours have a small $\varepsilon_i$; isolated points have a large $\varepsilon_i$.
+For each observation $\bm{y}_i$, let $\varepsilon_i = d_{i,k}$.
+This is the smallest distance threshold at which $\bm{y}_i$ qualifies as a core point: for $\varepsilon \ge \varepsilon_i$ it can belong to a cluster, but as soon as $\varepsilon$ drops below $\varepsilon_i$ it falls back into noise.
+So $\varepsilon_i$ is the distance threshold at which $\bm{y}_i$ *joins* a cluster going upwards, or equivalently the threshold at which it *leaves* its cluster going downwards.
+Points with many close neighbours have a small $\varepsilon_i$; isolated points have a large $\varepsilon_i$.
 
 In the hierarchy, let $C_i$ denote the smallest (deepest) cluster that contains $\bm{y}_i$ --- that is, the cluster that $\bm{y}_i$ belongs to just before it falls out into noise as the threshold shrinks.
 
 ### GLOSH scores
 
-For each observation $\bm{y}_i$, let $\varepsilon_i^{\text{min}}$ be the smallest distance threshold at which $C_i$ or any of its sub-clusters still exists. Loosely, $\varepsilon_i^{\text{min}}$ marks the most tightly packed pocket nested anywhere inside $\bm{y}_i$'s local cluster: at thresholds below this value, every observation in $C_i$ has dropped out as noise. (Including the sub-clusters matters: pockets that survive at smaller thresholds than $\varepsilon_i$ itself are exactly what make $\bm{y}_i$ look like an outlier relative to its cluster.) By construction $\varepsilon_i^{\text{min}} \le \varepsilon_i$.
+For each observation $\bm{y}_i$, let $\varepsilon_i^{\text{min}}$ be the smallest distance threshold at which $C_i$ or any of its sub-clusters still exists.
+Loosely, $\varepsilon_i^{\text{min}}$ marks the most tightly packed pocket nested anywhere inside $\bm{y}_i$'s local cluster: at thresholds below this value, every observation in $C_i$ has dropped out as noise.
+(Including the sub-clusters matters: pockets that survive at smaller thresholds than $\varepsilon_i$ itself are exactly what make $\bm{y}_i$ look like an outlier relative to its cluster.)
+By construction $\varepsilon_i^{\text{min}} \le \varepsilon_i$.
 
 The GLOSH score is then
 $$
   g_i = 1 - \frac{\varepsilon_i^{\text{min}}}{\varepsilon_i} \in [0, 1).
 $$ {#eq-glosh}
-An observation that stays a cluster member almost all the way down to the smallest threshold reached inside its cluster has $\varepsilon_i \approx \varepsilon_i^{\text{min}}$, giving a score close to 0. An observation that drops out of its cluster early --- while more tightly packed sub-clusters inside $C_i$ continue to exist at much smaller thresholds --- has $\varepsilon_i^{\text{min}} \ll \varepsilon_i$, giving a score close to 1.
+An observation that stays a cluster member almost all the way down to the smallest threshold reached inside its cluster has $\varepsilon_i \approx \varepsilon_i^{\text{min}}$, giving a score close to 0.
+An observation that drops out of its cluster early --- while more tightly packed sub-clusters inside $C_i$ continue to exist at much smaller thresholds --- has $\varepsilon_i^{\text{min}} \ll \varepsilon_i$, giving a score close to 1.
 
-Because $\varepsilon_i^{\text{min}}$ is defined inside each observation's own cluster, GLOSH adapts to the local crowding of the data (much like LOF does), but the scores it produces are still on a common $[0, 1)$ scale, so they can be compared across clusters with very different spacings. This is the sense in which GLOSH is simultaneously local and global.
+Because $\varepsilon_i^{\text{min}}$ is defined inside each observation's own cluster, GLOSH adapts to the local crowding of the data (much like LOF does), but the scores it produces are still on a common $[0, 1)$ scale, so they can be compared across clusters with very different spacings.
+This is the sense in which GLOSH is simultaneously local and global.
 
 ### Example: Dongsi air quality data
 
-We can compute GLOSH scores using the `glosh_scores()` function, with `k` determining the core distance $d_{i,k}$. Here we use $k = 20$ again, applied to the scaled bivariate data `z`.
+We can compute GLOSH scores using the `glosh_scores()` function, with `k` determining the core distance $d_{i,k}$.
+Here we use $k = 20$ again, applied to the scaled bivariate data `z`.
 
 ```{r}
 #| label: ofglosh
 #| code-fold: false
 #| dependson: zscores
+
 dongsi_glosh <- dongsi |>
   mutate(glosh = glosh_scores(z, k = 20))
 dongsi_glosh |> arrange(desc(glosh))
@@ -440,15 +569,20 @@ dongsi_glosh |> arrange(desc(glosh))
 
 ```{r}
 #| label: fig-ofglosh
-#| fig-cap: "Extreme GLOSH scores for the Dongsi air quality data. Points with GLOSH scores exceeding the 99.5th percentile are highlighted."
+#| fig-cap: >-
+#|   Extreme GLOSH scores for the Dongsi air quality data.
+#|   Points with GLOSH scores exceeding the 99.5th percentile are highlighted.
 #| fig-asp: 0.5
 #| dependson: ofglosh
+
 threshold <- quantile(dongsi_glosh$glosh, 0.995)
 dongsi_glosh |>
   mutate(anomaly = glosh > threshold) |>
   ggplot(aes(x = max_temp, y = o3)) +
   geom_point(aes(colour = anomaly)) +
-  scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = discrete_colours[2])) +
+  scale_colour_manual(
+    values = c("FALSE" = "grey70", "TRUE" = discrete_colours[2])
+  ) +
   labs(x = "Maximum temperature", y = "Ozone level") +
   guides(colour = "none")
 ```
@@ -457,38 +591,54 @@ dongsi_glosh |>
 
 We have looked at three different scoring methods based on nearest neighbours, designed to identify anomalies in slightly different ways.
 
-* The kNN anomaly score is a global measure based on simple absolute distance to the $k$-th nearest neighbour. It identifies anomalies as observations that are far from their neighbours.
-* The LOF anomaly score is a relative measure, based on how crowded the local neighbourhood is compared to surrounding neighbourhoods. It identifies anomalies as observations that are in sparse regions relative to their neighbours, regardless of how far they are from the centre of the data.
-* The GLOSH anomaly score balances local and global perspectives by comparing each observation to others in its local cluster, while normalising scores to be globally comparable. It identifies anomalies as observations that separate from their cluster early, while denser sub-clusters persist at smaller thresholds.
+- The kNN anomaly score is a global measure based on simple absolute distance to the $k$-th nearest neighbour.
+  It identifies anomalies as observations that are far from their neighbours.
+- The LOF anomaly score is a relative measure, based on how crowded the local neighbourhood is compared to surrounding neighbourhoods.
+  It identifies anomalies as observations that are in sparse regions relative to their neighbours, regardless of how far they are from the centre of the data.
+- The GLOSH anomaly score balances local and global perspectives by comparing each observation to others in its local cluster, while normalising scores to be globally comparable.
+  It identifies anomalies as observations that separate from their cluster early, while denser sub-clusters persist at smaller thresholds.
 
 ## Isolation forest {#sec-iforest}
 
-The methods discussed so far in this chapter all build their anomaly scores by measuring, in one way or another, how far each observation is from the bulk of the data. A conceptually different approach is to ask instead: *how easy is it to isolate this observation from the rest?* This is the idea behind the Isolation Forest algorithm of @Liu2008-dp.
+The methods discussed so far in this chapter all build their anomaly scores by measuring, in one way or another, how far each observation is from the bulk of the data.
+A conceptually different approach is to ask instead: *how easy is it to isolate this observation from the rest?* This is the idea behind the Isolation Forest algorithm of @Liu2008-dp.
 
 ### Isolation trees
 
-Trees are a common tool for classification and regression, and involve recursively partitioning the data into smaller and smaller subsets. The partitions are usually chosen to maximise some measure of homogeneity within the resulting subsets. In contrast, an isolation tree is built by recursively partitioning the data using *random* splits that are independent of the data values. The goal is not to create homogeneous subsets, but rather to isolate individual observations.
+Trees are a common tool for classification and regression, and involve recursively partitioning the data into smaller and smaller subsets.
+The partitions are usually chosen to maximise some measure of homogeneity within the resulting subsets.
+In contrast, an isolation tree is built by recursively partitioning the data using *random* splits that are independent of the data values.
+The goal is not to create homogeneous subsets, but rather to isolate individual observations.
 
-Because anomalies are rare and have unusual attribute values, they are more likely to be separated from the rest of the data by a random split. Non-anomalous observations, on the other hand, are usually surrounded by many similar neighbours and typically require more splits to be isolated. Thus, the number of splits required to isolate an observation can be used as a measure of its anomalousness: fewer splits indicate a more anomalous observation.
+Because anomalies are rare and have unusual attribute values, they are more likely to be separated from the rest of the data by a random split.
+Non-anomalous observations, on the other hand, are usually surrounded by many similar neighbours and typically require more splits to be isolated.
+Thus, the number of splits required to isolate an observation can be used as a measure of its anomalousness: fewer splits indicate a more anomalous observation.
 
 To build an **isolation tree** (iTree), we recursively partition the data as follows:
 
 1. Select a variable $q$ uniformly at random from all variables.
 2. Select a split value $p$ uniformly at random from the range of $q$ in the current sample.
 3. Assign observations with $q < p$ to the left child node and the rest to the right child node.
-4. Recursively apply Steps 1--3 on each child until either the node contains a single observation or a maximum tree height is reached. By default, the maximum tree height is set to $\lceil\log_2(n)\rceil$.
+4. Recursively apply Steps 1--3 on each child until either the node contains a single observation or a maximum tree height is reached.
+   By default, the maximum tree height is set to $\lceil\log_2(n)\rceil$.
 
-Because we stop when a maximum tree height is reached, nodes that contain more than one observation when the recursion terminates are given an adjustment for the expected additional depth. The **path length** $h(\bm{y})$ of an observation $\bm{y}$ is the number of splits required to isolate $\bm{y}$, plus any adjustment for an unfinished subtree. The path length is therefore inversely related to anomalousness. The expected path length is approximately
+Because we stop when a maximum tree height is reached, nodes that contain more than one observation when the recursion terminates are given an adjustment for the expected additional depth.
+The **path length** $h(\bm{y})$ of an observation $\bm{y}$ is the number of splits required to isolate $\bm{y}$, plus any adjustment for an unfinished subtree.
+The path length is therefore inversely related to anomalousness.
+The expected path length is approximately
 $$
-  c(n) = 2\left[\log(n-1) + \gamma - 1 + 1/n\right],
+  c(n) = 2\left[\log(n - 1) + \gamma - 1 + 1/n\right],
 $$
-where $\gamma \approx 0.5772$ is Euler's constant. Because this is a function of $n$, we cannot directly compare path lengths across data sets of different sizes.
+where $\gamma \approx 0.5772$ is Euler's constant.
+Because this is a function of $n$, we cannot directly compare path lengths across data sets of different sizes.
 
-To illustrate the procedure, we build an iTree for the `dongsi` data, but with maximum depth set to 3. The resulting tree is shown in @fig-iso-tree.
+To illustrate the procedure, we build an iTree for the `dongsi` data, but with maximum depth set to 3.
+The resulting tree is shown in @fig-iso-tree.
 
 ```{r}
 #| label: iso-tree
 #| code-fold: false
+
 library(isotree)
 # Fit one tree with low max depth
 tree <- dongsi |>
@@ -501,6 +651,7 @@ tree <- dongsi |>
 #| echo: false
 #| fig-cap: "A simple isolation tree for the Dongsi air quality data, with maximum depth set to 3."
 #| dependson: iso-tree
+
 library(tidygraph)
 library(ggraph)
 library(purrr)
@@ -520,7 +671,11 @@ nodes <- tibble(id = as.integer(names(tj)), node = unname(tj)) |>
     value = map_dbl(node, "value", .default = NA_real_),
     leaf = map_int(node, "leaf", .default = NA_integer_) + 1,
     left = map_int(node, "node_when_condition_is_met", .default = NA_integer_),
-    right = map_int(node, "node_when_condition_is_not_met", .default = NA_integer_)
+    right = map_int(
+      node,
+      "node_when_condition_is_not_met",
+      .default = NA_integer_
+    )
   ) |>
   select(-node) |>
   arrange(id)
@@ -574,13 +729,19 @@ ggraph(g, layout = "tree") +
   theme_void(base_size = 12)
 ```
 
-Another way to visualise the same tree structure is to show the splits as lines on the scatterplot, as in @fig-iforest-tree. Each split is confined to the rectangle defined by its parent node, so the splits are nested within each other. Each leaf corresponds to a final rectangle containing one or more observations. The path length for an observation is the number of splits required to isolate it.
+Another way to visualise the same tree structure is to show the splits as lines on the scatterplot, as in @fig-iforest-tree.
+Each split is confined to the rectangle defined by its parent node, so the splits are nested within each other.
+Each leaf corresponds to a final rectangle containing one or more observations.
+The path length for an observation is the number of splits required to isolate it.
 
 ```{r}
 #| label: fig-iforest-tree
-#| fig-cap: "First four random splits from a single isolation tree fitted to the Dongsi air quality data. After the third split, one observation (at the bottom left) has been isolated, while the rest of the data are still in groups containing multiple observations."
+#| fig-cap: >-
+#|   First four random splits from a single isolation tree fitted to the Dongsi air quality data.
+#|   After the third split, one observation (at the bottom left) has been isolated, while the rest of the data are still in groups containing multiple observations.
 #| echo: false
 #| dependson: iso-tree
+
 # ---- 1. Plot bounds (pad by 4% on each side) ----
 xr <- range(dongsi$max_temp)
 yr <- range(dongsi$o3)
@@ -603,7 +764,14 @@ walk <- function(id, xmin, xmax, ymin, ymax) {
   }
   v <- n$value
   if (n$column == "max_temp") {
-    seg <- tibble(id = id, kind = "split", xmin = v, xmax = v, ymin = ymin, ymax = ymax)
+    seg <- tibble(
+      id = id,
+      kind = "split",
+      xmin = v,
+      xmax = v,
+      ymin = ymin,
+      ymax = ymax
+    )
     bind_rows(
       seg,
       walk(n$left, xmin, min(xmax, v), ymin, ymax),
@@ -611,7 +779,14 @@ walk <- function(id, xmin, xmax, ymin, ymax) {
     )
   } else {
     # split on "o3"
-    seg <- tibble(id = id, kind = "split", xmin = xmin, xmax = xmax, ymin = v, ymax = v)
+    seg <- tibble(
+      id = id,
+      kind = "split",
+      xmin = xmin,
+      xmax = xmax,
+      ymin = v,
+      ymax = v
+    )
     bind_rows(
       seg,
       walk(n$left, xmin, xmax, ymin, min(ymax, v)),
@@ -625,7 +800,10 @@ partition_df <- walk(1L, xlim[1], xlim[2], ylim[1], ylim[2]) |>
 
 splits_df <- partition_df |>
   filter(kind == "split") |>
-  left_join(g |> activate(nodes) |> as_tibble() |> select(id, split), by = "id") |>
+  left_join(
+    g |> activate(nodes) |> as_tibble() |> select(id, split),
+    by = "id"
+  ) |>
   mutate(
     label = paste0("Split ", split),
     lab_x = if_else(column == "max_temp", xmin, xmax),
@@ -682,15 +860,24 @@ ggplot() +
   )
 ```
 
-This shows that the first split separates the two largest ozone values from the rest of the data. The second split divides the main cluster into two unequal groups, while the third split separates off the coldest day from the rest of the main cluster.
+This shows that the first split separates the two largest ozone values from the rest of the data.
+The second split divides the main cluster into two unequal groups, while the third split separates off the coldest day from the rest of the main cluster.
 
-A tree with a larger maximum depth would continue splitting the remaining observations into smaller groups, so the path lengths for the other observations would be larger. The largest ozone levels are more likely to be isolated early on, because they can be separated from the rest of the data by a single additional random split. The observations near the centre of the main data cloud will require more splits to be isolated.
+A tree with a larger maximum depth would continue splitting the remaining observations into smaller groups, so the path lengths for the other observations would be larger.
+The largest ozone levels are more likely to be isolated early on, because they can be separated from the rest of the data by a single additional random split.
+The observations near the centre of the main data cloud will require more splits to be isolated.
 
 ### Ensembles of isolation trees
 
-A single iTree provides a highly variable estimate of anomalousness, because it is built using random splits that are independent of the data. That is, the path length for a given observation can vary widely across different iTrees built on the same data, because the random splits may or may not isolate the observation early on, depending on how they happen to fall relative to the observation and its neighbours.
+A single iTree provides a highly variable estimate of anomalousness, because it is built using random splits that are independent of the data.
+That is, the path length for a given observation can vary widely across different iTrees built on the same data, because the random splits may or may not isolate the observation early on, depending on how they happen to fall relative to the observation and its neighbours.
 
-To address this, we can create many iTrees, each formed with a different random partition (and possibly using random subsets of the data). This ensemble of iTrees is known as an **isolation forest** or iForest. Let $T$ be the number of trees in the ensemble, and $\psi$ be the size of the random subsample used to build each tree. @Liu2008-dp found that $T = 100$ trees and $\psi = 256$ observations per subsample are usually sufficient, although the defaults in the `isotree` package are to use $T=500$, and $\psi = \min(n, 10^4)$. Thus, the full training set is used for each tree, unless there are more than 10,000 observations. The path length for an observation is then averaged across all trees in the ensemble, giving a more stable estimate of anomalousness.
+To address this, we can create many iTrees, each formed with a different random partition (and possibly using random subsets of the data).
+This ensemble of iTrees is known as an **isolation forest** or iForest.
+Let $T$ be the number of trees in the ensemble, and $\psi$ be the size of the random subsample used to build each tree.
+@Liu2008-dp found that $T = 100$ trees and $\psi = 256$ observations per subsample are usually sufficient, although the defaults in the `isotree` package are to use $T = 500$, and $\psi = \min(n, 10^4)$.
+Thus, the full training set is used for each tree, unless there are more than 10,000 observations.
+The path length for an observation is then averaged across all trees in the ensemble, giving a more stable estimate of anomalousness.
 
 As no pairwise distances are computed, iForest scales naturally to large, high-dimensional data sets where other distance-based methods become slow or unreliable.
 
@@ -698,36 +885,46 @@ The **anomaly score** for observation $\bm{y}$ is then computed by averaging the
 $$
   s(\bm{y}, \psi) = 2^{-\bar{h}(\bm{y})/c(\psi)},
 $$ {#eq-ifscore}
-where $\bar{h}(\bm{y})$ is the average path length over all trees in the ensemble. The score lies in $(0, 1]$. Observations with $s$ closer to 1 are more likely to be anomalies; those with $s$ well below 0.5 are unlikely to be anomalies; if all scores cluster around 0.5, the data probably contains no clear anomalies.
+where $\bar{h}(\bm{y})$ is the average path length over all trees in the ensemble.
+The score lies in $(0, 1]$.
+Observations with $s$ closer to 1 are more likely to be anomalies; those with $s$ well below 0.5 are unlikely to be anomalies; if all scores cluster around 0.5, the data probably contains no clear anomalies.
 
 ### Extended Isolation Forest
 
-In the original iForest algorithm, all splits involve only one variable at a time (known as "axis-parallel" splits). As a result, the partitions are always rectangular and parallel to the axes. This may lead to a directional bias in the anomaly scores, and also tends to lead to more splits when isolating observations.
+In the original iForest algorithm, all splits involve only one variable at a time (known as "axis-parallel" splits).
+As a result, the partitions are always rectangular and parallel to the axes.
+This may lead to a directional bias in the anomaly scores, and also tends to lead to more splits when isolating observations.
 
 @Hariri2021 addressed this with the **Extended Isolation Forest** (EIF), which replaces
 axis-parallel splits by random hyperplane splits: at each node, a random direction in the
 $m$-dimensional space is chosen, and observations are divided according to which side of
-the corresponding hyperplane they fall on. In our two-dimensional Dongsi air quality example, this means that splits can be made at any angle, rather than being restricted to vertical or horizontal lines. This removes the directional bias at the cost of a slight increase in computational effort.
+the corresponding hyperplane they fall on.
+In our two-dimensional Dongsi air quality example, this means that splits can be made at any angle, rather than being restricted to vertical or horizontal lines.
+This removes the directional bias at the cost of a slight increase in computational effort.
 
 ### The `isotree` package
 
-The `isotree` package [@isotree] provides a fast, multi-threaded implementation of the original iForest and of several variants including EIF, SCiForest [@Liu2010] and Fair-Cut Forest [@Cortes2021], which use non-random splits aimed at finding clustered anomalies. The main interface is `isolation.forest()`, which returns a fitted model, and `predict()`, which scores new observations.
+The `isotree` package [@isotree] provides a fast, multi-threaded implementation of the original iForest and of several variants including EIF, SCiForest [@Liu2010] and Fair-Cut Forest [@Cortes2021], which use non-random splits aimed at finding clustered anomalies.
+The main interface is `isolation.forest()`, which returns a fitted model, and `predict()`, which scores new observations.
 
 The three most important parameters of `isolation.forest()` are:
 
-* `ntrees`: the number of trees $T$ (default 500).
-* `sample_size`: the subsample size $\psi$ (default uses the minimum of the full training set and 10000).
-* `ndim`: the number of columns combined at each split. Setting `ndim = 1` (the default)
+- `ntrees`: the number of trees $T$ (default 500).
+- `sample_size`: the subsample size $\psi$ (default uses the minimum of the full training set and 10000).
+- `ndim`: the number of columns combined at each split.
+  Setting `ndim = 1` (the default)
   gives the original iForest with axis-parallel splits; `ndim = m` (the number of
   variables) gives the extended model with hyperplane splits.
 
 ### Example: Dongsi air quality data
 
-We apply iForest to the `dongsi` data, using both `max_temp` and `o3`, with `ndim = 2` to use EIF hyperplane splits. The resulting anomaly scores are shown in @fig-iforest-of.
+We apply iForest to the `dongsi` data, using both `max_temp` and `o3`, with `ndim = 2` to use EIF hyperplane splits.
+The resulting anomaly scores are shown in @fig-iforest-of.
 
 ```{r}
 #| label: iforest-of
 #| code-fold: false
+
 model_if <- dongsi |>
   select(max_temp, o3) |>
   isolation.forest(ndim = 2)
@@ -737,13 +934,19 @@ dongsi_if <- dongsi |>
 dongsi_if
 ```
 
-The two largest ozone levels, and the coldest day, are again identified as the most anomalous observations. The next two most anomalous observations are the two hottest days. In total, there are `r sum(dongsi_if$score > 0.6)` observations with scores above 0.6 (a threshold chosen after some experimentation). These are highlighted in @fig-iforest-of.
+The two largest ozone levels, and the coldest day, are again identified as the most anomalous observations.
+The next two most anomalous observations are the two hottest days.
+In total, there are `r sum(dongsi_if$score > 0.6)` observations with scores above 0.6 (a threshold chosen after some experimentation).
+These are highlighted in @fig-iforest-of.
 
 ```{r}
 #| label: fig-iforest-of
-#| fig-cap: "Isolation Forest anomaly scores for the Dongsi air quality data. Anomalies are shown as observations with scores above 0.6, which are highlighted in blue."
+#| fig-cap: >-
+#|   Isolation Forest anomaly scores for the Dongsi air quality data.
+#|   Anomalies are shown as observations with scores above 0.6, which are highlighted in blue.
 #| code-fold: true
 #| dependson: iforest-of
+
 grid_dongsi <- tidyr::expand_grid(
   max_temp = seq(-14, 42, length = 100),
   o3 = seq(0, 525, length = 100)
@@ -768,18 +971,30 @@ The contour lines show the score surface, which is highest near the anomalies, a
 
 ## Detect deviating cells algorithm {#sec-ddc}
 
-So far, we have treated each multivariate observation as a single point in the multivariate space, and have computed distances between those points. Under this perspective, the observations are the rows of the data matrix, and the columns are the variables. So an anomaly is a row that is far from other rows. That may be because of the values in one or more columns, or the unusual combination of values across columns. Almost all robust multivariate methods require at least half the observations to be non-anomalous, so that the main body of the data can be identified. But sometimes many rows (observations) each have a few contaminated cell values, and it is not possible to identify "normal" rows. In that case, it may be possible to identify the anomalous cells instead of the anomalous rows. This is the idea behind the "detect deviating cells" (DDC) algorithm of @Rousseeuw2016-wm.
+So far, we have treated each multivariate observation as a single point in the multivariate space, and have computed distances between those points.
+Under this perspective, the observations are the rows of the data matrix, and the columns are the variables.
+So an anomaly is a row that is far from other rows.
+That may be because of the values in one or more columns, or the unusual combination of values across columns.
+Almost all robust multivariate methods require at least half the observations to be non-anomalous, so that the main body of the data can be identified.
+But sometimes many rows (observations) each have a few contaminated cell values, and it is not possible to identify "normal" rows.
+In that case, it may be possible to identify the anomalous cells instead of the anomalous rows.
+This is the idea behind the "detect deviating cells" (DDC) algorithm of @Rousseeuw2016-wm.
 
-Suppose a fraction $\varepsilon$ of cells are contaminated, and that the contaminated cells are randomly distributed across the data matrix. Then, on average, each row will have $\varepsilon m$ contaminated cells. The expected fraction of contaminated rows is $1-(1-\varepsilon)^m$, which is close to 1 when $m\varepsilon$ is large.
+Suppose a fraction $\varepsilon$ of cells are contaminated, and that the contaminated cells are randomly distributed across the data matrix.
+Then, on average, each row will have $\varepsilon m$ contaminated cells.
+The expected fraction of contaminated rows is $1 - (1 - \varepsilon)^m$, which is close to 1 when $m\varepsilon$ is large.
 
-Rather than treating each row as a point, the DDC algorithm treats each cell in the data matrix as a point, and detects anomalous cells. It does this by checking whether each cell value is consistent with what would be predicted from the other variables in the same row (observation), following these steps.
+Rather than treating each row as a point, the DDC algorithm treats each cell in the data matrix as a point, and detects anomalous cells.
+It does this by checking whether each cell value is consistent with what would be predicted from the other variables in the same row (observation), following these steps.
 
 1. Non-numerical columns, and discrete columns taking a few distinct values, are omitted.
 2. Optionally, numerical columns can be transformed to be closer to normality, for example by applying a log transformation to positive-valued columns.
 3. All numerical columns are standardised using robust location and scale estimates.
 4. Cell values that are outliers in their column are flagged.
-5. Robust pairwise correlations are computed between all pairs of columns. Only pairs of columns whose absolute correlation exceeds a threshold (0.5 by default) are considered "connected"; for each such pair, a robust bivariate slope is also estimated.
-6. Each cell value is predicted using a weighted combination of connected columns, ignoring flagged cells. The weights are based on the absolute correlations between the columns.
+5. Robust pairwise correlations are computed between all pairs of columns.
+   Only pairs of columns whose absolute correlation exceeds a threshold (0.5 by default) are considered "connected"; for each such pair, a robust bivariate slope is also estimated.
+6. Each cell value is predicted using a weighted combination of connected columns, ignoring flagged cells.
+   The weights are based on the absolute correlations between the columns.
 7. Cells for which the observed value differs substantially from the predicted value are flagged as anomalous.
 
 Entire rows that contain an unusual accumulation of large cell residuals can additionally be flagged as rowwise outliers.
@@ -792,6 +1007,7 @@ We will illustrate this algorithm with the French male mortality data, where the
 #| label: ddc-mx
 #| output: false
 #| code-fold: false
+
 mx_wide <- fr_mortality |>
   filter(Sex == "Male") |>
   select(-Sex) |>
@@ -810,12 +1026,16 @@ mx_ddc <- cellWise::DDC(mx_wide |> select(-Year))$stdResid |>
   )
 ```
 
-The standardised residuals from the DDC algorithm are plotted as a heatmap in @fig-ddc-mx, with red indicating large positive residuals (higher than expected mortality), blue indicating large negative residuals (lower than expected mortality), and grey indicating small residuals. The matrix has been rotated anticlockwise in the plot, so that the years are on the horizontal axis and the ages are on the vertical axis, to be consistent with the custom of plotting time on the horizontal axis.
+The standardised residuals from the DDC algorithm are plotted as a heatmap in @fig-ddc-mx, with red indicating large positive residuals (higher than expected mortality), blue indicating large negative residuals (lower than expected mortality), and grey indicating small residuals.
+The matrix has been rotated anticlockwise in the plot, so that the years are on the horizontal axis and the ages are on the vertical axis, to be consistent with the custom of plotting time on the horizontal axis.
 
 ```{r}
 #| label: fig-ddc-mx
-#| fig-cap: "DDC algorithm applied to the French male mortality data. The standardised residuals from the DDC algorithm are plotted as a heatmap, with red indicating large positive residuals (higher than expected mortality), and blue indicating large negative residuals (lower than expected mortality)."
+#| fig-cap: >-
+#|   DDC algorithm applied to the French male mortality data.
+#|   The standardised residuals from the DDC algorithm are plotted as a heatmap, with red indicating large positive residuals (higher than expected mortality), and blue indicating large negative residuals (lower than expected mortality).
 #| message: false
+
 ggplot(mx_ddc) +
   geom_tile(aes(x = Year, y = Age, fill = anomaly)) +
   scale_fill_brewer(palette = "RdBu", direction = -1) +
@@ -825,10 +1045,15 @@ ggplot(mx_ddc) +
 
 The DDC algorithm identifies many anomalous cells in the data, particularly during years in which France was involved in war:
 
-* 1853--1856: Crimean war
-* 1870: Franco-Prussian war
-* 1871: Repression of the ‘Commune de Paris’
-* 1914--1918: World War I
-* 1940--1944: World War II
+- 1853--1856: Crimean war
+- 1870: Franco-Prussian war
+- 1871: Repression of the 'Commune de Paris'
+- 1914--1918: World War I
+- 1940--1944: World War II
 
-Mortality rates are often also high in the year after a war, as soldiers return home with injuries and illnesses. The Spanish flu pandemic of 1918--1919 is evident in the plot, with higher than usual mortality rates for a wider age range than the wars. There was also unusually high mortality for males in their 20s in 1840--1843, which does not correspond to any known war [@french_mortality], but seems very similar to the pattern due to the Crimean War thirteen years later. The same pattern is not seen for females. Unusually high childhood mortality at around 10 years of age is seen until about 1870, probably driven by infectious diseases such as cholera, tuberculosis and measles. Finally, the large blue area at the upper right of the plot indicates unusually low mortality rates for older ages in recent years.
+Mortality rates are often also high in the year after a war, as soldiers return home with injuries and illnesses.
+The Spanish flu pandemic of 1918--1919 is evident in the plot, with higher than usual mortality rates for a wider age range than the wars.
+There was also unusually high mortality for males in their 20s in 1840--1843, which does not correspond to any known war [@french_mortality], but seems very similar to the pattern due to the Crimean War thirteen years later.
+The same pattern is not seen for females.
+Unusually high childhood mortality at around 10 years of age is seen until about 1870, probably driven by infectious diseases such as cholera, tuberculosis and measles.
+Finally, the large blue area at the upper right of the plot indicates unusually low mortality rates for older ages in recent years.

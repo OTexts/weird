@@ -20,10 +20,10 @@
 
 To include somewhere:
 
-  * Isolation forests??
-  * subspace, correlation-based and tensor-based methods
-* Cluster analysis?
-  * Ensemble methods
+- Isolation forests??
+- subspace, correlation-based and tensor-based methods
+- Cluster analysis?
+  - Ensemble methods
 
 ### Task view {-}
 
@@ -35,8 +35,8 @@ To include somewhere:
 
 ### Collections of anomalous data {-}
 
-* [Outlier Detection DataSets (ODDS)](http://odds.cs.stonybrook.edu/)
-* [KMASH](https://figshare.com/articles/dataset/Datasets_12338_zip/7705127)
-* [ADRepository: Real-world anomaly detection datasets](https://github.com/GuansongPang/ADRepository-Anomaly-detection-datasets)
-* [Unsupervised Anomaly Detection Benchmark](http://doi.org/10.7910/DVN/OPQMVF)
-* [DAMI](https://www.dbs.ifi.lmu.de/research/outlier-evaluation/DAMI/)
+- [Outlier Detection DataSets (ODDS)](http://odds.cs.stonybrook.edu/)
+- [KMASH](https://figshare.com/articles/dataset/Datasets_12338_zip/7705127)
+- [ADRepository: Real-world anomaly detection datasets](https://github.com/GuansongPang/ADRepository-Anomaly-detection-datasets)
+- [Unsupervised Anomaly Detection Benchmark](http://doi.org/10.7910/DVN/OPQMVF)
+- [DAMI](https://www.dbs.ifi.lmu.de/research/outlier-evaluation/DAMI/)

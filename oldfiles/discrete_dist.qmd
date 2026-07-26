@@ -4,50 +4,68 @@
 ```{r}
 #| include: false
 #| cache: false
+
 source("before-each-chapter.R")
 ```
 
 ## Univariate probability distributions
 
-We are interested in data obtained from a range of possible sample spaces, but let's start with the two simplest cases: univariate discrete and continuous random variables. A good introduction to such probability distributions is provided by @Forbes2011, with more advanced treatments in @JKunidiscrete, @JKunicontinuous1 and @JKunicontinuous2.
+We are interested in data obtained from a range of possible sample spaces, but let's start with the two simplest cases: univariate discrete and continuous random variables.
+A good introduction to such probability distributions is provided by @Forbes2011, with more advanced treatments in @JKunidiscrete, @JKunicontinuous1 and @JKunicontinuous2.
 
 ### Discrete random variables
 
-A discrete random variable can take values on a finite, or countably infinite, space. That is, if we can list the values that the variable can take, then it is a discrete random variable. For example, if $Y$ is a coin toss, it can take values in $\{$Heads, Tails$\}$. If $Y$ is a count variable, it can take values on the non-negative integers $\{0, 1, 2, \dots\}$.
+A discrete random variable can take values on a finite, or countably infinite, space.
+That is, if we can list the values that the variable can take, then it is a discrete random variable.
+For example, if $Y$ is a coin toss, it can take values in $\{$Heads, Tails$\}$.
+If $Y$ is a count variable, it can take values on the non-negative integers $\{0, 1, 2, \dots\}$.
 
-The probability distribution of a discrete random variable $Y$ assigns a probability to each possible value of $Y$. We call this the probability mass function (pmf), given by $p(y) = \text{Pr}(Y=y)$. If there is a natural ordering of the values that $Y$ can take, then we can also define the cumulative probability distribution (cdf), given by
-$$F(y) = \text{Pr}(Y \le y).
+The probability distribution of a discrete random variable $Y$ assigns a probability to each possible value of $Y$.
+We call this the probability mass function (pmf), given by $p(y) = \text{Pr}(Y = y)$.
+If there is a natural ordering of the values that $Y$ can take, then we can also define the cumulative probability distribution (cdf), given by
+$$
+  F(y) = \text{Pr}(Y \le y).
 $$ {#eq-cdf}
-For discrete random variables, $F(y)$ is a step function with jumps at the possible values of $Y$.  The size of the jump at $y$ is equal to $p(y)$.
+For discrete random variables, $F(y)$ is a step function with jumps at the possible values of $Y$.
+The size of the jump at $y$ is equal to $p(y)$.
 
 #### Bernoulli distribution
 
-Some probability distributions are widely used, and then they are given a name, often taken from the person who first discovered or proposed the distribution. For example, the **Bernoulli** distribution (named after Swiss mathematician, Jacob Bernoulli) is used to model binary data, where $Y$ can take only two values, 0 and 1, with probabilities $p$ and $1-p$ respectively.
+Some probability distributions are widely used, and then they are given a name, often taken from the person who first discovered or proposed the distribution.
+For example, the **Bernoulli** distribution (named after Swiss mathematician, Jacob Bernoulli) is used to model binary data, where $Y$ can take only two values, 0 and 1, with probabilities $p$ and $1 - p$ respectively.
 
 #### Poisson distribution
 
-Another widely used discrete distribution is the **Poisson** distribution, named after the French mathematician Siméon Poisson. It is often used to model count data. The probability mass function is given by
+Another widely used discrete distribution is the **Poisson** distribution, named after the French mathematician Siméon Poisson.
+It is often used to model count data.
+The probability mass function is given by
 $$
   p(y) = \frac{\lambda^y e^{-\lambda}}{y!},
 $$
-for $y=0,1,2,\dots$, where $\lambda$ is a positive parameter. Both the mean and variance of a Poisson distribution are equal to $\lambda$. We refer to a Poisson random variable with parameter $\lambda$ as $Y \sim \text{Poisson}(\lambda)$.
+for $y = 0,1,2,\dots$, where $\lambda$ is a positive parameter.
+Both the mean and variance of a Poisson distribution are equal to $\lambda$.
+We refer to a Poisson random variable with parameter $\lambda$ as $Y \sim \text{Poisson}(\lambda)$.
 
-The Poisson distribution arises when we count the number of events that occur in a fixed time interval, when the events occur independently of each other, and the rate of events ($\lambda$) is constant. For example, the number of customers arriving at a shop each hour, or the number of road accidents per day in a specified area.
+The Poisson distribution arises when we count the number of events that occur in a fixed time interval, when the events occur independently of each other, and the rate of events ($\lambda$) is constant.
+For example, the number of customers arriving at a shop each hour, or the number of road accidents per day in a specified area.
 
-Three examples of Poisson distributions are shown in @fig-poisson. Although the points are connected to aid visualization, the distribution only takes values on the non-negative integers (shown as solid points), and the probability is zero at all other values.
+Three examples of Poisson distributions are shown in @fig-poisson.
+Although the points are connected to aid visualization, the distribution only takes values on the non-negative integers (shown as solid points), and the probability is zero at all other values.
 
 ```{r}
 #| label: fig-poisson
-#| fig-cap: Probability mass functions for three Poisson distributions. As the parameter $\lambda$ increases, the distribution becomes more symmetric and can be approximated by the Normal distribution $N(\lambda, \lambda)$.
+#| fig-cap: Probability mass functions for three Poisson distributions.
+#|   As the parameter $\lambda$ increases, the distribution becomes more symmetric and can be approximated by the Normal distribution $N(\lambda, \lambda)$.
+
 tibble(
-    y = 0:25,
-    `Poisson(1)` = dpois(0:25, 1),
-    `Poisson(5)` = dpois(0:25, 5),
-    `Poisson(10)` = dpois(0:25, 10),
-  ) |>
+  y = 0:25,
+  `Poisson(1)` = dpois(0:25, 1),
+  `Poisson(5)` = dpois(0:25, 5),
+  `Poisson(10)` = dpois(0:25, 10),
+) |>
   tidyr::pivot_longer(-y, names_to = "lambda", values_to = "density") |>
   mutate(
-    lambda = factor(lambda, levels = paste0("Poisson(",c(1,5,10),")"))
+    lambda = factor(lambda, levels = paste0("Poisson(", c(1, 5, 10), ")"))
   ) |>
   ggplot(aes(x = y, y = density, col = lambda)) +
   geom_point() +
@@ -56,68 +74,88 @@ tibble(
   guides(col = guide_legend(title = latex2exp::TeX("Poisson($\\lambda$)")))
 ```
 
-The CLT is also the reason that a Poisson distribution with large $\lambda$ is approximately Normal. This arises because the sum of Poisson random variables also has a Poisson distribution, so the sum of $\lambda$ independent Poisson(1) variables has a Poisson($\lambda$) distribution. When $\lambda$ is large, the CLT shows that it is approximately a Normal($\lambda,\lambda$) distribution.
+The CLT is also the reason that a Poisson distribution with large $\lambda$ is approximately Normal.
+This arises because the sum of Poisson random variables also has a Poisson distribution, so the sum of $\lambda$ independent Poisson(1) variables has a Poisson($\lambda$) distribution.
+When $\lambda$ is large, the CLT shows that it is approximately a Normal($\lambda,\lambda$) distribution.
 
 ## Quantiles
 
 #### Discrete random variables
 
-Because the cdf of a discrete distribution is a step function, there is no unique inverse. Instead, we define the quantile function $Q(p)$ as the smallest value of $y$ such that $F(y) \ge p$. This is also a step function. For example, the quantile function for a Poisson(5) variable is shown in @fig-quantile2.
+Because the cdf of a discrete distribution is a step function, there is no unique inverse.
+Instead, we define the quantile function $Q(p)$ as the smallest value of $y$ such that $F(y) \ge p$.
+This is also a step function.
+For example, the quantile function for a Poisson(5) variable is shown in @fig-quantile2.
 
 ```{r}
 #| label: fig-quantile2
-#| fig-cap: Quantile function for a Poisson(5) distribution. The function is left-continuous, as indicated by the plotted points (where the value of the function equals the lower value at each step).
+#| fig-cap: Quantile function for a Poisson(5) distribution.
+#|   The function is left-continuous, as indicated by the plotted points (where the value of the function equals the lower value at each step).
+
 z <- tibble(
-    y = c(0,0:25),
-    Fy = c(0, ppois(y[-1], 5))
-  )
+  y = c(0, 0:25),
+  Fy = c(0, ppois(y[-1], 5))
+)
 z |>
   ggplot(aes(x = Fy, y = y)) +
   geom_step() +
-  geom_point(pch=1) +
-  geom_point(data = tibble(y=c(0, z$y-1), Fy = c(0,z$Fy))) +
-  labs(x = "p", y = "Quantile function: Q(p)")  +
-  coord_cartesian(ylim = c(0,15))
+  geom_point(pch = 1) +
+  geom_point(data = tibble(y = c(0, z$y - 1), Fy = c(0, z$Fy))) +
+  labs(x = "p", y = "Quantile function: Q(p)") +
+  coord_cartesian(ylim = c(0, 15))
 ```
 
 ### Sample quantiles
 
-Usually we won't know the distribution of our data, and then we will need to estimate the quantiles. We leave this topic until @sec-quantiles.
+Usually we won't know the distribution of our data, and then we will need to estimate the quantiles.
+We leave this topic until @sec-quantiles.
 
 ## Multivariate probability distributions
 
-While we will cover anomaly detection in univariate data, most of the methods we will discuss are for multivariate data. We will therefore need to understand some basic concepts of multivariate probability distributions.
+While we will cover anomaly detection in univariate data, most of the methods we will discuss are for multivariate data.
+We will therefore need to understand some basic concepts of multivariate probability distributions.
 
 ### Bivariate distributions
 
-The bivariate distribution of two random variables $X$ and $Y$ is defined by the joint cdf $F(x,y) = \text{Pr}(X \le x, Y \le y)$. The marginal cdfs are defined by $F_X(x) = \text{Pr}(X \le x) = F(x,\infty)$ and $F_Y(y) = \text{Pr}(Y \le y) = F(\infty,y)$.
+The bivariate distribution of two random variables $X$ and $Y$ is defined by the joint cdf $F(x,y) = \text{Pr}(X \le x, Y \le y)$.
+The marginal cdfs are defined by $F_X(x) = \text{Pr}(X \le x) = F(x,\infty)$ and $F_Y(y) = \text{Pr}(Y \le y) = F(\infty,y)$.
 
-If both variables are discrete, we can define the joint pmf as $p(x,y) = \text{Pr}(X=x,Y=y)$. The marginal pmfs are defined by $p_X(x) = \sum_y p(x,y)$ and $p_Y(y) = \sum_x p(x,y)$. If the two variables are independent, then the joint pmf is the product of the marginal pmfs, $p(x,y) = p_X(x) p_Y(y)$.
+If both variables are discrete, we can define the joint pmf as $p(x,y) = \text{Pr}(X = x,Y = y)$.
+The marginal pmfs are defined by $p_X(x) = \sum_y p(x,y)$ and $p_Y(y) = \sum_x p(x,y)$.
+If the two variables are independent, then the joint pmf is the product of the marginal pmfs, $p(x,y) = p_X(x) p_Y(y)$.
 
-If both variables are continuous, we can define the joint pdf as $f(x,y) = \frac{\partial^2 F(x,y)}{\partial x \partial y}$. The marginal pdfs are defined by $f_X(x) = \int_{-\infty}^\infty f(x,y) dy$ and $f_Y(y) = \int_{-\infty}^\infty f(x,y) dx$. If the two variables are independent, then the joint pdf is the product of the marginal pdfs, $f(x,y) = f_X(x) f_Y(y)$.
+If both variables are continuous, we can define the joint pdf as $f(x,y) = \frac{\partial^2 F(x,y)}{\partial x \partial y}$.
+The marginal pdfs are defined by $f_X(x) = \int_{-\infty}^\infty f(x,y) dy$ and $f_Y(y) = \int_{-\infty}^\infty f(x,y) dx$.
+If the two variables are independent, then the joint pdf is the product of the marginal pdfs, $f(x,y) = f_X(x) f_Y(y)$.
 
 When $X$ is discrete, and $Y$ is continuous, describing the joint distribution is more tricky, and we will skip that situation for now.
 
 ### Joint distributions
 
-More generally, the joint distribution of $n$ random variables $X_1,\dots,X_n$ is defined by the joint cdf $F(x_1,\dots,x_n) = \text{Pr}(X_1 \le x_1,\dots,X_n \le x_n)$ (assuming they all have a natural ordering). If all variables are discrete, then we can define the joint probability mass function
+More generally, the joint distribution of $n$ random variables $X_1,\dots,X_n$ is defined by the joint cdf $F(x_1,\dots,x_n) = \text{Pr}(X_1 \le x_1,\dots,X_n \le x_n)$ (assuming they all have a natural ordering).
+If all variables are discrete, then we can define the joint probability mass function
 $$
-p(x_1,\dots,x_n) = \text{Pr}(X_1 = x_1,\dots,X_n = x_n).
+  p(x_1,\dots,x_n) = \text{Pr}(X_1 = x_1,\dots,X_n = x_n).
 $$
 If all variables are continuous, then we can define the joint density function
 $$
-f(x_1,\dots,x_n) = \frac{\partial^n F(x_1,\dots,x_n)}{\partial x_1 \dots \partial x_n}.
+  f(x_1,\dots,x_n) = \frac{\partial^n F(x_1,\dots,x_n)}{\partial x_1 \dots \partial x_n}.
 $$
 
 ### Conditional distributions
 
-A fundamental concept in statistics is a **conditional distribution**; that is, the distribution of a random variable conditional on the values of other random variables. Almost all statistical modelling involves the estimation of conditional distributions. For example, a regression is a model for the conditional distribution of a response variable given the values of a set of predictor variables. In its simplest form, we assume the conditional distribution is normal, with constant variance, and mean equal to a linear function of the predictor values. Generalized linear models allow for non-normal conditional distributions, while generalized additive models allow for non-linear relationships between the response and the predictors.
+A fundamental concept in statistics is a **conditional distribution**; that is, the distribution of a random variable conditional on the values of other random variables.
+Almost all statistical modelling involves the estimation of conditional distributions.
+For example, a regression is a model for the conditional distribution of a response variable given the values of a set of predictor variables.
+In its simplest form, we assume the conditional distribution is normal, with constant variance, and mean equal to a linear function of the predictor values.
+Generalized linear models allow for non-normal conditional distributions, while generalized additive models allow for non-linear relationships between the response and the predictors.
 
-The conditional distribution of $Y$ given $X_1,\dots,X_n$ is defined by the conditional cdf $F(y|x_1,\dots,x_n) = \text{Pr}(Y \le y | X_1 = x_1,\dots,X_n = x_n)$. If all variables are continuous, then the conditional density function is given by
+The conditional distribution of $Y$ given $X_1,\dots,X_n$ is defined by the conditional cdf $F(y|x_1,\dots,x_n) = \text{Pr}(Y \le y | X_1 = x_1,\dots,X_n = x_n)$.
+If all variables are continuous, then the conditional density function is given by
 $$
-f(y | x_1, \dots, x_n) = \frac{f(y,x_1,\dots,x_n)}{f(x_1,\dots,x_n)}.
+  f(y | x_1, \dots, x_n) = \frac{f(y,x_1,\dots,x_n)}{f(x_1,\dots,x_n)}.
 $$
 If all variables are discrete, then the conditional probability mass function is given by
 $$
-p(y | x_1, \dots, x_n) = \frac{p(y,x_1,\dots,x_n)}{p(x_1,\dots,x_n)}.
+  p(y | x_1, \dots, x_n) = \frac{p(y,x_1,\dots,x_n)}{p(x_1,\dots,x_n)}.
 $$

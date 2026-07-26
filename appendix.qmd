@@ -8,29 +8,46 @@ code-fold: false
 #| label: setupA
 #| include: false
 #| cache: false
+
 source("before-each-chapter.R")
 ```
 
-Working with multivariate data inevitably involves writing some of the ideas using matrix expressions and matrix algebra. In this appendix, a few of the results that we need are collected for convenient reference. Readers who have not previously studied matrix algebra are recommended to do some self-study using a good introductory textbook such as @johnston2021introduction.
+Working with multivariate data inevitably involves writing some of the ideas using matrix expressions and matrix algebra.
+In this appendix, a few of the results that we need are collected for convenient reference.
+Readers who have not previously studied matrix algebra are recommended to do some self-study using a good introductory textbook such as @johnston2021introduction.
 
 ## Vectors {#sec-vectors}
 
-A **vector** is a column of numbers, which we write as 
+A **vector** is a column of numbers, which we write as
 $$
-\bm{v} = \begin{bmatrix} v_1 \\ v_2 \\ \vdots \\ v_n \end{bmatrix}.
+  \bm{v} =
+\begin{bmatrix}
+  v_1 \\
+  v_2 \\
+  \vdots \\
+  v_n
+\end{bmatrix}
+  .
 $$
-The number of entries $n$ is its **dimension**. Geometrically, we can picture a vector as a point in $n$-dimensional space, or equivalently as an arrow from the origin to that point. This is how we view each observation in a data set: a vector with one entry per variable, and so a point in a space with one axis per variable.
+The number of entries $n$ is its **dimension**.
+Geometrically, we can picture a vector as a point in $n$-dimensional space, or equivalently as an arrow from the origin to that point.
+This is how we view each observation in a data set: a vector with one entry per variable, and so a point in a space with one axis per variable.
 
-The arrow image gives a vector two attributes: a **length** (how far the point lies from the origin) and a **direction** (the way the arrow points). The length (also called the magnitude or **norm**), and written $\|\bm{v}\|$, is the straight-line distance from the origin to the point,
+The arrow image gives a vector two attributes: a **length** (how far the point lies from the origin) and a **direction** (the way the arrow points).
+The length (also called the magnitude or **norm**), and written $\|\bm{v}\|$, is the straight-line distance from the origin to the point,
 $$
   \|\bm{v}\| = \sqrt{v_1^2 + v_2^2 + \cdots + v_n^2}.
 $$
-For a two-dimensional vector this is just Pythagoras' theorem, and in general it is known as the "Euclidean distance". Note that the length of a vector (its magnitude) is a different idea from its dimension (its number of entries); we reserve $\|\bm{v}\|$ and the word *length* for the magnitude. The length of a vector is always non-negative, and is zero if and only if the vector is the zero vector $\bm{0} = (0, \ldots, 0)^\intercal$.
+For a two-dimensional vector this is just Pythagoras' theorem, and in general it is known as the "Euclidean distance".
+Note that the length of a vector (its magnitude) is a different idea from its dimension (its number of entries); we reserve $\|\bm{v}\|$ and the word *length* for the magnitude.
+The length of a vector is always non-negative, and is zero if and only if the vector is the zero vector $\bm{0} = (0, \ldots, 0)^\intercal$.
 
-A vector with length one, $\|\bm{v}\| = 1$, is called a **unit vector**. Any nonzero vector can be turned into a unit vector pointing the same way by dividing it by its length, $\bm{v}/\|\bm{v}\|$, a step called **normalising**.
+A vector with length one, $\|\bm{v}\| = 1$, is called a **unit vector**.
+Any nonzero vector can be turned into a unit vector pointing the same way by dividing it by its length, $\bm{v}/\|\bm{v}\|$, a step called **normalising**.
 
 ```{r}
 #| label: vector
+
 v <- c(3, 4)
 sqrt(sum(v^2)) # length of v
 v / sqrt(sum(v^2)) # unit vector in the direction of v
@@ -38,19 +55,26 @@ v / sqrt(sum(v^2)) # unit vector in the direction of v
 
 ## Matrices {#sec-matrices}
 
-A **matrix** is a rectangular array of numbers, denoted by $\bm{A} = (a_{ij})$, where $a_{ij}$ is the entry in row $i$ and column $j$. The number of rows $m$ and columns $n$ are called the **dimensions** of the matrix, and we say that $\bm{A}$ is an $m \times n$ matrix. A matrix with the same number of rows and columns, i.e. with dimensions $n \times n$, is called a **square matrix**. A vector is a special case of a matrix, with one column. A matrix with one row is called a **row vector**.
+A **matrix** is a rectangular array of numbers, denoted by $\bm{A} = (a_{ij})$, where $a_{ij}$ is the entry in row $i$ and column $j$.
+The number of rows $m$ and columns $n$ are called the **dimensions** of the matrix, and we say that $\bm{A}$ is an $m \times n$ matrix.
+A matrix with the same number of rows and columns, i.e. with dimensions $n \times n$, is called a **square matrix**.
+A vector is a special case of a matrix, with one column.
+A matrix with one row is called a **row vector**.
 
-Two matrices $\bm{A}$ and $\bm{B}$ can be added together if they are of the same dimensions, and the sum $\bm{A} + \bm{B}$ is the matrix of the same dimensions whose $(i,j)$th entry is $a_{ij} + b_{ij}$. 
+Two matrices $\bm{A}$ and $\bm{B}$ can be added together if they are of the same dimensions, and the sum $\bm{A} + \bm{B}$ is the matrix of the same dimensions whose $(i,j)$th entry is $a_{ij} + b_{ij}$.
 
-A matrix can also be multiplied by another matrix if the number of columns of $\bm{A}$ matches the number of rows of $\bm{B}$. If $\bm{A}$ is an $m \times p$ matrix and $\bm{B}$ is a $p \times n$ matrix, the product $\bm{A}\bm{B}$ is the $m \times n$ matrix with $(i,j)$th element given by
+A matrix can also be multiplied by another matrix if the number of columns of $\bm{A}$ matches the number of rows of $\bm{B}$.
+If $\bm{A}$ is an $m \times p$ matrix and $\bm{B}$ is a $p \times n$ matrix, the product $\bm{A}\bm{B}$ is the $m \times n$ matrix with $(i,j)$th element given by
 $$
-  (\bm{A}\bm{B})_{ij} = \sum_{k=1}^p a_{ik} b_{kj}.
+  (\bm{A}\bm{B})_{ij} = \sum_{k = 1}^p a_{ik} b_{kj}.
 $$
 
-In R, matrix multiplication uses the `%*%` operator; the ordinary `*` operator instead multiplies matrices element by element, which is a different operation. For example:
+In R, matrix multiplication uses the `%*%` operator; the ordinary `*` operator instead multiplies matrices element by element, which is a different operation.
+For example:
 
 ```{r}
 #| label: matrix
+
 A <- matrix(c(3, 1, 1, 2), 2, 2)
 B <- matrix(seq(6), nrow = 3)
 A
@@ -58,39 +82,49 @@ B
 B %*% A
 ```
 
-Scalar multiplication of a matrix $\bm{A}$ by a number $c$ is defined by multiplying each entry of $\bm{A}$ by $c$, and is denoted by $c\bm{A}$. Similarly, scalar addition of a matrix $\bm{A}$ by a number $c$ is defined by adding $c$ to each entry of $\bm{A}$, and is denoted by $\bm{A} + c$.
+Scalar multiplication of a matrix $\bm{A}$ by a number $c$ is defined by multiplying each entry of $\bm{A}$ by $c$, and is denoted by $c\bm{A}$.
+Similarly, scalar addition of a matrix $\bm{A}$ by a number $c$ is defined by adding $c$ to each entry of $\bm{A}$, and is denoted by $\bm{A} + c$.
 
 ## Transpose {#sec-transpose}
 
-The **transpose** of a matrix $\bm{A}$, written $\bm{A}^\intercal$, is obtained by swapping its rows and columns: the entry in row $i$ and column $j$ of $\bm{A}$ becomes the entry in row $j$ and column $i$ of $\bm{A}^\intercal$. So an $m \times n$ matrix becomes $n \times m$. Transposing a single-column vector turns it into a single row, which is why we write a column vector compactly as $\bm{v} = (v_1, \ldots, v_n)^\intercal$ (@sec-vectors).
+The **transpose** of a matrix $\bm{A}$, written $\bm{A}^\intercal$, is obtained by swapping its rows and columns: the entry in row $i$ and column $j$ of $\bm{A}$ becomes the entry in row $j$ and column $i$ of $\bm{A}^\intercal$.
+So an $m \times n$ matrix becomes $n \times m$.
+Transposing a single-column vector turns it into a single row, which is why we write a column vector compactly as $\bm{v} = (v_1, \ldots, v_n)^\intercal$ (@sec-vectors).
 
-A square matrix that is unchanged by transposing, so that $\bm{A} = \bm{A}^\intercal$ (equivalently, $a_{ij} = a_{ji}$), is called **symmetric**: its entries are mirror images of each other across the diagonal. 
+A square matrix that is unchanged by transposing, so that $\bm{A} = \bm{A}^\intercal$ (equivalently, $a_{ij} = a_{ji}$), is called **symmetric**: its entries are mirror images of each other across the diagonal.
 
 The transpose is computed in R using the `t` function.
 
 ```{r}
 #| label: transpose
 #| dependson: matrix
+
 t(B)
 ```
 
 ## Identity matrix {#sec-identity-matrix}
 
-The identity matrix is like the number 1: multiplying a matrix by the identity matrix leaves the matrix unchanged. The identity matrix is a square matrix with ones on the diagonal and zeros elsewhere, denoted by $\bm{I}$. Sometimes we will use subscripts to denote the size of the identity matrix; e.g. $\bm{I}_n$ is an $n \times n$ identity matrix.
+The identity matrix is like the number 1: multiplying a matrix by the identity matrix leaves the matrix unchanged.
+The identity matrix is a square matrix with ones on the diagonal and zeros elsewhere, denoted by $\bm{I}$.
+Sometimes we will use subscripts to denote the size of the identity matrix; e.g. $\bm{I}_n$ is an $n \times n$ identity matrix.
 
 ```{r}
 #| label: identity
+
 I3 <- diag(3)
 I3
 ```
 
 ## Matrices and directions {#sec-matrices-directions}
 
-A matrix can be applied to a vector $\bm{v}$ by matrix multiplication, producing a new vector $\bm{A}\bm{v}$. Geometrically, this transforms $\bm{v}$, generally changing both its length and the direction it points. Different starting vectors are typically transformed in different ways: a matrix may stretch some directions, shrink or rotate others, or even collapse two distinct directions onto the same output.
+A matrix can be applied to a vector $\bm{v}$ by matrix multiplication, producing a new vector $\bm{A}\bm{v}$.
+Geometrically, this transforms $\bm{v}$, generally changing both its length and the direction it points.
+Different starting vectors are typically transformed in different ways: a matrix may stretch some directions, shrink or rotate others, or even collapse two distinct directions onto the same output.
 
 ```{r}
 #| label: matrixA
 #| dependson: matrix
+
 v <- c(1, 0)
 A %*% v
 ```
@@ -105,6 +139,7 @@ Geometrically, $\bm{v}$ originally pointed along the $x$-axis with length 1; aft
 #| fig-asp: 0.4
 #| fig-width: 7
 #| out-width: "80%"
+
 rbind(v, c(A %*% v)) |>
   as_tibble() |>
   ggplot() +
@@ -130,34 +165,45 @@ rbind(v, c(A %*% v)) |>
 
 ## Diagonal matrices {#sec-diagonal-matrices}
 
-Matrices that are zeros everywhere apart from the diagonal elements are called **diagonal matrices**. They are denoted by $\text{diag}(d_1, \ldots, d_n)$, where $d_i$ is the value of the $i$th diagonal element. Diagonal matrices are easy to work with because they only stretch or shrink vectors along the coordinate axes, without rotating them. The product of a diagonal matrix and a vector is just the elementwise product of the diagonal entries and the vector entries.
+Matrices that are zeros everywhere apart from the diagonal elements are called **diagonal matrices**.
+They are denoted by $\text{diag}(d_1, \ldots, d_n)$, where $d_i$ is the value of the $i$th diagonal element.
+Diagonal matrices are easy to work with because they only stretch or shrink vectors along the coordinate axes, without rotating them.
+The product of a diagonal matrix and a vector is just the elementwise product of the diagonal entries and the vector entries.
 
 In R, a diagonal matrix can be created using the `diag` function.
 
 ```{r}
 #| label: diagonal
+
 diag(c(2, 3, 4))
 ```
 
-Notice that we also used the `diag()` function to create a square identity matrix in @sec-identity-matrix. The `diag` function is overloaded to do different things depending on the type of its argument: when given a single number, it creates an identity matrix of that size; when given a vector, it creates a diagonal matrix with those values on the diagonal. A third use is when given a matrix, it extracts the diagonal elements as a vector.
+Notice that we also used the `diag()` function to create a square identity matrix in @sec-identity-matrix.
+The `diag` function is overloaded to do different things depending on the type of its argument: when given a single number, it creates an identity matrix of that size; when given a vector, it creates a diagonal matrix with those values on the diagonal.
+A third use is when given a matrix, it extracts the diagonal elements as a vector.
 
 ```{r}
 #| label: diagonal-extract
 #| dependson: matrix
+
 diag(A)
 ```
 
 ## Rank {#sec-rank}
 
-The **rank** of a matrix measures how many genuinely independent rows (or equivalently, columns) it contains. A **rank-deficient** matrix has redundancy — some rows are duplicates or weighted sums of others; a **full-rank** matrix has no redundancy.
+The **rank** of a matrix measures how many genuinely independent rows (or equivalently, columns) it contains.
+A **rank-deficient** matrix has redundancy --- some rows are duplicates or weighted sums of others; a **full-rank** matrix has no redundancy.
 
-More formally, the rank is the number of linearly independent rows, which is always equal to the number of linearly independent columns. A set of rows is **linearly independent** when none of them can be written as a linear combination (i.e., a weighted sum) of the others. For an $m \times n$ matrix, the rank is at most $\min(m, n)$, and a matrix has full rank when this maximum is attained.
+More formally, the rank is the number of linearly independent rows, which is always equal to the number of linearly independent columns.
+A set of rows is **linearly independent** when none of them can be written as a linear combination (i.e., a weighted sum) of the others.
+For an $m \times n$ matrix, the rank is at most $\min(m, n)$, and a matrix has full rank when this maximum is attained.
 
 The rank of a matrix can be computed in R using `qr(<matrix>)$rank`.
 
 ```{r}
 #| label: rank
 #| dependson: matrix
+
 qr(A)$rank
 ```
 
@@ -165,12 +211,16 @@ For a rank-deficient example, the matrix $\begin{pmatrix} 1 & 2 \\ 2 & 4 \end{pm
 
 ```{r}
 #| label: rank-deficient
+
 qr(matrix(c(1, 2, 2, 4), 2, 2))$rank
 ```
 
 ## Matrix inverse {#sec-matrix-inverse}
 
-The inverse $\bm{A}^{-1}$ of a matrix $\bm{A}$ is the matrix analogue of $1/x$ for a number: multiplying by it undoes what $\bm{A}$ did. Just as $1/x$ does not exist when $x = 0$, a matrix inverse does not always exist. When it does, $\bm{A}$ is called **invertible** (or **non-singular**); otherwise it is called **singular**. Only square, full-rank matrices have inverses; a rank-deficient matrix has lost information that the inverse would need to recover.
+The inverse $\bm{A}^{-1}$ of a matrix $\bm{A}$ is the matrix analogue of $1/x$ for a number: multiplying by it undoes what $\bm{A}$ did.
+Just as $1/x$ does not exist when $x = 0$, a matrix inverse does not always exist.
+When it does, $\bm{A}$ is called **invertible** (or **non-singular**); otherwise it is called **singular**.
+Only square, full-rank matrices have inverses; a rank-deficient matrix has lost information that the inverse would need to recover.
 
 Formally, for a square matrix $\bm{A}$, the inverse $\bm{A}^{-1}$ is defined by $\bm{A}^{-1}\bm{A} = \bm{A}\bm{A}^{-1} = \bm{I}$, where $\bm{I}$ is the identity matrix.
 
@@ -179,6 +229,7 @@ The inverse of a matrix can be computed using the `solve` function in R.
 ```{r}
 #| label: inverse
 #| dependson: matrix
+
 Ainv <- solve(A)
 Ainv
 Ainv %*% A
@@ -186,15 +237,20 @@ Ainv %*% A
 
 ## Determinants {#sec-determinants}
 
-The **determinant** of a square matrix measures how much the matrix stretches or shrinks space when applied to vectors. A determinant of zero means the matrix has collapsed at least one direction down to nothing — which is why such a matrix cannot be inverted: the information lost in the flattening cannot be recovered. So a square matrix is singular (equivalently, rank-deficient) if and only if its determinant is zero.
+The **determinant** of a square matrix measures how much the matrix stretches or shrinks space when applied to vectors.
+A determinant of zero means the matrix has collapsed at least one direction down to nothing --- which is why such a matrix cannot be inverted: the information lost in the flattening cannot be recovered.
+So a square matrix is singular (equivalently, rank-deficient) if and only if its determinant is zero.
 
-The determinant of a square matrix $\bm{A}$ is denoted by $|\bm{A}|$ or $\text{det}(\bm{A})$. The determinant of a $1 \times 1$ matrix is just the value of the element. For a $2 \times 2$ matrix,
+The determinant of a square matrix $\bm{A}$ is denoted by $|\bm{A}|$ or $\text{det}(\bm{A})$.
+The determinant of a $1 \times 1$ matrix is just the value of the element.
+For a $2 \times 2$ matrix,
 $$
-|\bm{A}| = a_{11}a_{22} - a_{12}a_{21},
+  |\bm{A}| = a_{11}a_{22} - a_{12}a_{21},
 $$
-where $a_{ij}$ is the element in row $i$ and column $j$. For larger matrices, the formula is usually computed recursively using the Laplace expansion: for any choice of row $i$,
+where $a_{ij}$ is the element in row $i$ and column $j$.
+For larger matrices, the formula is usually computed recursively using the Laplace expansion: for any choice of row $i$,
 $$
-|\bm{A}| = \sum_{j=1}^n (-1)^{i+j} a_{ij} |\bm{A}_{ij}|,
+  |\bm{A}| = \sum_{j = 1}^n (-1)^{i + j} a_{ij} |\bm{A}_{ij}|,
 $$
 where $\bm{A}_{ij}$ is the matrix obtained by deleting the $i$th row and $j$th column of $\bm{A}$.
 
@@ -203,24 +259,31 @@ The determinant of a matrix can be computed using the `det` function in R.
 ```{r}
 #| label: determinant
 #| dependson: matrix
+
 det(A)
 ```
 
 ## Eigenvalues and eigenvectors {#sec-eigen}
 
-Some matrices have special directions along which they only stretch or shrink vectors (possibly reversing them), without rotating them to point a different way. Any nonzero vector along such a direction is called an **eigenvector**, and the corresponding stretching factor is the **eigenvalue**. Formally, a nonzero vector $\bm{v}$ is an eigenvector of $\bm{A}$, with eigenvalue $\lambda$, if $\bm{A}\bm{v} = \lambda \bm{v}$. A square matrix has full rank (see @sec-rank) if and only if all of its eigenvalues are nonzero.
+Some matrices have special directions along which they only stretch or shrink vectors (possibly reversing them), without rotating them to point a different way.
+Any nonzero vector along such a direction is called an **eigenvector**, and the corresponding stretching factor is the **eigenvalue**.
+Formally, a nonzero vector $\bm{v}$ is an eigenvector of $\bm{A}$, with eigenvalue $\lambda$, if $\bm{A}\bm{v} = \lambda \bm{v}$.
+A square matrix has full rank (see @sec-rank) if and only if all of its eigenvalues are nonzero.
 
-When $\bm{A}$ is symmetric, its eigenvectors can be chosen to be **orthonormal**, meaning that each one has length one and every pair is **orthogonal** --- at right angles to one another, so that $\bm{v}_i^\intercal\bm{v}_j = 0$ whenever $i \ne j$. Collecting them as the columns of a matrix $\bm{V}$, and placing the corresponding eigenvalues on the diagonal of $\bm{\Lambda} = \text{diag}(\lambda_1, \ldots, \lambda_n)$, the relationship $\bm{A}\bm{v} = \lambda\bm{v}$ holds for all the eigenvectors at once as $\bm{A}\bm{V} = \bm{V}\bm{\Lambda}$. Because the columns of $\bm{V}$ are orthonormal, $\bm{V}^\intercal\bm{V} = \bm{V}\bm{V}^\intercal = \bm{I}$ (so that $\bm{V}^{-1} = \bm{V}^\intercal$), and this rearranges into the **eigendecomposition** (or **spectral decomposition**)
+When $\bm{A}$ is symmetric, its eigenvectors can be chosen to be **orthonormal**, meaning that each one has length one and every pair is **orthogonal** --- at right angles to one another, so that $\bm{v}_i^\intercal\bm{v}_j = 0$ whenever $i \ne j$.
+Collecting them as the columns of a matrix $\bm{V}$, and placing the corresponding eigenvalues on the diagonal of $\bm{\Lambda} = \text{diag}(\lambda_1, \ldots, \lambda_n)$, the relationship $\bm{A}\bm{v} = \lambda\bm{v}$ holds for all the eigenvectors at once as $\bm{A}\bm{V} = \bm{V}\bm{\Lambda}$.
+Because the columns of $\bm{V}$ are orthonormal, $\bm{V}^\intercal\bm{V} = \bm{V}\bm{V}^\intercal = \bm{I}$ (so that $\bm{V}^{-1} = \bm{V}^\intercal$), and this rearranges into the **eigendecomposition** (or **spectral decomposition**)
 $$
   \bm{A} = \bm{V}\bm{\Lambda}\bm{V}^\intercal,
 $$
-which expresses $\bm{A}$ entirely in terms of its eigenvalues and eigenvectors. 
+which expresses $\bm{A}$ entirely in terms of its eigenvalues and eigenvectors.
 
 The `eigen()` function returns $\bm{V}$ in `$vectors` and the diagonal entries of $\bm{\Lambda}$ in `$values`, so the decomposition can be reconstructed directly.
 
 ```{r}
 #| label: eigen
 #| dependson: matrix
+
 e <- eigen(A)
 e
 e$vectors %*% diag(e$values) %*% t(e$vectors)
@@ -232,23 +295,28 @@ Eigendecomposition is an essential tool in dimension reduction (@sec-highdim).
 
 Just as some numerical values must be positive (for example, a distance or a variance), or at least non-negative, sometimes we need something similar for matrices.
 
-A **positive-definite** matrix is a special type of symmetric matrix where all the eigenvalues are positive. A positive-definite matrix is invertible, and its inverse is also positive definite.
+A **positive-definite** matrix is a special type of symmetric matrix where all the eigenvalues are positive.
+A positive-definite matrix is invertible, and its inverse is also positive definite.
 
-A **positive semi-definite** matrix is a symmetric matrix where all the eigenvalues are non-negative. A positive semi-definite matrix is invertible if and only if it is positive definite.
+A **positive semi-definite** matrix is a symmetric matrix where all the eigenvalues are non-negative.
+A positive semi-definite matrix is invertible if and only if it is positive definite.
 
 Covariance matrices are used throughout this book, and they must always be at least positive semi-definite.
 
 ## Cholesky decomposition {#sec-cholesky}
 
-A Cholesky decomposition is like a square root for a matrix. It is a decomposition of a positive semi-definite matrix $\bm{A}$ into a product $\bm{A} = \bm{L}\bm{L}^\intercal$, where $\bm{L}$ is a **lower triangular** matrix (one whose entries above the diagonal are all zero) with non-negative diagonal entries. If $\bm{A}$ is positive definite, then the diagonal elements of $\bm{L}$ are positive.
+A Cholesky decomposition is like a square root for a matrix.
+It is a decomposition of a positive semi-definite matrix $\bm{A}$ into a product $\bm{A} = \bm{L}\bm{L}^\intercal$, where $\bm{L}$ is a **lower triangular** matrix (one whose entries above the diagonal are all zero) with non-negative diagonal entries.
+If $\bm{A}$ is positive definite, then the diagonal elements of $\bm{L}$ are positive.
 
-Alternatively, it can be expressed using an **upper triangular** matrix (one whose entries below the diagonal are all zero), $\bm{U} = \bm{L}^\intercal$, so that $\bm{A} = \bm{U}^\intercal \bm{U}$. The `chol` function in R computes the upper triangular version of the Cholesky decomposition (although only for positive-definite matrices).
+Alternatively, it can be expressed using an **upper triangular** matrix (one whose entries below the diagonal are all zero), $\bm{U} = \bm{L}^\intercal$, so that $\bm{A} = \bm{U}^\intercal \bm{U}$.
+The `chol` function in R computes the upper triangular version of the Cholesky decomposition (although only for positive-definite matrices).
 
 ```{r}
 #| label: cholesky
 #| dependson: matrix
+
 U <- chol(A)
 U
 t(U) %*% U
 ```
-

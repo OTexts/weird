@@ -4,25 +4,36 @@
 #| label: setup4
 #| include: false
 #| cache: false
+
 source("before-each-chapter.R")
 ```
 
-The early history of anomaly detection methods involved statistical tests and assumptions about the distribution of the data. There are much better methods available now, but these old methods are still widely used. So they are included here for historical interest, and to point out their flaws to those still using them. There is nothing in later chapters that assumes knowledge of this chapter, so if you want to skip on to more useful methods, head to @sec-boxplots.
+The early history of anomaly detection methods involved statistical tests and assumptions about the distribution of the data.
+There are much better methods available now, but these old methods are still widely used.
+So they are included here for historical interest, and to point out their flaws to those still using them.
+There is nothing in later chapters that assumes knowledge of this chapter, so if you want to skip on to more useful methods, head to @sec-boxplots.
 
-We will only consider univariate methods in this chapter. There have been multivariate parametric tests for anomaly detection, but they are much less widely used and are also best avoided.
+We will only consider univariate methods in this chapter.
+There have been multivariate parametric tests for anomaly detection, but they are much less widely used and are also best avoided.
 
 ## Examples {#sec-examples}
 
 We will test the methods using six examples: two involving real data, and four involving simulated data.
 
-1. The cricket batting averages from the `cricket_batting` data set. As discussed in @sec-scatterplots, these appear to contain one genuine anomaly, the batter Don Bradman.
-2. Old Faithful eruption durations between 2017 and 2023, also discussed in @sec-scatterplots. For these data, there were three extreme anomalies --- with durations up to 1 minute --- and several "inliers" in an area of low density between 140 and 180 seconds.
-3. The first 18 rows of the second variable in the `n01` data, along with the values 4.0 and 4.5. The latter two are anomalies as they are unlikely to arise from the N(0,1) distribution. We save this data set as `n01b`. The plot below shows the data for this example.
+1. The cricket batting averages from the `cricket_batting` data set.
+   As discussed in @sec-scatterplots, these appear to contain one genuine anomaly, the batter Don Bradman.
+2. Old Faithful eruption durations between 2017 and 2023, also discussed in @sec-scatterplots.
+   For these data, there were three extreme anomalies --- with durations up to 1 minute --- and several "inliers" in an area of low density between 140 and 180 seconds.
+3. The first 18 rows of the second variable in the `n01` data, along with the values 4.0 and 4.5.
+   The latter two are anomalies as they are unlikely to arise from the N(0,1) distribution.
+   We save this data set as `n01b`.
+   The plot below shows the data for this example.
 
 ```{r}
 #| label: fig-n01b
 #| fig-asp: 0.2
 #| fig-cap: "Eighteen observations from a N(0,1) distribution along with two anomalies."
+
 n01b <- tibble(y = c(n01$v2[1:18], 4, 4.5))
 n01b |>
   ggplot(aes(x = y, y = 1)) +
@@ -43,6 +54,7 @@ The density functions for these three distributions can be seen in @fig-testdist
 #| label: fig-testdist
 #| fig-cap: "Three distributions we will use to test various anomaly detection methods."
 #| message: false
+
 c(t3 = dist_student_t(3), X4 = dist_chisq(4), N01 = dist_normal()) |>
   gg_density() +
   labs(y = "Probability density") +
@@ -63,19 +75,23 @@ Data for the last two examples are generated below.
 ```{r}
 #| label: fig-testdist-data
 #| code-fold: false
+
 set.seed(1)
 t3 <- tibble(y = rt(1000, df = 3))
 chisq4 <- tibble(y = rchisq(1000, df = 4))
 ```
 
-All methods considered in this chapter assume the underlying data follow a Normal distribution. In our examples, only #4 is from a Normal distribution, so the methods should work well in that case, but perhaps not in the other cases.
+All methods considered in this chapter assume the underlying data follow a Normal distribution.
+In our examples, only #4 is from a Normal distribution, so the methods should work well in that case, but perhaps not in the other cases.
 
-Good anomaly detection methods should pick up one anomaly in the cricket batting example, at least three anomalies in the Old Faithful example, and the two anomalies in the `n01b` example. They should identify no anomalies in the remaining examples.
+Good anomaly detection methods should pick up one anomaly in the cricket batting example, at least three anomalies in the Old Faithful example, and the two anomalies in the `n01b` example.
+They should identify no anomalies in the remaining examples.
 
 ```{r}
 #| label: check_numbers
 #| include: false
 #| depends: ["fig-n01b", "fig-testdist-data"]
+
 nanomalies <- tibble(
   Example = c(
     "Cricket batting",
@@ -106,13 +122,18 @@ nanomalies <- tibble(
 
 ## Z scores {#sec-zscores}
 
-Many parametric methods are based on $z$-scores (@sec-scaling) and assume that the data come from a Normal distribution. Recall that if our data are given by $y_1,\dots,y_n$, then their $z$-scores are given by
-$$z_i = (y_i - \bar{y})/s_y$$
+Many parametric methods are based on $z$-scores (@sec-scaling) and assume that the data come from a Normal distribution.
+Recall that if our data are given by $y_1,\dots,y_n$, then their $z$-scores are given by
+$$
+  z_i = (y_i - \bar{y})/s_y
+$$
 where $\bar{y}$ is the mean and $s_y$ is the standard deviation of the observations.
 
-Some books recommend that observations be identified as anomalies when the absolute value of the corresponding $z$ is above some threshold (usually 3). This is a bad idea for several reasons.
+Some books recommend that observations be identified as anomalies when the absolute value of the corresponding $z$ is above some threshold (usually 3).
+This is a bad idea for several reasons.
 
-1. If the data really do come from a Normal distribution that has been contaminated with anomalies, then the estimated mean ($\bar{y}$) and standard deviation $s_y$ will also be affected by those anomalies. Any anomaly detection method should be relatively robust to the anomalies in the data.
+1. If the data really do come from a Normal distribution that has been contaminated with anomalies, then the estimated mean ($\bar{y}$) and standard deviation $s_y$ will also be affected by those anomalies.
+   Any anomaly detection method should be relatively robust to the anomalies in the data.
 2. Having a fixed threshold regardless of sample size means that the probability of a spurious anomaly increases with the sample size.
 3. The assumption of normality is unlikely to be satisfied with most real data.
 
@@ -123,6 +144,7 @@ We now examine what happens when we apply this test to the six examples.
 ```{r}
 #| label: zscore1
 #| code-fold: false
+
 cricket_batting |>
   filter(Innings > 20) |>
   mutate(z = (Average - mean(Average)) / sd(Average)) |>
@@ -146,16 +168,17 @@ chisq4 |>
   filter(abs(z) > 3)
 ```
 
- 1. Don Bradman is correctly identified as the only outlier in the cricket batting averages.
- 2. The three obvious anomalies in the Old Faithful data have been identified, but none of the unusual eruptions between 140 and 180 seconds in length.
- 3. Neither of the two anomalies added to the 18 N(0,1) observations has been correctly identified.
- 4. One spurious anomaly has been identified in the 1000 N(0,1) observations.
- 5. Eighteen spurious anomalies have been identified in the 1000 $\text{t}_3$ observations.
- 6. Fifteen spurious anomalies have been identified in the 1000 $\chi^2_4$ observations.
+1. Don Bradman is correctly identified as the only outlier in the cricket batting averages.
+2. The three obvious anomalies in the Old Faithful data have been identified, but none of the unusual eruptions between 140 and 180 seconds in length.
+3. Neither of the two anomalies added to the 18 N(0,1) observations has been correctly identified.
+4. One spurious anomaly has been identified in the 1000 N(0,1) observations.
+5. Eighteen spurious anomalies have been identified in the 1000 $\text{t}_3$ observations.
+6. Fifteen spurious anomalies have been identified in the 1000 $\chi^2_4$ observations.
 
 ```{r}
 #| label: check2
 #| include: false
+
 nanomalies <- nanomalies |>
   mutate(
     Zscore = c(
@@ -191,17 +214,25 @@ stopifnot(nanomalies$Zscore == c(1, 3, 0, 1, 18, 15))
 
 ### Probability of spurious anomalies
 
-Even if the data did come from a Normal distribution, the probability of an observation being more than 3 standard deviations from the mean is $`r round(2*pnorm(-3),4)`$, so we would expect to see approximately 1 in every $1/ `r round(2*pnorm(-3),4)` = `r round(.5/pnorm(-3))`$ regular observations being identified as an anomaly using this approach.
+Even if the data did come from a Normal distribution, the probability of an observation being more than 3 standard deviations from the mean is $`r round(2 * pnorm(-3),4)`$, so we would expect to see approximately 1 in every $1/ `r round(2 * pnorm(-3),4)` = `r round(.5/pnorm(-3))`$ regular observations being identified as an anomaly using this approach.
 
-In fact, we can be more accurate than this. If our $n$ observations come from a Normal distribution, then the z-scores follow (approximately) a $\text{t}_{n-1}$ distribution. (The approximation arises because we replace the mean and standard deviation by their sample estimates.) When we identify anomalies as those points with $|z|>c$, then the probability of finding at least one spurious anomaly is the probability of the maximum being above $c$ or the minimum being below $-c$. Since the distribution is symmetric, these probabilities are the same. Let $M_n$ be the maximum of $n$ z-scores computed from the data; then $\Pr(M_n \le c) = (F_{t}(c; n-1))^n$ where $F_{t}(y; n-1)$ is the cumulative distribution function of a $t$ distribution with $n-1$ degrees of freedom. So the probability of at least one spurious anomaly is
+In fact, we can be more accurate than this.
+If our $n$ observations come from a Normal distribution, then the z-scores follow (approximately) a $\text{t}_{n - 1}$ distribution.
+(The approximation arises because we replace the mean and standard deviation by their sample estimates.)
+When we identify anomalies as those points with $|z| > c$, then the probability of finding at least one spurious anomaly is the probability of the maximum being above $c$ or the minimum being below $-c$.
+Since the distribution is symmetric, these probabilities are the same.
+Let $M_n$ be the maximum of $n$ z-scores computed from the data; then $\Pr(M_n \le c) = (F_{t}(c; n - 1))^n$ where $F_{t}(y; n - 1)$ is the cumulative distribution function of a $t$ distribution with $n - 1$ degrees of freedom.
+So the probability of at least one spurious anomaly is
 $$
-  1 - (F_{t}(c; n-1))^{2n}.
+  1 - (F_{t}(c; n - 1))^{2n}.
 $$ {#eq-spuriousz}
-This probability is accurate for large $n$, but not for small sample sizes. So, instead, we will use simulation to compute the probabilities; these are plotted in @fig-zspurious for several values of $c$ and $n$.
+This probability is accurate for large $n$, but not for small sample sizes.
+So, instead, we will use simulation to compute the probabilities; these are plotted in @fig-zspurious for several values of $c$ and $n$.
 
 ```{r}
 #| label: pspurious
 #| echo: false
+
 # Function to compute probability of spurious anomaly for sample size n,
 # distribution dist with parameters in ...
 # c is zscore threshold, rep is number of replicates
@@ -229,6 +260,7 @@ breaks <- sort(c(2:6, 8, 10^(1:4), 2.5 * 10^(1:3), 5 * 10^(1:3)))
 #| echo: false
 #| dependson: pspurious
 #| fig-cap: The probability of at least one spurious anomaly using z-scores and with a threshold $c$ for normally distributed data.
+
 zspuriousdf <- tidyr::expand_grid(n = n, c = seq(2, 3.5, by = 0.5)) |>
   mutate(pmax = pspurious(n, rnorm, c = c)) |>
   cache("zspuriousdf")
@@ -265,6 +297,7 @@ Let's also compute the probability of spurious anomalies for different data dist
 #| echo: false
 #| dependson: ["pspurious", "zspurious"]
 #| fig-cap: The probability of at least one spurious anomaly using z-scores for different data distributions and with a threshold of $c=3$.
+
 zspurious2df <- tibble(n = n, c = 3) |>
   mutate(
     ApproxNormal = 1 - pt(c, n - 1)^(2 * n),
@@ -314,15 +347,19 @@ zspurious2df |>
   coord_cartesian(xlim = c(6, 7500))
 ```
 
-Notice how the departures from normality, either via skewness (for the $\chi^2$ distribution) or with heavier tails (for the $t$ distribution), lead to much greater probabilities for spurious anomalies. Any tests for anomaly detection that assume an underlying data distribution will be sensitive to the shape of that distribution.
+Notice how the departures from normality, either via skewness (for the $\chi^2$ distribution) or with heavier tails (for the $t$ distribution), lead to much greater probabilities for spurious anomalies.
+Any tests for anomaly detection that assume an underlying data distribution will be sensitive to the shape of that distribution.
 
-Even if we were prepared to believe that the data come from a Normal distribution, we need to adjust the threshold to allow for the sample size. This is the idea behind the next methods we will consider.
+Even if we were prepared to believe that the data come from a Normal distribution, we need to adjust the threshold to allow for the sample size.
+This is the idea behind the next methods we will consider.
 
 ## Peirce's and Chauvenet's criteria {#sec-peirce-chauvenet}
 
 ### Peirce's criterion {-}
 
-Benjamin Peirce was a Harvard mathematician in the mid 1800s who worked with astronomical data that were prone to anomalous observations. He proposed the first known test based on what are now called $z$-scores [@Peirce1852]. His criterion was that any observations with $|z| > c$ should be "rejected", where $c$ is a complicated function depending on the sample size $n$ and the number of suspected anomalies.
+Benjamin Peirce was a Harvard mathematician in the mid 1800s who worked with astronomical data that were prone to anomalous observations.
+He proposed the first known test based on what are now called $z$-scores [@Peirce1852].
+His criterion was that any observations with $|z| > c$ should be "rejected", where $c$ is a complicated function depending on the sample size $n$ and the number of suspected anomalies.
 
 @fig-zscorecriteria shows the value of $c$ as a function of sample size, when there is only one suspected anomaly.
 
@@ -332,6 +369,7 @@ Benjamin Peirce was a Harvard mathematician in the mid 1800s who worked with ast
 #| echo: false
 #| fig-cap: "Criteria for anomalies based on z-scores."
 #| dependson: pspurious
+
 threshold <- numeric(length(n))
 for (i in seq_along(n)) {
   threshold[i] <- weird:::peirce_threshold(n[i])
@@ -357,11 +395,13 @@ tibble(n = n, c = threshold) |>
 
 The threshold increases with sample size $n$ to allow for the increasing likelihood of observations falling in the extreme tails of the distribution.
 
-The `peirce_anomalies()` function returns a logical vector indicating which observations are anomalous under this criterion. Let's apply it to the six examples.
+The `peirce_anomalies()` function returns a logical vector indicating which observations are anomalous under this criterion.
+Let's apply it to the six examples.
 
 ```{r}
 #| label: peirce_examples
 #| code-fold: false
+
 cricket_batting |> filter(peirce_anomalies(Average))
 oldfaithful |> filter(peirce_anomalies(duration))
 n01 |>
@@ -375,6 +415,7 @@ chisq4 |> filter(peirce_anomalies(y))
 ```{r}
 #| label: checkpeirce
 #| include: false
+
 nanomalies <- nanomalies |>
   mutate(
     Peirce = c(
@@ -399,13 +440,20 @@ stopifnot(nanomalies$Peirce == c(0, 2, 2, 1, 10, 6))
 
 ### Chauvenet's criterion {-}
 
-Peirce's proposal was largely superseded by an alternative proposed by the astrophysicist William Chauvenet, which was much simpler to describe. He suggested [@Chauvenet1863] replacing the threshold $c$ by the $1-0.25/n$ quantile from the standard Normal distribution. This threshold is also shown in @fig-zscorecriteria. A consequence of this choice is that Chauvenet's criterion will reject, on average, half an observation of genuine data from a Normal distribution regardless of the value of $n$. However, for non-normal data, there is no such guarantee that genuine observations will not be detected as anomalies. Despite its flaws, the method is still widely used in some disciplines, especially engineering.
+Peirce's proposal was largely superseded by an alternative proposed by the astrophysicist William Chauvenet, which was much simpler to describe.
+He suggested [@Chauvenet1863] replacing the threshold $c$ by the $1 - 0.25/n$ quantile from the standard Normal distribution.
+This threshold is also shown in @fig-zscorecriteria.
+A consequence of this choice is that Chauvenet's criterion will reject, on average, half an observation of genuine data from a Normal distribution regardless of the value of $n$.
+However, for non-normal data, there is no such guarantee that genuine observations will not be detected as anomalies.
+Despite its flaws, the method is still widely used in some disciplines, especially engineering.
 
-The `chauvenet_anomalies()` function can be used to implement this test. For our six examples, it gives similar results to those above for `peirce_anomalies()` (with two additional spurious anomalies for the $\text{t}_3$ example, and one additional spurious anomaly for the $\chi^2_4$ example.)
+The `chauvenet_anomalies()` function can be used to implement this test.
+For our six examples, it gives similar results to those above for `peirce_anomalies()` (with two additional spurious anomalies for the $\text{t}_3$ example, and one additional spurious anomaly for the $\chi^2_4$ example.)
 
 ```{r}
 #| label: checkchauvenet
 #| include: false
+
 nanomalies <- nanomalies |>
   mutate(
     Chauvenet = c(
@@ -422,24 +470,28 @@ stopifnot(nanomalies$Chauvenet == nanomalies$Peirce + c(0, 0, 0, 0, 2, 1))
 
 ## Grubbs' test {#sec-grubbs}
 
-By the 20th century, the concept of hypothesis testing had been developed, and the $t$-distribution had been discovered, and both were applied to the identification of anomalies using $z$-scores. Many tests were developed under different assumptions about the underlying distribution and what was assumed to be known [@Hawkins1980]. We will mention just two of them here, as they are the most widely used.
+By the 20th century, the concept of hypothesis testing had been developed, and the $t$-distribution had been discovered, and both were applied to the identification of anomalies using $z$-scores.
+Many tests were developed under different assumptions about the underlying distribution and what was assumed to be known [@Hawkins1980].
+We will mention just two of them here, as they are the most widely used.
 
-Egon Pearson and Chandra Sekar proposed [@Pearson1936] that an observation be considered an anomaly if $|z_i|> c_\alpha$, where the critical value is given by
+Egon Pearson and Chandra Sekar proposed [@Pearson1936] that an observation be considered an anomaly if $|z_i| > c_\alpha$, where the critical value is given by
 $$
-c_\alpha = t_{\alpha/n, n-2} \sqrt{\frac{n-1}{n-2+t^2_{\alpha/n, n-2}}}
+  c_\alpha = t_{\alpha/n, n - 2} \sqrt{\frac{n - 1}{n - 2 + t^2_{\alpha/n, n - 2}}}
 $$
-and $t_{p, k}$ is the $1-p$ quantile of the t distribution with $k$ degrees of freedom. Later, this was extended by Frank Grubbs [@Grubbs1950] who proposed using
+and $t_{p, k}$ is the $1 - p$ quantile of the t distribution with $k$ degrees of freedom.
+Later, this was extended by Frank Grubbs [@Grubbs1950] who proposed using
 $$
-c_\alpha = \frac{(n-1)t_{\alpha/2n, n-2}}{\sqrt{n(n-2 + t^2_{\alpha/2n, n-2})}}.
+  c_\alpha = \frac{(n - 1)t_{\alpha/2n, n - 2}}{\sqrt{n(n - 2 + t^2_{\alpha/2n, n - 2})}}.
 $$
 
-@fig-zscoretests shows the critical values at $\alpha=0.05$ for these tests, along with the corresponding value from @Chauvenet1863 for comparison.
+@fig-zscoretests shows the critical values at $\alpha = 0.05$ for these tests, along with the corresponding value from @Chauvenet1863 for comparison.
 
 ```{r}
 #| label: fig-zscoretests
 #| echo: false
 #| dependson: pspurious
 #| fig-cap: Critical values for maximum $z$-score tests with $\alpha=0.05$.
+
 alpha <- 0.05
 df <- tibble(n = n) |>
   filter(n >= 3, n <= 10130) |>
@@ -474,13 +526,15 @@ df |>
   coord_cartesian(xlim = c(4, 60000))
 ```
 
-From these, we can compute the probability of a spurious anomaly in a Normal distribution, using @eq-spuriousz. This probability should be equal to $\alpha=0.05$.
+From these, we can compute the probability of a spurious anomaly in a Normal distribution, using @eq-spuriousz.
+This probability should be equal to $\alpha = 0.05$.
 
 ```{r}
 #| label: fig-pzscoretests
 #| echo: false
 #| dependson: ["pspurious", "zscoretests"]
 #| fig-cap: True size of the tests (i.e., the probability of a spurious anomaly) for normally distributed data with $\alpha=0.05$.
+
 pzscoredf <- df |>
   mutate(pmax = pspurious(n, rnorm, c = c, rep = 1e6)) |>
   cache("pzscoredf")
@@ -526,8 +580,9 @@ However, when we allow for different data distributions, Grubbs' test also gives
 ```{r}
 #| label: fig-pgrubbs
 #| echo: false
-#| dependson: ["pspurious","zscoretests"]
+#| dependson: ["pspurious", "zscoretests"]
 #| fig-cap: True size of Grubbs' tests (i.e., the probability of a false positive) for different data distributions with $\alpha=0.05$.
+
 pgrubbsdf <- pzscoredf |>
   filter(test == "grubbs") |>
   mutate(
@@ -588,6 +643,7 @@ We can apply the test using the `grubbs_anomalies()` function to our six example
 ```{r}
 #| label: grubbs-anomalies
 #| code-fold: false
+
 cricket_batting |>
   filter(Innings > 20) |>
   filter(grubbs_anomalies(Average)) |>
@@ -607,6 +663,7 @@ chisq4 |>
 ```{r}
 #| label: checkgrubbs
 #| include: false
+
 nanomalies <- nanomalies |>
   mutate(
     Grubbs = c(
@@ -625,31 +682,41 @@ nanomalies <- nanomalies |>
 stopifnot(nanomalies$Grubbs == c(1, 1, 0, 0, 6, 1))
 ```
 
-The clear failure is with the $\text{t}_3$ distribution which has no real anomalies. A spurious anomaly is also detected in the $\chi^2_4$ example, and real anomalies are missed in the Old Faithful data and in `n01b`.
+The clear failure is with the $\text{t}_3$ distribution which has no real anomalies.
+A spurious anomaly is also detected in the $\chi^2_4$ example, and real anomalies are missed in the Old Faithful data and in `n01b`.
 
 ## Dixon's Q test {#sec-dixon}
 
-The z-score tests above all measure the distance of an observation from the centre of the distribution. A different approach looks instead at the **gaps** between consecutive order statistics (see @sec-gaps): if a value is anomalous, we expect a noticeably large gap between it and its nearest neighbour in the sorted data. @Dixon1950 introduced the first widely-used test of this type.
+The z-score tests above all measure the distance of an observation from the centre of the distribution.
+A different approach looks instead at the **gaps** between consecutive order statistics (see @sec-gaps): if a value is anomalous, we expect a noticeably large gap between it and its nearest neighbour in the sorted data.
+@Dixon1950 introduced the first widely-used test of this type.
 
 If $y_{(1)},\dots,y_{(n)}$ denote the ordered values of our sample, then Dixon's Q statistic is given by
 $$
-  Q = \frac{y_{(n)} - y_{(n-1)}}{y_{(n)} - y_{(1)}},
+  Q = \frac{y_{(n)} - y_{(n - 1)}}{y_{(n)} - y_{(1)}},
 $$
-the ratio of the difference between the two largest values to the range of the data. If the largest value is the only anomaly, then $Q$ will take a larger value than expected.
+the ratio of the difference between the two largest values to the range of the data.
+If the largest value is the only anomaly, then $Q$ will take a larger value than expected.
 
-The corresponding test for the minimum to be an anomaly uses $y_{(2)}-y_{(1)}$ in the numerator instead, the difference between the second smallest and minimum observations. Both minimum and maximum values can be tested simultaneously using the two-sided test, where the numerator is the maximum of $y_{(n)} - y_{(n-1)}$ and $y_{(2)}-y_{(1)}$.
+The corresponding test for the minimum to be an anomaly uses $y_{(2)} - y_{(1)}$ in the numerator instead, the difference between the second smallest and minimum observations.
+Both minimum and maximum values can be tested simultaneously using the two-sided test, where the numerator is the maximum of $y_{(n)} - y_{(n - 1)}$ and $y_{(2)} - y_{(1)}$.
 
-The test is clearly flawed for several reasons. First, if the two largest values are both anomalies of similar size, then $Q$ will be small and these anomalies will be missed. Also, if both maximum and minimum values are anomalies, the denominator will be larger than expected, thereby reducing the size of $Q$.
+The test is clearly flawed for several reasons.
+First, if the two largest values are both anomalies of similar size, then $Q$ will be small and these anomalies will be missed.
+Also, if both maximum and minimum values are anomalies, the denominator will be larger than expected, thereby reducing the size of $Q$.
 
 As with the other tests considered here, the test assumes that the underlying data distribution is normal, and anomalies are identified which appear inconsistent with that assumption.
 
-Simulation can be used to compute the critical values for this test, assuming that the data come from a Normal distribution. We can also use simulation to compute the probability of false positives, giving the results shown in @fig-spuriousdixon. As with the other tests we have considered, Dixon's test is sensitive to the assumed data distribution making it largely useless for real data analysis.
+Simulation can be used to compute the critical values for this test, assuming that the data come from a Normal distribution.
+We can also use simulation to compute the probability of false positives, giving the results shown in @fig-spuriousdixon.
+As with the other tests we have considered, Dixon's test is sensitive to the assumed data distribution making it largely useless for real data analysis.
 
 ```{r}
 #| label: fig-spuriousdixon
 #| fig-cap: "Probability of a spurious anomaly using Dixon's test."
 #| dependson: "pspurious"
 #| echo: false
+
 # Function to compute probability of spurious anomaly for sample size n,
 # distribution dist with parameters in ...
 # rep is number of replicates
@@ -718,6 +785,7 @@ We can apply the test using the `dixon_anomalies()` function, which does a two-s
 ```{r}
 #| label: dixon-anomalies
 #| code-fold: false
+
 cricket_batting |>
   filter(Innings > 20) |>
   filter(dixon_anomalies(Average)) |>
@@ -737,6 +805,7 @@ chisq4 |>
 ```{r}
 #| label: checkdixon
 #| include: false
+
 nanomalies <- nanomalies |>
   mutate(
     Dixon = c(
@@ -759,25 +828,32 @@ For these examples, the test has failed to identify any of the anomalies in `old
 
 ## Gap-based methods {#sec-gap-tests}
 
-Dixon's test only examines the gap adjacent to the minimum or maximum observation. @Tukey1977-xd proposed looking for large gaps anywhere in the sorted data, while @Wainer1978 formalised this into a practical method for determining whether any such spacing is unexpectedly large for its position in the distribution. The method is best thought of as detecting unusually large **separations** or **holes** in a one-dimensional data set. A large tail gap may suggest an outlier; a large interior gap usually suggests a separation between two groups rather than a single anomalous observation.
+Dixon's test only examines the gap adjacent to the minimum or maximum observation.
+@Tukey1977-xd proposed looking for large gaps anywhere in the sorted data, while @Wainer1978 formalised this into a practical method for determining whether any such spacing is unexpectedly large for its position in the distribution.
+The method is best thought of as detecting unusually large **separations** or **holes** in a one-dimensional data set.
+A large tail gap may suggest an outlier; a large interior gap usually suggests a separation between two groups rather than a single anomalous observation.
 
 ### Tukey--Wainer--Schacht gap scores {-}
 
 Consider the spacings defined (@sec-gaps) by
 $$
-  d_i = y_{(i+1)} - y_{(i)}, \qquad i = 1, \dots, n-1,
+  d_i = y_{(i + 1)} - y_{(i)}, \qquad i = 1, \dots, n - 1,
 $$
 where $y_{(1)} \le y_{(2)} \le \cdots \le y_{(n)}$ are the sorted observations.
 
-Raw spacings are not directly comparable across the sorted sample. Even for data from a single unimodal distribution, spacings tend to be small near the centre of the distribution, where observations are dense, and larger in the tails, where observations are sparse.
+Raw spacings are not directly comparable across the sorted sample.
+Even for data from a single unimodal distribution, spacings tend to be small near the centre of the distribution, where observations are dense, and larger in the tails, where observations are sparse.
 
-Tukey’s *gapping* scheme addresses this by weighting each gap according to its position in the ordered data. Specifically, the gap between $y{(i)}$ and $y{(i+1)}$ is assigned weight
+Tukey's *gapping* scheme addresses this by weighting each gap according to its position in the ordered data.
+Specifically, the gap between $y{(i)}$ and $y{(i + 1)}$ is assigned weight
 $$
-  a_i = i(n-i), \qquad i = 1, \ldots, n-1,
+  a_i = i(n - i), \qquad i = 1, \ldots, n - 1,
 $$ {#eq-ws-weight}
-which is largest near the middle of the sample and smallest at the extremes. This emphasises unusually large gaps in the centre, where observations are normally close together, and downweights gaps in the tails, where larger spacings are expected.
+which is largest near the middle of the sample and smallest at the extremes.
+This emphasises unusually large gaps in the centre, where observations are normally close together, and downweights gaps in the tails, where larger spacings are expected.
 
-@Wainer1978 developed this idea into a practical diagnostic by transforming and standardising the weighted gaps. They proposed using the square root of the weighted gaps,
+@Wainer1978 developed this idea into a practical diagnostic by transforming and standardising the weighted gaps.
+They proposed using the square root of the weighted gaps,
 $$
   h_i = \sqrt{a_i d_i},
 $$
@@ -785,13 +861,20 @@ which makes their distribution more symmetric, and then comparing each $h_i$ wit
 $$
   z^*_i = \frac{h_i}{\bar h_{T25}}.
 $$ {#eq-ws-score}
-Large values of $z^*_i$ identify gaps that are large relative to other gaps after allowing for their position in the sorted data. Tukey suggested $z^*_i > 2.25$ as an exploratory cut-off; @Wainer1978 showed by simulation that, under a Gaussian distribution, this corresponds to a per-gap false positive rate of about 3%. Because there are $n-1$ gaps, this is not a 5% test for the whole data set. If many gaps are inspected, the chance of at least one crossing the threshold can be much larger than the per-gap rate.
+Large values of $z^*_i$ identify gaps that are large relative to other gaps after allowing for their position in the sorted data.
+Tukey suggested $z^*_i > 2.25$ as an exploratory cut-off; @Wainer1978 showed by simulation that, under a Gaussian distribution, this corresponds to a per-gap false positive rate of about 3%.
+Because there are $n - 1$ gaps, this is not a 5% test for the whole data set.
+If many gaps are inspected, the chance of at least one crossing the threshold can be much larger than the per-gap rate.
 
 The code below constructs a data frame of **gaps** between batter averages.
 
 ```{r}
 #| label: fig-ws-gaps
-#| fig-cap: "Tukey--Wainer--Schacht gap scores for cricket batting averages (batters with more than 25 innings). Each point is plotted at the upper end of a gap, so the score shown at a batting average is for the gap between that batter and the next lower batting average. The dashed line marks Tukey's exploratory threshold of 2.25."
+#| fig-cap: >-
+#|   Tukey--Wainer--Schacht gap scores for cricket batting averages (batters with more than 25 innings).
+#|   Each point is plotted at the upper end of a gap, so the score shown at a batting average is for the gap between that batter and the next lower batting average.
+#|   The dashed line marks Tukey's exploratory threshold of 2.25.
+
 batters <- cricket_batting |>
   filter(Innings > 25) |>
   arrange(Average)
@@ -821,33 +904,39 @@ Restricting attention to scores above the exploratory threshold of 2.25, we show
 
 ```{r}
 #| code-fold: false
+
 batting_gaps |>
   filter(ws > 2.25) |>
   slice_max(spacing, n = 5)
 ```
 
-The largest gap of `r sprintf("%.1f", batting_gaps |> filter(ws > 2.25) |> slice_max(spacing, n = 1) |> pull(spacing))` should be interpreted as the separation between Adam Voges (who has the second highest batting average) and Don Bradman, not as a score belonging to Bradman alone. This illustrates that the method detects separations, not individual anomalous observations.
+The largest gap of `r sprintf("%.1f", batting_gaps |> filter(ws > 2.25) |> slice_max(spacing, n = 1) |> pull(spacing))` should be interpreted as the separation between Adam Voges (who has the second highest batting average) and Don Bradman, not as a score belonging to Bradman alone.
+This illustrates that the method detects separations, not individual anomalous observations.
 
 ### Significance testing {-}
 
-The Tukey--Wainer--Schacht score does not yield a direct $p$-value. A related way to construct a formal gap test is to calculate the uniform spacings (see @sec-gaps) of the data after transforming them using the fitted distribution function $F$:
+The Tukey--Wainer--Schacht score does not yield a direct $p$-value.
+A related way to construct a formal gap test is to calculate the uniform spacings (see @sec-gaps) of the data after transforming them using the fitted distribution function $F$:
 $$
-  \delta_i = F(y_{(i+1)}) - F(y_{(i)}), \quad i = 1, \dots, n-1.
+  \delta_i = F(y_{(i + 1)}) - F(y_{(i)}), \quad i = 1, \dots, n - 1.
 $$
-Since the transformed spacings are approximately $\text{Exp}(n+1)$ (@sec-gaps), and the exponential distribution is in the Gumbel domain of attraction (@sec-evt), then $\delta_{\max} = \max(\delta_1,\dots,\delta_{n-1})$ satisfies
+Since the transformed spacings are approximately $\text{Exp}(n + 1)$ (@sec-gaps), and the exponential distribution is in the Gumbel domain of attraction (@sec-evt), then $\delta_{\max} = \max(\delta_1,\dots,\delta_{n - 1})$ satisfies
 $$
-  t = (n+1)\delta_{\max} - \log(n-1) \approx \text{Gumbel}(0,1).
+  t = (n + 1)\delta_{\max} - \log(n - 1) \approx \text{Gumbel}(0,1).
 $$
 This gives the approximate upper-tail probability
 $$
   p \approx 1 - \exp(-e^{-t}).
 $$ {#eq-gap-pvalue}
 
-In practice, $F$ is unknown. The example below uses a robustly fitted Normal distribution, with the median and MAD as estimates of location and scale. This makes the fit less sensitive to the possible outlier, but the resulting test is still only an approximate parametric test.
+In practice, $F$ is unknown.
+The example below uses a robustly fitted Normal distribution, with the median and MAD as estimates of location and scale.
+This makes the fit less sensitive to the possible outlier, but the resulting test is still only an approximate parametric test.
 
 ```{r}
 #| label: gap-bt-test
 #| code-fold: false
+
 mu_hat <- median(batters$Average)
 sigma_hat <- robustbase::s_mad(batters$Average)
 
@@ -859,16 +948,25 @@ batting_gaps |>
     p_value = 1 - exp(-exp(-t))
   ) |>
   filter(p_value < 0.05) |>
-  select(lower_player, lower_average, upper_player, upper_average, spacing, p_value)
+  select(
+    lower_player,
+    lower_average,
+    upper_player,
+    upper_average,
+    spacing,
+    p_value
+  )
 ```
 
 The $p$-value is very small, confirming that the gap below Bradman's average is far too large to be consistent with all batters coming from a single fitted Normal distribution.
 
-Finally, we apply the same approach to the other five examples considered in this chapter. Here we associate the p-value with the larger observation in each gap pair.
+Finally, we apply the same approach to the other five examples considered in this chapter.
+Here we associate the p-value with the larger observation in each gap pair.
 
 ```{r}
 #| label: gap-tests
 #| code-fold: false
+
 gap_test_pvalue <- function(x) {
   mu_hat <- median(x)
   sigma_hat <- robustbase::s_mad(x)
@@ -905,6 +1003,7 @@ chisq4 |>
 ```{r}
 #| label: checkgap
 #| include: false
+
 nanomalies$Gap <- c(
   cricket_batting |>
     filter(Innings > 25) |>
@@ -922,7 +1021,8 @@ nof <- nanomalies$Gap[2]
 
 While the method worked well for the cricket batting averages, it identified `r nof` "anomalies" in the Old Faithful data, and it failed to identify either of the two clear anomalies in `n01b`.
 
-Like all methods in this chapter, both the normalised gap score and the transformed-gap test depend on an assumed null distribution, and so the results depend on the adequacy of the model. Related extreme-spacing ideas underlie the HDoutliers and stray algorithms discussed in @sec-distance-methods, where gaps in nearest-neighbour distances are used rather than gaps in the raw univariate data.
+Like all methods in this chapter, both the normalised gap score and the transformed-gap test depend on an assumed null distribution, and so the results depend on the adequacy of the model.
+Related extreme-spacing ideas underlie the HDoutliers and stray algorithms discussed in @sec-distance-methods, where gaps in nearest-neighbour distances are used rather than gaps in the raw univariate data.
 
 ## Summary {#sec-tests-summary}
 
@@ -931,9 +1031,12 @@ We can summarise the results of the various tests used here in the following tab
 ```{r}
 #| label: tbl-nanomalies
 #| echo: false
-#| tbl-cap: "Number of anomalies detected by each test. Cells in red indicate that the test has failed to identify all known anomalies (i.e., it has some false negatives), or it has identified some spurious anomalies (i.e., it has some false positives)."
+#| tbl-cap: >-
+#|   Number of anomalies detected by each test.
+#|   Cells in red indicate that the test has failed to identify all known anomalies (i.e., it has some false negatives), or it has identified some spurious anomalies (i.e., it has some false positives).
 #| dependson: check_numbers
 #| cache: false
+
 library(kableExtra)
 nanomalies_table <- nanomalies |>
   mutate(
@@ -960,12 +1063,17 @@ purrr::reduce2(
 )
 ```
 
-Only Z scores found the three (and only the three) clear anomalies in the Old Faithful data, and most failed to find either of the artificial anomalies in `n01b`. All tests found at least one spurious anomaly in the large simulated data sets with no real anomalies.
+Only Z scores found the three (and only the three) clear anomalies in the Old Faithful data, and most failed to find either of the artificial anomalies in `n01b`.
+All tests found at least one spurious anomaly in the large simulated data sets with no real anomalies.
 
-As noted at the start of this chapter, anomaly detection methods based on assumed data distributions are unreliable. Until about 1975, they were the only viable methods given the lack of computing facilities available, because they could be implemented using tables and hand calculations. However, there is little justification for continuing to use such methods.
+As noted at the start of this chapter, anomaly detection methods based on assumed data distributions are unreliable.
+Until about 1975, they were the only viable methods given the lack of computing facilities available, because they could be implemented using tables and hand calculations.
+However, there is little justification for continuing to use such methods.
 
 They are particularly sensitive to the assumed data distribution, and the probability of detecting spurious anomalies is usually much higher in reality than under the ideal conditions in which the tests were conceived.
 
-These tests are sometimes applied iteratively, where observations are removed from the data if determined to be anomalies, and the test re-applied to the remaining data. This process continues until no more anomalies are found. However, this procedure will clearly change the size of the test due to the problem of multiple comparisons.
+These tests are sometimes applied iteratively, where observations are removed from the data if determined to be anomalies, and the test re-applied to the remaining data.
+This process continues until no more anomalies are found.
+However, this procedure will clearly change the size of the test due to the problem of multiple comparisons.
 
 Next, we will turn our attention to methods that arose in the latter part of the 20th century which were based on quantiles and data depth rather than on any underlying parametric data distribution.

@@ -4,79 +4,92 @@
 #| label: setup5
 #| include: false
 #| cache: false
+
 source("before-each-chapter.R")
 ```
 
-Most readers will have first come across anomaly detection using boxplots, invented by John Tukey as a quick summary of medium-sized data sets [@Tukey75;@Tukey1977-xd;@wickhamboxplots]. Tukey never proposed that boxplots be a generic anomaly detection method, but they have become widely used for this purpose, and are often the first method that people think of when they want to identify anomalies in univariate data.
+Most readers will have first come across anomaly detection using boxplots, invented by John Tukey as a quick summary of medium-sized data sets [@Tukey75;@Tukey1977-xd;@wickhamboxplots].
+Tukey never proposed that boxplots be a generic anomaly detection method, but they have become widely used for this purpose, and are often the first method that people think of when they want to identify anomalies in univariate data.
 
 In this chapter, we will describe the original boxplot method, along with some variations that have been developed to address some of the limitations of the original approach.
 
 ## Univariate data depth {#sec-univariate-depth}
 
-For univariate data, the **depth** of an observation is a measure of how deeply buried it is when all observations are ordered. That is, how far would you need to count from either the smallest or largest observation until you encountered the observation of interest. So the minimum and maximum both have depth 1, while the sample median has the largest depth of $(n+1)/2$.
+For univariate data, the **depth** of an observation is a measure of how deeply buried it is when all observations are ordered.
+That is, how far would you need to count from either the smallest or largest observation until you encountered the observation of interest.
+So the minimum and maximum both have depth 1, while the sample median has the largest depth of $(n + 1)/2$.
 
-The other sample quantiles as defined in @sec-sample-quantiles do not correspond exactly to specific depths, but @Tukey1977-xd introduced variations for some quantiles that are based on depths. He called these "letter values".
+The other sample quantiles as defined in @sec-sample-quantiles do not correspond exactly to specific depths, but @Tukey1977-xd introduced variations for some quantiles that are based on depths.
+He called these "letter values".
 
-**Letter values** [@Tukey1977-xd;@hoaglin1983letter] are order statistics with specific depths, defined recursively starting with the median. The depth of the median is $d_1 = (1+n)/2$. The depths of successive letter values are defined recursively as $d_i = (1+\lfloor d_{i-1}\rfloor)/2$, $i=2,3,\dots$. The corresponding letter values are defined as
+**Letter values** [@Tukey1977-xd;@hoaglin1983letter] are order statistics with specific depths, defined recursively starting with the median.
+The depth of the median is $d_1 = (1 + n)/2$.
+The depths of successive letter values are defined recursively as $d_i = (1 + \lfloor d_{i - 1}\rfloor)/2$, $i = 2,3,\dots$.
+The corresponding letter values are defined as
 $$
-  L_i = y_{(\lfloor d_i\rfloor)}
-  \qquad\text{and}\qquad
-  U_i = y_{(\lfloor n-d_i+1\rfloor)},
+  L_i = y_{(\lfloor d_i\rfloor)} \qquad\text{and}\qquad U_i
+      = y_{(\lfloor n - d_i + 1\rfloor)},
 $$
-when the depth is an integer. Otherwise, the depth is an integer plus 1/2, and the letter values are given by
+when the depth is an integer.
+Otherwise, the depth is an integer plus 1/2, and the letter values are given by
 $$
-  L_i = (y_{(\lfloor d_i\rfloor)} + y_{(\lfloor d_i\rfloor+1)})/2
-  \qquad\text{and}\qquad
-  U_i = (y_{(\lfloor n-d_i+1\rfloor)} + y_{(\lfloor n-d_i+1\rfloor+1)})/2 .
+  L_i = (y_{(\lfloor d_i\rfloor)} + y_{(\lfloor d_i\rfloor + 1)})/2 \qquad\text{and}\qquad U_i
+      = (y_{(\lfloor n - d_i + 1\rfloor)} + y_{(\lfloor n - d_i + 1\rfloor + 1)})/2 .
 $$
-Rather than label these using integers ($L_2,L_3,\dots$), Tukey proposed using letters ($L_F,L_E,L_D,\dots$) where $F=$ fourths, $E=$ eighths, $D=$ sixteenths, and so on.
+Rather than label these using integers ($L_2,L_3,\dots$), Tukey proposed using letters ($L_F,L_E,L_D,\dots$) where $F =$ fourths, $E =$ eighths, $D =$ sixteenths, and so on.
 
-Because each depth is roughly half the previous depth, the lower letter values provide estimates of the quantiles with probabilities $p=\frac{1}{2},\frac14,\frac18,\dots$, while the upper letter values provide estimates of the quantiles with probabilities $p=\frac{1}{2},\frac34,\frac78,\dots$. @hoaglin1983letter [p. 44], showed that $\hat{Q}(p)$ with `type = 8` gives approximately the same result as the corresponding letter value.
+Because each depth is roughly half the previous depth, the lower letter values provide estimates of the quantiles with probabilities $p = \frac{1}{2},\frac14,\frac18,\dots$, while the upper letter values provide estimates of the quantiles with probabilities $p = \frac{1}{2},\frac34,\frac78,\dots$.
+@hoaglin1983letter [p. 44], showed that $\hat{Q}(p)$ with `type = 8` gives approximately the same result as the corresponding letter value.
 
 ```{r}
 #| label: battinglv
 #| echo: false
 #| dependson: battingquantileanomalies
+
 batave <- cricket_batting |> filter(Innings > 20)
 n <- NROW(batave)
 lv <- lvplot::lvtable(batave$Average, k = 4)
 d <- lv[4:7, "depth"]
 ```
 
-Consider the batting averages from @sec-sample-quantiles. In this example, $n = `r n`$, so the depths of the first four letter values are given by
+Consider the batting averages from @sec-sample-quantiles.
+In this example, $n = `r n`$, so the depths of the first four letter values are given by
 $$
-  d_1 = `r d[1]`,\quad
-  d_2 = `r d[2]`,\quad
-  d_3 = `r d[3]`,\quad\text{and}\quad
-  d_4 = `r d[4]`,
+  d_1 = `r d[1]`,\quad d_2
+      = `r d[2]`,\quad d_3
+      = `r d[3]`,\quad\text{and}\quad d_4
+      = `r d[4]`,
 $$
 and the corresponding letter values are given by
 \begin{align*}
- L_1 &= U_1 = (y_{(`r trunc(d[1])`)}+ y_{(`r trunc(d[1]+1)`)})/2 = `r sprintf("%2.2f", lv[4,"LV"])` &\\
- L_F &= y_{(`r trunc(d[2])`)} = `r sprintf("%2.2f", lv[3,"LV"])` \qquad
- & U_F &= y_{(`r trunc(n-d[2]+1)`)} = `r sprintf("%2.2f", lv[5,"LV"])` \\
- L_E &= y_{(`r trunc(d[3])`)} = `r sprintf("%2.2f", lv[2,"LV"])` \qquad
- & U_E &= y_{(`r trunc(n-d[3]+1)`)} = `r sprintf("%2.2f", lv[6,"LV"])` \\
- L_D &= y_{(`r trunc(d[4])`)} = `r sprintf("%2.2f", lv[1,"LV"])` \qquad
- & U_D &= y_{(`r trunc(n-d[4]+1)`)} = `r sprintf("%2.2f", lv[7,"LV"])`
+  L_1 & = U_1 = (y_{(`r trunc(d[1])`)} + y_{(`r trunc(d[1] + 1)`)})/2 = `r sprintf("%2.2f", lv[4,"LV"])` &\\
+  L_F & = y_{(`r trunc(d[2])`)} = `r sprintf("%2.2f", lv[3,"LV"])` \qquad
+      & U_F                                                                                                  & = y_{(`r trunc(n - d[2] + 1)`)} = `r sprintf("%2.2f", lv[5,"LV"])` \\
+  L_E & = y_{(`r trunc(d[3])`)} = `r sprintf("%2.2f", lv[2,"LV"])` \qquad
+      & U_E                                                                                                  & = y_{(`r trunc(n - d[3] + 1)`)} = `r sprintf("%2.2f", lv[6,"LV"])` \\
+  L_D & = y_{(`r trunc(d[4])`)} = `r sprintf("%2.2f", lv[1,"LV"])` \qquad
+      & U_D                                                                                                  & = y_{(`r trunc(n - d[4] + 1)`)} = `r sprintf("%2.2f", lv[7,"LV"])`
 \end{align*}
 We can compute the letter values using the `lvtable()` function from the `lvplot` package.
 
 ```{r}
 #| label: lettervalues
 #| code-fold: false
+
 batave <- cricket_batting |>
   filter(Innings > 20) |>
   pull(Average)
 batave |> lvplot::lvtable(k = 4)
 ```
 
-The output also provides 95% confidence intervals based on @eq-sample-quantile-distribution. The estimates are similar, but not identical, to the quantiles calculated using the `quantile()` function.
+The output also provides 95% confidence intervals based on @eq-sample-quantile-distribution.
+The estimates are similar, but not identical, to the quantiles calculated using the `quantile()` function.
 
 ```{r}
 #| label: lettervalues2
 #| code-fold: false
 #| dependson: lettervalues
+
 batave |> quantile(prob = c(0.5^(4:1), 1 - 0.5^(2:4)), type = 8)
 ```
 
@@ -87,6 +100,7 @@ batave |> quantile(prob = c(0.5^(4:1), 1 - 0.5^(2:4)), type = 8)
 ```{r}
 #| label: donave
 #| echo: false
+
 batting <- cricket_batting |>
   filter(Innings > 20)
 donave <- max(batting$Average)
@@ -98,6 +112,7 @@ donave <- max(batting$Average)
 #| code-fold: false
 #| depends: cricket_batting
 #| fig-cap: !expr paste("Career batting averages for all men and women to have played test cricket and batted more than 20 times. The anomaly is Don Bradman, who averaged", scales::number(donave, 0.01), "over his career.")
+
 cricket_batting |>
   filter(Innings > 20) |>
   ggplot(aes(x = Average)) +
@@ -106,7 +121,9 @@ cricket_batting |>
   labs(y = "", x = "Career batting average")
 ```
 
-In Tukey's original version, the ends of the box were determined by the letter values corresponding to the fourths, and the middle line within the box showed the median. This is what is produced by the base R function `boxplot()`. In the `ggplot2` version of the boxplot shown here, the ends of the box are the quartiles computed using `type = 7`.
+In Tukey's original version, the ends of the box were determined by the letter values corresponding to the fourths, and the middle line within the box showed the median.
+This is what is produced by the base R function `boxplot()`.
+In the `ggplot2` version of the boxplot shown here, the ends of the box are the quartiles computed using `type = 7`.
 
 ```{r}
 #| label: fig-cricketbox2
@@ -115,7 +132,10 @@ In Tukey's original version, the ends of the box were determined by the letter v
 #| eval: false
 #| include: false
 #| depends: cricket_batting
-#| fig-cap: "The version of the boxplot computed using `boxplot()` showing the same data as @fig-cricketbox. The box and whiskers are computed using quantiles rather than letter values."
+#| fig-cap: >-
+#|   The version of the boxplot computed using `boxplot()` showing the same data as @fig-cricketbox.
+#|   The box and whiskers are computed using quantiles rather than letter values.
+
 cricket_batting |>
   filter(Innings > 20) |>
   pull(Average) |>
@@ -126,9 +146,14 @@ cricket_batting |>
   )
 ```
 
-Whichever variation is used, roughly half of all observations lie within the box. The length of the box is an estimate of the "interquartile range" (IQR). Any points more than 1.5 IQR outside the box are shown as separate points in the plot. The "whiskers" that extend out each side of the box show the range of the remaining points.
+Whichever variation is used, roughly half of all observations lie within the box.
+The length of the box is an estimate of the "interquartile range" (IQR).
+Any points more than 1.5 IQR outside the box are shown as separate points in the plot.
+The "whiskers" that extend out each side of the box show the range of the remaining points.
 
-Originally, Tukey proposed two levels of outliers --- those more than 1.5 IQR beyond the box were labelled "outside" values, while those more than 3 IQR beyond the box were labelled "far out" values. Most software implementations of boxplots do not distinguish between these groups. When a boxplot is used for anomaly detection, all points outside the whiskers are called "anomalies" or "outliers", even though they may not be genuine anomalies.
+Originally, Tukey proposed two levels of outliers --- those more than 1.5 IQR beyond the box were labelled "outside" values, while those more than 3 IQR beyond the box were labelled "far out" values.
+Most software implementations of boxplots do not distinguish between these groups.
+When a boxplot is used for anomaly detection, all points outside the whiskers are called "anomalies" or "outliers", even though they may not be genuine anomalies.
 
 In this cricket batting example, the boxplot works well because the data set is not too large or small, and the distribution of points other than the anomaly is unimodal.
 
@@ -140,6 +165,7 @@ However, boxplots can be misleading, and they are limited in at least two respec
 ```{r}
 #| label: standardnormal
 #| echo: false
+
 q1 <- qnorm(0.25)
 q3 <- qnorm(0.75)
 iqr <- q3 - q1
@@ -147,13 +173,15 @@ whisker1 <- q1 - 1.5 * iqr
 whisker2 <- q3 + 1.5 * iqr
 ```
 
-To better understand the first problem, imagine if the data comprised $n$ observations from a standard Normal distribution N(0,1). @fig-normalboxplot shows an example with 10000 points.
+To better understand the first problem, imagine if the data comprised $n$ observations from a standard Normal distribution N(0,1).
+@fig-normalboxplot shows an example with 10000 points.
 
 ```{r}
 #| label: fig-normalboxplot
 #| code-fold: false
 #| fig-asp: 0.2
 #| fig-cap: "Boxplot of 10000 draws from a standard Normal distribution."
+
 tibble(x = rnorm(10000)) |>
   ggplot(aes(x = x)) +
   geom_boxplot() +
@@ -161,7 +189,11 @@ tibble(x = rnorm(10000)) |>
   labs(y = "")
 ```
 
-Many "anomalies" are shown, but since all observations come from a simple distribution, none of them are actually anomalies. For this distribution, $Q(0.25) = `r sprintf("%.3f", q1)`$, $Q(0.75) = `r sprintf("%.3f", q3)`$, $\text{IQR} = `r sprintf("%.3f", iqr)`$, and so for a large sample size, the boxplot whiskers would be approximately $`r sprintf("%.3f", q1)` - 1.5\times `r sprintf("%.3f", iqr)` = `r sprintf("%.3f", whisker1)`$ and $`r sprintf("%.3f", q3)` + 1.5\times `r sprintf("%.3f", iqr)` = `r sprintf("%.3f", whisker2)`$. Any points outside the whiskers would be identified as "anomalous" by a boxplot and plotted as separate points. The probability of a standard normal observation being at least $`r sprintf("%.3f", whisker2)`$ in absolute value (and therefore lying outside the boxplot whiskers) is $`r sprintf("%.5f", 2*(1-pnorm(whisker2)))`$. So with $10000$ observations, we would have about $`r round(10000*2*(1-pnorm(whisker2)))`$ anomalies identified, none of which would be a genuine anomaly.
+Many "anomalies" are shown, but since all observations come from a simple distribution, none of them are actually anomalies.
+For this distribution, $Q(0.25) = `r sprintf("%.3f", q1)`$, $Q(0.75) = `r sprintf("%.3f", q3)`$, $\text{IQR} = `r sprintf("%.3f", iqr)`$, and so for a large sample size, the boxplot whiskers would be approximately $`r sprintf("%.3f", q1)` - 1.5\times `r sprintf("%.3f", iqr)` = `r sprintf("%.3f", whisker1)`$ and $`r sprintf("%.3f", q3)` + 1.5\times `r sprintf("%.3f", iqr)` = `r sprintf("%.3f", whisker2)`$.
+Any points outside the whiskers would be identified as "anomalous" by a boxplot and plotted as separate points.
+The probability of a standard normal observation being at least $`r sprintf("%.3f", whisker2)`$ in absolute value (and therefore lying outside the boxplot whiskers) is $`r sprintf("%.5f", 2*(1-pnorm(whisker2)))`$.
+So with $10000$ observations, we would have about $`r round(10000 * 2 * (1 - pnorm(whisker2)))`$ anomalies identified, none of which would be a genuine anomaly.
 
 The second problem is demonstrated using the Old Faithful eruption duration data, shown in @fig-oldfaithful1.
 
@@ -170,6 +202,7 @@ The second problem is demonstrated using the Old Faithful eruption duration data
 #| code-fold: false
 #| fig-asp: 0.2
 #| fig-cap: "Boxplot of Old Faithful eruption durations between 2017 and 2023."
+
 oldfaithful |>
   ggplot(aes(x = duration)) +
   geom_boxplot() +
@@ -177,13 +210,18 @@ oldfaithful |>
   labs(y = "", x = "Duration (seconds)")
 ```
 
-Quite a few "anomalies" are shown, including the three abnormally short eruptions we identified earlier. But the remaining "anomalies" are not particularly unusual observations. All the points below 180 seconds are identified as anomalies, even though we know that observations in the region between 100 and 140 are not unusual for this geyser. Because the boxplot does not allow for more than one mode, all the points in the second smaller cluster are identified as anomalies. The points around 300 seconds are also not really anomalies --- these are just values in the upper tail of the distribution for eruptions.
+Quite a few "anomalies" are shown, including the three abnormally short eruptions we identified earlier.
+But the remaining "anomalies" are not particularly unusual observations.
+All the points below 180 seconds are identified as anomalies, even though we know that observations in the region between 100 and 140 are not unusual for this geyser.
+Because the boxplot does not allow for more than one mode, all the points in the second smaller cluster are identified as anomalies.
+The points around 300 seconds are also not really anomalies --- these are just values in the upper tail of the distribution for eruptions.
 
 ## Modified IQR boxplots {#sec-modified-iqr}
 
 ```{r}
 #| label: modifiediqr
 #| echo: false
+
 q1 <- qnorm(0.25)
 q3 <- qnorm(0.75)
 iqr <- q3 - q1
@@ -191,13 +229,18 @@ tukey1 <- 2 * (1 - pnorm(q3 + 1.5 * iqr))
 tukey2 <- 2 * (1 - pnorm(q3 + 3 * iqr))
 ```
 
-Under Tukey's boxplot approach to identifying outliers, a **regular outlier** is more than 1.5 IQR beyond the quartiles, while an **extreme outlier** is more than 3 IQR beyond the quartiles. For a Normal distribution, the probability of genuine observations lying beyond these thresholds is `r sprintf("%.4f",tukey1)` and `r sprintf("%.7f",tukey2)` respectively, so for large sample sizes, many spurious anomalies will be identified. Even with 1000 observations, Tukey's approach will find at least one spurious anomaly in a Normal distribution with probability `r 1 - (1-tukey1)^1000`.
+Under Tukey's boxplot approach to identifying outliers, a **regular outlier** is more than 1.5 IQR beyond the quartiles, while an **extreme outlier** is more than 3 IQR beyond the quartiles.
+For a Normal distribution, the probability of genuine observations lying beyond these thresholds is `r sprintf("%.4f",tukey1)` and `r sprintf("%.7f",tukey2)` respectively, so for large sample sizes, many spurious anomalies will be identified.
+Even with 1000 observations, Tukey's approach will find at least one spurious anomaly in a Normal distribution with probability `r 1 - (1-tukey1)^1000`.
 
-@Barbato2011 proposed a modification to the boxplot approach to identifying outliers, where the IQR in these thresholds is replaced with IQR$[1+0.1\log(n/10)]$. This allows the limits to increase with the sample size, in a way that controls the probability of spurious anomalies. @fig-probanomaly shows the probability of identifying at least one spurious anomaly in a Normal distribution, using Tukey's boxplot approach compared to those obtained using the modified IQR approach of @Barbato2011.
+@Barbato2011 proposed a modification to the boxplot approach to identifying outliers, where the IQR in these thresholds is replaced with IQR$[1 + 0.1\log(n/10)]$.
+This allows the limits to increase with the sample size, in a way that controls the probability of spurious anomalies.
+@fig-probanomaly shows the probability of identifying at least one spurious anomaly in a Normal distribution, using Tukey's boxplot approach compared to those obtained using the modified IQR approach of @Barbato2011.
 
 ```{r}
 #| label: fig-probanomaly
 #| fig-cap: "Probability of at least one spurious anomaly identified in a Normal distribution, based on the boxplot approach of Tukey, and the modified IQR approach of @Barbato2011."
+
 tibble(n = exp(seq(log(3), log(1e6), l = 100))) |>
   mutate(
     Tukey1 = 2 * (1 - pnorm(q3 + 1.5 * iqr)),
@@ -232,11 +275,13 @@ tibble(n = exp(seq(log(3), log(1e6), l = 100))) |>
 
 Even with a huge sample size, the probability of identifying a spurious regular anomaly using this modified approach is less than 1/2, and it is almost impossible to identify a spurious extreme anomaly.
 
-Let's apply this approach to the six examples we introduced in @sec-examples. First we will write a short function to implement the idea.
+Let's apply this approach to the six examples we introduced in @sec-examples.
+First we will write a short function to implement the idea.
 
 ```{r}
 #| label: barbato4
 #| code-fold: false
+
 barbato_anomaly <- function(y, extreme = FALSE) {
   n <- length(y)
   q1 <- quantile(y, 0.25, na.rm = TRUE, type = 8)
@@ -258,11 +303,11 @@ chisq4 <- tibble(y = rchisq(1000, df = 4))
 chisq4 |> filter(barbato_anomaly(y))
 ```
 
-
 ```{r}
 #| label: checkbarbato
 #| echo: false
 #| dependson: barbato4
+
 n1 <- cricket_batting |>
   filter(Innings > 20) |>
   filter(barbato_anomaly(Average)) |>
@@ -285,11 +330,15 @@ n6 <- chisq4 |>
 stopifnot(identical(c(n1, n2, n3, n4, n5, n6), c(1L, 273L, 1L, 1L, 23L, 13L)))
 ```
 
-This is an improvement on the original boxplot approach, and it finds the true anomalies in the `cricket_batting` data and the `n01b` data. But it also identifies many false anomalies in the other data sets, especially those that are not Normally distributed. The assumption of Normality means that the method is not a good choice for most data sets.
+This is an improvement on the original boxplot approach, and it finds the true anomalies in the `cricket_batting` data and the `n01b` data.
+But it also identifies many false anomalies in the other data sets, especially those that are not Normally distributed.
+The assumption of Normality means that the method is not a good choice for most data sets.
 
 ## Letter value plots {#sec-letter-value}
 
-The problem that boxplots have with large data sets was also addressed by @Hofmann2017-hz who introduced "letter-value" plots, a variation of boxplots that replace the whiskers with a variable number of letter values. In these plots, each pair of letter values marks the boundaries of a box. The box bounded by the fourths is the same as the box of a boxplot; the additional boxes extend to successive letter values until the quantiles corresponding to the letter values can no longer be estimated sufficiently accurately from the available data.
+The problem that boxplots have with large data sets was also addressed by @Hofmann2017-hz who introduced "letter-value" plots, a variation of boxplots that replace the whiskers with a variable number of letter values.
+In these plots, each pair of letter values marks the boundaries of a box.
+The box bounded by the fourths is the same as the box of a boxplot; the additional boxes extend to successive letter values until the quantiles corresponding to the letter values can no longer be estimated sufficiently accurately from the available data.
 
 These can be produced using the `lvplot` package.
 
@@ -298,6 +347,7 @@ These can be produced using the `lvplot` package.
 #| code-fold: false
 #| fig-asp: 0.2
 #| fig-cap: "Letter value plot of career batting averages for all men and women who played test cricket and batted more than 20 times."
+
 library(lvplot)
 cricket_batting |>
   filter(Innings > 20) |>
@@ -312,22 +362,30 @@ cricket_batting |>
 ```{r}
 #| label: lv
 #| echo: false
+
 lv <- cricket_batting |>
   filter(Innings > 20) |>
   stat_lv(mapping = aes(y = Average))
 ```
 
-Here the median is given by M, the fourths by F, and so on. The middle box (F) is bounded by the fourths and contains all but 2/4 of the data; the next box (E) is bounded by the eighths and contains all but 2/8 of the data; then D is bounded by the sixteenths and contains all but 2/16 of the data; and so on.
+Here the median is given by M, the fourths by F, and so on.
+The middle box (F) is bounded by the fourths and contains all but 2/4 of the data; the next box (E) is bounded by the eighths and contains all but 2/8 of the data; then D is bounded by the sixteenths and contains all but 2/16 of the data; and so on.
 
-In this example, the most extreme box (labelled Z) is bounded by the points that fall within the 1/256 letter values. So it contains all but 2/256 of the data, and shows $2 / 256 \times `r NROW(filter(cricket_batting, Innings > 20))` = `r round(2/256*NROW(filter(cricket_batting, Innings > 20)))`$ points as anomalies.
+In this example, the most extreme box (labelled Z) is bounded by the points that fall within the 1/256 letter values.
+So it contains all but 2/256 of the data, and shows $2 / 256 \times `r NROW(filter(cricket_batting, Innings > 20))` = `r round(2/256 * NROW(filter(cricket_batting, Innings > 20)))`$ points as anomalies.
 
 The stopping rule used in the letter value plot is to show the boxes up to letter value $k$, where
 $$
-  0.5\sqrt{2d_k} z_{1-\alpha/2} > d_{k+1}
+  0.5\sqrt{2d_k} z_{1 - \alpha/2} > d_{k + 1}
 $$
-and $z_{1-\alpha/2}$ is the $1-\alpha/2$ quantile of a standard Normal distribution. This choice is based on the idea that the edges of the boxes are quantile estimates, and the confidence interval for each quantile estimate that is displayed should not overlap the subsequent quantile estimate. The Normal distribution arises because the quantile estimate has an approximate Normal distribution (@eq-sample-quantile-distribution). This stopping rule means that, on average, there should be fewer than $2z^2_{1-\alpha/2}$ legitimate observations in the tails. By default, $\alpha=0.05$, so that, on average, there should be fewer than $2 \times (`r qnorm(1-0.05/2)`)^2 = `r round(2* qnorm(1-0.05/2)^2,1)`$ legitimate observations in the tails, regardless of the size of the data set.
+and $z_{1 - \alpha/2}$ is the $1 - \alpha/2$ quantile of a standard Normal distribution.
+This choice is based on the idea that the edges of the boxes are quantile estimates, and the confidence interval for each quantile estimate that is displayed should not overlap the subsequent quantile estimate.
+The Normal distribution arises because the quantile estimate has an approximate Normal distribution (@eq-sample-quantile-distribution).
+This stopping rule means that, on average, there should be fewer than $2z^2_{1 - \alpha/2}$ legitimate observations in the tails.
+By default, $\alpha = 0.05$, so that, on average, there should be fewer than $2 \times (`r qnorm(1 - 0.05/2)`)^2 = `r round(2 * qnorm(1 - 0.05/2)^2,1)`$ legitimate observations in the tails, regardless of the size of the data set.
 
-Letter value plots were not designed to detect anomalies, but to be a useful data visualisation tool for univariate distributions with large numbers of observations. So the display of legitimate observations in the tails of the distribution is by design, not a flaw.
+Letter value plots were not designed to detect anomalies, but to be a useful data visualisation tool for univariate distributions with large numbers of observations.
+So the display of legitimate observations in the tails of the distribution is by design, not a flaw.
 
 In this cricketing example, it looks like there is one true anomaly (Don Bradman) and the remaining 8 observations displayed directly are simply in the tails of the distribution of the remaining data.
 
@@ -337,6 +395,7 @@ When applied to the remaining examples, we see approximately 10--20 observations
 #| label: fig-lvplots1
 #| fig-asp: 0.2
 #| fig-cap: "Letter value plot of Old Faithful eruption durations."
+
 oldfaithful |>
   ggplot(aes(x = 1, y = duration)) +
   geom_lv(aes(fill = after_stat(LV))) +
@@ -350,6 +409,7 @@ oldfaithful |>
 #| label: fig-lvplots2
 #| fig-asp: 0.2
 #| fig-cap: "Letter value plot of 1000 N(0,1) observations."
+
 n01 |>
   ggplot(aes(x = 1, y = v1)) +
   geom_lv(aes(fill = after_stat(LV))) +
@@ -363,6 +423,7 @@ n01 |>
 #| label: fig-lvplots3
 #| fig-asp: 0.2
 #| fig-cap: "Letter value plot of 19 N(0,1) observations with an anomaly at 4."
+
 n01b |>
   ggplot(aes(x = 1, y = y)) +
   geom_lv(aes(fill = after_stat(LV))) +
@@ -371,24 +432,37 @@ n01b |>
   labs(x = "")
 ```
 
-In this last example, because there are only 20 observations, there is not enough data to estimate the quantiles beyond the fourths. So only the middle box is shown.
+In this last example, because there are only 20 observations, there is not enough data to estimate the quantiles beyond the fourths.
+So only the middle box is shown.
 
 ## Multivariate data depth {#sec-depth}
 
-For multivariate data, there is no unique natural ordering of observations by size, so the concept of depth has to be thought about differently. It is still a measure of how centrally a point is located in a data set, but we need to think about what "central" means when there are multiple variables.
+For multivariate data, there is no unique natural ordering of observations by size, so the concept of depth has to be thought about differently.
+It is still a measure of how centrally a point is located in a data set, but we need to think about what "central" means when there are multiple variables.
 
-There are numerous ways to define depth for multivariate data, nicely summarised in @Liu1999. Here, we will consider the two simplest approaches.
+There are numerous ways to define depth for multivariate data, nicely summarised in @Liu1999.
+Here, we will consider the two simplest approaches.
 
 ### Tukey depth
 
-The first approach to this problem was (again) due to John Tukey [@Tukey75] who defined the depth of a point $\bm{z}$ in a data set $\{\bm{y}_1,\dots,\bm{y}_n\}$ as the smallest number of $\bm{y}_i$ contained in any halfspace that contains $\bm{z}$. This is often called the "Tukey depth" of the point. (The point $\bm{z}$ does not have to be one of the observations.)
+The first approach to this problem was (again) due to John Tukey [@Tukey75] who defined the depth of a point $\bm{z}$ in a data set $\{\bm{y}_1,\dots,\bm{y}_n\}$ as the smallest number of $\bm{y}_i$ contained in any halfspace that contains $\bm{z}$.
+This is often called the "Tukey depth" of the point.
+(The point $\bm{z}$ does not have to be one of the observations.)
 
 For bivariate data, a halfspace is either of the two parts formed by splitting the plane with a straight line.
-A diagram will help illustrate the idea. Suppose we have the observations shown in @fig-tukeydepth. These are the first 10 observations from the first two variables of `n01`. The red line divides the plane into two sections which are called "halfspaces". We are interested in the depth of the orange point (which is not one of the observations).
+A diagram will help illustrate the idea.
+Suppose we have the observations shown in @fig-tukeydepth.
+These are the first 10 observations from the first two variables of `n01`.
+The red line divides the plane into two sections which are called "halfspaces".
+We are interested in the depth of the orange point (which is not one of the observations).
 
 ```{r}
 #| label: fig-tukeydepth
-#| fig-cap: "A data set of 10 bivariate observations (shown in black). The dividing red line splits the plane into two halfspaces. We are interested in the depth of the orange point."
+#| fig-cap: >-
+#|   A data set of 10 bivariate observations (shown in black).
+#|   The dividing red line splits the plane into two halfspaces.
+#|   We are interested in the depth of the orange point.
+
 n01 |>
   head(10) |>
   ggplot(aes(x = v1, y = v2)) +
@@ -400,13 +474,23 @@ n01 |>
 
 There are an infinite number of ways of dividing the plane into halfspaces, and the number of points in each half plane will vary depending on where the dividing line falls.
 
-To find the depth of the orange point, we need to find the line which divides the plane into two sections where the half containing the orange point includes as few observations as possible. In fact, the red line is one such solution which has the orange point in a halfspace containing only two observations. There are no dividing lines that would put the orange point in a halfspace on its own, or in a halfspace containing only one observation. So it has a Tukey depth of 2.
+To find the depth of the orange point, we need to find the line which divides the plane into two sections where the half containing the orange point includes as few observations as possible.
+In fact, the red line is one such solution which has the orange point in a halfspace containing only two observations.
+There are no dividing lines that would put the orange point in a halfspace on its own, or in a halfspace containing only one observation.
+So it has a Tukey depth of 2.
 
-The depth region $D_k$ is the set of all points $\bm{z}$ with Tukey depth at least $k$. These form a series of nested convex hulls where $D_{k+1} \subseteq D_k$. The depth regions for our example are shown in @fig-depthregions. The blue region is depth 1, the orange region is depth 2, the pink region is depth 3, and the green region is depth 4.
+The depth region $D_k$ is the set of all points $\bm{z}$ with Tukey depth at least $k$.
+These form a series of nested convex hulls where $D_{k + 1} \subseteq D_k$.
+The depth regions for our example are shown in @fig-depthregions.
+The blue region is depth 1, the orange region is depth 2, the pink region is depth 3, and the green region is depth 4.
 
 ```{r}
 #| label: fig-depthregions
-#| fig-cap: The depth regions for the 10 bivariate observations from @fig-tukeydepth. The depth median is shown as the yellow point in the centre. The 10 observations are shown in black. These lie at the outer edges of the depth regions.
+#| fig-cap: The depth regions for the 10 bivariate observations from @fig-tukeydepth.
+#|   The depth median is shown as the yellow point in the centre.
+#|   The 10 observations are shown in black.
+#|   These lie at the outer edges of the depth regions.
+
 median <- aplpack::compute.bagplot(n01[1:10, 1:2])
 z <- tidyr::expand_grid(
   v1 = seq(-0.9, 1.6, l = 200),
@@ -450,23 +534,37 @@ p +
 
 ### Depth median
 
-A simple way to define a multivariate median is the "centre of gravity" of all points of maximum depth [@bivariatemedian]. The **centre of gravity** (or "centroid") of a shape is the average of all points within the shape. If the shape is convex, it is the point where the shape could be perfectly balanced on the tip of a pin if it were made of a uniform material. For example, the centre of gravity of a rectangle is the point in the middle of the rectangle, and the centre of gravity of a circle is the centre of the circle.
+A simple way to define a multivariate median is the "centre of gravity" of all points of maximum depth [@bivariatemedian].
+The **centre of gravity** (or "centroid") of a shape is the average of all points within the shape.
+If the shape is convex, it is the point where the shape could be perfectly balanced on the tip of a pin if it were made of a uniform material.
+For example, the centre of gravity of a rectangle is the point in the middle of the rectangle, and the centre of gravity of a circle is the centre of the circle.
 
-In @fig-depthregions, the points of maximum depth are shown in the central green region. The centre of gravity of this region is the yellow point in the middle.
+In @fig-depthregions, the points of maximum depth are shown in the central green region.
+The centre of gravity of this region is the yellow point in the middle.
 
 ## Bagplots {#sec-bagplots}
 
-The bagplot was proposed by @bagplot as a bivariate version of a boxplot, constructed using similar principles. Like a univariate boxplot, the bivariate bagplot has a central point (the depth median), an inner region (the "bag"), and an outer region (the "loop"), beyond which outliers are shown as individual points.
+The bagplot was proposed by @bagplot as a bivariate version of a boxplot, constructed using similar principles.
+Like a univariate boxplot, the bivariate bagplot has a central point (the depth median), an inner region (the "bag"), and an outer region (the "loop"), beyond which outliers are shown as individual points.
 
-To define the bag, we first find the smallest depth region $D_k$ containing at least $\lfloor n/2 \rfloor$ of the observations. Then the bag is linearly interpolated between $D_k$ and $D_{k-1}$, with the linear interpolation depending on the number of observations in each depth region. Because the bag is interpolated between depth regions, it is also a convex polygon. The procedure is slightly more complicated for small data sets where only $D_1$ might contain more than half of the observations.
+To define the bag, we first find the smallest depth region $D_k$ containing at least $\lfloor n/2 \rfloor$ of the observations.
+Then the bag is linearly interpolated between $D_k$ and $D_{k - 1}$, with the linear interpolation depending on the number of observations in each depth region.
+Because the bag is interpolated between depth regions, it is also a convex polygon.
+The procedure is slightly more complicated for small data sets where only $D_1$ might contain more than half of the observations.
 
-To find the loop, we inflate the bag relative to the median by a factor of 3. This forms the "fence". Then the loop is the convex hull of the points contained within the fence.
+To find the loop, we inflate the bag relative to the median by a factor of 3.
+This forms the "fence".
+Then the loop is the convex hull of the points contained within the fence.
 
 @fig-bagplot shows the bagplot from the same 10 observations as were used in the illustration of depth in the previous section, along with the observations themselves shown in black.
 
 ```{r}
 #| label: fig-bagplot
-#| fig-cap: A bagplot of the 10 bivariate observations from @fig-tukeydepth. The depth median is shown as the blue point in the centre. The darker shaded region is the bag, while the lighter shaded region shows the loop. There are no outliers outside the loop for this data set.
+#| fig-cap: A bagplot of the 10 bivariate observations from @fig-tukeydepth.
+#|   The depth median is shown as the blue point in the centre.
+#|   The darker shaded region is the bag, while the lighter shaded region shows the loop.
+#|   There are no outliers outside the loop for this data set.
+
 n01 |>
   head(10) |>
   gg_bagplot(v1, v2) +
@@ -480,18 +578,22 @@ A more interesting example is obtained in @fig-oldfaithfulbagplot, showing a bag
 ```{r}
 #| label: fig-oldfaithfulbagplot
 #| fig-cap: Bagplot of the durations and waiting times of Old Faithful eruptions between 2017 and 2023.
+
 oldfaithful |>
   gg_bagplot(duration, waiting) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 
-This demonstrates the drawback of using a bagplot to identify anomalies. While the plot has identified all the genuine anomalies, it has also highlighted points on the edge of the data cloud which are probably not anomalies.
+This demonstrates the drawback of using a bagplot to identify anomalies.
+While the plot has identified all the genuine anomalies, it has also highlighted points on the edge of the data cloud which are probably not anomalies.
 
-A useful variation of the bagplot, especially for larger data sets, displays a scatterplot of the observations, but coloured using the same colours as the bagplot, with the deepest observation in the strongest blue, the points within the bag in a lighter blue, and the points within the loop in the lightest colour. Outliers are shown in black if any exist.
+A useful variation of the bagplot, especially for larger data sets, displays a scatterplot of the observations, but coloured using the same colours as the bagplot, with the deepest observation in the strongest blue, the points within the bag in a lighter blue, and the points within the loop in the lightest colour.
+Outliers are shown in black if any exist.
 
 ```{r}
 #| label: fig-oldfaithfulbagplot2
 #| fig-cap: Bagplot of the durations and waiting times of Old Faithful eruptions between 2017 and 2023.
+
 oldfaithful |>
   gg_bagplot(duration, waiting, show_points = TRUE) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
@@ -501,18 +603,25 @@ oldfaithful |>
 
 ### General comments
 
-The idea of depth regions and the depth median can be easily generalised to data with more than two dimensions [@rousseeuw1998computing]. Consequently, it would be possible to define a higher-dimensional version of the bagplot, although it would be difficult to plot it in four or more dimensions. In any case, we will consider approaches to handle high-dimensional data in @sec-highdim.
+The idea of depth regions and the depth median can be easily generalised to data with more than two dimensions [@rousseeuw1998computing].
+Consequently, it would be possible to define a higher-dimensional version of the bagplot, although it would be difficult to plot it in four or more dimensions.
+In any case, we will consider approaches to handle high-dimensional data in @sec-highdim.
 
 ## HDR boxplots {#sec-hdr-boxplots}
 
 We can compute HDRs from a kernel density estimate to find regions of the sample space where observations are unlikely to occur.
 
-Let's illustrate the idea with univariate data. In @sec-kde, we estimated the density of the duration of Old Faithful eruptions using a kernel density estimate, and plotted it in @fig-oldfaithful4. We can find the 50% and 99% HDRs of this density, which can then be used to form an "HDR boxplot" [@HDR96] as shown in @fig-hdr-faithful.
+Let's illustrate the idea with univariate data.
+In @sec-kde, we estimated the density of the duration of Old Faithful eruptions using a kernel density estimate, and plotted it in @fig-oldfaithful4.
+We can find the 50% and 99% HDRs of this density, which can then be used to form an "HDR boxplot" [@HDR96] as shown in @fig-hdr-faithful.
 
 ```{r}
 #| label: fig-hdr-faithful
-#| fig-cap: "Kernel density estimate of the duration of Old Faithful eruptions between 2017 and 2023. Below the density estimate is shown an HDR boxplot of the same data, with the 50% and 99% highest density regions shown as shaded regions, and observations outside the 99% region shown as individual points."
+#| fig-cap: >-
+#|   Kernel density estimate of the duration of Old Faithful eruptions between 2017 and 2023.
+#|   Below the density estimate is shown an HDR boxplot of the same data, with the 50% and 99% highest density regions shown as shaded regions, and observations outside the 99% region shown as individual points.
 #| warning: false
+
 dist_kde(oldfaithful$duration) |>
   gg_density(
     hdr = "fill",
@@ -532,33 +641,42 @@ The HDR shown here can also be produced using the `gg_hdrboxplot()` function.
 #| label: fig-of-hdrboxplot
 #| fig-cap: "HDR boxplot of the duration of Old Faithful eruptions between 2017 and 2023."
 #| fig-asp: 0.2
+
 oldfaithful |>
   gg_hdrboxplot(duration, show_anomalies = FALSE) +
   labs(x = "Duration (seconds)") +
   xlim(-10, 320)
 ```
 
-Points outside the 99% region are shown separately and jittered vertically to reduce overplotting. This type of boxplot has the advantage that it allows for multimodal distributions, and can identify "inliers" that occur in regions of low density between regions of high density.
+Points outside the 99% region are shown separately and jittered vertically to reduce overplotting.
+This type of boxplot has the advantage that it allows for multimodal distributions, and can identify "inliers" that occur in regions of low density between regions of high density.
 
-Of course, by definition, 1% of points will lie outside the 99% region, so the points shown are not necessarily anomalies, just observations that occur in the lower probability regions of the space. By setting `show_anomalies = TRUE`, some of the points are highlighted as potential anomalies, using the method described in @sec-kdesurprisals.
+Of course, by definition, 1% of points will lie outside the 99% region, so the points shown are not necessarily anomalies, just observations that occur in the lower probability regions of the space.
+By setting `show_anomalies = TRUE`, some of the points are highlighted as potential anomalies, using the method described in @sec-kdesurprisals.
 
-The idea naturally extends to higher dimensions. @fig-hdr-faithful2 shows the bivariate HDR boxplot of the duration and waiting times for the Old Faithful data.
+The idea naturally extends to higher dimensions.
+@fig-hdr-faithful2 shows the bivariate HDR boxplot of the duration and waiting times for the Old Faithful data.
 
 ```{r}
 #| label: fig-hdr-faithful2
 #| fig-cap: "Bivariate kernel density estimate of the duration and waiting times of Old Faithful eruptions between 2017 and 2023."
+
 oldfaithful |>
   gg_hdrboxplot(duration, waiting, show_anomalies = FALSE) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 
-There are `r NROW(oldfaithful)` observations used to compute this density estimate, and even with that many observations, computing the 99% HDR contour is difficult, as shown by the rather jagged boundary of the HDR region. This is simply a consequence of the sparsity of points in multidimensional space and in the tails of a distribution.
+There are `r NROW(oldfaithful)` observations used to compute this density estimate, and even with that many observations, computing the 99% HDR contour is difficult, as shown by the rather jagged boundary of the HDR region.
+This is simply a consequence of the sparsity of points in multidimensional space and in the tails of a distribution.
 
 As with bagplots, there is a variation that shows the individual points coloured according to the HDR region in which they fall.
 
 ```{r}
 #| label: fig-hdr-faithful3
-#| fig-cap: "Bivariate HDR boxplot of the duration and waiting times of Old Faithful eruptions between 2017 and 2023. Individual points are coloured according to the HDR region in which they fall."
+#| fig-cap: >-
+#|   Bivariate HDR boxplot of the duration and waiting times of Old Faithful eruptions between 2017 and 2023.
+#|   Individual points are coloured according to the HDR region in which they fall.
+
 oldfaithful |>
   gg_hdrboxplot(duration, waiting, show_anomalies = FALSE, show_points = TRUE) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
@@ -566,6 +684,8 @@ oldfaithful |>
 
 ## Summary {#sec-boxplots-summary}
 
-Boxplots, letter value plots, bagplots, and HDR boxplots are all extremely useful tools in exploratory data analysis, and deserve to be widely applied. They are particularly useful in summarising univariate and bivariate data distributions. However, as we have seen, none of them are effective at anomaly detection, and only HDR boxplots allow for data with multiple modes.
+Boxplots, letter value plots, bagplots, and HDR boxplots are all extremely useful tools in exploratory data analysis, and deserve to be widely applied.
+They are particularly useful in summarising univariate and bivariate data distributions.
+However, as we have seen, none of them are effective at anomaly detection, and only HDR boxplots allow for data with multiple modes.
 
 Nevertheless, we will find these tools useful when summarising results from anomaly detection algorithms, and in understanding why some points have been labelled as anomalies.

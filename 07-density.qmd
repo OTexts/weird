@@ -4,72 +4,101 @@
 #| label: setup7
 #| include: false
 #| cache: false
+
 source("before-each-chapter.R")
 ```
 
-Anomalies are observations that are unlikely to have come from the same distribution as the rest of the data. One method to identify anomalies is to first estimate the probability distribution of the data, and then find observations that are improbable under that distribution. This is the approach taken by density-based methods, where anomalies are defined as observations with low probability.
+Anomalies are observations that are unlikely to have come from the same distribution as the rest of the data.
+One method to identify anomalies is to first estimate the probability distribution of the data, and then find observations that are improbable under that distribution.
+This is the approach taken by density-based methods, where anomalies are defined as observations with low probability.
 
-Any density-based method of anomaly detection first requires that we have a density estimate at each observation, which we will denote by $f(\bm{y}_i)$. This may be an assumed density, or estimated from the data; it may be a parametric function, or a nonparametric estimate; it may be a conditional density or a marginal density. Wherever it comes from, we will treat $f$ as an appropriate probability density function for the data set. When $\bm{y}_i$ takes values on a discrete space (such as the integers), then $f$ is a probability mass function, but we will call it a "density" for convenience when discussing methods that can apply to both discrete and continuous data. In many cases, $f(\bm{y}_i)$ is the estimated *likelihood* of the observation from a given model.
+Any density-based method of anomaly detection first requires that we have a density estimate at each observation, which we will denote by $f(\bm{y}_i)$.
+This may be an assumed density, or estimated from the data; it may be a parametric function, or a nonparametric estimate; it may be a conditional density or a marginal density.
+Wherever it comes from, we will treat $f$ as an appropriate probability density function for the data set.
+When $\bm{y}_i$ takes values on a discrete space (such as the integers), then $f$ is a probability mass function, but we will call it a "density" for convenience when discussing methods that can apply to both discrete and continuous data.
+In many cases, $f(\bm{y}_i)$ is the estimated *likelihood* of the observation from a given model.
 
-Note that some of the methods we discussed in @sec-distance-methods are often called "density-based" methods, including LOF [@sec-lof] and GLOSH [@sec-glosh]. These methods use an *implicit* measure of density, based on the crowdedness of the neighbourhood of each observation. In this chapter, we will only discuss methods that *explicitly* involve a density function.
+Note that some of the methods we discussed in @sec-distance-methods are often called "density-based" methods, including LOF [@sec-lof] and GLOSH [@sec-glosh].
+These methods use an *implicit* measure of density, based on the crowdedness of the neighbourhood of each observation.
+In this chapter, we will only discuss methods that *explicitly* involve a density function.
 
 ## Surprisals {#sec-surprisals}
 
-"Surprisal" is a term coined by American engineer Myron @Tribus1961 in the context of information theory. In the statistical literature it is better known as a "log score". But since we are considering anomaly detection, "surprisal" seems a more appropriate word to use here.
+"Surprisal" is a term coined by American engineer Myron @Tribus1961 in the context of information theory.
+In the statistical literature it is better known as a "log score".
+But since we are considering anomaly detection, "surprisal" seems a more appropriate word to use here.
 
 The surprisal of an observation $\bm{y}_i$ is defined as
 $$
   s_i = -\log f(\bm{y}_i),
 $$ {#eq-surprisal}
-measuring the surprise in seeing the observation. So it is a measure of how surprising (or anomalous) that observation is, given the density $f$. A large value of $s_i$ indicates that $\bm{y}_i$ is not a likely value, and so is a potential anomaly. On the other hand, typical values will have low surprisals. In information theory, the average surprisal is known as the entropy of a random variable [@Cover2006;@Stone2022], and provides a measure of uncertainty.
+measuring the surprise in seeing the observation.
+So it is a measure of how surprising (or anomalous) that observation is, given the density $f$.
+A large value of $s_i$ indicates that $\bm{y}_i$ is not a likely value, and so is a potential anomaly.
+On the other hand, typical values will have low surprisals.
+In information theory, the average surprisal is known as the entropy of a random variable [@Cover2006;@Stone2022], and provides a measure of uncertainty.
 
-Although the term "surprisal" may not be in common use amongst statisticians and other data scientists, the underlying idea is widely used. For example, if $f$ is obtained from a model with parameters that need to be estimated from the data, then the sum of the surprisals is equal to minus the log likelihood of the data. Therefore, finding parameters that minimise the sum of the surprisals is equivalent to maximum likelihood estimation.
+Although the term "surprisal" may not be in common use amongst statisticians and other data scientists, the underlying idea is widely used.
+For example, if $f$ is obtained from a model with parameters that need to be estimated from the data, then the sum of the surprisals is equal to minus the log likelihood of the data.
+Therefore, finding parameters that minimise the sum of the surprisals is equivalent to maximum likelihood estimation.
 
-Surprisals are also commonly used in forecasting and prediction problems (where they are called log scores) to assess whether an estimated distribution $f$ provides a good description of the future data values $y$ [@Gneiting2014]. In that context, the data are thought to be a reliable reflection of the underlying processes, and once the data are observed, the surprisal is used to assess how well the estimated distribution $f$ matches what actually happened. In this book, we are using surprisals in reverse --- we assume $f$ is a good description of the underlying processes, and then we use the surprisals to identify observations that are unlikely to have come from that distribution.
+Surprisals are also commonly used in forecasting and prediction problems (where they are called log scores) to assess whether an estimated distribution $f$ provides a good description of the future data values $y$ [@Gneiting2014].
+In that context, the data are thought to be a reliable reflection of the underlying processes, and once the data are observed, the surprisal is used to assess how well the estimated distribution $f$ matches what actually happened.
+In this book, we are using surprisals in reverse --- we assume $f$ is a good description of the underlying processes, and then we use the surprisals to identify observations that are unlikely to have come from that distribution.
 
 Let's look at some specific examples.
 
 ### Normal distribution
-Suppose our observations come from a N(0,1) distribution, and that $f$ denotes the corresponding density function. Then
+
+Suppose our observations come from a N(0,1) distribution, and that $f$ denotes the corresponding density function.
+Then
 $$
-  s_i = - \log\left(\frac{1}{\sqrt{2\pi}} e^{-y_i^2/2}\right)
+  s_i = -\log\left(\frac{1}{\sqrt{2\pi}} e^{-y_i^2/2}\right)
       = \frac12 y_i^2 + \frac12\log(2\pi).
 $$
-So the surprisals are simply equal to half the squared observations plus a constant. This is easily extended to any normal distribution, showing that surprisals are equal to half the squared *scaled* observations plus a constant.
+So the surprisals are simply equal to half the squared observations plus a constant.
+This is easily extended to any normal distribution, showing that surprisals are equal to half the squared *scaled* observations plus a constant.
 
 ### $\chi^2$ distribution
 
 For a $\chi^2_k$ distribution, a surprisal is given by
 $$
-  s_i = -\log\left(\frac{y_i^{k/2-1}e^{-y_i/2}}{2^{k/2}\Gamma(k/2)}\right)
-      = \frac{1}{2} y_i - (k/2-1)\log(y_i) + c_k
+  s_i = -\log\left(\frac{y_i^{k/2 - 1}e^{-y_i/2}}{2^{k/2}\Gamma(k/2)}\right)
+      = \frac{1}{2} y_i - (k/2 - 1)\log(y_i) + c_k
 $$
 where $c_k$ is a constant.
 
 ### Poisson distribution
 
-Surprisals can also be computed for discrete distributions. For a Poisson($\lambda$) distribution, a surprisal is given by
+Surprisals can also be computed for discrete distributions.
+For a Poisson($\lambda$) distribution, a surprisal is given by
 $$
   s_i = -\log\left(\frac{\lambda^{y_i} e^{-\lambda}}{y_i!}\right)
-  = \log(y_i!) - y_i\log(\lambda) + \lambda
+      = \log(y_i!) - y_i\log(\lambda) + \lambda
 $$
 
 ### Multivariate standard normal distribution
 
-The definition of a surprisal also works for multivariate distributions. For an $m$-dimensional N$(\bm{0}, \bm{\Sigma})$ distribution, a surprisal is given by
+The definition of a surprisal also works for multivariate distributions.
+For an $m$-dimensional N$(\bm{0}, \bm{\Sigma})$ distribution, a surprisal is given by
 $$
-s_i = -\log\left((2\pi)^{-m/2}|\bm{\Sigma}|^{-1/2} \exp\Big\{-\frac{1}{2}\bm{y}_i^\intercal\bm{\Sigma}^{-1}\bm{y}_i\Big\} \right) =
-\frac{1}{2} \bm{y}_i^\intercal\bm{\Sigma}^{-1}\bm{y}_i + \frac{m}{2}\log(2\pi) + \frac{1}{2} \log|\bm{\Sigma}|
+  s_i = -\log\left((2\pi)^{-m/2}|\bm{\Sigma}|^{-1/2} \exp\Big\{ - \frac{1}{2}\bm{y}_i^\intercal\bm{\Sigma}^{-1}\bm{y}_i\Big\} \right)
+      = \frac{1}{2} \bm{y}_i^\intercal\bm{\Sigma}^{-1}\bm{y}_i
+        + \frac{m}{2}\log(2\pi)
+        + \frac{1}{2} \log|\bm{\Sigma}|
 $$
 When $\bm{\Sigma} = \bm{I}$, this is simply the sum of surprisals computed on each of the marginal distributions.
 
 ## Surprisal probabilities {#sec-surprisal-probabilities}
 
-The surprisal probability of an observation is the probability of observing a value that is at least as surprising as the observation, under the distribution $f$. This is a more interpretable measure of how anomalous an observation is compared to the surprisal itself, because it is on the familiar probability scale between 0 and 1. It also allows us to set a threshold for identifying anomalies in terms of a false positive rate.
+The surprisal probability of an observation is the probability of observing a value that is at least as surprising as the observation, under the distribution $f$.
+This is a more interpretable measure of how anomalous an observation is compared to the surprisal itself, because it is on the familiar probability scale between 0 and 1.
+It also allows us to set a threshold for identifying anomalies in terms of a false positive rate.
 
 Specifically, for an observation $\bm{y}_i$ under the distribution $f$, its surprisal probability is given by
 $$
-p_i = \int f(\bm{u}) 𝟙(-\log f(\bm{u}) \ge s_i) d\bm{u} = \int f(\bm{u}) 𝟙(f(\bm{u}) \le f(\bm{y}_i)) d\bm{u},
+  p_i = \int f(\bm{u}) 𝟙(-\log f(\bm{u}) \ge s_i) d\bm{u}
+      = \int f(\bm{u}) 𝟙(f(\bm{u}) \le f(\bm{y}_i)) d\bm{u},
 $$ {#eq-pi-density}
 where $𝟙(z)$ is an indicator function taking value 1 when $z$ is true and 0 otherwise.
 
@@ -77,8 +106,12 @@ where $𝟙(z)$ is an indicator function taking value 1 when $z$ is true and 0 o
 
 ```{r}
 #| label: fig-density-scores
-#| fig-cap: "A $\\chi^2_5$ density function with one observation shown at $y_i$. The shaded area shows where $f(y) < f(y_i)$, corresponding to $p_i$. In this example, $p_i = 0.1$, so the region between the orange shaded segments is a 90% HDR."
+#| fig-cap: >-
+#|   A $\chi^2_5$ density function with one observation shown at $y_i$.
+#|   The shaded area shows where $f(y) < f(y_i)$, corresponding to $p_i$.
+#|   In this example, $p_i = 0.1$, so the region between the orange shaded segments is a 90% HDR.
 #| echo: false
+
 den <- dist_chisq(5)
 hdr <- hdr(den, size = 90) |> unlist() %>% `[`(c("lower", "upper"))
 falpha <- density(den, at = hdr["lower"])
@@ -124,11 +157,13 @@ df |>
   )
 ```
 
-The `surprisals()` function takes values of the data $\bm{y}_i$ and returns values of $s_i$, where the assumed density $f$ can be provided as a distribution object from the `distributional` package. The values of $p_i$ can be obtained using `surprisals_prob()`.
+The `surprisals()` function takes values of the data $\bm{y}_i$ and returns values of $s_i$, where the assumed density $f$ can be provided as a distribution object from the `distributional` package.
+The values of $p_i$ can be obtained using `surprisals_prob()`.
 
 ```{r}
 #| label: surprisals_eg
 #| code-fold: false
+
 tibble(
   y = -5:5,
   s = surprisals(y, distribution = dist_normal()),
@@ -136,19 +171,29 @@ tibble(
 )
 ```
 
-The value of $p_i$ is the probability of an observation being at least as anomalous (or surprising) as $\bm{y}_i$ if the observations come from the distribution $f$. So if we label points as anomalous when $p_i < \alpha$, we will have a false positive rate of $\alpha$.
+The value of $p_i$ is the probability of an observation being at least as anomalous (or surprising) as $\bm{y}_i$ if the observations come from the distribution $f$.
+So if we label points as anomalous when $p_i < \alpha$, we will have a false positive rate of $\alpha$.
 
-This approach allows for anomalies to occur anywhere in the distribution, not just in the tails. For example, anomalies may lie between modes in a multimodal distribution, or in otherwise low-density regions of the distribution. The surprisal approach converts the problem of working with a potentially complicated distribution into a problem of working with a simple univariate distribution on the surprisal scale, where large values correspond to anomalies.
+This approach allows for anomalies to occur anywhere in the distribution, not just in the tails.
+For example, anomalies may lie between modes in a multimodal distribution, or in otherwise low-density regions of the distribution.
+The surprisal approach converts the problem of working with a potentially complicated distribution into a problem of working with a simple univariate distribution on the surprisal scale, where large values correspond to anomalies.
 
 ### Connection to highest density regions
 
-Surprisal probabilities are related to highest density regions (discussed in @sec-hdr and @sec-mhdr). If we identify anomalies as observations with $p_i < \alpha$, then the non-anomalous observations will lie in the $100(1-\alpha)\%$ highest density region, and all the anomalies will lie outside this region. This is a useful way to visualise the anomalies, by plotting the data with the highest density region superimposed. Some examples will be shown later in this chapter.
+Surprisal probabilities are related to highest density regions (discussed in @sec-hdr and @sec-mhdr).
+If we identify anomalies as observations with $p_i < \alpha$, then the non-anomalous observations will lie in the $100(1 - \alpha)\%$ highest density region, and all the anomalies will lie outside this region.
+This is a useful way to visualise the anomalies, by plotting the data with the highest density region superimposed.
+Some examples will be shown later in this chapter.
 
 ### Connection to $z$-scores
 
-If $f$ is the Normal distribution $\text{N}(\mu, \sigma^2)$, then the points of lowest density are those furthest from $\mu$. In fact, $p_i = 2[1-\Phi(|y_i-\mu|/\sigma)]$, where $\Phi$ is the standard Normal distribution function. Therefore, identifying anomalies as observations with $p_i < \alpha$ is equivalent to a z-score test (@sec-zscores) with the threshold set to the $1-\alpha/2$ quantile of the standard Normal distribution.
+If $f$ is the Normal distribution $\text{N}(\mu, \sigma^2)$, then the points of lowest density are those furthest from $\mu$.
+In fact, $p_i = 2[1 - \Phi(|y_i - \mu|/\sigma)]$, where $\Phi$ is the standard Normal distribution function.
+Therefore, identifying anomalies as observations with $p_i < \alpha$ is equivalent to a z-score test (@sec-zscores) with the threshold set to the $1 - \alpha/2$ quantile of the standard Normal distribution.
 
-This link can be extended to any symmetric distribution. If $f$ is a symmetric distribution centred at $c$, then the most anomalous observations will be those with the largest absolute distance from $c$. If $F$ is the distribution function corresponding to $f$, then $p_i = 2[1 - F(c+|y_i-c|)]$.
+This link can be extended to any symmetric distribution.
+If $f$ is a symmetric distribution centred at $c$, then the most anomalous observations will be those with the largest absolute distance from $c$.
+If $F$ is the distribution function corresponding to $f$, then $p_i = 2[1 - F(c + |y_i - c|)]$.
 
 ## Approximate surprisal probabilities {#sec-approximate-surprisal-prob}
 
@@ -156,61 +201,107 @@ If we do not know what the distribution of the data should be, or if we think ou
 
 ### Approximate GPD surprisal probabilities
 
-Let $f^*$ denote the assumed (and possibly incorrect) density function. It might be a poor estimate of the true density, or it might just be a density on the same sample space as the data. Using this assumed density, we can compute the surprisals, $s_i = -\log f^*(\bm{y}_i)$.
+Let $f^*$ denote the assumed (and possibly incorrect) density function.
+It might be a poor estimate of the true density, or it might just be a density on the same sample space as the data.
+Using this assumed density, we can compute the surprisals, $s_i = -\log f^*(\bm{y}_i)$.
 
-Then we can fit a Generalised Pareto Distribution (GPD) to the largest surprisals using the POT approach discussed in @sec-evt. Even when $f^*$ is incorrect or poorly estimated, the extreme surprisals will still follow a Generalised Pareto Distribution.
+Then we can fit a Generalised Pareto Distribution (GPD) to the largest surprisals using the POT approach discussed in @sec-evt.
+Even when $f^*$ is incorrect or poorly estimated, the extreme surprisals will still follow a Generalised Pareto Distribution.
 
-Let $\beta$ denote the tail probability used in the GPD threshold, and let $u$ denote the $(1-\beta)$ sample quantile of the surprisal values. For example, $\beta = 0.1$ is a common choice, and then $u$ is the $90^{\text{th}}$ percentile of the $s_i$ values. We estimate a GPD distribution using the surprisals above $u$, and then compute the approximate surprisal probability of each observation with $s_i>u$ by
+Let $\beta$ denote the tail probability used in the GPD threshold, and let $u$ denote the $(1 - \beta)$ sample quantile of the surprisal values.
+For example, $\beta = 0.1$ is a common choice, and then $u$ is the $90^{\text{th}}$ percentile of the $s_i$ values.
+We estimate a GPD distribution using the surprisals above $u$, and then compute the approximate surprisal probability of each observation with $s_i > u$ by
 $$
-\hat{p}_i = \beta\int_{s_i}^\infty \hat g(s) ds,
+  \hat{p}_i = \beta\int_{s_i}^\infty \hat g(s) ds,
 $$ {#eq-pi-gpd}
-where $\hat g()$ denotes the estimated GPD density function. This approximation only gives us surprisal probabilities for the surprisals above the threshold $u$. For any $s_i \le u$, all we can say is that $\hat{p}_i \ge \beta$.
+where $\hat g()$ denotes the estimated GPD density function.
+This approximation only gives us surprisal probabilities for the surprisals above the threshold $u$.
+For any $s_i \le u$, all we can say is that $\hat{p}_i \ge \beta$.
 
-@surprisals show that, under very general conditions on the true distribution $f$, this will lead to good estimates of the surprisal probabilities for the most extreme surprisal values (which correspond to the anomalies). That is, even if our assumed distribution $f^*$ is not correct, we can still fit a GPD to the largest surprisal values and use this to estimate the tail probabilities.
+@surprisals show that, under very general conditions on the true distribution $f$, this will lead to good estimates of the surprisal probabilities for the most extreme surprisal values (which correspond to the anomalies).
+That is, even if our assumed distribution $f^*$ is not correct, we can still fit a GPD to the largest surprisal values and use this to estimate the tail probabilities.
 
-The approach does require a relatively large number of surprisals to be available, in order to adequately estimate the GPD from the top $\beta$ of the observations. So we would normally need at least a few hundred observations to start with.
+The approach does require a relatively large number of surprisals to be available, in order to adequately estimate the GPD from the top $\beta$ of the observations.
+So we would normally need at least a few hundred observations to start with.
 
-The `surprisals_prob()` function uses this GPD approximation when `approximation = "gpd"`. The argument `threshold_probability` is used to specify $\beta$, with the default value of 0.1.
+The `surprisals_prob()` function uses this GPD approximation when `approximation = "gpd"`.
+The argument `threshold_probability` is used to specify $\beta$, with the default value of 0.1.
 
 ### Approximate rank-based surprisal probabilities
 
-An alternative approach that does not require a GPD is to estimate $p_i$ as the proportion of observations with surprisal values at least as large as $s_i$. That is, $\hat{p}_i = (n - \text{rank}(s_i) + 1)/n$, where $\text{rank}(s_i)$ is the rank of $s_i$ among the $s_1,\dots,s_n$ values, with the smallest value having rank 1. For large $n$, this provides a quick and convenient estimate of $p_i$. @surprisals show that this approach works well when the ordering of the largest surprisal values under $f$ and $f^*$ is similar, which should be the case when $f^*$ is a reasonable approximation to $f$.
+An alternative approach that does not require a GPD is to estimate $p_i$ as the proportion of observations with surprisal values at least as large as $s_i$.
+That is, $\hat{p}_i = (n - \text{rank}(s_i) + 1)/n$, where $\text{rank}(s_i)$ is the rank of $s_i$ among the $s_1,\dots,s_n$ values, with the smallest value having rank 1.
+For large $n$, this provides a quick and convenient estimate of $p_i$.
+@surprisals show that this approach works well when the ordering of the largest surprisal values under $f$ and $f^*$ is similar, which should be the case when $f^*$ is a reasonable approximation to $f$.
 
 The approximation argument of `surprisals_prob()` can be set to `"rank"`, to specify that we want to use these rank-based surprisal probabilities.
 
 ### Example: Standard normal values
 
-For example, consider the 1000 values contained in the first column of `n01`. These were generated from a standard Normal distribution. We can use `surprisals_prob()` to identify anomalies with probability less than 1%. This is equivalent to z-scores greater than `r sprintf("%.3f", qnorm(1-0.01/2))` in absolute value.
+For example, consider the 1000 values contained in the first column of `n01`.
+These were generated from a standard Normal distribution.
+We can use `surprisals_prob()` to identify anomalies with probability less than 1%.
+This is equivalent to z-scores greater than `r sprintf("%.3f", qnorm(1-0.01/2))` in absolute value.
 
-We will use all three methods described above, first using the correct density in computing the surprisals, and then repeating the calculation using an incorrect density. For the incorrect density, we will use a $\text{t}_4$ distribution, which has much longer tails than the true N(0,1) distribution.
+We will use all three methods described above, first using the correct density in computing the surprisals, and then repeating the calculation using an incorrect density.
+For the incorrect density, we will use a $\text{t}_4$ distribution, which has much longer tails than the true N(0,1) distribution.
 
 ```{r}
 #| label: surprisal_prob
 #| code-fold: false
+
 # Compute surprisal probabilities of v1 assuming a standard Normal distribution
 # and a t4 distribution
 norm_prob <- tibble(
   y = n01$v1,
   p = surprisals_prob(y, distribution = dist_normal()),
-  p_gpd = surprisals_prob(y, distribution = dist_normal(), approximation = "gpd"),
-  p_emp = surprisals_prob(y, distribution = dist_normal(), approximation = "rank"),
+  p_gpd = surprisals_prob(
+    y,
+    distribution = dist_normal(),
+    approximation = "gpd"
+  ),
+  p_emp = surprisals_prob(
+    y,
+    distribution = dist_normal(),
+    approximation = "rank"
+  ),
   pt = surprisals_prob(y, distribution = dist_student_t(4)),
-  pt_gpd = surprisals_prob(y, distribution = dist_student_t(4), approximation = "gpd"),
-  pt_emp = surprisals_prob(y, distribution = dist_student_t(4), approximation = "rank")
+  pt_gpd = surprisals_prob(
+    y,
+    distribution = dist_student_t(4),
+    approximation = "gpd"
+  ),
+  pt_emp = surprisals_prob(
+    y,
+    distribution = dist_student_t(4),
+    approximation = "rank"
+  )
 )
 norm_prob |> arrange(p)
 ```
 
-The true values are in column `p`, as this uses the correct distribution applied to the correct surprisals. Notice that `p_gpd` and `p_emp` are both relatively accurate: the GPD and rank approximations work. The last three columns show the probabilities based on surprisals using the incorrect distribution. Here, `pt` is very inaccurate, with much larger probabilities than they should be, especially in the extreme tails. This is because the $\text{t}_4$ distribution has much heavier tails than the true N(0,1) distribution, so the probability of observations more extreme than those observed is much larger than they should be. But `pt_gpd` and `pt_emp` are both reasonable estimates, despite being based on an incorrect distribution for computing the surprisals. In fact, `p_emp` and `pt_emp` are identical, because the ordering of the surprisals is unchanged despite the incorrect distribution being used.
+The true values are in column `p`, as this uses the correct distribution applied to the correct surprisals.
+Notice that `p_gpd` and `p_emp` are both relatively accurate: the GPD and rank approximations work.
+The last three columns show the probabilities based on surprisals using the incorrect distribution.
+Here, `pt` is very inaccurate, with much larger probabilities than they should be, especially in the extreme tails.
+This is because the $\text{t}_4$ distribution has much heavier tails than the true N(0,1) distribution, so the probability of observations more extreme than those observed is much larger than they should be.
+But `pt_gpd` and `pt_emp` are both reasonable estimates, despite being based on an incorrect distribution for computing the surprisals.
+In fact, `p_emp` and `pt_emp` are identical, because the ordering of the surprisals is unchanged despite the incorrect distribution being used.
 
 The various estimates are displayed in @fig-surprisal_prob for values of $y$ greater than 2.5, showing how the estimates (other than `pt`) are particularly accurate in the extreme tails, where we need them for anomaly detection.
 
 ```{r}
 #| label: fig-surprisal_prob
-#| fig-cap: Surprisal probabilities estimated using the correct N(0,1) distribution and using an incorrect $\text{t}_4$ distribution. The GPD and rank estimates of surprisal probabilities are still accurate, even when the wrong distribution is used to compute the surprisal values.
+#| fig-cap: Surprisal probabilities estimated using the correct N(0,1) distribution and using an incorrect $\text{t}_4$ distribution.
+#|   The GPD and rank estimates of surprisal probabilities are still accurate, even when the wrong distribution is used to compute the surprisal values.
+
 norm_prob |>
   filter(y > 2.5) |>
-  tidyr::pivot_longer(p:pt_emp, names_to = "Estimate", values_to = "Probability") |>
+  tidyr::pivot_longer(
+    p:pt_emp,
+    names_to = "Estimate",
+    values_to = "Probability"
+  ) |>
   ggplot(aes(x = y, y = Probability, col = Estimate)) +
   geom_line()
 ```
@@ -218,54 +309,73 @@ norm_prob |>
 In summary, even when we don't know the distribution of the data, we can use some
 incorrect assumed distribution to compute the surprisals, and then apply either a GPD or the rank approximation to obtain good estimates of the surprisal probabilities.
 
-
 ## KDE surprisals {#sec-kdesurprisals}
 
-Suppose, we estimate $f$ using a kernel density estimate. In fact, when the `surprisals()` or `surprisals_prob()` functions are applied to data without specifying a probability distribution, a kernel density estimate of the data is used by default. The kernel density estimate at each observation is (@eq-mkde)
+Suppose, we estimate $f$ using a kernel density estimate.
+In fact, when the `surprisals()` or `surprisals_prob()` functions are applied to data without specifying a probability distribution, a kernel density estimate of the data is used by default.
+The kernel density estimate at each observation is (@eq-mkde)
 $$
-  f_i = \hat{f}(\bm{y}_i) = \frac{1}{n} \sum_{j=1}^n K_H(\bm{y}_i-\bm{y}_j),
+  f_i = \hat{f}(\bm{y}_i) = \frac{1}{n} \sum_{j = 1}^n K_H(\bm{y}_i - \bm{y}_j),
 $$ {#eq-kdescores}
 and so we define the "**kde surprisal**" at each observation as
 $$
   s_i = -\log(f_i).
 $$
-The largest possible surprisal occurs when an observation has no other observations nearby. Then $f_i \approx K_H(\bm{0})/n$ because $K_H(\bm{y}_i-\bm{y}_j)\approx 0$ when $\|\bm{y}_i-\bm{y}_j\|$ is large. So the largest possible kde surprisal, when using a Gaussian kernel, is
+The largest possible surprisal occurs when an observation has no other observations nearby.
+Then $f_i \approx K_H(\bm{0})/n$ because $K_H(\bm{y}_i - \bm{y}_j) \approx 0$ when $\|\bm{y}_i - \bm{y}_j\|$ is large.
+So the largest possible kde surprisal, when using a Gaussian kernel, is
 $$
-  -\log(K_H(\bm{0})/n) \approx \log(n) + \frac{m}{2}\log(2\pi) + \frac{1}{2}\log|\bm{H}|,
+  -\log(K_H(\bm{0})/n) \approx \log(n)
+                               + \frac{m}{2}\log(2\pi)
+                               + \frac{1}{2}\log|\bm{H}|,
 $$
-where $\bm{H}$ is now the bandwidth matrix. For univariate data, when $m=1$, this simplifies to
+where $\bm{H}$ is now the bandwidth matrix.
+For univariate data, when $m = 1$, this simplifies to
 $$
   -\log(K_h(0)/n) \approx \log(nh\sqrt{2\pi}).
 $$
 
-Identifying anomalies using KDE surprisals is related to the "local outlier factor" method (@sec-lof). However, the local outlier factor method is based on the ratio of the density at a point to the average density at its neighbours, while the KDE surprisal method is based on the density at a point alone. This means that the KDE surprisal method is more likely to identify points in low density regions as anomalies.
+Identifying anomalies using KDE surprisals is related to the "local outlier factor" method (@sec-lof).
+However, the local outlier factor method is based on the ratio of the density at a point to the average density at its neighbours, while the KDE surprisal method is based on the density at a point alone.
+This means that the KDE surprisal method is more likely to identify points in low density regions as anomalies.
 
 ## LOO surprisals {#sec-loo-surprisals}
 
-If the density $f$ has been estimated from the data (whether from a parametric model or a nonparametric method such as KDE), then there is a problem of circular reasoning. Any genuine anomalies may affect the estimated density, and then they may not appear to be anomalies. Therefore, it is sometimes useful to consider the leave-one-out (LOO) estimate given by $f_{-i}$. That is, $f_{-i}$ is the density estimate using all observations other than the $i$th observation. Then an unusual observation can't influence the density estimate, giving us a better measure of how anomalous it really is. In this case, we will call the associated surprisal, a "LOO surprisal", given by $s_{-i} = -\log f_{-i}(\bm{y}_i)$.
-
+If the density $f$ has been estimated from the data (whether from a parametric model or a nonparametric method such as KDE), then there is a problem of circular reasoning.
+Any genuine anomalies may affect the estimated density, and then they may not appear to be anomalies.
+Therefore, it is sometimes useful to consider the leave-one-out (LOO) estimate given by $f_{-i}$.
+That is, $f_{-i}$ is the density estimate using all observations other than the $i$th observation.
+Then an unusual observation can't influence the density estimate, giving us a better measure of how anomalous it really is.
+In this case, we will call the associated surprisal, a "LOO surprisal", given by $s_{-i} = -\log f_{-i}(\bm{y}_i)$.
 
 ### LOO kde surprisals
 
-Let's take the example of KDE surprisals. The contribution of the $i$th point to the kernel density estimate at that point is $K_H(\bm{0})/n$. Therefore, the leave-one-out kernel density estimate is given by
+Let's take the example of KDE surprisals.
+The contribution of the $i$th point to the kernel density estimate at that point is $K_H(\bm{0})/n$.
+Therefore, the leave-one-out kernel density estimate is given by
 $$
-  f_{-i} = \left[nf_i - K_H(\bm{0})\right]/(n-1),
+  f_{-i} = \left[nf_i - K_H(\bm{0})\right]/(n - 1),
 $$ {#eq-loo-kde}
-where $f_i$ is the kde estimate from @eq-kdescores using all data, so that the leave-one-out kde surprisal is $s_{-i} = -\log (f_{-i})$. Thus, we can compute the leave-one-out kde surprisals without needing to re-estimate the density many times.
+where $f_i$ is the kde estimate from @eq-kdescores using all data, so that the leave-one-out kde surprisal is $s_{-i} = -\log (f_{-i})$.
+Thus, we can compute the leave-one-out kde surprisals without needing to re-estimate the density many times.
 
 The largest possible LOO kde surprisal is infinite, occurring when there are no observations nearby, so that $nf_i = K_H(\bm{0})$.
 
 ### The lookout algorithm
 
-The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2. It computes surprisal probabilities using a GPD approximation applied to the LOO kde surprisals, where the bandwidth is chosen using the "lookout" method. These probabilities can be calculated using the `surprisals_prob()` function with `loo = TRUE`, `approximation = "gpd"`, and `method = "lookout"`.
+The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2.
+It computes surprisal probabilities using a GPD approximation applied to the LOO kde surprisals, where the bandwidth is chosen using the "lookout" method.
+These probabilities can be calculated using the `surprisals_prob()` function with `loo = TRUE`, `approximation = "gpd"`, and `method = "lookout"`.
 
 ## Example: Old Faithful eruption durations {#sec-oldfaithful-density}
 
-Let's apply the kde surprisals method to the Old Faithful eruptions contained in the `oldfaithful` data set. We will use the LOO KDE surprisal probabilities to identify anomalies in the eruption durations.
+Let's apply the kde surprisals method to the Old Faithful eruptions contained in the `oldfaithful` data set.
+We will use the LOO KDE surprisal probabilities to identify anomalies in the eruption durations.
 
 ```{r}
 #| label: ofscores-kde
 #| code-fold: false
+
 of_surprisals <- oldfaithful |>
   mutate(
     loo_kde_surprisal = surprisals(duration, loo = TRUE),
@@ -274,13 +384,15 @@ of_surprisals <- oldfaithful |>
 of_surprisals |> arrange(desc(loo_kde_surprisal))
 ```
 
-The three largest LOO surprisals correspond to the three spurious short durations. The `prob` column contains the associated surprisal probabilities.
+The three largest LOO surprisals correspond to the three spurious short durations.
+The `prob` column contains the associated surprisal probabilities.
 
 If we omit the three extreme values, we obtain different results.
 
 ```{r}
 #| label: ofscores2
 #| code-fold: false
+
 of_surprisals <- oldfaithful |>
   filter(duration > 60) |>
   mutate(
@@ -293,6 +405,7 @@ of_surprisals |> arrange(desc(loo_kde_surprisal))
 ```{r}
 #| label: ofscores2b
 #| include: false
+
 no <- of_surprisals |> filter(prob < 0.005) |> NROW()
 no_above_300 <- of_surprisals |> filter(duration > 300, prob < 0.005) |> NROW()
 no_below_90 <- of_surprisals |> filter(duration < 90, prob < 0.005) |> NROW()
@@ -311,16 +424,19 @@ Now there are `r english::words(no)` points with probabilities less than 0.005: 
 #| fig-cap: "HDR boxplot of the Old Faithful eruption durations, with the surprisal anomalies highlighted in black."
 #| fig-asp: 0.2
 #| code-fold: false
+
 oldfaithful |>
   filter(duration > 60) |>
   gg_hdrboxplot(duration)
 ```
 
-The same algorithm is easily applied in two dimensions. For example, we can consider the bivariate distribution of Duration and Waiting time.
+The same algorithm is easily applied in two dimensions.
+For example, we can consider the bivariate distribution of Duration and Waiting time.
 
 ```{r}
 #| label: lookout2
 #| code-fold: false
+
 of <- oldfaithful |>
   select(duration, waiting)
 of |>
@@ -332,28 +448,36 @@ of |>
   arrange(prob, duration)
 ```
 
-Now, `r english::words(sum(surprisals_prob(of, loo = TRUE, approximation = "gpd") < 0.005))` anomalies are identified, with `r english::words(sum(surprisals(of, loo = TRUE) == Inf))` of them having infinite LOO surprisals. We can visualise them in an HDR scatterplot, shown in @fig-ofpot2.
+Now, `r english::words(sum(surprisals_prob(of, loo = TRUE, approximation = "gpd") < 0.005))` anomalies are identified, with `r english::words(sum(surprisals(of, loo = TRUE) == Inf))` of them having infinite LOO surprisals.
+We can visualise them in an HDR scatterplot, shown in @fig-ofpot2.
 
 ```{r}
 #| label: fig-ofpot2
 #| code-fold: false
 #| fig-cap: "HDR scatterplot of the Old Faithful eruption durations and waiting times, with the surprisal anomalies highlighted in black."
+
 oldfaithful |>
   gg_hdrboxplot(duration, waiting, show_points = TRUE)
 ```
 
 ## Gaussian mixture model surprisal probabilities {#sec-gmm-surprisal}
 
-A Gaussian mixture model (GMM) is a flexible parametric model for the joint distribution of the data, which can capture multimodality and other complex features. It comprises a weighted sum of multivariate Normal distributions, each with its own mean vector and covariance matrix. That is,
+A Gaussian mixture model (GMM) is a flexible parametric model for the joint distribution of the data, which can capture multimodality and other complex features.
+It comprises a weighted sum of multivariate Normal distributions, each with its own mean vector and covariance matrix.
+That is,
 $$
-  f(\bm{y}) = \sum_{k=1}^K w_k \phi(\bm{y}; \bm{\mu}_k, \bm{\Sigma}_k),
+  f(\bm{y}) = \sum_{k = 1}^K w_k \phi(\bm{y}; \bm{\mu}_k, \bm{\Sigma}_k),
 $$
-where $K$ is the number of components, the weights $w_k \ge 0$ sum to 1, and $\phi(\bm{y}; \bm{\mu}_k, \bm{\Sigma}_k)$ is the multivariate Normal density with mean $\bm{\mu}_k$ and covariance matrix $\bm{\Sigma}_k$. In fact, a KDE with a Gaussian kernel can be considered a Gaussian mixture model with a large number of equally-weighted components, each centred at an observation and with a common covariance matrix given by the bandwidth matrix. However, we can also fit a GMM with a smaller number of components, which may provide a more parsimonious model for the data. The `mclust` package provides a convenient way to fit GMMs to data.
+where $K$ is the number of components, the weights $w_k \ge 0$ sum to 1, and $\phi(\bm{y}; \bm{\mu}_k, \bm{\Sigma}_k)$ is the multivariate Normal density with mean $\bm{\mu}_k$ and covariance matrix $\bm{\Sigma}_k$.
+In fact, a KDE with a Gaussian kernel can be considered a Gaussian mixture model with a large number of equally-weighted components, each centred at an observation and with a common covariance matrix given by the bandwidth matrix.
+However, we can also fit a GMM with a smaller number of components, which may provide a more parsimonious model for the data.
+The `mclust` package provides a convenient way to fit GMMs to data.
 
 ```{r}
 #| label: gmm1
 #| message: false
 #| code-fold: false
+
 library(mclust)
 set.seed(2)
 gmm <- oldfaithful |>
@@ -367,6 +491,7 @@ gmm
 #| label: gmm2
 #| echo: false
 #| dependson: gmm1
+
 gmm_par <- parameters(gmm)
 gmm_wt <- gmm_par$w[[1]]
 gmm_nc <- length(gmm_wt)
@@ -385,36 +510,43 @@ gmm_dist <- gmm_dist[j]
 gmm_wt <- gmm_wt[j]
 ```
 
-The algorithm involves first clustering a random subset of the data, so different results may be obtained on different runs. The `set.seed()` function is used here to ensure reproducibility.
+The algorithm involves first clustering a random subset of the data, so different results may be obtained on different runs.
+The `set.seed()` function is used here to ensure reproducibility.
 
 We have estimated a `r gmm_nc`-component GMM for the Old Faithful data, with means
 $$
-\bm{\mu}_1 = \begin{bmatrix} `r sprintf("%.1f", mu[[1]][1])` \\ `r sprintf("%.1f", mu[[1]][2])` \end{bmatrix}, \quad
-\bm{\mu}_2 = \begin{bmatrix} `r sprintf("%.1f", mu[[2]][1])` \\ `r sprintf("%.1f", mu[[2]][2])` \end{bmatrix}, \quad\text{and}\quad
-\bm{\mu}_3 = \begin{bmatrix} `r sprintf("%.1f", mu[[3]][1])` \\ `r sprintf("%.1f", mu[[3]][2])` \end{bmatrix},
+  \bm{\mu}_1 = \begin{bmatrix} `r sprintf("%.1f", mu[[1]][1])` \\ `r sprintf("%.1f", mu[[1]][2])` \end{bmatrix}, \quad
+  \bm{\mu}_2 = \begin{bmatrix} `r sprintf("%.1f", mu[[2]][1])` \\ `r sprintf("%.1f", mu[[2]][2])` \end{bmatrix}, \quad\text{and}\quad
+  \bm{\mu}_3 = \begin{bmatrix} `r sprintf("%.1f", mu[[3]][1])` \\ `r sprintf("%.1f", mu[[3]][2])` \end{bmatrix},
 $$
 covariances
 $$
-\bm{\Sigma}_1 = \begin{bmatrix}
-`r sprintf("%.1f", sigma[[1]][1,1])` & `r sprintf("%.1f", sigma[[1]][1,2])` \\
-`r sprintf("%.1f", sigma[[1]][2,1])` & `r sprintf("%.1f", sigma[[1]][2,2])`
- \end{bmatrix}, \quad
-\bm{\Sigma}_2 = \begin{bmatrix}
-`r sprintf("%.1f", sigma[[2]][1,1])` & `r sprintf("%.1f", sigma[[2]][1,2])` \\
-`r sprintf("%.1f", sigma[[2]][2,1])` & `r sprintf("%.1f", sigma[[2]][2,2])`
- \end{bmatrix}, \quad\text{and}\quad
-\bm{\Sigma}_3 = \begin{bmatrix}
-`r sprintf("%.1f", sigma[[3]][1,1])` & `r sprintf("%.1f", sigma[[3]][1,2])` \\
-`r sprintf("%.1f", sigma[[3]][2,1])` & `r sprintf("%.1f", sigma[[3]][2,2])`
- \end{bmatrix},
+  \bm{\Sigma}_1 =
+\begin{bmatrix}
+  `r sprintf("%.1f", sigma[[1]][1,1])` & `r sprintf("%.1f", sigma[[1]][1,2])` \\
+  `r sprintf("%.1f", sigma[[1]][2,1])` & `r sprintf("%.1f", sigma[[1]][2,2])`
+\end{bmatrix}
+  , \quad \bm{\Sigma}_2 =
+\begin{bmatrix}
+  `r sprintf("%.1f", sigma[[2]][1,1])` & `r sprintf("%.1f", sigma[[2]][1,2])` \\
+  `r sprintf("%.1f", sigma[[2]][2,1])` & `r sprintf("%.1f", sigma[[2]][2,2])`
+\end{bmatrix}
+  , \quad\text{and}\quad \bm{\Sigma}_3 =
+\begin{bmatrix}
+  `r sprintf("%.1f", sigma[[3]][1,1])` & `r sprintf("%.1f", sigma[[3]][1,2])` \\
+  `r sprintf("%.1f", sigma[[3]][2,1])` & `r sprintf("%.1f", sigma[[3]][2,2])`
+\end{bmatrix}
+  ,
 $$
-and weights $`r sprintf("%.3f", gmm_wt[1])`$, $`r sprintf("%.3f", gmm_wt[2])`$, and $`r sprintf("%.3f", gmm_wt[3])`$, respectively. The component multivariate Normal densities are shown in @fig-gmm-components.
+and weights $`r sprintf("%.3f", gmm_wt[1])`$, $`r sprintf("%.3f", gmm_wt[2])`$, and $`r sprintf("%.3f", gmm_wt[3])`$, respectively.
+The component multivariate Normal densities are shown in @fig-gmm-components.
 
 ```{r}
 #| label: fig-gmm-components
 #| fig-cap: "The estimated Gaussian mixture model for the Old Faithful data, showing the different components."
 #| echo: false
 #| dependson: gmm2
+
 cols <- discrete_colours[1:3]
 w <- sprintf("%.2f", gmm_wt)
 p <- ggplot() +
@@ -438,6 +570,7 @@ When the components are added together, we get the density shown in @fig-gmm-den
 #| label: fig-gmm-density
 #| fig-cap: "The estimated density for the Old Faithful data based on a Gaussian mixture model with the three components shown in @fig-gmm-components."
 #| code-fold: false
+
 gmm |>
   gg_density() +
   geom_point(data = oldfaithful, aes(x = duration, y = waiting), alpha = 0.1) +
@@ -449,6 +582,7 @@ We can compute the density at each observation under this fitted model, and then
 ```{r}
 #| label: gmm-surprisals
 #| code-fold: false
+
 of <- oldfaithful |>
   mutate(
     gmm_prob = surprisals_prob(
@@ -464,6 +598,7 @@ of
 ```{r}
 #| label: fig-gmm-surprisals
 #| fig-cap: "Observations with surprisal probability less than 0.005 under the Gaussian mixture model."
+
 of |>
   ggplot(aes(x = duration, y = waiting, colour = gmm_prob < 0.005)) +
   geom_point() +
@@ -474,31 +609,38 @@ The model has effectively highlighted the `r english::words(sum(of$gmm_prob < 0.
 
 ## Gaussian copula anomaly scores {#sec-copula}
 
-Another flexible approach to fitting a density to the data is to model the marginal distributions and the dependence structure separately, using **copulas**. Copulas are functions that capture the dependence structure between random variables, while allowing for arbitrary marginal distributions. This can be particularly useful when the marginals are not well approximated by a Normal distribution, but we still want to use a simple parametric model for the dependence.
+Another flexible approach to fitting a density to the data is to model the marginal distributions and the dependence structure separately, using **copulas**.
+Copulas are functions that capture the dependence structure between random variables, while allowing for arbitrary marginal distributions.
+This can be particularly useful when the marginals are not well approximated by a Normal distribution, but we still want to use a simple parametric model for the dependence.
 
 ### Copulas and marginal transformations
 
-Let $\bm{y}_i = (y_{i1}, \dots, y_{im})$ denote an observation. For each variable $j$, let $F_j$ denote its marginal distribution function. The copula representation of the joint distribution expresses
+Let $\bm{y}_i = (y_{i1}, \dots, y_{im})$ denote an observation.
+For each variable $j$, let $F_j$ denote its marginal distribution function.
+The copula representation of the joint distribution expresses
 $$
-F(\bm{y}_i) = C\big(F_1(y_{i1}), \dots, F_m(y_{im})\big),
+  F(\bm{y}_i) = C\big(F_1(y_{i1}), \dots, F_m(y_{im})\big),
 $$
 where $C$ is the copula function, capturing the dependence between the variables.
 
-In practice, the marginal distributions $F_j$ are usually unknown, so we estimate them using empirical ranks. This leads to the transformed values
+In practice, the marginal distributions $F_j$ are usually unknown, so we estimate them using empirical ranks.
+This leads to the transformed values
 $$
-u_{ij} = \hat{F}_j(y_{ij}) = \frac{r_{ij}}{n+1},
+  u_{ij} = \hat{F}_j(y_{ij}) = \frac{r_{ij}}{n + 1},
 $$
-where $r_{ij}$ is the rank of $y_{ij}$ among the observations of variable $j$. This transformation places all variables on a common scale, regardless of their original units or marginal distributions.
+where $r_{ij}$ is the rank of $y_{ij}$ among the observations of variable $j$.
+This transformation places all variables on a common scale, regardless of their original units or marginal distributions.
 
 ### Gaussian copula model
 
-A simple and widely used choice is the **Gaussian copula**, which assumes that the dependence structure is the same as that of a multivariate Normal distribution. To implement this, we apply the inverse standard Normal distribution function $\Phi^{-1}$ to each component:
+A simple and widely used choice is the **Gaussian copula**, which assumes that the dependence structure is the same as that of a multivariate Normal distribution.
+To implement this, we apply the inverse standard Normal distribution function $\Phi^{-1}$ to each component:
 $$
-w_{ij} = \Phi^{-1}(u_{ij}).
+  w_{ij} = \Phi^{-1}(u_{ij}).
 $$
 The transformed observations $\bm{w}_i = (w_{i1}, \dots, w_{im})$ are then modelled as
 $$
-\bm{w}_i \sim \text{N}(\bm{\mu}_w, \bm{\Sigma}_w).
+  \bm{w}_i \sim \text{N}(\bm{\mu}_w, \bm{\Sigma}_w).
 $$
 The covariance matrix $\bm{\Sigma}_w$ captures the dependence between the variables, while the marginal distributions of the original data are handled separately through the empirical transformations.
 
@@ -508,25 +650,26 @@ This construction can be viewed as applying a multivariate Normal model to trans
 
 Under the Gaussian copula model, anomaly scores can be constructed using the Mahalanobis distance of the transformed observations:
 $$
-d_i^2 = (\bm{w}_i - \bm{\mu}_w)^\intercal \bm{\Sigma}_w^{-1} (\bm{w}_i - \bm{\mu}_w).
+  d_i^2 = (\bm{w}_i - \bm{\mu}_w)^\intercal \bm{\Sigma}_w^{-1} (\bm{w}_i - \bm{\mu}_w).
 $$
 Large values of $d_i^2$ indicate that the observation is unusual relative to the data according to the fitted Gaussian copula model, and so are potential anomalies.
 
-These squared distances are directly connected to surprisals. The fitted multivariate Normal density of $\bm{w}_i$ is
+These squared distances are directly connected to surprisals.
+The fitted multivariate Normal density of $\bm{w}_i$ is
 $$
-\hat f_W(\bm{w}_i) =
-(2\pi)^{-m/2} |\bm{\Sigma}_w|^{-1/2} \exp\left\{
--\frac{1}{2} (\bm{w}_i - \bm{\mu}_w)^\intercal \bm{\Sigma}_w^{-1} (\bm{w}_i - \bm{\mu}_w)
-\right\},
+  \hat f_W(\bm{w}_i) = (2\pi)^{-m/2} |\bm{\Sigma}_w|^{-1/2} \exp\left\{ - \frac{1}{2} (\bm{w}_i - \bm{\mu}_w)^\intercal \bm{\Sigma}_w^{-1} (\bm{w}_i - \bm{\mu}_w) \right\},
 $$
 so the corresponding surprisal is
 $$
-s_i =  -\log \hat f_W(\bm{w}_i)
-= \frac{1}{2} d_i^2 + \frac{m}{2}\log(2\pi) + \frac{1}{2}\log|\bm{\Sigma}_w|.
+  s_i = -\log \hat f_W(\bm{w}_i)
+      = \frac{1}{2} d_i^2
+        + \frac{m}{2}\log(2\pi)
+        + \frac{1}{2}\log|\bm{\Sigma}_w|.
 $$
-Thus ranking observations by $d_i^2$ is equivalent to ranking them by their surprisals under the fitted Gaussian copula model. If the model is appropriate, then $d_i^2$ approximately (when $n$ is large) follows a chi-squared distribution with $m$ degrees of freedom, giving the approximate surprisal probability
+Thus ranking observations by $d_i^2$ is equivalent to ranking them by their surprisals under the fitted Gaussian copula model.
+If the model is appropriate, then $d_i^2$ approximately (when $n$ is large) follows a chi-squared distribution with $m$ degrees of freedom, giving the approximate surprisal probability
 $$
-p_i = 1 - F_{\chi^2_m}(d_i^2).
+  p_i = 1 - F_{\chi^2_m}(d_i^2).
 $$
 
 ### Practical implementation
@@ -541,6 +684,7 @@ The Gaussian copula anomaly scores can be computed using the following steps:
 ```{r}
 #| label: copula_scores
 #| code-fold: false
+
 copula_scores <- function(x) {
   x <- as.matrix(x)
   n <- nrow(x)
@@ -561,7 +705,9 @@ The Gaussian copula approach provides a useful compromise between flexibility an
 - It explicitly models dependence between variables through the covariance matrix $\bm{\Sigma}_w$.
 - It reduces to the Mahalanobis distance when the original data are already approximately multivariate Normal.
 
-However, the method still relies on the assumption that the dependence structure is adequately captured by a Gaussian copula. In particular, it may not perform well when there are strong nonlinear or tail dependencies between variables. More flexible copula models exist, but are typically more complex to estimate and use.
+However, the method still relies on the assumption that the dependence structure is adequately captured by a Gaussian copula.
+In particular, it may not perform well when there are strong nonlinear or tail dependencies between variables.
+More flexible copula models exist, but are typically more complex to estimate and use.
 
 Despite these limitations, Gaussian copula anomaly scores provide a simple and effective way to extend Mahalanobis-based methods to data with non-Normal marginals, while retaining sensitivity to relationships between variables.
 
@@ -569,7 +715,10 @@ Despite these limitations, Gaussian copula anomaly scores provide a simple and e
 
 ```{r}
 #| label: fig-copula-of
-#| fig-cap: "Scatterplot of Old Faithful eruption duration and waiting time. Observations flagged as anomalies (surprisal probability less than 0.005) under the Gaussian copula model are highlighted."
+#| fig-cap: >-
+#|   Scatterplot of Old Faithful eruption duration and waiting time.
+#|   Observations flagged as anomalies (surprisal probability less than 0.005) under the Gaussian copula model are highlighted.
+
 of_scores <- oldfaithful |>
   select(duration, waiting) |>
   mutate(
@@ -585,4 +734,5 @@ of_scores |>
   scale_colour_manual(values = c("#bbbbbb", "#c14b14"))
 ```
 
-In this case, the method has picked up several observations around the edge of the main clusters, and failed to identify some observations that appear to be more obvious anomaly candidates. The Gaussian copula approach is not well-suited to multimodal data.
+In this case, the method has picked up several observations around the edge of the main clusters, and failed to identify some observations that appear to be more obvious anomaly candidates.
+The Gaussian copula approach is not well-suited to multimodal data.

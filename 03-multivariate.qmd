@@ -4,6 +4,7 @@
 #| label: setup3
 #| include: false
 #| cache: false
+
 source("before-each-chapter.R")
 # Set up for using rgl
 options(rgl.useNULL = TRUE)
@@ -11,17 +12,22 @@ rgl::setupKnitr()
 source("delta_neighbourhood.R")
 ```
 
-While we will cover anomaly detection in univariate data, most of the methods we will discuss are for multivariate data. We will therefore need to understand some basic concepts of multivariate probability distributions.
+While we will cover anomaly detection in univariate data, most of the methods we will discuss are for multivariate data.
+We will therefore need to understand some basic concepts of multivariate probability distributions.
 
 ## Hiding in high-dimensional space {#sec-hiding}
 
-When first thinking about multivariate probability distributions, it can take some time to develop an intuition for how they behave. One way to start developing this intuition is to plot data with increasing numbers of dimensions, starting with the univariate case.
+When first thinking about multivariate probability distributions, it can take some time to develop an intuition for how they behave.
+One way to start developing this intuition is to plot data with increasing numbers of dimensions, starting with the univariate case.
 
-Let's take the `n01` data set, which contains 10 variables, each from independent standard Normal distributions. We will consider only the first three variables, but to make the example more interesting, we will consider cumulative sums of these variables. We will also add a couple of anomalies, and then see if we can find them using some data visualisations.
+Let's take the `n01` data set, which contains 10 variables, each from independent standard Normal distributions.
+We will consider only the first three variables, but to make the example more interesting, we will consider cumulative sums of these variables.
+We will also add a couple of anomalies, and then see if we can find them using some data visualisations.
 
 ```{r}
 #| label: demo_data
 #| code-fold: false
+
 # Construct example data set
 df <- n01 |>
   transmute(
@@ -42,6 +48,7 @@ First, we can do a strip plot of each variable to visualise the data from a univ
 #| code-fold: false
 #| fig-asp: 0.3
 #| fig-cap: Strip plots of each of the three variables, with anomalies shown in orange.
+
 df |>
   tidyr::pivot_longer(V1:V3) |>
   ggplot(aes(x = value, y = 0, col = anomaly)) +
@@ -52,7 +59,9 @@ df |>
   scale_colour_manual(values = c("#999999", "#D55E00"))
 ```
 
-The only obvious feature of these graphs is that the variance increases in successive panels. This is because the variance of the sum of independent random variables is the sum of their variances. The two anomalies are plotted in each panel, but they are not obviously different from the other observations.
+The only obvious feature of these graphs is that the variance increases in successive panels.
+This is because the variance of the sum of independent random variables is the sum of their variances.
+The two anomalies are plotted in each panel, but they are not obviously different from the other observations.
 
 Now we will plot pairwise scatterplots of the three variables, giving the bivariate perspective.
 
@@ -62,6 +71,7 @@ Now we will plot pairwise scatterplots of the three variables, giving the bivari
 #| code-fold: false
 #| warning: false
 #| message: false
+
 GGally::ggpairs(
   df[, 1:3],
   lower = list(
@@ -72,34 +82,41 @@ GGally::ggpairs(
   scale_colour_manual(values = c("#999999", "#D55E00"))
 ```
 
-This shows that there are positive relationships between the variables, with the strongest between `V2` and `V3`. One of the anomalies is now clearly separate from the other observations in the plot of `V2` vs `V1` (the top left scatterplot). For this anomaly, the value of `V1` is -2, which is not particularly unusual compared to the other observations. Similarly, the value of `V2` is 3.4, which is also not particularly unusual. But because of their positive correlation, the combination of these two values is unusual, so it shows up in the 2-dimensional scatterplot. The other anomaly does not look particularly unusual in any of the plots.
+This shows that there are positive relationships between the variables, with the strongest between `V2` and `V3`.
+One of the anomalies is now clearly separate from the other observations in the plot of `V2` vs `V1` (the top left scatterplot).
+For this anomaly, the value of `V1` is -2, which is not particularly unusual compared to the other observations.
+Similarly, the value of `V2` is 3.4, which is also not particularly unusual.
+But because of their positive correlation, the combination of these two values is unusual, so it shows up in the 2-dimensional scatterplot.
+The other anomaly does not look particularly unusual in any of the plots.
 
-To visualise trivariate relationships, we need to use a 3D scatterplot. It is easiest to see this if it can spin. Try dragging the plot around with your mouse to view it from different angles. See if you can find a viewpoint where the second anomaly is clearly separated from the other observations.
+To visualise trivariate relationships, we need to use a 3D scatterplot.
+It is easiest to see this if it can spin.
+Try dragging the plot around with your mouse to view it from different angles.
+See if you can find a viewpoint where the second anomaly is clearly separated from the other observations.
 
 ::: {#fig-rgl}
-
-::: {.figure-content}
-
+::::: {.figure-content}
 ```{r}
 #| webgl: true
 #| code-fold: false
 #| cache: false
+
 rgl::plot3d(
   df[, 1:3],
   size = 5,
   col = c(rep("#999999", 998), rep("#D55E00", 2))
 )
 ```
-
-:::
+:::::
 
 3d scatterplot of the three variables, with anomalies shown in orange.
-
 :::
 
 This second anomaly is not particularly unusual in any combination of two variables, but it is unusual in the combination of all three variables.
 
-When looking for anomalies, it is important to consider all the variables together, rather than looking at each variable in isolation, or even looking at all the pairwise relationships. It is possible for an observation to be unusual in $m$ dimensions, but not unusual in any of the lower-dimensional subsets of variables. In other words, there are more places for anomalies to hide in higher dimensions.
+When looking for anomalies, it is important to consider all the variables together, rather than looking at each variable in isolation, or even looking at all the pairwise relationships.
+It is possible for an observation to be unusual in $m$ dimensions, but not unusual in any of the lower-dimensional subsets of variables.
+In other words, there are more places for anomalies to hide in higher dimensions.
 
 ## The curse of dimensionality {#sec-curse}
 
@@ -108,7 +125,9 @@ The "curse of dimensionality" refers to the increasing sparseness of space as th
 ### Points in the corners
 
 Suppose we observed a high-dimensional data set of independent U(-1,1) variables, and consider the proportion of points that lie outside the unit sphere (in the corners of the space) as the number of dimensions increases.
-First, let's visualise what this means in 1, 2 and 3 dimensions. In 1 dimension, the unit sphere is just the interval [-1,1], so no points lie outside this interval. In 2 dimensions, the unit sphere is the circle with radius 1, sitting snugly within a square of side length 2, as shown in @fig-curse2d.
+First, let's visualise what this means in 1, 2 and 3 dimensions.
+In 1 dimension, the unit sphere is just the interval [-1,1], so no points lie outside this interval.
+In 2 dimensions, the unit sphere is the circle with radius 1, sitting snugly within a square of side length 2, as shown in @fig-curse2d.
 
 ```{r}
 #| label: fig-curse2d
@@ -116,6 +135,7 @@ First, let's visualise what this means in 1, 2 and 3 dimensions. In 1 dimension,
 #| fig-height: 5
 #| fig-width: 5
 #| out-width: 70%
+
 tibble(
   x = runif(2000, -1, 1),
   y = runif(2000, -1, 1),
@@ -130,15 +150,15 @@ tibble(
 
 The proportion of points lying outside the circle in the corners of the space (shown in orange) is $`r sprintf("%.1f", 100*(1-pi/4))`$%.
 
-The equivalent plot in 3-dimensions is shown in @fig-curse3d. The unit sphere is now a ball of radius 1 sitting within a box, and $`r sprintf("%.1f", 100*(1-pi/6))`$% of points lie outside the ball.
+The equivalent plot in 3-dimensions is shown in @fig-curse3d.
+The unit sphere is now a ball of radius 1 sitting within a box, and $`r sprintf("%.1f", 100*(1-pi/6))`$% of points lie outside the ball.
 
 ::: {#fig-curse3d}
-
-::: {.figure-content}
-
+::::: {.figure-content}
 ```{r}
 #| webgl: true
 #| cache: false
+
 df <- tibble(
   x = runif(2000, -1, 1),
   y = runif(2000, -1, 1),
@@ -148,22 +168,23 @@ df <- tibble(
 )
 rgl::plot3d(df[, 1:3], size = 5, col = df$colour)
 ```
-
-:::
+:::::
 
 2000 simulated observations from three independent U(-1,1) distributions, with points within the unit sphere shown in grey, and points outside the unit sphere shown in orange.
-
 :::
 
-As the number of dimensions grows, it becomes increasingly likely that points will lie in the corners of the space. In fact, the proportion of points lying outside the unit sphere in $m$ dimensions is 1 minus the ratio of the volume of the unit sphere to the volume of the whole space. This is given by
+As the number of dimensions grows, it becomes increasingly likely that points will lie in the corners of the space.
+In fact, the proportion of points lying outside the unit sphere in $m$ dimensions is 1 minus the ratio of the volume of the unit sphere to the volume of the whole space.
+This is given by
 $$
-1 - \frac{\pi^{m/2}}{2^m\Gamma(m/2 + 1)}
+  1 - \frac{\pi^{m/2}}{2^m\Gamma(m/2 + 1)}
 $$
 where $\Gamma$ is the gamma function, and is plotted in @fig-curse.
 
 ```{r}
 #| label: fig-curse
 #| fig-cap: For observations from an $m$-dimensional U(-1,1) distribution, the percentage of points lying outside the unit sphere in the corners of the space.
+
 tibble(m = seq(10)) |>
   mutate(outside = 100 * (1 - (pi^(m / 2) / (2^m * gamma(m / 2 + 1))))) |>
   ggplot(aes(x = m, y = outside)) +
@@ -172,11 +193,14 @@ tibble(m = seq(10)) |>
   scale_x_continuous(breaks = seq(10), minor_breaks = NULL)
 ```
 
-Remarkably, by 10 dimensions, almost all points lie outside the unit sphere, and live in the corners of the space; almost no points are in the centre of the space. This occurs because, with enough variables, at least one of the univariate observations is going to lie in the tails of the distribution, and so the multivariate observation will not lie near the centre of the space.
+Remarkably, by 10 dimensions, almost all points lie outside the unit sphere, and live in the corners of the space; almost no points are in the centre of the space.
+This occurs because, with enough variables, at least one of the univariate observations is going to lie in the tails of the distribution, and so the multivariate observation will not lie near the centre of the space.
 
 ### The size of neighbourhoods
 
-Another way to think about this is to consider hypercubes that contain 50% of the observations. These must have sides of length $2^{1-1/m}$, in order for the volume of the hypercube to be $2^{m-1}$, exactly half of the entire space. For $m=1$, the hypercube is a unit interval; for $m=2$, it is a square of side length $\sqrt{2} \approx 1.41$ as shown in @fig-hypercube; for $m=3$, the central cube must have side length $2^{2/3} \approx 1.59$; and so on.
+Another way to think about this is to consider hypercubes that contain 50% of the observations.
+These must have sides of length $2^{1 - 1/m}$, in order for the volume of the hypercube to be $2^{m - 1}$, exactly half of the entire space.
+For $m = 1$, the hypercube is a unit interval; for $m = 2$, it is a square of side length $\sqrt{2} \approx 1.41$ as shown in @fig-hypercube; for $m = 3$, the central cube must have side length $2^{2/3} \approx 1.59$; and so on.
 
 ```{r}
 #| label: fig-hypercube
@@ -184,6 +208,7 @@ Another way to think about this is to consider hypercubes that contain 50% of th
 #| fig-height: 5
 #| fig-width: 5
 #| out-width: 70%
+
 tibble(
   x = runif(2000, -1, 1),
   y = runif(2000, -1, 1),
@@ -202,6 +227,7 @@ As the dimension $m$ increases, the size of the hypercube containing 50% of the 
 ```{r}
 #| label: fig-hypercubes
 #| fig-cap: For observations from an $m$-dimensional U(-1,1) distribution, the side length of a hypercube which contains 50% of points.
+
 tibble(m = seq(20)) |>
   mutate(length = 2^(1 - 1 / m)) |>
   ggplot(aes(x = m, y = length)) +
@@ -215,7 +241,9 @@ tibble(m = seq(20)) |>
   ylim(1, 2)
 ```
 
-The side lengths of these hypercubes increasingly approaches the maximum of 2 as the number of dimensions increases. So the size of the neighbourhood containing 50% of the observations becomes almost as large as the whole space. Therefore, we cannot use methods that rely on local neighbourhoods in high dimensions, as these neighbourhoods must become so large as to no longer be "local".
+The side lengths of these hypercubes increasingly approaches the maximum of 2 as the number of dimensions increases.
+So the size of the neighbourhood containing 50% of the observations becomes almost as large as the whole space.
+Therefore, we cannot use methods that rely on local neighbourhoods in high dimensions, as these neighbourhoods must become so large as to no longer be "local".
 
 ## Joint probability distributions {#sec-joint}
 
@@ -223,35 +251,38 @@ Now we have a sense of what it means to have data in many dimensions, let's cons
 
 ### Statistical definitions
 
-Suppose $\bm{Y} = [Y_1,\dots,Y_m]^\intercal$ is a random variable taking values in $\mathbb{R}^m$, the $m$-dimensional real numbers. Then the joint distribution of $\bm{Y}$ is defined by the joint cdf
+Suppose $\bm{Y} = [Y_1,\dots,Y_m]^\intercal$ is a random variable taking values in $\mathbb{R}^m$, the $m$-dimensional real numbers.
+Then the joint distribution of $\bm{Y}$ is defined by the joint cdf
 $$
-F(\bm{y}) = \Pr(\bm{Y} \le \bm{y}),
+  F(\bm{y}) = \Pr(\bm{Y} \le \bm{y}),
 $$
 while the joint density function is given by
 $$
-f(\bm{y}) = \frac{\partial^m F(\bm{y})}{\partial y_1 \dots \partial y_m}.
+  f(\bm{y}) = \frac{\partial^m F(\bm{y})}{\partial y_1 \dots \partial y_m}.
 $$
 
-The marginal cdfs are defined by $F_i(y) = \Pr(Y_i \le y)$, with corresponding marginal pdfs given by $f_i(y) = F_i'(y)$, $i=1,\dots,m$.
+The marginal cdfs are defined by $F_i(y) = \Pr(Y_i \le y)$, with corresponding marginal pdfs given by $f_i(y) = F_i'(y)$, $i = 1,\dots,m$.
 
-If the variables are independent, then the joint pdf is the product of the marginal pdfs, $f(\bm{y}) = \prod_{i=1}^m f_i(y_i)$.
+If the variables are independent, then the joint pdf is the product of the marginal pdfs, $f(\bm{y}) = \prod_{i = 1}^m f_i(y_i)$.
 
 The expected value of $\bm{Y}$ is the vector of expectations of its components, and is given by
 $$
-\text{E}(\bm{Y}) = \int_{\mathbb{R}^m} \bm{y} f(\bm{y})d\bm{y}.
+  \text{E}(\bm{Y}) = \int_{\mathbb{R}^m} \bm{y} f(\bm{y})d\bm{y}.
 $$
 The covariance matrix of $\bm{Y}$ is given by
 $$
-\text{Var}(\bm{Y}) = \text{E}[(\bm{Y}-\text{E}(\bm{Y}))(\bm{Y}-\text{E}(\bm{Y}))^\intercal].
+  \text{Var}(\bm{Y}) = \text{E}[(\bm{Y} - \text{E}(\bm{Y}))(\bm{Y} - \text{E}(\bm{Y}))^\intercal].
 $$
-The covariance matrix is an $m\times m$ matrix, with $(i,j)$th element given by $\text{Cov}(Y_i,Y_j) = \text{E}[(Y_i-\text{E}(Y_i))(Y_j-\text{E}(Y_j))]$. The diagonal elements are the variances of the individual variables, while the off-diagonal elements are the covariances between the variables.
+The covariance matrix is an $m \times m$ matrix, with $(i,j)$th element given by $\text{Cov}(Y_i,Y_j) = \text{E}[(Y_i - \text{E}(Y_i))(Y_j - \text{E}(Y_j))]$.
+The diagonal elements are the variances of the individual variables, while the off-diagonal elements are the covariances between the variables.
 
 The covariance matrix is always symmetric and positive semi-definite.
 
-Two useful results we will need are for the expectation and covariance of a linear transformation of a random vector. If $\bm{Y}$ is an $m$-dimensional random vector, and $\bm{A}$ is a $k\times m$ matrix, then
+Two useful results we will need are for the expectation and covariance of a linear transformation of a random vector.
+If $\bm{Y}$ is an $m$-dimensional random vector, and $\bm{A}$ is a $k \times m$ matrix, then
 \begin{align*}
-\text{E}(\bm{A}\bm{Y}) &= \bm{A}\text{E}(\bm{Y}), \\
-\text{Var}(\bm{A}\bm{Y}) &= \bm{A}\text{Var}(\bm{Y})\bm{A}^\intercal.
+  \text{E}(\bm{A}\bm{Y})   & = \bm{A}\text{E}(\bm{Y}),                   \\
+  \text{Var}(\bm{A}\bm{Y}) & = \bm{A}\text{Var}(\bm{Y})\bm{A}^\intercal.
 \end{align*}
 
 ### Multivariate Normal distribution
@@ -260,7 +291,7 @@ If random vector $\bm{Y}$ has a multivariate Normal distribution, we write $\bm{
 
 The multivariate Normal distribution has pdf given by
 $$
-f(\bm{y}; \bm{\mu}, \bm{\Sigma}) = (2\pi)^{-m/2}|\bm{\Sigma}|^{-1/2} \exp\left\{-\frac{1}{2}(\bm{y}-\bm{\mu})^\intercal\bm{\Sigma}^{-1}(\bm{y}-\bm{\mu})\right\}.
+  f(\bm{y}; \bm{\mu}, \bm{\Sigma}) = (2\pi)^{-m/2}|\bm{\Sigma}|^{-1/2} \exp\left\{ - \frac{1}{2}(\bm{y} - \bm{\mu})^\intercal\bm{\Sigma}^{-1}(\bm{y} - \bm{\mu})\right\}.
 $$
 The notation $|\bm{\Sigma}|$ denotes the determinant of the matrix $\bm{\Sigma}$.
 
@@ -272,18 +303,23 @@ A good reference on multivariate probability distributions is @JKmulticontinuous
 
 ## Highest density regions {#sec-mhdr}
 
-As with univariate distributions, a **highest density region** for a multivariate distribution is defined as the region of the sample space where the density is higher than a given threshold. Suppose we have a multivariate random variable $\bm{Y}$ with a smooth, continuous density function $f$. Then the $100(1-\alpha)$% HDR is the set
+As with univariate distributions, a **highest density region** for a multivariate distribution is defined as the region of the sample space where the density is higher than a given threshold.
+Suppose we have a multivariate random variable $\bm{Y}$ with a smooth, continuous density function $f$.
+Then the $100(1 - \alpha)$% HDR is the set
 $$
   R_\alpha = \{\bm{y}: f(\bm{y}) \ge f_\alpha\}
 $$ {#eq-mhdr}
-where $f_\alpha$ is the largest constant such that $\Pr(\bm{Y} \in R_\alpha) = 1-\alpha$.
+where $f_\alpha$ is the largest constant such that $\Pr(\bm{Y} \in R_\alpha) = 1 - \alpha$.
 
-HDRs are equivalent to level sets of the density function, and so can be plotted as contours for bivariate density functions. For example, the bivariate Normal distribution with mean $(0,0)$ and covariance matrix $\bm{\Sigma} = \begin{bmatrix} 1 & 0.5 \\ 0.5 & 1 \end{bmatrix}$ is shown in @fig-bivariate as a series of HDR contours, each containing an additional 10% of the probability mass.
+HDRs are equivalent to level sets of the density function, and so can be plotted as contours for bivariate density functions.
+For example, the bivariate Normal distribution with mean $(0,0)$ and covariance matrix $\bm{\Sigma} = \begin{bmatrix} 1 & 0.5 \\ 0.5 & 1 \end{bmatrix}$ is shown in @fig-bivariate as a series of HDR contours, each containing an additional 10% of the probability mass.
 
 ```{r}
 #| label: fig-bivariate
 #| message: false
-#| fig-cap: Bivariate Normal distribution with mean $(0,0)$ and covariance matrix $\bm{\Sigma} = \begin{bmatrix} 1 & 0.5 \\ 0.5 & 1 \end{bmatrix}$. The HDR contours cover 10%, 20%, $\dots$, 90% of the probability mass.
+#| fig-cap: Bivariate Normal distribution with mean $(0,0)$ and covariance matrix $\bm{\Sigma} = \begin{bmatrix} 1 & 0.5 \\ 0.5 & 1 \end{bmatrix}$.
+#|   The HDR contours cover 10%, 20%, $\dots$, 90% of the probability mass.
+
 mu <- c(0, 0)
 Sigma <- matrix(c(1, 0.5, 0.5, 1), 2, 2)
 distributional::dist_multivariate_normal(list(mu), list(Sigma)) |>
@@ -295,12 +331,16 @@ distributional::dist_multivariate_normal(list(mu), list(Sigma)) |>
   )
 ```
 
-Similarly, we can obtain HDRs for a mixture distribution. Suppose we had two bivariate Normal distributions with means $(0,0)$ and $(3,1)$, and covariance matrices equal to $\bm{\Sigma} = \begin{bmatrix} 1 & 0.5 \\ 0.5 & 1 \end{bmatrix}$ and the identity matrix $\bm{I}_2$ respectively. Then the HDRs for an equal mixture of these two distributions is shown in @fig-bivariate-mixture.
+Similarly, we can obtain HDRs for a mixture distribution.
+Suppose we had two bivariate Normal distributions with means $(0,0)$ and $(3,1)$, and covariance matrices equal to $\bm{\Sigma} = \begin{bmatrix} 1 & 0.5 \\ 0.5 & 1 \end{bmatrix}$ and the identity matrix $\bm{I}_2$ respectively.
+Then the HDRs for an equal mixture of these two distributions is shown in @fig-bivariate-mixture.
 
 ```{r}
 #| label: fig-bivariate-mixture
 #| message: false
-#| fig-cap: Bivariate mixture distribution of two equally weighted Normal components with means $(0,0)$ and $(3,1)$, and covariance matrices $\bm{\Sigma} = \begin{bmatrix} 1 & 0.5 \\ 0.5 & 1 \end{bmatrix}$ and $\bm{I}_2$ respectively. The HDR contours cover 10%, 20%, $\dots$, 90% of the probability mass.
+#| fig-cap: Bivariate mixture distribution of two equally weighted Normal components with means $(0,0)$ and $(3,1)$, and covariance matrices $\bm{\Sigma} = \begin{bmatrix} 1 & 0.5 \\ 0.5 & 1 \end{bmatrix}$ and $\bm{I}_2$ respectively.
+#|   The HDR contours cover 10%, 20%, $\dots$, 90% of the probability mass.
+
 mu1 <- c(0, 0)
 mu2 <- c(3, 1)
 Sigma1 <- rbind(c(1, 0.5), c(0.5, 1))
@@ -324,24 +364,31 @@ Here, the 10%, 20%, 30% and 40% HDRs contain disconnected regions, but for the l
 
 ## Multivariate quantiles {#sec-mv-quantiles}
 
-Unlike the univariate case, there is no unique definition of a multivariate quantile. There are many different definitions, and each has its own advantages and disadvantages.
+Unlike the univariate case, there is no unique definition of a multivariate quantile.
+There are many different definitions, and each has its own advantages and disadvantages.
 
-In this book, we are mostly concerned with sample multivariate quantiles, and one useful definition for sample quantiles is based on data depth. We will discuss this approach in @sec-depth.
+In this book, we are mostly concerned with sample multivariate quantiles, and one useful definition for sample quantiles is based on data depth.
+We will discuss this approach in @sec-depth.
 
 ## Robust covariance estimation {#sec-robust-cov}
 
 The sample covariance matrix is a useful measure of the spread of a multivariate distribution, given by
 $$
-\bm{S} = \frac{1}{n-1} \sum_{i=1}^n (\bm{y}_i - \bar{\bm{y}})(\bm{y}_i - \bar{\bm{y}})^\intercal,
+  \bm{S} = \frac{1}{n - 1} \sum_{i = 1}^n (\bm{y}_i - \bar{\bm{y}})(\bm{y}_i - \bar{\bm{y}})^\intercal,
 $$ {#eq-cov}
 However, it is sensitive to anomalies, and so is not suitable for our purposes.
 
-There have been many robust estimators of covariance proposed in the literature, but we will discuss only one, known as the "Minimum Covariance Determinant" (MCD) estimator [@Rousseeuw2003-ip;@fastmcd], which is implemented in the `covMcd()` function in the `robustbase` package [@robustbase]. This estimator finds a subset of $n_\alpha$ observations (where $n_\alpha > n/2$) that has the smallest determinant of the covariance matrix, and then uses these observations to compute a robust estimate of the covariance matrix. The idea is that the subset of observations with the smallest covariance determinant is likely to be a subset of "good" observations, and so the resulting covariance matrix will be robust to anomalies.
+There have been many robust estimators of covariance proposed in the literature, but we will discuss only one, known as the "Minimum Covariance Determinant" (MCD) estimator [@Rousseeuw2003-ip;@fastmcd], which is implemented in the `covMcd()` function in the `robustbase` package [@robustbase].
+This estimator finds a subset of $n_\alpha$ observations (where $n_\alpha > n/2$) that has the smallest determinant of the covariance matrix, and then uses these observations to compute a robust estimate of the covariance matrix.
+The idea is that the subset of observations with the smallest covariance determinant is likely to be a subset of "good" observations, and so the resulting covariance matrix will be robust to anomalies.
 
 Specifically,
-$$\bm{S}_{\text{MCD}} = \frac{1}{n_\alpha} \sum_{i \in H} (\bm{y}_i - \bar{\bm{y}})(\bm{y}_i - \bar{\bm{y}})^\intercal,
+$$
+  \bm{S}_{\text{MCD}} = \frac{1}{n_\alpha} \sum_{i \in H} (\bm{y}_i - \bar{\bm{y}})(\bm{y}_i - \bar{\bm{y}})^\intercal,
 $$ {#eq-mcd}
-where $H$ is the subset of $n_\alpha$ observations that has the smallest covariance determinant. The value of $n_\alpha$ is approximately $\alpha n$, where $\alpha$ is the targetted proportion of observations to use in the subset. We will use $\alpha = 0.9$ (allowing up to 10% anomalies).
+where $H$ is the subset of $n_\alpha$ observations that has the smallest covariance determinant.
+The value of $n_\alpha$ is approximately $\alpha n$, where $\alpha$ is the targetted proportion of observations to use in the subset.
+We will use $\alpha = 0.9$ (allowing up to 10% anomalies).
 
 The `covMcd()` function will return this covariance matrix, along with some other information, using a default value of $\alpha = 0.5$.
 
@@ -351,34 +398,49 @@ Some anomaly detection methods will require the data to have been scaled first, 
 
 ### Z-scores
 
-One common approach is to apply univariate scaling on each variable, by subtracting its mean and dividing by its standard deviation. This gives $z$-scores.
+One common approach is to apply univariate scaling on each variable, by subtracting its mean and dividing by its standard deviation.
+This gives $z$-scores.
 
 If our data are given by $y_1,\dots,y_n$, then their $z$ scores are given by
-$$z_i = (y_i - \bar{y})/s_y$$
-where $\bar{y}$ is the mean and $s_y$ is the standard deviation of the observations. These are easily computed using the `scale()` function.
+$$
+  z_i = (y_i - \bar{y})/s_y
+$$
+where $\bar{y}$ is the mean and $s_y$ is the standard deviation of the observations.
+These are easily computed using the `scale()` function.
 
 However, the mean and standard deviation may be affected by anomalies, and it would be better to use an approach that was robust to anomalies.
 
 ### Robust z-scores
 
-The simplest way to make the scaling robust to anomalies is to use the median instead of the mean, and to use a robust estimate of the standard deviation such as $s_{\text{Qn}}$ (@sec-robust-univariate). Robust z-scores computed in this way can be obtained using the `mvscale()` function with the argument `cov = NULL`.
+The simplest way to make the scaling robust to anomalies is to use the median instead of the mean, and to use a robust estimate of the standard deviation such as $s_{\text{Qn}}$ (@sec-robust-univariate).
+Robust z-scores computed in this way can be obtained using the `mvscale()` function with the argument `cov = NULL`.
 
 ### Multivariate z-scores
 
 It is sometimes useful to scale a set of multivariate data, so that the scaled variables are uncorrelated with each other, and have mean zero and unit variance.
 
-Suppose each observation is a vector $\bm{y}_i$, coming from a distribution with mean $\bm{\mu}$ and covariance matrix $\bm{\Sigma}$. Let $\bm{\Sigma}^{-1} = \bm{U}^\intercal \bm{U}$ be the Cholesky decomposition (see @sec-cholesky) of $\bm{\Sigma}^{-1}$. Then the data can be scaled by $\bm{U}$, giving $\bm{z}_i = \bm{U} (\bm{y}_i - \bm{\mu})$, so that the covariance matrix of the scaled data is the identity matrix. This can be thought of as both scaling and rotating the data, so that the variables are uncorrelated with mean zero and unit variance. It is the multivariate equivalent of calculating z-scores. They can be computed using the `mvscale()` function with the arguments `center = mean` and `cov = stats::cov`.
+Suppose each observation is a vector $\bm{y}_i$, coming from a distribution with mean $\bm{\mu}$ and covariance matrix $\bm{\Sigma}$.
+Let $\bm{\Sigma}^{-1} = \bm{U}^\intercal \bm{U}$ be the Cholesky decomposition (see @sec-cholesky) of $\bm{\Sigma}^{-1}$.
+Then the data can be scaled by $\bm{U}$, giving $\bm{z}_i = \bm{U} (\bm{y}_i - \bm{\mu})$, so that the covariance matrix of the scaled data is the identity matrix.
+This can be thought of as both scaling and rotating the data, so that the variables are uncorrelated with mean zero and unit variance.
+It is the multivariate equivalent of calculating z-scores.
+They can be computed using the `mvscale()` function with the arguments `center = mean` and `cov = stats::cov`.
 
 ### Robust multivariate z-scores
 
-When there may be anomalies in the data set, we can replace the mean by the pointwise median (i.e., the vector of medians for each variable), and estimate $\bm{\Sigma}$ using the robust covariance matrix $\bm{S}_{\text{MCD}}$ (@eq-mcd). The `mvscale()` function in the `weird` package will do this for us, by default.
+When there may be anomalies in the data set, we can replace the mean by the pointwise median (i.e., the vector of medians for each variable), and estimate $\bm{\Sigma}$ using the robust covariance matrix $\bm{S}_{\text{MCD}}$ (@eq-mcd).
+The `mvscale()` function in the `weird` package will do this for us, by default.
 
-Let's consider the `oldfaithful` data again, where durations are much longer than waiting times. @fig-scaling shows the data before and after scaling. The scaling has rotated the data a little, and the variables are now less correlated, and centred on zero. The right plot still appears to show some positive relationship between the variables, because the covariance matrix used for scaling was computed robustly, and so was largely based on the upper cluster of points.
+Let's consider the `oldfaithful` data again, where durations are much longer than waiting times.
+@fig-scaling shows the data before and after scaling.
+The scaling has rotated the data a little, and the variables are now less correlated, and centred on zero.
+The right plot still appears to show some positive relationship between the variables, because the covariance matrix used for scaling was computed robustly, and so was largely based on the upper cluster of points.
 
 ```{r}
 #| label: fig-scaling
 #| warning: false
 #| fig-cap: "Old Faithful duration and waiting time data, before and after scaling."
+
 p1 <- oldfaithful |>
   ggplot(aes(x = duration, y = waiting)) +
   geom_point(alpha = 0.2) +
@@ -400,32 +462,59 @@ patchwork::wrap_plots(p1, p2, nrow = 1)
 
 ## Clustering {#sec-clustering}
 
-Clustering methods group observations into distinct non-overlapping "clusters" based on their similarity. They are sometimes used for anomaly detection, as anomalies may form their own small clusters, or may appear as observations that do not belong to any cluster. Even if clustering is not used directly, some anomaly detection methods use tools based on clustering, and so we will need to understand some of the basic concepts. We will describe four of the most popular clustering methods: K-means clustering, the leader algorithm, DBSCAN, and hierarchical clustering.
+Clustering methods group observations into distinct non-overlapping "clusters" based on their similarity.
+They are sometimes used for anomaly detection, as anomalies may form their own small clusters, or may appear as observations that do not belong to any cluster.
+Even if clustering is not used directly, some anomaly detection methods use tools based on clustering, and so we will need to understand some of the basic concepts.
+We will describe four of the most popular clustering methods: K-means clustering, the leader algorithm, DBSCAN, and hierarchical clustering.
 
-The methods differ in what information must be supplied in advance. K-means requires the number of clusters, $K$. The leader algorithm and DBSCAN instead use a distance threshold, $\delta$, which defines a local neighbourhood around each observation. DBSCAN also uses a density parameter, $M$. Hierarchical clustering can be used to examine what happens across many possible values of a distance threshold.
+The methods differ in what information must be supplied in advance.
+K-means requires the number of clusters, $K$.
+The leader algorithm and DBSCAN instead use a distance threshold, $\delta$, which defines a local neighbourhood around each observation.
+DBSCAN also uses a density parameter, $M$.
+Hierarchical clustering can be used to examine what happens across many possible values of a distance threshold.
 
 ### K-means clustering
 
-K-means clustering [@Hartigan1975] partitions the data into $K$ clusters, where $K$ is a user-specified parameter. The algorithm begins by selecting $K$ observations as initial "centroids". Then, each observation is assigned to the cluster whose centroid is closest to it, based on some distance measure (usually Euclidean distance, but see @sec-distances for other possibilities). After all observations have been assigned to clusters, the centroids are updated to be the mean of the observations in each cluster. This process is repeated until convergence, which occurs when the cluster assignments no longer change.
+K-means clustering [@Hartigan1975] partitions the data into $K$ clusters, where $K$ is a user-specified parameter.
+The algorithm begins by selecting $K$ observations as initial "centroids".
+Then, each observation is assigned to the cluster whose centroid is closest to it, based on some distance measure (usually Euclidean distance, but see @sec-distances for other possibilities).
+After all observations have been assigned to clusters, the centroids are updated to be the mean of the observations in each cluster.
+This process is repeated until convergence, which occurs when the cluster assignments no longer change.
 
-The K-means algorithm is relatively fast, but it can be sensitive to the choice of initial centroids, so it is common to run the algorithm several times using different random starts. It also assumes that the clusters are roughly spherical and of similar size, which may not always be the case. A further drawback, especially in the context of anomaly detection, is that anomalies can significantly affect the cluster centroids. The number of clusters, $K$, must also be specified in advance, which can be difficult to determine, and often requires some experimentation.
+The K-means algorithm is relatively fast, but it can be sensitive to the choice of initial centroids, so it is common to run the algorithm several times using different random starts.
+It also assumes that the clusters are roughly spherical and of similar size, which may not always be the case.
+A further drawback, especially in the context of anomaly detection, is that anomalies can significantly affect the cluster centroids.
+The number of clusters, $K$, must also be specified in advance, which can be difficult to determine, and often requires some experimentation.
 
 ### Leader algorithm
 
-Rather than specify the number of clusters in advance, we can specify a maximum radius for each cluster, and then find clusters that satisfy this constraint. This is known as the leader algorithm [@Hartigan1975], and is a fast, incremental clustering method that can be used for large data sets. The only input required is $\delta$, the maximum distance from an observation to the leader of its cluster. The algorithm can be summarised as follows:
+Rather than specify the number of clusters in advance, we can specify a maximum radius for each cluster, and then find clusters that satisfy this constraint.
+This is known as the leader algorithm [@Hartigan1975], and is a fast, incremental clustering method that can be used for large data sets.
+The only input required is $\delta$, the maximum distance from an observation to the leader of its cluster.
+The algorithm can be summarised as follows:
 
 1. Select an initial observation as the first **leader**.
 2. For each subsequent observation:
    a. If the observation is within $\delta$ of any existing leader, assign it to the cluster of the nearest such leader.
    b. If the observation is not within $\delta$ of any existing leader, it becomes a new leader for a new cluster.
 
-Thus, each cluster is defined by a leader and the observations assigned to that leader. Every assigned observation is within $\delta$ of its leader, so two observations in the same leader cluster can be up to $2\delta$ apart from each other. The order of the data will obviously affect the resulting clusters, but the algorithm is very fast, and can be used as a first step in more complex clustering algorithms. The leader algorithm can also be useful for anomaly detection, because isolated observations tend to become singleton or small clusters rather than being forced into a large cluster. However, this should not be interpreted as full robustness: an early anomaly can become a leader, and the resulting clusters depend on the ordering of the observations.
+Thus, each cluster is defined by a leader and the observations assigned to that leader.
+Every assigned observation is within $\delta$ of its leader, so two observations in the same leader cluster can be up to $2\delta$ apart from each other.
+The order of the data will obviously affect the resulting clusters, but the algorithm is very fast, and can be used as a first step in more complex clustering algorithms.
+The leader algorithm can also be useful for anomaly detection, because isolated observations tend to become singleton or small clusters rather than being forced into a large cluster.
+However, this should not be interpreted as full robustness: an early anomaly can become a leader, and the resulting clusters depend on the ordering of the observations.
 
-To compare K-means and the leader algorithm, we will apply them to the Old Faithful data set in @fig-clustering-off. First, the data are scaled (@sec-scaling) to prevent the duration variable from dominating the clustering. Then K-means clustering is applied with $K=2$, and the leader algorithm is applied with $\delta=3.3$ (chosen after some experimentation).
+To compare K-means and the leader algorithm, we will apply them to the Old Faithful data set in @fig-clustering-off.
+First, the data are scaled (@sec-scaling) to prevent the duration variable from dominating the clustering.
+Then K-means clustering is applied with $K = 2$, and the leader algorithm is applied with $\delta = 3.3$ (chosen after some experimentation).
 
 ```{r}
 #| label: fig-clustering-off
-#| fig-cap: "Clustering of the Old Faithful data set using K-means and the leader algorithm. The K-means clusters are shown in the left plot, while the leader clusters are shown in the right plot. K-means forces every observation into one of two clusters, while the leader algorithm can isolate outlying observations into small clusters."
+#| fig-cap: >-
+#|   Clustering of the Old Faithful data set using K-means and the leader algorithm.
+#|   The K-means clusters are shown in the left plot, while the leader clusters are shown in the right plot.
+#|   K-means forces every observation into one of two clusters, while the leader algorithm can isolate outlying observations into small clusters.
+
 set.seed(12345)
 of_scaled <- oldfaithful |>
   select(duration, waiting) |>
@@ -455,25 +544,40 @@ oldfaithful |>
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 
-Both methods identify the same two main clouds (with the cluster order reversed), but handle outlying points differently. K-means forces every observation into one of the $K=2$ clusters, pulling the centroids slightly toward the outliers. The leader algorithm instead isolates some outlying points into small separate clusters because they fall outside $\delta$ of the existing leaders. If we increase $K$ in K-means to match the number of leader clusters, we get the main clouds splitting rather than the outliers separating.
+Both methods identify the same two main clouds (with the cluster order reversed), but handle outlying points differently.
+K-means forces every observation into one of the $K = 2$ clusters, pulling the centroids slightly toward the outliers.
+The leader algorithm instead isolates some outlying points into small separate clusters because they fall outside $\delta$ of the existing leaders.
+If we increase $K$ in K-means to match the number of leader clusters, we get the main clouds splitting rather than the outliers separating.
 
 ### DBSCAN clustering
 
-DBSCAN (Density-Based Spatial Clustering of Applications with Noise) is a clustering method proposed by @dbscan that identifies clusters as dense regions of nearby observations. Like the leader algorithm, it uses a neighbourhood radius $\delta$, but adds a density condition controlled by a second parameter $M$. It does not require the number of clusters to be specified in advance, and unlike K-means and the leader algorithm, it allows some observations to be left unclustered. These unclustered observations are called **noise** by the algorithm, and are often interpreted as potential anomalies. Note that this use of the word "noise" is different from the usual use of the word in statistics, where it refers to random variation in the data.
+DBSCAN (Density-Based Spatial Clustering of Applications with Noise) is a clustering method proposed by @dbscan that identifies clusters as dense regions of nearby observations.
+Like the leader algorithm, it uses a neighbourhood radius $\delta$, but adds a density condition controlled by a second parameter $M$.
+It does not require the number of clusters to be specified in advance, and unlike K-means and the leader algorithm, it allows some observations to be left unclustered.
+These unclustered observations are called **noise** by the algorithm, and are often interpreted as potential anomalies.
+Note that this use of the word "noise" is different from the usual use of the word in statistics, where it refers to random variation in the data.
 
-The algorithm has two main parameters: $\delta$, the radius of the neighbourhood around each observation, and $M$, the minimum number of observations required for a neighbourhood to be considered dense. For each observation $\bm{y}_i$, let $N_{\delta}(\bm{y}_i)$ denote the number of observations within distance $\delta$ of $\bm{y}_i$, including $\bm{y}_i$ itself. An observation $\bm{y}_i$ is classified as follows:
+The algorithm has two main parameters: $\delta$, the radius of the neighbourhood around each observation, and $M$, the minimum number of observations required for a neighbourhood to be considered dense.
+For each observation $\bm{y}_i$, let $N_{\delta}(\bm{y}_i)$ denote the number of observations within distance $\delta$ of $\bm{y}_i$, including $\bm{y}_i$ itself.
+An observation $\bm{y}_i$ is classified as follows:
 
-* it is a **core** observation if $N_{\delta}(\bm{y}_i) \ge M$;
-* it is a **border** observation if it is not a core observation, but it is within distance $\delta$ of at least one core observation;
-* otherwise it is **noise**.
+- it is a **core** observation if $N_{\delta}(\bm{y}_i) \ge M$;
+- it is a **border** observation if it is not a core observation, but it is within distance $\delta$ of at least one core observation;
+- otherwise it is **noise**.
 
-Clusters are formed by connecting nearby core observations that are within $\delta$ of each other. Each connected group of core observations forms one cluster. Border observations are then attached to any cluster containing a core observation within distance $\delta$. If a border observation is within distance $\delta$ of core observations from more than one cluster, its assignment may be arbitrary or implementation-dependent. Noise observations are not assigned to any cluster.
+Clusters are formed by connecting nearby core observations that are within $\delta$ of each other.
+Each connected group of core observations forms one cluster.
+Border observations are then attached to any cluster containing a core observation within distance $\delta$.
+If a border observation is within distance $\delta$ of core observations from more than one cluster, its assignment may be arbitrary or implementation-dependent.
+Noise observations are not assigned to any cluster.
 
-The DBSCAN algorithm is implemented in the `dbscan()` function in the `dbscan` package. @fig-clustering-dbscan shows the result for the Old Faithful data set, using $\delta=0.61$ and $M=20$ (again, chosen after some experimentation).
+The DBSCAN algorithm is implemented in the `dbscan()` function in the `dbscan` package.
+@fig-clustering-dbscan shows the result for the Old Faithful data set, using $\delta = 0.61$ and $M = 20$ (again, chosen after some experimentation).
 
 ```{r}
 #| label: fig-clustering-dbscan
 #| fig-cap: "DBSCAN clustering of the Old Faithful data set using robustly scaled variables, with noise observations shown in black."
+
 dbscan_clusters <- dbscan::dbscan(of_scaled, eps = 0.61, minPts = 20)
 oldfaithful |>
   mutate(dbscan_cluster = factor(dbscan_clusters$cluster)) |>
@@ -497,16 +601,29 @@ oldfaithful |>
 
 ### The $\delta$-neighbourhood graph
 
-Both the leader algorithm and DBSCAN can be understood using a graph (i.e., a network, not a plot). Each observation is a vertex, and we draw an edge between two vertices if the distance between the corresponding observations is at most $\delta$. This graph is sometimes called the **$\delta$-neighbourhood graph**. Points that can be reached from each other by following edges are said to be **connected**. A **connected component** is a group of vertices that are all connected to each other, but with no connections to vertices outside the group.
+Both the leader algorithm and DBSCAN can be understood using a graph (i.e., a network, not a plot).
+Each observation is a vertex, and we draw an edge between two vertices if the distance between the corresponding observations is at most $\delta$.
+This graph is sometimes called the **$\delta$-neighbourhood graph**.
+Points that can be reached from each other by following edges are said to be **connected**.
+A **connected component** is a group of vertices that are all connected to each other, but with no connections to vertices outside the group.
 
-For example, consider the eight points labelled A to H shown in @fig-graph, and suppose we choose $\delta=1.5$. The blue disks centred on each point have radius $\delta/2$; so overlapping disks indicate that their central points are within $\delta$ of each other. Points B and H form an edge, but are disconnected from all other points because they are further than $\delta$ from the other points. The pair A and F also form an edge, and D is connected to them via F. They do not form a triangle because A and D are too far apart. The points C, E and G form a connected triangle.
+For example, consider the eight points labelled A to H shown in @fig-graph, and suppose we choose $\delta = 1.5$.
+The blue disks centred on each point have radius $\delta/2$; so overlapping disks indicate that their central points are within $\delta$ of each other.
+Points B and H form an edge, but are disconnected from all other points because they are further than $\delta$ from the other points.
+The pair A and F also form an edge, and D is connected to them via F.
+They do not form a triangle because A and D are too far apart.
+The points C, E and G form a connected triangle.
 
 ```{r}
 #| label: fig-graph
-#| fig-cap: "An example of a $\\delta$-neighbourhood graph based on eight observations, where two observations are joined by an edge if the distance between them is at most $\\delta=1.5$. The blue disks have radius $\\delta/2$, so overlapping disks indicate that their central points are within $\\delta$ of each other. If DBSCAN is applied with $M=3$, the graph contains two clusters and two noise observations."
+#| fig-cap: >-
+#|   An example of a $\delta$-neighbourhood graph based on eight observations, where two observations are joined by an edge if the distance between them is at most $\delta=1.5$.
+#|   The blue disks have radius $\delta/2$, so overlapping disks indicate that their central points are within $\delta$ of each other.
+#|   If DBSCAN is applied with $M=3$, the graph contains two clusters and two noise observations.
 #| message: false
 #| warning: false
 #| echo: false
+
 X <- data.frame(
   x = c(0.926, 1.82, -1.61, -0.285, -0.342, 0.366, -1.33, 2.41),
   y = c(0.0638, 1.55, -1.88, 1.211, -1.31, 0.0421, -0.785, 1.21)
@@ -521,37 +638,68 @@ delta_neighbourhood(X, 1.5) +
   )
 ```
 
-The leader algorithm uses this graph in an order-dependent way. As observations (vertices) are processed, some become leaders. A new observation joins an existing leader if it is connected by an edge to at least one leader; otherwise, it becomes a new leader. This means leaders cannot be within $\delta$ of each other. The output is a set of leader-centred, star-like clusters. These are not necessarily the same as the connected components of the full $\delta$-neighbourhood graph: observations in different leader clusters may still be connected by an edge, and a connected component may contain several leader clusters.
+The leader algorithm uses this graph in an order-dependent way.
+As observations (vertices) are processed, some become leaders.
+A new observation joins an existing leader if it is connected by an edge to at least one leader; otherwise, it becomes a new leader.
+This means leaders cannot be within $\delta$ of each other.
+The output is a set of leader-centred, star-like clusters.
+These are not necessarily the same as the connected components of the full $\delta$-neighbourhood graph: observations in different leader clusters may still be connected by an edge, and a connected component may contain several leader clusters.
 
-For these eight points, if we process in alphabetical order, A becomes the first leader. B, C and D also become leaders, since none are within $\delta$ of an existing leader. The later observations E, F, G and H are assigned to existing leaders, giving clusters A--F, B--H, C--E--G, and D.
+For these eight points, if we process in alphabetical order, A becomes the first leader.
+B, C and D also become leaders, since none are within $\delta$ of an existing leader.
+The later observations E, F, G and H are assigned to existing leaders, giving clusters A--F, B--H, C--E--G, and D.
 
-DBSCAN uses the same $\delta$-neighbourhood graph differently. It first identifies which vertices are core observations, using the density condition described above. Since the $\delta$-neighbourhood includes $\bm{y}_i$ itself, a vertex is core when it has at least $M-1$ neighbours in the graph. DBSCAN then forms clusters from connected groups of core vertices, and attaches any border vertices that are connected to those core groups. Sparse vertices that are not connected to any core vertex are labelled as noise. Thus, where the leader algorithm uses $\delta$ to build clusters around selected representative vertices, DBSCAN uses $\delta$ to build dense connected regions.
+DBSCAN uses the same $\delta$-neighbourhood graph differently.
+It first identifies which vertices are core observations, using the density condition described above.
+Since the $\delta$-neighbourhood includes $\bm{y}_i$ itself, a vertex is core when it has at least $M - 1$ neighbours in the graph.
+DBSCAN then forms clusters from connected groups of core vertices, and attaches any border vertices that are connected to those core groups.
+Sparse vertices that are not connected to any core vertex are labelled as noise.
+Thus, where the leader algorithm uses $\delta$ to build clusters around selected representative vertices, DBSCAN uses $\delta$ to build dense connected regions.
 
-If we considered only the connected components of the $\delta$-neighbourhood graph, there would be three groups: A--F--D, C--E--G, and B--H. DBSCAN adds the density condition. With $M=3$, F is a core observation because its $\delta$-neighbourhood contains A, F and D. The points C, E and G are also core observations because each of them has the other two points in its $\delta$-neighbourhood. By contrast, B and H are not core observations, because their $\delta$-neighbourhoods contain only B and H. They are not border observations either, because they are not connected to any core observation. Therefore, DBSCAN labels B and H as noise. So, for this example, DBSCAN gives two clusters and two noise observations:
+If we considered only the connected components of the $\delta$-neighbourhood graph, there would be three groups: A--F--D, C--E--G, and B--H.
+DBSCAN adds the density condition.
+With $M = 3$, F is a core observation because its $\delta$-neighbourhood contains A, F and D.
+The points C, E and G are also core observations because each of them has the other two points in its $\delta$-neighbourhood.
+By contrast, B and H are not core observations, because their $\delta$-neighbourhoods contain only B and H.
+They are not border observations either, because they are not connected to any core observation.
+Therefore, DBSCAN labels B and H as noise.
+So, for this example, DBSCAN gives two clusters and two noise observations:
 
-* A--F--D is one cluster, with F as a core observation and A and D as border observations;
-* C--E--G is another cluster, with all three points as core observations;
-* B and H are noise observations.
+- A--F--D is one cluster, with F as a core observation and A and D as border observations;
+- C--E--G is another cluster, with all three points as core observations;
+- B and H are noise observations.
 
-This example illustrates the difference between a sparse group and a dense cluster. The pair B--H is a connected component of the $\delta$-neighbourhood graph, and may be a leader cluster, but it is not dense enough to be a DBSCAN cluster.
+This example illustrates the difference between a sparse group and a dense cluster.
+The pair B--H is a connected component of the $\delta$-neighbourhood graph, and may be a leader cluster, but it is not dense enough to be a DBSCAN cluster.
 
 ### Hierarchical clustering
 
-A related approach is to examine what happens as the distance threshold changes. If we ignore the DBSCAN density condition and simply take the connected components of the $\delta$-neighbourhood graph, then increasing the threshold gives a sequence of cluster mergers. This is the idea behind **single-linkage hierarchical clustering**.
+A related approach is to examine what happens as the distance threshold changes.
+If we ignore the DBSCAN density condition and simply take the connected components of the $\delta$-neighbourhood graph, then increasing the threshold gives a sequence of cluster mergers.
+This is the idea behind **single-linkage hierarchical clustering**.
 
-Imagine slowly increasing a distance threshold $\delta$ from 0 upwards. At $\delta=0$, and assuming there are no duplicate observations, there are no edges, so every observation is its own cluster. As $\delta$ increases, more edges appear, and clusters merge together. When an edge connects two clusters that were previously separate, those two clusters merge into one larger cluster. Eventually, all clusters merge into a single cluster.
+Imagine slowly increasing a distance threshold $\delta$ from 0 upwards.
+At $\delta = 0$, and assuming there are no duplicate observations, there are no edges, so every observation is its own cluster.
+As $\delta$ increases, more edges appear, and clusters merge together.
+When an edge connects two clusters that were previously separate, those two clusters merge into one larger cluster.
+Eventually, all clusters merge into a single cluster.
 
-Taking the small example of @fig-graph, we explore what happens as $\delta$ increases from 0.5 to 2.0. With a small value of $\delta$, all points are disconnected, and the graph consists of eight vertices with no edges. As $\delta$ increases, more points are connected to each other, and eventually, the graph consists of a single connected component.
+Taking the small example of @fig-graph, we explore what happens as $\delta$ increases from 0.5 to 2.0.
+With a small value of $\delta$, all points are disconnected, and the graph consists of eight vertices with no edges.
+As $\delta$ increases, more points are connected to each other, and eventually, the graph consists of a single connected component.
 
 ```{r}
 #| label: fig-clusters
-#| fig-cap: "Connected components resulting from different $\\delta$ values. This sequence of connected components corresponds to single-linkage hierarchical clustering, not DBSCAN, because there is no density condition and no observations are labelled as noise."
+#| fig-cap: >-
+#|   Connected components resulting from different $\delta$ values.
+#|   This sequence of connected components corresponds to single-linkage hierarchical clustering, not DBSCAN, because there is no density condition and no observations are labelled as noise.
 #| echo: false
 #| warning: false
 #| fig-width: 8
 #| fig-asp: 1
 #| out-width: "100%"
 #| dependson: fig-graph
+
 prox <- 0.5 + seq(0, 1.5, by = 0.5)
 p <- list()
 for (i in seq_along(prox)) {
@@ -567,11 +715,19 @@ for (i in seq_along(prox)) {
 patchwork::wrap_plots(p, nrow = 2)
 ```
 
-In single-linkage hierarchical clustering, we start with each observation as its own cluster, and then repeatedly merge the two closest clusters together until we have one final cluster. The distance between two clusters when they merge is called the **merge distance**. For single-linkage clustering, the distance between two clusters is the minimum distance between any point in one cluster and any point in the other cluster.
+In single-linkage hierarchical clustering, we start with each observation as its own cluster, and then repeatedly merge the two closest clusters together until we have one final cluster.
+The distance between two clusters when they merge is called the **merge distance**.
+For single-linkage clustering, the distance between two clusters is the minimum distance between any point in one cluster and any point in the other cluster.
 
-This is different from DBSCAN in three important ways. First, single-linkage hierarchical clustering does not distinguish between core, border and noise observations --- every observation belongs to some cluster at every stage, just as in K-means and the leader algorithm. Second, the result is not a single partition of the data, but a full hierarchy indexed by the merge distance. Third, rather than fixing $\delta$ in advance, hierarchical clustering records the complete sequence of partitions for all possible values of $\delta$. We can obtain a particular partition by cutting the hierarchy at a chosen merge distance, but the hierarchy itself shows how the clusters merge as $\delta$ increases.
+This is different from DBSCAN in three important ways.
+First, single-linkage hierarchical clustering does not distinguish between core, border and noise observations --- every observation belongs to some cluster at every stage, just as in K-means and the leader algorithm.
+Second, the result is not a single partition of the data, but a full hierarchy indexed by the merge distance.
+Third, rather than fixing $\delta$ in advance, hierarchical clustering records the complete sequence of partitions for all possible values of $\delta$.
+We can obtain a particular partition by cutting the hierarchy at a chosen merge distance, but the hierarchy itself shows how the clusters merge as $\delta$ increases.
 
-Other forms of hierarchical clustering use different measures of the distances between clusters. For example, complete-linkage is based on the maximum distance between any two points in the two clusters, while average-linkage is based on the average distance between all pairs of points across the two clusters. The graph interpretation above applies specifically to single-linkage hierarchical clustering.
+Other forms of hierarchical clustering use different measures of the distances between clusters.
+For example, complete-linkage is based on the maximum distance between any two points in the two clusters, while average-linkage is based on the average distance between all pairs of points across the two clusters.
+The graph interpretation above applies specifically to single-linkage hierarchical clustering.
 
 Hierarchical clustering is usually displayed as a **dendrogram**, with the following properties:
 
@@ -585,30 +741,44 @@ The single-linkage dendrogram for the point cloud in @fig-graph is shown in @fig
 #| label: fig-dendrogram
 #| echo: false
 #| fig-asp: 0.5
-#| fig-cap: "Dendrogram of the point cloud in @fig-graph. The heights of the joins correspond to the merge distances."
+#| fig-cap: >-
+#|   Dendrogram of the point cloud in @fig-graph.
+#|   The heights of the joins correspond to the merge distances.
+
 library(ggdendro)
 hc <- dist(X) |>
   hclust(method = "single")
 hcdata <- dendro_data(hc, type = "rectangle")
 ggplot() +
-  geom_segment(data = segment(hcdata), aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_segment(
+    data = segment(hcdata),
+    aes(x = x, y = y, xend = xend, yend = yend)
+  ) +
   scale_x_continuous(breaks = seq_len(NROW(X)), labels = label(hcdata)$label) +
   coord_flip() +
   labs(x = "Observation", y = "Merge distance")
 ```
 
-@fig-mergedistances shows a bar plot of the cluster merge distances for the point cloud shown in @fig-graph. These correspond to the merge heights in the dendrogram in @fig-dendrogram. The shortest distance corresponds to when A and F joined to form an edge --- when the two separate vertex clusters merged. The largest distance corresponds to when all points became connected, when the B--H component merged with the rest of the data. With $n$ observations, there are $n$ initial clusters, but only $n - 1$ merges are needed to end up with one final cluster. So we get $n - 1$ merge distances.
+@fig-mergedistances shows a bar plot of the cluster merge distances for the point cloud shown in @fig-graph.
+These correspond to the merge heights in the dendrogram in @fig-dendrogram.
+The shortest distance corresponds to when A and F joined to form an edge --- when the two separate vertex clusters merged.
+The largest distance corresponds to when all points became connected, when the B--H component merged with the rest of the data.
+With $n$ observations, there are $n$ initial clusters, but only $n - 1$ merges are needed to end up with one final cluster.
+So we get $n - 1$ merge distances.
 
 ```{r}
 #| label: fig-mergedistances
 #| echo: false
-#| fig-cap: "Merge distances of the point cloud in @fig-graph. Each line denotes a cluster, with length equal to its merge distance."
+#| fig-cap: >-
+#|   Merge distances of the point cloud in @fig-graph.
+#|   Each line denotes a cluster, with length equal to its merge distance.
 #| fig-width: 8
 #| fig-height: 1.6
 #| fig-asp: 0.2
 #| out-width: "100%"
 #| warning: false
 #| dependson: fig-graph
+
 data.frame(
   row = seq_along(hc$height),
   distance = hc$height
@@ -621,23 +791,34 @@ data.frame(
   theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 ```
 
-In the context of anomaly detection, observations or small groups that merge with the rest of the data only at large merge distances are potential anomalies. For example, in @fig-clusters, B and H form a small component that remains separate until a relatively large value of $\delta$, thus they are potential anomalies. By contrast, the other points merge together at smaller values of $\delta$, so they are less likely to be anomalies.
+In the context of anomaly detection, observations or small groups that merge with the rest of the data only at large merge distances are potential anomalies.
+For example, in @fig-clusters, B and H form a small component that remains separate until a relatively large value of $\delta$, thus they are potential anomalies.
+By contrast, the other points merge together at smaller values of $\delta$, so they are less likely to be anomalies.
 
 #### Related ideas
 
-For single-linkage hierarchical clustering, the graph structure described above is related to the minimum spanning tree (MST) of the data, which is a tree that connects all observations together with the minimum total edge length. The merge distances are the MST edge weights in the order they are added to the tree.
+For single-linkage hierarchical clustering, the graph structure described above is related to the minimum spanning tree (MST) of the data, which is a tree that connects all observations together with the minimum total edge length.
+The merge distances are the MST edge weights in the order they are added to the tree.
 
-The graph structure is also related to topological data analysis (TDA), which is a method of summarising the shape of data. For example, connected components are known as 0-dimensional topological features in persistent homology. When two connected components merge, one is described as "dying" and the other as "persisting". The merge distance is called the "death diameter", and the bar plot of merge distances is known as a "barcode". Long bars in the barcode correspond to connected components that remain separate over a wide range of distance thresholds, which may include potential anomalies. For a general introduction to TDA, see @carlsson2021topological.
+The graph structure is also related to topological data analysis (TDA), which is a method of summarising the shape of data.
+For example, connected components are known as 0-dimensional topological features in persistent homology.
+When two connected components merge, one is described as "dying" and the other as "persisting".
+The merge distance is called the "death diameter", and the bar plot of merge distances is known as a "barcode".
+Long bars in the barcode correspond to connected components that remain separate over a wide range of distance thresholds, which may include potential anomalies.
+For a general introduction to TDA, see @carlsson2021topological.
 
 ## Multivariate kernel density estimation {#sec-mvkde}
 
-Suppose our observations are $m$-dimensional vectors, $\bm{y}_1,\dots,\bm{y}_n$. Then the multivariate version of @eq-kde is given by [@Scott2015]
+Suppose our observations are $m$-dimensional vectors, $\bm{y}_1,\dots,\bm{y}_n$.
+Then the multivariate version of @eq-kde is given by [@Scott2015]
 $$
-  \hat{f}(\bm{y}) = \frac{1}{n} \sum_{i=1}^n K_H(\bm{y} - \bm{y}_i),
+  \hat{f}(\bm{y}) = \frac{1}{n} \sum_{i = 1}^n K_H(\bm{y} - \bm{y}_i),
 $$ {#eq-mkde}
-where $K_H$ is a multivariate probability density with covariance matrix $\bm{H}$. In this book, we will use a multivariate Gaussian kernel given by
+where $K_H$ is a multivariate probability density with covariance matrix $\bm{H}$.
+In this book, we will use a multivariate Gaussian kernel given by
 $$
-  K_H(\bm{u}) = (2\pi)^{-m/2} |\bm{H}|^{-1/2} \exp \{-\textstyle\frac12 \bm{u}^\intercal\bm{H}^{-1}\bm{u} \}.
+  K_H(\bm{u}) = (2\pi)^{-m/2} |\bm{H}|^{-1/2} \exp \{
+                - \textstyle\frac12 \bm{u}^\intercal\bm{H}^{-1}\bm{u} \}.
 $$
 
 ### Bivariate kernel density estimation
@@ -645,6 +826,7 @@ $$
 ```{r}
 #| label: bivariatebandwidths
 #| include: false
+
 of2021 <- oldfaithful |>
   filter(as.Date(time) > "2021-01-01") |>
   head(10) |>
@@ -653,13 +835,16 @@ of2021 <- oldfaithful |>
 H <- kde_bandwidth(of2021[, 1:2])
 ```
 
-To illustrate the idea, consider a simple bivariate example of 10 observations: the first 10 eruption durations from 2021 that are in the `oldfaithful` data set, along with the corresponding waiting times until the following eruption. These are shown in the figure below along with the contours of bivariate kernels placed over each observation. Here we have used a bivariate Gaussian kernel with bandwidth matrix given by $\bm{H} = \left[\begin{array}{rr}`r sprintf("%.f", H[1,1])` & `r sprintf("%.f", H[1,2])` \\ `r sprintf("%.f", H[2,1])` & `r sprintf("%.f", H[2,2])`\end{array}\right]$.
+To illustrate the idea, consider a simple bivariate example of 10 observations: the first 10 eruption durations from 2021 that are in the `oldfaithful` data set, along with the corresponding waiting times until the following eruption.
+These are shown in the figure below along with the contours of bivariate kernels placed over each observation.
+Here we have used a bivariate Gaussian kernel with bandwidth matrix given by $\bm{H} = \left[\begin{array}{rr}`r sprintf("%.f", H[1,1])` & `r sprintf("%.f", H[1,2])` \\ `r sprintf("%.f", H[2,1])` & `r sprintf("%.f", H[2,2])`\end{array}\right]$.
 
 ```{r}
 #| label: fig-ofdw
 #| dependson: bivariatebandwidths
 #| warning: false
 #| fig-cap: Contours of bivariate kernels centred over the first ten observations in 2021 from the `oldfaithful` data set.
+
 h <- sqrt(diag(H))
 k <- tidyr::expand_grid(
   x = seq(-3 * h[1], 3 * h[1], l = 100),
@@ -681,12 +866,14 @@ ggplot() +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 
-If we add the bivariate kernel functions as in @eq-mkde, we obtain the bivariate kernel density estimate shown below. The contours shown correspond to the 10%, 20%, $\dots$, 90% highest density regions (HDRs) of the density estimate.
+If we add the bivariate kernel functions as in @eq-mkde, we obtain the bivariate kernel density estimate shown below.
+The contours shown correspond to the 10%, 20%, $\dots$, 90% highest density regions (HDRs) of the density estimate.
 
 ```{r}
 #| label: fig-ofbivariate1
 #| dependson: fig-ofdw
 #| fig-cap: Bivariate kernel density estimate formed by summing the kernels shown in @fig-ofdw.
+
 oldfaithful |>
   filter(as.Date(time) > "2021-01-01") |>
   head(10) |>
@@ -702,6 +889,7 @@ Now we will apply the method to the full data set, using the `dist_kde()` functi
 #| label: fig-ofbivariate2
 #| code-fold: false
 #| fig-cap: "Bivariate kernel density estimate with default bandwidth matrix."
+
 oldfaithful |>
   select(duration, waiting) |>
   dist_kde() |>
@@ -709,34 +897,56 @@ oldfaithful |>
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 
-Here we see that the short durations tended to be followed by a short waiting time until the next duration, while the long durations tend to be followed by a long waiting time until the next duration. There are several anomalous eruptions including the one with the 1 second duration, and the one where a short duration was followed by a short waiting time. The unusual durations between 150 and 180 seconds can be followed by either short or long durations.
+Here we see that the short durations tended to be followed by a short waiting time until the next duration, while the long durations tend to be followed by a long waiting time until the next duration.
+There are several anomalous eruptions including the one with the 1 second duration, and the one where a short duration was followed by a short waiting time.
+The unusual durations between 150 and 180 seconds can be followed by either short or long durations.
 
 ### Bandwidth matrix selection
 
-A common approach is to specify $\bm{H}$ to be diagonal, with elements equal to the squares of univariate bandwidth rules. (The univariate bandwidths are usually defined as the standard deviation of the kernel, while multivariate bandwidth matrices correspond to the covariance matrix of the kernel. Hence, the univariate bandwidths need to be squared if used in a bandwidth matrix.) That is, if $h_1,\dots,h_m$ are the univariate bandwidths for each of the variables, then the corresponding diagonal bandwidth matrix is given by $\bm{H} = \text{diag}(h_1^2,\dots,h_m^2)$. For example, `geom_density_2d()` uses a bivariate Gaussian kernel with diagonal bandwidth matrix where the diagonal values are given by the squares of @eq-nrd. However, this approach leads to bandwidths that are too small, as it ignores the convergence properties of the multivariate estimator. Additionally, any diagonal bandwidth matrix implicitly assumes that the variables are uncorrelated, and leads to more biased estimators.
+A common approach is to specify $\bm{H}$ to be diagonal, with elements equal to the squares of univariate bandwidth rules.
+(The univariate bandwidths are usually defined as the standard deviation of the kernel, while multivariate bandwidth matrices correspond to the covariance matrix of the kernel.
+Hence, the univariate bandwidths need to be squared if used in a bandwidth matrix.)
+That is, if $h_1,\dots,h_m$ are the univariate bandwidths for each of the variables, then the corresponding diagonal bandwidth matrix is given by $\bm{H} = \text{diag}(h_1^2,\dots,h_m^2)$.
+For example, `geom_density_2d()` uses a bivariate Gaussian kernel with diagonal bandwidth matrix where the diagonal values are given by the squares of @eq-nrd.
+However, this approach leads to bandwidths that are too small, as it ignores the convergence properties of the multivariate estimator.
+Additionally, any diagonal bandwidth matrix implicitly assumes that the variables are uncorrelated, and leads to more biased estimators.
 
-The optimal bandwidth matrix (minimising the mean integrated squared error between the true density and its estimate) is of the order $n^{-2/(m+4)}$. If such a bandwidth matrix is used, then the estimator converges at rate $n^{-4/(m+4)}$, implying that kernel density estimation becomes increasingly difficult as the dimension $m$ increases. This is to be expected given the curse of dimensionality (@sec-curse), as the number of observations required to obtain a good estimate increases exponentially with the dimension. In practice, we rarely attempt to estimate a density in more than $m=3$ dimensions.
+The optimal bandwidth matrix (minimising the mean integrated squared error between the true density and its estimate) is of the order $n^{-2/(m + 4)}$.
+If such a bandwidth matrix is used, then the estimator converges at rate $n^{-4/(m + 4)}$, implying that kernel density estimation becomes increasingly difficult as the dimension $m$ increases.
+This is to be expected given the curse of dimensionality (@sec-curse), as the number of observations required to obtain a good estimate increases exponentially with the dimension.
+In practice, we rarely attempt to estimate a density in more than $m = 3$ dimensions.
 
 If the underlying density is Normal with mean $\bm{\mu}$ and variance $\bm{\Sigma}$, then the optimal bandwidth matrix is given by
 $$
-  \bm{H} = \left(\frac{4}{m+2}\right)^{2/(m+4)} n^{-2/(m+4)} \bm{\Sigma}.
+  \bm{H} = \left(\frac{4}{m + 2}\right)^{2/(m + 4)} n^{-2/(m + 4)} \bm{\Sigma}.
 $$ {#eq-gaussianH}
-Notice that in the univariate case, when $m=1$, this rule gives the same bandwidth as the rule of thumb given by @eq-nrr (where $h = \sqrt{H}$). This is what is calculated by `kde_bandwidth()` when `method = "normal"`, where $\bm{\Sigma}$ is estimated using the sample covariance matrix @eq-cov.
+Notice that in the univariate case, when $m = 1$, this rule gives the same bandwidth as the rule of thumb given by @eq-nrr (where $h = \sqrt{H}$).
+This is what is calculated by `kde_bandwidth()` when `method = "normal"`, where $\bm{\Sigma}$ is estimated using the sample covariance matrix @eq-cov.
 
-Replacing $\bm{\Sigma}$ by the robust covariance matrix $\bm{S}_{\text{MCD}}$ (@eq-mcd), we obtain a robust normal reference rule, calculated by `kde_bandwidth()` when `method = "robust"` (the default setting). @fig-ofbivariate2 shows a bivariate kernel density estimate computed using this approach.
+Replacing $\bm{\Sigma}$ by the robust covariance matrix $\bm{S}_{\text{MCD}}$ (@eq-mcd), we obtain a robust normal reference rule, calculated by `kde_bandwidth()` when `method = "robust"` (the default setting).
+@fig-ofbivariate2 shows a bivariate kernel density estimate computed using this approach.
 
-A generalisation of the univariate plug-in bandwidth [@sec-kde] is the "plug-in" estimator of @chacon2018multivariate, calculated by `kde_bandwidth()` when `method = "plugin"`. While this typically leads to better estimates of the density as a whole, it can lead to worse estimates in the tails of the distribution where anomalies tend to lie.
+A generalisation of the univariate plug-in bandwidth [@sec-kde] is the "plug-in" estimator of @chacon2018multivariate, calculated by `kde_bandwidth()` when `method = "plugin"`.
+While this typically leads to better estimates of the density as a whole, it can lead to worse estimates in the tails of the distribution where anomalies tend to lie.
 
-An alternative approach to finding the bandwidth matrix uses ideas from clustering (@sec-clustering). First, we compute robust multivariate z-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \bm{m})$, $i=1,\dots,n$, where $\bm{m}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}$ is the Cholesky decomposition of $\bm{S}_{\text{MCD}}^{-1}$. Then we find the merge distances of the clusters obtained from the z-scores: $\{d_1,\dots,d_{n-1}\}$. Finally, we can set
+An alternative approach to finding the bandwidth matrix uses ideas from clustering (@sec-clustering).
+First, we compute robust multivariate z-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \bm{m})$, $i = 1,\dots,n$, where $\bm{m}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}$ is the Cholesky decomposition of $\bm{S}_{\text{MCD}}^{-1}$.
+Then we find the merge distances of the clusters obtained from the z-scores: $\{d_1,\dots,d_{n - 1}\}$.
+Finally, we can set
 $$
   \bm{H} = d_\gamma\bm{S}_{\text{MCD}}
 $$ {#eq-lookoutH}
-where $d_\gamma$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_{n-1}\}$ for a large value of $\gamma$. @lookout2 showed that this leads to a consistent density estimate, with good properties for anomaly detection, when $\gamma = 0.98$. We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-kdesurprisals. The `kde_bandwidth()` function will return this bandwidth when `method = "lookout"`. For univariate data, $h = d_\gamma s_{\text{Qn}}$.
+where $d_\gamma$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_{n - 1}\}$ for a large value of $\gamma$.
+@lookout2 showed that this leads to a consistent density estimate, with good properties for anomaly detection, when $\gamma = 0.98$.
+We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-kdesurprisals.
+The `kde_bandwidth()` function will return this bandwidth when `method = "lookout"`.
+For univariate data, $h = d_\gamma s_{\text{Qn}}$.
 
 ```{r}
 #| label: fig-ofbivariate3
 #| code-fold: false
 #| fig-cap: "Bivariate kernel density estimate with a lookout bandwidth."
+
 oldfaithful |>
   select(duration, waiting) |>
   dist_kde(method = "lookout") |>
@@ -744,33 +954,45 @@ oldfaithful |>
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 
-Notice that the contours are larger and smoother than in @fig-ofbivariate2. In general, multivariate lookout bandwidths will be larger than bandwidths chosen using normal reference rules, making them particularly suitable for anomaly detection.
+Notice that the contours are larger and smoother than in @fig-ofbivariate2.
+In general, multivariate lookout bandwidths will be larger than bandwidths chosen using normal reference rules, making them particularly suitable for anomaly detection.
 
 ### Further reading
 
-There is a rich literature on multivariate kernel density estimation. Good starting points are @Scott2015 or @chacon2018multivariate. The idea of using the cluster merge distances to compute the bandwidth matrix is due to @lookout and @lookout2, although they framed it in terms of topological data analysis rather than clustering.
+There is a rich literature on multivariate kernel density estimation.
+Good starting points are @Scott2015 or @chacon2018multivariate.
+The idea of using the cluster merge distances to compute the bandwidth matrix is due to @lookout and @lookout2, although they framed it in terms of topological data analysis rather than clustering.
 
 ## Conditional probability distributions {#sec-conditional}
 
 A fundamental concept in statistics is a **conditional probability distribution**; that is, the distribution of a random variable conditional on the values of other (possibly random) variables.
 
-Almost all statistical modelling involves the estimation of conditional distributions. For example, a regression is a model for the conditional distribution of a response variable given the values of a set of predictor variables. In its simplest form, we assume the conditional distribution is normal, with constant variance, and mean equal to a linear function of the predictor values. Generalized linear models allow for non-normal conditional distributions, while generalised additive models allow for non-linear relationships between the response and the predictors.
+Almost all statistical modelling involves the estimation of conditional distributions.
+For example, a regression is a model for the conditional distribution of a response variable given the values of a set of predictor variables.
+In its simplest form, we assume the conditional distribution is normal, with constant variance, and mean equal to a linear function of the predictor values.
+Generalized linear models allow for non-normal conditional distributions, while generalised additive models allow for non-linear relationships between the response and the predictors.
 
 The conditional cdf of $Y$ given $X_1,\dots,X_p$ is defined by the conditional cdf
 $$
- F(y\mid x_1, \dots, x_p) = \Pr(Y \le y \mid X_1 = x_1, \dots, X_p = x_p).
+  F(y \mid x_1, \dots, x_p) = \Pr(Y \le y \mid X_1 = x_1, \dots, X_p = x_p).
 $$
 The conditional pdf is given by
 $$
-f(y \mid x_1, \dots, x_p) = \frac{f(y, x_1, \dots, x_p)}{f(x_1, \dots, x_p)}.
+  f(y \mid x_1, \dots, x_p) = \frac{f(y, x_1, \dots, x_p)}{f(x_1, \dots, x_p)}.
 $$
-The conditional pdf can be thought of as slices of the joint pdf, with the values of $x_1,\dots,x_p$ fixed, rescaled to ensure the conditional pdfs integrate to 1. For example, $f(y_1 | y_2)$ is equal to a scaled slice of the joint pdf $f(y_1,y_2)$ at $y_2$. @fig-conditional shows some examples for the distribution shown in @fig-bivariate-mixture at several values of $y_2$. The left plot shows the joint density, with horizontal lines indicating where conditioning (or slicing) occurs at different values of $y_2$. The right plot shows the resulting conditional density functions.
+The conditional pdf can be thought of as slices of the joint pdf, with the values of $x_1,\dots,x_p$ fixed, rescaled to ensure the conditional pdfs integrate to 1.
+For example, $f(y_1 | y_2)$ is equal to a scaled slice of the joint pdf $f(y_1,y_2)$ at $y_2$.
+@fig-conditional shows some examples for the distribution shown in @fig-bivariate-mixture at several values of $y_2$.
+The left plot shows the joint density, with horizontal lines indicating where conditioning (or slicing) occurs at different values of $y_2$.
+The right plot shows the resulting conditional density functions.
 
 ```{r}
 #| label: fig-conditional
 #| message: false
 #| depends: fig-bivariate-mixture
-#| fig-cap: Conditional distribution of $Y_1|Y_2$, where $(Y_1,Y_2)$ has the joint distribution plotted in @fig-bivariate-mixture. The left plot shows the joint density with the values of $y_2$ where we will condition, while the right plot shows conditional density functions at different values of $y_2$.
+#| fig-cap: Conditional distribution of $Y_1|Y_2$, where $(Y_1,Y_2)$ has the joint distribution plotted in @fig-bivariate-mixture.
+#|   The left plot shows the joint density with the values of $y_2$ where we will condition, while the right plot shows conditional density functions at different values of $y_2$.
+
 # Conditioning points
 y2_slice <- -2:3
 # Compute bivariate density over a grid
@@ -819,4 +1041,6 @@ plot2 <- df |>
 patchwork::wrap_plots(plot1, plot2, nrow = 1)
 ```
 
-Another neat property of Normal distributions is that the conditional distribution of a subset of variables is also Normal. For example, suppose $\bm{Y} = (Y_1,Y_2,Y_3)$ is a multivariate Normal random variable. Then the conditional distribution of $Y_1$ given $Y_2$ and $Y_3$ is also Normally distributed.
+Another neat property of Normal distributions is that the conditional distribution of a subset of variables is also Normal.
+For example, suppose $\bm{Y} = (Y_1,Y_2,Y_3)$ is a multivariate Normal random variable.
+Then the conditional distribution of $Y_1$ given $Y_2$ and $Y_3$ is also Normally distributed.

@@ -4,10 +4,14 @@
 #| label: setup8
 #| include: false
 #| cache: false
+
 source("before-each-chapter.R")
 ```
 
-Regression methods arise when we want to find anomalies in a particular variable of interest (called the "response"), and we have a set of predictor variables that we think might be useful for predicting the response. That is, we are interested in finding observations whose responses are anomalous *given their predictor values*. For example, we might want to find wines that are unusually expensive given their points score, or find houses that are unusually cheap given their size and location. We can use regression methods to identify such anomalies.
+Regression methods arise when we want to find anomalies in a particular variable of interest (called the "response"), and we have a set of predictor variables that we think might be useful for predicting the response.
+That is, we are interested in finding observations whose responses are anomalous *given their predictor values*.
+For example, we might want to find wines that are unusually expensive given their points score, or find houses that are unusually cheap given their size and location.
+We can use regression methods to identify such anomalies.
 
 We will denote the response by $y_i$ and its predictor vector as $\bm{x}_i$.
 
@@ -17,9 +21,12 @@ The simplest regression model is the linear regression model, which assumes that
 $$
   y_i = \bm{x}_i^\intercal \bm{\beta} + \varepsilon_i,
 $$
-where $\bm{\beta}$ is a vector of coefficients and the errors $\{\varepsilon_1,\dots,\varepsilon_n\}$ are iid with mean zero and common variance $\sigma^2$. Here $\bm{x}_i$ may include a leading 1 if an intercept is included in the model. Let $p$ be the length of $\bm{x}_i$.
+where $\bm{\beta}$ is a vector of coefficients and the errors $\{\varepsilon_1,\dots,\varepsilon_n\}$ are iid with mean zero and common variance $\sigma^2$.
+Here $\bm{x}_i$ may include a leading 1 if an intercept is included in the model.
+Let $p$ be the length of $\bm{x}_i$.
 
-The model can be written in matrix form as $\bm{y} = \bm{X}\bm{\beta} + \bm{\varepsilon}$, where $\bm{y}$ is the $n$-vector of responses, $\bm{X}$ is the $n\times p$ matrix of predictors, and $\bm{\varepsilon}$ is the $n$-vector of errors. Provided $\bm{X}$ is of rank $p$ (@sec-rank), the model can be estimated using ordinary least squares (OLS) regression [@seberlee2003], resulting in the estimate
+The model can be written in matrix form as $\bm{y} = \bm{X}\bm{\beta} + \bm{\varepsilon}$, where $\bm{y}$ is the $n$-vector of responses, $\bm{X}$ is the $n \times p$ matrix of predictors, and $\bm{\varepsilon}$ is the $n$-vector of errors.
+Provided $\bm{X}$ is of rank $p$ (@sec-rank), the model can be estimated using ordinary least squares (OLS) regression [@seberlee2003], resulting in the estimate
 $$
   \hat{\bm{\beta}} = (\bm{X}^\intercal\bm{X})^{-1}\bm{X}^\intercal\bm{y}.
 $$ {#eq-ols}
@@ -37,26 +44,34 @@ Many regression-based anomaly detection methods involve finding anomalies in the
 
 The diagonals of $\bm{H}$, given by
 $$
-h_i = \bm{x}_i^\intercal(\bm{X}^\intercal\bm{X})^{-1}\bm{x}_i,\qquad i=1,\dots,n,
+  h_i = \bm{x}_i^\intercal(\bm{X}^\intercal\bm{X})^{-1}\bm{x}_i,\qquad i
+      = 1,\dots,n,
 $$ {#eq-leverage}
-take values between 0 and 1. These are known as the "leverage" values [@faraway2004linear, p. 69], and measure how much each observation influences the corresponding fitted value. High leverage values (close to 1) correspond to observations that have a large influence on the estimated coefficients, and so leaving those observations out will lead to very different values for the fitted values and residuals. On the other hand, small leverage values (close to 0) correspond to observations that have little influence on the estimated coefficients, and so leaving those observations out will lead to similar values for the fitted values and residuals. Often high leverage values are those corresponding to anomalies in the predictor space (although not necessarily in the space of the response variable).
+take values between 0 and 1.
+These are known as the "leverage" values [@faraway2004linear, p. 69], and measure how much each observation influences the corresponding fitted value.
+High leverage values (close to 1) correspond to observations that have a large influence on the estimated coefficients, and so leaving those observations out will lead to very different values for the fitted values and residuals.
+On the other hand, small leverage values (close to 0) correspond to observations that have little influence on the estimated coefficients, and so leaving those observations out will lead to similar values for the fitted values and residuals.
+Often high leverage values are those corresponding to anomalies in the predictor space (although not necessarily in the space of the response variable).
 
 A linear model can be estimated in R using the `stats::lm()` function, while `broom::augment()` computes the fitted values, residuals and leverage values.
 
 ### Example: Shiraz reviews
 
-Consider the wine reviews of Shiraz (aka Syrah), plotted in @fig-shiraz. We can fit a linear regression model to these data, using the points awarded to each wine as a predictor, and the log prices as the response variable.
+Consider the wine reviews of Shiraz (aka Syrah), plotted in @fig-shiraz.
+We can fit a linear regression model to these data, using the points awarded to each wine as a predictor, and the log prices as the response variable.
 
 ```{r}
 #| label: fetch-wine-reviews
 #| eval: false
 #| code-fold: false
+
 wine_reviews <- fetch_wine_reviews()
 ```
 
 ```{r}
 #| label: shiraz-regression
 #| code-fold: false
+
 shiraz <- wine_reviews |>
   filter(
     variety %in% c("Shiraz", "Syrah"),
@@ -70,7 +85,7 @@ broom::glance(fit_wine)
 
 The fitted model can be written as
 $$
-  \log(\text{Price})  = `r sprintf("%.3f",coef(fit_wine)[1])` + `r sprintf("%.3f",coef(fit_wine)[2])` \times \text{Points} + \varepsilon
+  \log(\text{Price}) = `r sprintf("%.3f",coef(fit_wine)[1])` + `r sprintf("%.3f",coef(fit_wine)[2])` \times \text{Points} + \varepsilon
 $$
 where $\varepsilon$ is a random error term with mean zero and variance $`r sprintf("%.3f",sigma(fit_wine))`^2$.
 
@@ -80,6 +95,7 @@ The fitted regression line is shown in @fig-shiraz-regression.
 #| label: wine_aug
 #| code-fold: false
 #| dependson: shiraz-regression
+
 wine_aug <- fit_wine |>
   broom::augment(data = shiraz)
 ```
@@ -87,9 +103,11 @@ wine_aug <- fit_wine |>
 ```{r}
 #| label: fig-shiraz-regression
 #| warning: false
-#| fig-cap: Log price of Shiraz as a function of points. The points are horizontally jittered to reduce overplotting.
+#| fig-cap: Log price of Shiraz as a function of points.
+#|   The points are horizontally jittered to reduce overplotting.
 #| code-fold: false
 #| dependson: wine_aug
+
 wine_aug |>
   ggplot(aes(y = price, x = points)) +
   geom_jitter(height = 0, width = 0.1, alpha = 0.5, colour = "#999999") +
@@ -103,24 +121,36 @@ Note that `broom::augment()` returns the fitted values as `.fitted`, and the lev
 #| label: leverage
 #| code-fold: false
 #| dependson: wine_aug
+
 wine_aug |>
   select(country:price, .hat) |>
   arrange(desc(.hat))
 ```
 
-Here the highest leverage values are due to the only two wines with 100 points, while the three on 99 points result in the next highest. After that come the wines with the lowest points values. Observations at the edges of the predictor space will always lead to the highest leverage values, especially when there are few observations with the same predictor value. In this case, none of the observations look particularly extreme in the points dimension.
+Here the highest leverage values are due to the only two wines with 100 points, while the three on 99 points result in the next highest.
+After that come the wines with the lowest points values.
+Observations at the edges of the predictor space will always lead to the highest leverage values, especially when there are few observations with the same predictor value.
+In this case, none of the observations look particularly extreme in the points dimension.
 
 ### Robust regression
 
-The ordinary least-squares estimator (@eq-ols) is fragile --- a single anomalous observation with high leverage can arbitrarily distort the fitted regression line, pulling it toward itself. When this happens, the anomalous observation ends up with a smaller residual and so may not be flagged. This is known as **masking**, and occurs when the presence of anomalies distorts the fitted model enough that the anomalies are undetected.
+The ordinary least-squares estimator (@eq-ols) is fragile --- a single anomalous observation with high leverage can arbitrarily distort the fitted regression line, pulling it toward itself.
+When this happens, the anomalous observation ends up with a smaller residual and so may not be flagged.
+This is known as **masking**, and occurs when the presence of anomalies distorts the fitted model enough that the anomalies are undetected.
 
-Robust regression methods address this by producing an estimate of $\bm{\beta}$ that remains stable even when a fraction of the observations are anomalous. For example, the *least trimmed squares* (LTS) estimator [@Rousseeuw2003-ip] minimises the sum of the $h$ smallest squared residuals,
+Robust regression methods address this by producing an estimate of $\bm{\beta}$ that remains stable even when a fraction of the observations are anomalous.
+For example, the *least trimmed squares* (LTS) estimator [@Rousseeuw2003-ip] minimises the sum of the $h$ smallest squared residuals,
 $$
-  \hat{\bm{\beta}}_{\text{LTS}} = \mathop{\arg\min}_{\bm{\beta}} \sum_{i=1}^{h} e_{(i)}^2,
+  \hat{\bm{\beta}}_{\text{LTS}} = \mathop{\arg\min}_{\bm{\beta}} \sum_{i = 1}^{h} e_{(i)}^2,
 $$
-where $e_{(1)}^2 \le e_{(2)}^2 \le \cdots \le e_{(n)}^2$ are the squared residuals in increasing order, and $h = \lfloor n/2 \rfloor + \lfloor (p+1)/2 \rfloor$. Observations with squared residuals beyond the $h$th smallest are effectively discarded.^[The OLS estimate given in @eq-ols is equivalent to setting $h=n$.] This choice of $h$ gives a "breakdown point" of approximately 50%, meaning the estimated $\bm{\beta}$ remains consistent even when nearly half the observations are anomalous. Residuals from the LTS fit can then be used to identify anomalies, since the fit is not drawn toward them.
+where $e_{(1)}^2 \le e_{(2)}^2 \le \cdots \le e_{(n)}^2$ are the squared residuals in increasing order, and $h = \lfloor n/2 \rfloor + \lfloor (p + 1)/2 \rfloor$.
+Observations with squared residuals beyond the $h$th smallest are effectively discarded.^[The OLS estimate given in @eq-ols is equivalent to setting $h = n$.]
+This choice of $h$ gives a "breakdown point" of approximately 50%, meaning the estimated $\bm{\beta}$ remains consistent even when nearly half the observations are anomalous.
+Residuals from the LTS fit can then be used to identify anomalies, since the fit is not drawn toward them.
 
-In R, `robustbase::ltsReg()` fits the LTS model using an efficient numerical algorithm [@robustbase]. An alternative approach that achieves similar robustness at lower computational cost is the BACON algorithm, which we will discuss in @sec-bacon-reg. Other robust regression methods are also available in the `robustbase` package.
+In R, `robustbase::ltsReg()` fits the LTS model using an efficient numerical algorithm [@robustbase].
+An alternative approach that achieves similar robustness at lower computational cost is the BACON algorithm, which we will discuss in @sec-bacon-reg.
+Other robust regression methods are also available in the `robustbase` package.
 
 For now, we will continue to use the OLS approach, as it makes many calculations much easier, but be aware that some anomalies can be masked.
 
@@ -128,46 +158,56 @@ For now, we will continue to use the OLS approach, as it makes many calculations
 
 ### Standardised residuals
 
-The variance of the residuals depends on the predictor values, so we usually need to standardise them. Standardised residuals are obtained by dividing each residual by its estimated standard deviation, giving
+The variance of the residuals depends on the predictor values, so we usually need to standardise them.
+Standardised residuals are obtained by dividing each residual by its estimated standard deviation, giving
 $$
-  r_i = \frac{e_i}{\hat{\sigma}\sqrt{1-h_i}}, \qquad i = 1,\dots, n,
+  r_i = \frac{e_i}{\hat{\sigma}\sqrt{1 - h_i}}, \qquad i = 1,\dots, n,
 $$
 where
 $$
-\hat\sigma^2 = \frac{1}{n-p}\sum_{i=1}^n e_i^2
+  \hat\sigma^2 = \frac{1}{n - p}\sum_{i = 1}^n e_i^2
 $$ {#eq-residual-variance}
 is the estimated residual variance.
 
 The `broom::augment()` function also computes the residuals (named `.resid`), and the standardised residuals (named `.std.resid`).
 
-We can think of the standardised residuals as adjusted response values, after accounting for the predictor variables. The simplest regression-based anomaly detection method looks for anomalies in these standardised residuals, rather than in the response values directly. We could apply any of the methods considered in earlier chapters to the standardised residuals. However, if there are anomalies, they can distort the estimated model, making anomaly detection more difficult.
+We can think of the standardised residuals as adjusted response values, after accounting for the predictor variables.
+The simplest regression-based anomaly detection method looks for anomalies in these standardised residuals, rather than in the response values directly.
+We could apply any of the methods considered in earlier chapters to the standardised residuals.
+However, if there are anomalies, they can distort the estimated model, making anomaly detection more difficult.
 
 ### LOO residuals
 
-The leave-one-out residual for the $i$th observation is defined as the difference between $y_i$ and the predicted value obtained using a model fitted to all observations except the $i$th observation. In this context, LOO residuals are often called PRESS (prediction error sum of squares) residuals. At first, it appears that calculating LOO residuals involves a lot of computation --- estimating $n$ separate models. However, the leave-one-out residuals are easily obtained without actually having to re-estimate the model many times. It can be shown [@Montgomery2012, Appendix C.7] that the leave-one-out (LOO) residuals are given by
+The leave-one-out residual for the $i$th observation is defined as the difference between $y_i$ and the predicted value obtained using a model fitted to all observations except the $i$th observation.
+In this context, LOO residuals are often called PRESS (prediction error sum of squares) residuals.
+At first, it appears that calculating LOO residuals involves a lot of computation --- estimating $n$ separate models.
+However, the leave-one-out residuals are easily obtained without actually having to re-estimate the model many times.
+It can be shown [@Montgomery2012, Appendix C.7] that the leave-one-out (LOO) residuals are given by
 $$
-  e_{-i} = e_{i}/(1-h_{i}),
+  e_{-i} = e_{i}/(1 - h_{i}),
 $$
 where $e_{i}$ is the residual obtained from fitting the model to *all* observations, and $h_i$ is the corresponding leverage value.
 
-Since $\text{Var}(e_i) = \sigma^2(1-h_i)$ (the diagonal of $\text{Var}(\bm{e}) = \sigma^2(\bm{I}-\bm{H})$) and $e_{-i} = e_i/(1-h_i)$, the variance of $e_{-i}$ is given by
+Since $\text{Var}(e_i) = \sigma^2(1 - h_i)$ (the diagonal of $\text{Var}(\bm{e}) = \sigma^2(\bm{I} - \bm{H})$) and $e_{-i} = e_i/(1 - h_i)$, the variance of $e_{-i}$ is given by
 $$
-  \frac{\text{Var}(e_i)}{(1-h_i)^2} = \frac{\sigma^2}{1-h_i},
+  \frac{\text{Var}(e_i)}{(1 - h_i)^2} = \frac{\sigma^2}{1 - h_i},
 $$
 so (if we knew $\sigma$) we could standardise each LOO residual to obtain
 $$
- \frac{e_i / (1-h_i)}{\sigma/\sqrt{1-h_i}} = \frac{e_i}{\sigma \sqrt{1-h_i}}.
+  \frac{e_i / (1 - h_i)}{\sigma/\sqrt{1 - h_i}} = \frac{e_i}{\sigma \sqrt{1 - h_i}}.
 $$
-Of course, we don't know $\sigma$, so we need to estimate it. To reduce the effect of anomalies on the estimate of $\sigma$, we consider again the leave-one-out models. If we leave out the $i$th observation, and fit a regression model to the remaining observations, then the estimated variance of the residuals is given by [@Montgomery2012, Appendix C.8]
+Of course, we don't know $\sigma$, so we need to estimate it.
+To reduce the effect of anomalies on the estimate of $\sigma$, we consider again the leave-one-out models.
+If we leave out the $i$th observation, and fit a regression model to the remaining observations, then the estimated variance of the residuals is given by [@Montgomery2012, Appendix C.8]
 $$
-  \hat\sigma_{-i}^2 = \frac{1}{n-p-1}\left[(n-p)\hat\sigma^2 - e_{i}^2/(1-h_i)\right],
+  \hat\sigma_{-i}^2 = \frac{1}{n - p - 1}\left[(n - p)\hat\sigma^2 - e_{i}^2/(1 - h_i)\right],
 $$
 where $\hat\sigma^2$ is given by @eq-residual-variance.
 
 These are computed by `broom::augment()` and are returned in the column `.sigma`.
 Thus, the standardised LOO residuals (also known as "externally studentised residuals") are given by
 $$
- r_{-i} = \frac{e_i}{\hat\sigma_{-i} \sqrt{1-h_i}}.
+  r_{-i} = \frac{e_i}{\hat\sigma_{-i} \sqrt{1 - h_i}}.
 $$
 
 ### Cook's distance
@@ -176,11 +216,15 @@ Another useful "leave-one-out" measure is Cook's distance [@Cook1977], which mea
 $$
   D_i = \frac{(\hat{\bm{y}} - \hat{\bm{y}}_{-i})^\intercal (\hat{\bm{y}} - \hat{\bm{y}}_{-i})}{p\hat\sigma^2},
 $$
-where $\hat{\bm{y}}_{-i}$ are the fitted values from the model omitting observation $i$. As with the LOO residual, this can be computed without refitting the model $n$ times. It can be shown that
+where $\hat{\bm{y}}_{-i}$ are the fitted values from the model omitting observation $i$.
+As with the LOO residual, this can be computed without refitting the model $n$ times.
+It can be shown that
 $$
-  D_i = \frac{r_i^2h_i}{p(1-h_i)},
+  D_i = \frac{r_i^2h_i}{p(1 - h_i)},
 $$ {#eq-cooks-distance}
-where $r_i$ is the standardised residual and $h_i$ is the leverage. From @eq-cooks-distance, an observation has a large Cook's distance if it has a large residual (anomalous response given its predictors), or high leverage (extreme position in predictor space), or both. Cook's distance therefore measures *influence* on the model rather than response anomaly alone.
+where $r_i$ is the standardised residual and $h_i$ is the leverage.
+From @eq-cooks-distance, an observation has a large Cook's distance if it has a large residual (anomalous response given its predictors), or high leverage (extreme position in predictor space), or both.
+Cook's distance therefore measures *influence* on the model rather than response anomaly alone.
 
 The `broom::augment()` function returns Cook's distances in the `.cooksd` column.
 
@@ -192,6 +236,7 @@ The various types of residuals for the Shiraz reviews model are shown below.
 #| label: shiraz-residuals
 #| code-fold: false
 #| dependson: wine_aug
+
 wine_aug <- wine_aug |>
   mutate(std_loo_resid = .resid / .sigma / sqrt(1 - .hat)) |>
   select(country:price, .resid, .std.resid, std_loo_resid)
@@ -206,6 +251,7 @@ The standardised LOO residuals from this model are shown in @fig-shiraz-residual
 #| label: fig-shiraz-residuals
 #| fig-cap: Standardised LOO residuals from a least-squares regression of log price on points for Shiraz wines.
 #| dependson: shiraz-residuals
+
 wine_aug |>
   ggplot(aes(x = points, y = std_loo_resid)) +
   geom_jitter(height = 0, width = 0.1, alpha = 0.5, colour = "#999999") +
@@ -215,11 +261,15 @@ wine_aug |>
 
 Wines with large positive residuals are more expensive than expected for their points score, while wines with large negative residuals are cheaper than expected.
 
-Both distance-based and density-based methods can be applied to the standardised residuals (or standardised LOO residuals) to identify observations with unusual response values given the corresponding predictor values. In the next two sections, we will discuss using density-based surprisals to find anomalous residuals. Then in @sec-bacon-reg, we will discuss a variation of the distance-based BACON algorithm for regression. The other methods described in @sec-distance-methods and @sec-density-methods can also be applied to residuals, although these applications are not discussed here.
+Both distance-based and density-based methods can be applied to the standardised residuals (or standardised LOO residuals) to identify observations with unusual response values given the corresponding predictor values.
+In the next two sections, we will discuss using density-based surprisals to find anomalous residuals.
+Then in @sec-bacon-reg, we will discuss a variation of the distance-based BACON algorithm for regression.
+The other methods described in @sec-distance-methods and @sec-density-methods can also be applied to residuals, although these applications are not discussed here.
 
 ## Linear regression surprisals {#sec-regression-log-scores}
 
-The surprisal approach (@sec-density-methods) extends naturally to regression by specifying a density for the residuals, then computing the surprisal of each observation under that density. Specifying a density for the residuals is equivalent to specifying a **conditional density** for the response given the predictors,
+The surprisal approach (@sec-density-methods) extends naturally to regression by specifying a density for the residuals, then computing the surprisal of each observation under that density.
+Specifying a density for the residuals is equivalent to specifying a **conditional density** for the response given the predictors,
 $$
   f(y \mid \bm{x}).
 $$
@@ -237,7 +287,8 @@ where $\phi(u) = (2\pi)^{-1/2}e^{-u^2/2}$ is the standard Normal density.
 
 ### Example: Shiraz reviews
 
-We return to the Shiraz wine reviews introduced in @sec-ols. Now that we have added a distributional assumption, the fitted model can be written as
+We return to the Shiraz wine reviews introduced in @sec-ols.
+Now that we have added a distributional assumption, the fitted model can be written as
 $$
   \log(\text{Price}) \sim \text{N}(`r sprintf("%.3f",coef(fit_wine)[1])` + `r sprintf("%.3f",coef(fit_wine)[2])` \times \text{Points}, `r sprintf("%.3f",sigma(fit_wine))`^2),
 $$
@@ -247,7 +298,10 @@ and we can compute 95% prediction intervals as shown in @fig-shiraz-regression-d
 #| label: fig-shiraz-regression-density
 #| warning: false
 #| dependson: shiraz-regression
-#| fig-cap: Log price of Shiraz as a function of points, with 95% prediction intervals. The points are horizontally jittered to reduce overplotting. Points outside the prediction intervals are coloured.
+#| fig-cap: Log price of Shiraz as a function of points, with 95% prediction intervals.
+#|   The points are horizontally jittered to reduce overplotting.
+#|   Points outside the prediction intervals are coloured.
+
 wine_aug <- broom::augment(fit_wine, data = shiraz, interval = "prediction") |>
   mutate(
     lwr = exp(.lower),
@@ -273,9 +327,11 @@ The LOO surprisals obtained from this model are shown in @fig-shiraz-regression-
 ```{r}
 #| label: fig-shiraz-regression-scores
 #| dependson: fig-shiraz-regression-density
-#| fig-cap: Residuals and surprisals for the Shiraz data using a linear regression model. Points are coloured to match the 95% prediction intervals in @fig-shiraz-regression-density.
+#| fig-cap: Residuals and surprisals for the Shiraz data using a linear regression model.
+#|   Points are coloured to match the 95% prediction intervals in @fig-shiraz-regression-density.
 #| fig-height: 6
 #| fig-asp: 0.8
+
 wine_aug <- wine_aug |>
   mutate(
     std_loo_res = .resid / (.sigma * sqrt(1 - .hat)),
@@ -308,6 +364,7 @@ wine_aug |>
 #| label: shiraz-regression-scores
 #| include: false
 #| dependson: fig-shiraz-regression-scores
+
 most_anomalous <- wine_aug |>
   filter(loo_surprisals > 17)
 underpriced <- wine_aug |>
@@ -317,23 +374,28 @@ good_buy <- wine_aug |>
   filter(std_loo_res == min(std_loo_res))
 ```
 
-The over-priced wines under this model are shown in blue, while the under-priced wines are shown in orange. This shows that the most anomalous observations are the two with LOO surprisals above 17, and standardised residuals close to 6. The largest LOO surprisal is for the most over-priced wine (under this model), a 2009 Shiraz from the Henschke winery in the Eden Valley region of South Australia, with `r most_anomalous$points[1]` points and a price of $`r most_anomalous$price[1]`.
+The over-priced wines under this model are shown in blue, while the under-priced wines are shown in orange.
+This shows that the most anomalous observations are the two with LOO surprisals above 17, and standardised residuals close to 6.
+The largest LOO surprisal is for the most over-priced wine (under this model), a 2009 Shiraz from the Henschke winery in the Eden Valley region of South Australia, with `r most_anomalous$points[1]` points and a price of $`r most_anomalous$price[1]`.
 
 ```{r}
 #| label: shiraz-most-anomalous
 #| code-fold: false
 #| dependson: fig-shiraz-regression-scores
+
 wine_aug |>
   filter(loo_surprisals == max(loo_surprisals)) |>
   select(country:winery, year, points, price, std_loo_res, loo_surprisals)
 ```
 
-The largest LOO surprisal corresponding to an under-priced wine is for the wine with the lowest residual value, with `r underpriced$points[1]` points and a price of $`r underpriced$price[1]`. Another good buy, at the higher quality end, is the 2007 Syrah from the Rulo winery in the Columbia Valley in Washington State, USA:
+The largest LOO surprisal corresponding to an under-priced wine is for the wine with the lowest residual value, with `r underpriced$points[1]` points and a price of $`r underpriced$price[1]`.
+Another good buy, at the higher quality end, is the 2007 Syrah from the Rulo winery in the Columbia Valley in Washington State, USA:
 
 ```{r}
 #| label: shiraz-good-buy
 #| code-fold: false
 #| dependson: fig-shiraz-regression-scores
+
 wine_aug |>
   filter(points > 95) |>
   filter(std_loo_res == min(std_loo_res)) |>
@@ -350,6 +412,7 @@ We will compute the surprisal probabilities using the rank approximation.
 #| label: shiraz-surprisal-prob-manual
 #| code-fold: false
 #| dependson: fig-shiraz-regression-scores
+
 wine_aug |>
   mutate(prob = 1 - (rank(loo_surprisals) - 1) / NROW(wine_aug)) |>
   select(country:winery, year, points, price, loo_surprisals, prob) |>
@@ -358,12 +421,14 @@ wine_aug |>
 
 Those with the ten smallest surprisal probabilities are all wines that appear to be over-priced given their points values.
 
-The preceding analysis shows the calculations of surprisal probabilities in detail. They can be more simply computed using `surprisals_prob()` applied directly to the fitted model, as follows.
+The preceding analysis shows the calculations of surprisal probabilities in detail.
+They can be more simply computed using `surprisals_prob()` applied directly to the fitted model, as follows.
 
 ```{r}
 #| label: shiraz-surprisals
 #| code-fold: false
 #| dependson: shiraz-regression
+
 shiraz <- shiraz |>
   mutate(prob = surprisals_prob(fit_wine, loo = TRUE, approximation = "rank"))
 shiraz |>
@@ -371,12 +436,16 @@ shiraz |>
   arrange(prob)
 ```
 
-@fig-shiraz-surprisal shows the relationship between points and price, with the points coloured according to the surprisal probability. The eight blue points are observations with surprisal probabilities less than 0.002 (two are almost overlapping).
+@fig-shiraz-surprisal shows the relationship between points and price, with the points coloured according to the surprisal probability.
+The eight blue points are observations with surprisal probabilities less than 0.002 (two are almost overlapping).
 
 ```{r}
 #| label: fig-shiraz-surprisal
 #| dependson: shiraz-surprisals
-#| fig-cap: Price vs points for Shiraz wines. Points are coloured according to the surprisal probability. The eight blue points are observations with surprisal probabilities less than 0.002.
+#| fig-cap: Price vs points for Shiraz wines.
+#|   Points are coloured according to the surprisal probability.
+#|   The eight blue points are observations with surprisal probabilities less than 0.002.
+
 shiraz |>
   ggplot(aes(x = points, y = price, colour = prob < 0.002)) +
   geom_jitter(height = 0, width = 0.2) +
@@ -387,42 +456,59 @@ shiraz |>
 #| include: false
 #| label: shiraz-check
 #| dependson: shiraz-surprisals
+
 shiraz_surprise <- shiraz |> filter(prob < 0.002)
 if (NROW(shiraz_surprise) != 8L) {
   stop("Something is wrong here.")
 }
 ```
 
-This shows the value of computing surprisal probabilities on the conditional distribution. The eight observations are not simply those with the highest prices, but those whose price is anomalous given their points values. There are three wines with prices above $300 that are not identified as anomalous, because they have corresponding high points values.
+This shows the value of computing surprisal probabilities on the conditional distribution.
+The eight observations are not simply those with the highest prices, but those whose price is anomalous given their points values.
+There are three wines with prices above $300 that are not identified as anomalous, because they have corresponding high points values.
 
 ## GAM surprisals {#sec-gam-surprisals}
 
-In some applications, it is not appropriate to assume the conditional density is Gaussian, or that the relationships are linear. One useful model that allows for non-Gaussian densities, and non-linear relationships, is a generalised additive model or GAM. Under this model, the conditional density is given by [@Wood2017gam]
+In some applications, it is not appropriate to assume the conditional density is Gaussian, or that the relationships are linear.
+One useful model that allows for non-Gaussian densities, and non-linear relationships, is a generalised additive model or GAM.
+Under this model, the conditional density is given by [@Wood2017gam]
 $$
-  y \mid \bm{x} \sim f(\mu, \bm{\theta}), \qquad \ell(\mu) = \sum_{k=1}^p g_k(x_{k}),
+  y \mid \bm{x}
+    \sim f(\mu, \bm{\theta}), \qquad \ell(\mu)
+    = \sum_{k = 1}^p g_k(x_{k}),
 $$
-where $\mu = \text{E}(y \mid \bm{x})$ denotes the conditional mean, $\bm{\theta}$ is a vector of any other parameters, $\ell()$ is a link function (mapping the mean to an unbounded scale), and each $g_k$ function is smooth. If $f$ is Normal, $\bm{\theta} = \sigma^2$, $\ell$ is the identity, and $g_k(u) = \beta_k u$, then this reduces to the linear Gaussian model (@eq-gaussian-regression).
+where $\mu = \text{E}(y \mid \bm{x})$ denotes the conditional mean, $\bm{\theta}$ is a vector of any other parameters, $\ell()$ is a link function (mapping the mean to an unbounded scale), and each $g_k$ function is smooth.
+If $f$ is Normal, $\bm{\theta} = \sigma^2$, $\ell$ is the identity, and $g_k(u) = \beta_k u$, then this reduces to the linear Gaussian model (@eq-gaussian-regression).
 
 ### Example: Cricket not-outs
 
 ```{r}
 #| label: cricket-setup
 #| include: false
+
 df_no <- cricket_batting |>
   filter(Innings > 0) |>
   mutate(prop_no = NotOuts / Innings)
 p <- sum(df_no$NotOuts) / sum(df_no$Innings)
 ```
 
-Consider the number of "not outs" for each batter in the `cricket_batting` data set. A "not out" occurs when a batsman has not been dismissed at the end of the team's innings. Let's consider if there are some batters who have an unusually high proportion of not outs. The data set contains results from `r sum(df_no$Innings)` innings, of which `r sum(df_no$NotOuts)` were not outs. So the overall proportion of not outs is $`r sum(df_no[["NotOuts"]])` / `r sum(df_no[["Innings"]])` = `r sprintf("%.3f", p)`$.
+Consider the number of "not outs" for each batter in the `cricket_batting` data set.
+A "not out" occurs when a batsman has not been dismissed at the end of the team's innings.
+Let's consider if there are some batters who have an unusually high proportion of not outs.
+The data set contains results from `r sum(df_no$Innings)` innings, of which `r sum(df_no$NotOuts)` were not outs.
+So the overall proportion of not outs is $`r sum(df_no[["NotOuts"]])` / `r sum(df_no[["Innings"]])` = `r sprintf("%.3f", p)`$.
 
-@fig-notouts shows the proportion of not outs for each batter as a function of the number of innings they played. The unusual pattern on the left of the plot is due to the discrete nature of the data --- both the number of not outs and the number of innings must be integers. There is some overplotting that occurs due to batters having the same numbers of not-outs and innings, which results in the higher colour density of the corresponding plotted points. Batters who have played only a few innings tend to have a higher proportion of not outs on average, and a higher variance, than those who have played many innings.
+@fig-notouts shows the proportion of not outs for each batter as a function of the number of innings they played.
+The unusual pattern on the left of the plot is due to the discrete nature of the data --- both the number of not outs and the number of innings must be integers.
+There is some overplotting that occurs due to batters having the same numbers of not-outs and innings, which results in the higher colour density of the corresponding plotted points.
+Batters who have played only a few innings tend to have a higher proportion of not outs on average, and a higher variance, than those who have played many innings.
 
 ```{r}
 #| label: fig-notouts
 #| fig-cap: "Proportion of not outs for each batter as a function of the number of innings they played."
 #| message: false
 #| code-fold: false
+
 df_no <- cricket_batting |>
   filter(Innings > 0) |>
   mutate(prop_no = NotOuts / Innings)
@@ -431,13 +517,14 @@ df_no |>
   geom_point(alpha = 0.15)
 ```
 
-This suggests that we can construct a GAM for the number of not outs for each batter as a function of the number of innings they played. It is natural to use a Binomial distribution with a logit link function:
+This suggests that we can construct a GAM for the number of not outs for each batter as a function of the number of innings they played.
+It is natural to use a Binomial distribution with a logit link function:
 $$
   \text{NotOuts} \mid \text{Innings} \sim \text{Binomial}(\text{Innings},~ q),
 $$
 where $q$ denotes the probability of a batter not being dismissed in an innings, and
 $$
-  \log(q/(1-q)) = g(\text{Innings}).
+  \log(q/(1 - q)) = g(\text{Innings}).
 $$
 We can fit this model using the `mgcv` package.
 
@@ -446,14 +533,21 @@ We can fit this model using the `mgcv` package.
 #| message: false
 #| code-fold: false
 #| dependson: fig-notouts
-#| fig-cap: "Proportion of not outs for each batter as a function of the number of innings they played, with a GAM fit using a Binomial distribution. The blue line shows the probability of a batter being not out as a function of the number of Innings they have played."
+#| fig-cap: >-
+#|   Proportion of not outs for each batter as a function of the number of innings they played, with a GAM fit using a Binomial distribution.
+#|   The blue line shows the probability of a batter being not out as a function of the number of Innings they have played.
+
 fit_notouts <- mgcv::gam(
   prop_no ~ s(Innings),
   data = df_no,
   family = binomial(link = logit),
   weights = Innings
 )
-notouts_aug <- broom::augment(fit_notouts, data = df_no, type.predict = "response")
+notouts_aug <- broom::augment(
+  fit_notouts,
+  data = df_no,
+  type.predict = "response"
+)
 notouts_aug |>
   ggplot(aes(x = Innings, y = prop_no)) +
   geom_point(alpha = 0.2) +
@@ -469,13 +563,17 @@ notouts_aug |>
   labs(y = "Proportion of not outs")
 ```
 
-Now we can use the fitted model to compute the surprisals from the Binomial distribution, and find the most anomalous batters. Unfortunately, there is not a convenient way to compute LOO surprisals for GAM models, so we will only consider regular surprisals in this example. While the Binomial distribution is probably a good first approximation, it does assume that the probability of a batter being dismissed does not change over their career, which is an unlikely assumption as it does not allow for the development of skill, the value of experience, or the effect of ageing. So we will use the GPD approximation to compute the surprisal probabilities.
+Now we can use the fitted model to compute the surprisals from the Binomial distribution, and find the most anomalous batters.
+Unfortunately, there is not a convenient way to compute LOO surprisals for GAM models, so we will only consider regular surprisals in this example.
+While the Binomial distribution is probably a good first approximation, it does assume that the probability of a batter being dismissed does not change over their career, which is an unlikely assumption as it does not allow for the development of skill, the value of experience, or the effect of ageing.
+So we will use the GPD approximation to compute the surprisal probabilities.
 
 ```{r}
 #| code-fold: false
 #| warning: false
 #| label: notouts_aug
 #| dependson: fig-notouts-gam
+
 notouts_aug <- notouts_aug |>
   mutate(
     surprisals = surprisals(fit_notouts),
@@ -486,39 +584,58 @@ notouts_aug <- notouts_aug |>
 notouts_aug
 ```
 
-The most anomalous batters are all "tail-enders" (i.e., not skilled batters) who played for a long time (so they have many innings). Because they batted last, or nearly last, they are more likely to be not out at the end of the team's innings.
+The most anomalous batters are all "tail-enders" (i.e., not skilled batters) who played for a long time (so they have many innings).
+Because they batted last, or nearly last, they are more likely to be not out at the end of the team's innings.
 
-The `.fitted` value is the expected proportion of not outs for each player given the number of innings they have played, while `prop_no` gives the actual proportion of not outs they have had. The largest surprisal is for English batter Jimmy Anderson, who has had `r notouts_aug$NotOuts[1]` not outs in `r notouts_aug$Innings[1]` innings, which is much higher than the expected number of not outs of $`r notouts_aug[["Innings"]][1]` \times `r sprintf("%.3f", notouts_aug[[".fitted"]][1])` = `r sprintf("%.1f", notouts_aug[[".fitted"]][1]*notouts_aug[["Innings"]][1])`$. This anomaly is also seen in @fig-notouts-gam, as being somewhat unusual for that part of the data. Although Jimmy Anderson was not a great batter, he was good at defence, and was able to bat for a long time without being dismissed, leaving the other batter time to score runs.
+The `.fitted` value is the expected proportion of not outs for each player given the number of innings they have played, while `prop_no` gives the actual proportion of not outs they have had.
+The largest surprisal is for English batter Jimmy Anderson, who has had `r notouts_aug$NotOuts[1]` not outs in `r notouts_aug$Innings[1]` innings, which is much higher than the expected number of not outs of $`r notouts_aug[["Innings"]][1]` \times `r sprintf("%.3f", notouts_aug[[".fitted"]][1])` = `r sprintf("%.1f", notouts_aug[[".fitted"]][1]*notouts_aug[["Innings"]][1])`$.
+This anomaly is also seen in @fig-notouts-gam, as being somewhat unusual for that part of the data.
+Although Jimmy Anderson was not a great batter, he was good at defence, and was able to bat for a long time without being dismissed, leaving the other batter time to score runs.
 
-We have identified an anomaly that is not anomalous in the proportion of not-outs, or in the number of innings, and the difference between the actual proportion and the predicted proportion is not anomalous either compared to some of the other values. However, because we have used a statistical model, we have been able to account for the particular features of this data set, such as the discrete nature of the data, and the changing variance, to identify an observation that is anomalous in the context of the model.
+We have identified an anomaly that is not anomalous in the proportion of not-outs, or in the number of innings, and the difference between the actual proportion and the predicted proportion is not anomalous either compared to some of the other values.
+However, because we have used a statistical model, we have been able to account for the particular features of this data set, such as the discrete nature of the data, and the changing variance, to identify an observation that is anomalous in the context of the model.
 
 ## BACON algorithm for linear regression {#sec-bacon-reg}
 
-In the regression version of the BACON algorithm [@Billor2000], the goal is to identify observations that are inconsistent with the regression model. This is more complicated than the multivariate case discussed in @sec-bacon, because an observation can be anomalous in terms of its predictor values, or in terms of its response value given its predictor values, or both. Cook's distance (@sec-residuals) captures both of these sources of influence, but it does not protect against masking. Also, high leverage values can lead to residual anomalies being masked. Like the LTS estimator (@sec-ols), BACON addresses masking by fitting the model to a subset of regular observations rather than to all the data. Unlike LTS, which selects the subset by minimising trimmed residuals, BACON builds the subset sequentially, making it computationally efficient for large data sets. The regression BACON algorithm begins by using the multivariate BACON algorithm on the predictors, and then uses scaled prediction errors to decide which observations are compatible with the regression model.
+In the regression version of the BACON algorithm [@Billor2000], the goal is to identify observations that are inconsistent with the regression model.
+This is more complicated than the multivariate case discussed in @sec-bacon, because an observation can be anomalous in terms of its predictor values, or in terms of its response value given its predictor values, or both.
+Cook's distance (@sec-residuals) captures both of these sources of influence, but it does not protect against masking.
+Also, high leverage values can lead to residual anomalies being masked.
+Like the LTS estimator (@sec-ols), BACON addresses masking by fitting the model to a subset of regular observations rather than to all the data.
+Unlike LTS, which selects the subset by minimising trimmed residuals, BACON builds the subset sequentially, making it computationally efficient for large data sets.
+The regression BACON algorithm begins by using the multivariate BACON algorithm on the predictors, and then uses scaled prediction errors to decide which observations are compatible with the regression model.
 
-Let $B$ be the current basic subset, with $r$ observations, and let $\bm{X}_B$ and $\bm{y}_B$ denote the corresponding predictor matrix and response vector. Let $\hat{\bm{\beta}}_B$ be the least-squares estimate computed using only the observations in $B$, and let
+Let $B$ be the current basic subset, with $r$ observations, and let $\bm{X}_B$ and $\bm{y}_B$ denote the corresponding predictor matrix and response vector.
+Let $\hat{\bm{\beta}}_B$ be the least-squares estimate computed using only the observations in $B$, and let
 $$
-  \hat{\sigma}_B^2 = (r-p)^{-1}\sum_{i\in B}(y_i - \bm{x}_i^\intercal\hat{\bm{\beta}}_B)^2
+  \hat{\sigma}_B^2 = (r - p)^{-1}\sum_{i \in B}(y_i - \bm{x}_i^\intercal\hat{\bm{\beta}}_B)^2
 $$
-be the corresponding estimate of residual variance. We also define
+be the corresponding estimate of residual variance.
+We also define
 $$
   h_i(B) = \bm{x}_i^\intercal(\bm{X}_B^\intercal\bm{X}_B)^{-1}\bm{x}_i
 $$
-as the leverage of observation $i$ with respect to the basic subset $B$. The regression discrepancy for observation $i$ is the absolute scaled residual or prediction error
+as the leverage of observation $i$ with respect to the basic subset $B$.
+The regression discrepancy for observation $i$ is the absolute scaled residual or prediction error
 $$
   |t_i(B)| =
-  \begin{cases}
-    \displaystyle
-    \left|\frac{y_i - \bm{x}_i^\intercal\hat{\bm{\beta}}_B}{\hat{\sigma}_B\sqrt{1-h_i(B)}}\right|, & i \in B, \\
-    \displaystyle
-    \left|\frac{y_i - \bm{x}_i^\intercal\hat{\bm{\beta}}_B}{\hat{\sigma}_B\sqrt{1+h_i(B)}}\right|, & i \notin B.
-  \end{cases}
+\begin{cases}
+  \displaystyle
+  \left|\frac{y_i - \bm{x}_i^\intercal\hat{\bm{\beta}}_B}{\hat{\sigma}_B\sqrt{1 - h_i(B)}}\right|, & i \in B,    \\
+  \displaystyle
+  \left|\frac{y_i - \bm{x}_i^\intercal\hat{\bm{\beta}}_B}{\hat{\sigma}_B\sqrt{1 + h_i(B)}}\right|, & i \notin B.
+\end{cases}
 $$
-For observations already in the basic subset this is the usual standardised residual. For observations outside the basic subset it is a scaled prediction error. The sign difference arises because $1-h_i(B)$ is the variance deflation for an in-sample residual, while $1+h_i(B)$ is the corresponding variance inflation for an out-of-sample prediction error; an observation not used to fit the model contributes additional uncertainty beyond that of the residual variance alone.
+For observations already in the basic subset this is the usual standardised residual.
+For observations outside the basic subset it is a scaled prediction error.
+The sign difference arises because $1 - h_i(B)$ is the variance deflation for an in-sample residual, while $1 + h_i(B)$ is the corresponding variance inflation for an out-of-sample prediction error; an observation not used to fit the model contributes additional uncertainty beyond that of the residual variance alone.
 
 The algorithm then proceeds as follows.
 
-**Step 1: Initialise the basic subset.** Apply the multivariate BACON algorithm (@sec-bacon) to the predictor variables, ignoring the response. This identifies observations with central predictor values and protects the first regression fit from high-leverage points. These observations are then used to construct a full-rank initial regression subset, which is grown using the smallest scaled prediction errors until it reaches approximately $m=cp$, where $c$ is usually 4 or 5. Larger values of $c$ may be needed if the predictor variables have many repeated values, as then the resulting initial predictor matrix $\bm{X}_B$ may be of low rank.
+**Step 1: Initialise the basic subset.** Apply the multivariate BACON algorithm (@sec-bacon) to the predictor variables, ignoring the response.
+This identifies observations with central predictor values and protects the first regression fit from high-leverage points.
+These observations are then used to construct a full-rank initial regression subset, which is grown using the smallest scaled prediction errors until it reaches approximately $m = cp$, where $c$ is usually 4 or 5.
+Larger values of $c$ may be needed if the predictor variables have many repeated values, as then the resulting initial predictor matrix $\bm{X}_B$ may be of low rank.
 
 **Step 2: Fit the regression model.** Fit least squares to the current basic subset $B$, obtaining $\hat{\bm{\beta}}_B$ and $\hat{\sigma}_B$.
 
@@ -526,31 +643,40 @@ The algorithm then proceeds as follows.
 
 **Step 4: Expand the basic subset.** Update $B$ by admitting every observation with
 $$
-  |t_i(B)| < \text{t}_{r-p,\,1-\alpha/(2(r+1))},
+  |t_i(B)| < \text{t}_{r - p,\,1 - \alpha/(2(r + 1))},
 $$
-where $\text{t}_{r-p,\,1-\alpha/(2(r+1))}$ is the $(1-\alpha/(2(r+1)))$ quantile of a t-distribution with $r-p$ degrees of freedom. Equivalently, this is the upper $(\alpha/(2(r+1)))$ tail quantile, as computed in R by `qt(alpha / (2 * (r + 1)), r - p, lower.tail = FALSE)`.
+where $\text{t}_{r - p,\,1 - \alpha/(2(r + 1))}$ is the $(1 - \alpha/(2(r + 1)))$ quantile of a t-distribution with $r - p$ degrees of freedom.
+Equivalently, this is the upper $(\alpha/(2(r + 1)))$ tail quantile, as computed in R by `qt(alpha / (2 * (r + 1)), r - p, lower.tail = FALSE)`.
 
 **Step 5: Iterate** Steps 2--4 until the size of $B$ no longer changes.
 
 **Step 6: Nominate outliers.** Observations excluded from the final basic subset are nominated as regression outliers.
 
-As in the multivariate version, the algorithm grows the basic subset in blocks, rather than adding one observation at a time. It gives a robust regression fit at relatively low computational cost. The final values $|t_i(B)|$ provide anomaly scores: large values correspond to observations whose responses are unusually far from what would be predicted by the regression relationship fitted to the final basic subset.
+As in the multivariate version, the algorithm grows the basic subset in blocks, rather than adding one observation at a time.
+It gives a robust regression fit at relatively low computational cost.
+The final values $|t_i(B)|$ provide anomaly scores: large values correspond to observations whose responses are unusually far from what would be predicted by the regression relationship fitted to the final basic subset.
 
 ```{r}
 #| label: shiraz-points
 #| echo: false
 #| dependson: shiraz-regression
+
 shiraz_points <- shiraz |> count(points) |> arrange(desc(n))
 ```
 
 ### Example: Shiraz reviews
 
-We now apply regression BACON to the same `shiraz` data set containing wine reviews that was used in @sec-ols, with `points` as the predictor and `log(price)` as the response. Multivariate BACON is first applied to the predictor variable, and then the regression version of the algorithm uses scaled prediction errors. Because the predictor has many repeated values (taking only integer values between 80 and 100), we need to specify the initial set to be larger than the most common points score, which is `r shiraz_points$points[1]` with `r shiraz_points$n[1]` observations. So we set the initial size to $m=600$ observations to ensure the initial basic subset does not contain only observations with a single points score. The BACON algorithm then identifies outliers as those with large scaled prediction errors from the fitted regression line based on the final basic subset.
+We now apply regression BACON to the same `shiraz` data set containing wine reviews that was used in @sec-ols, with `points` as the predictor and `log(price)` as the response.
+Multivariate BACON is first applied to the predictor variable, and then the regression version of the algorithm uses scaled prediction errors.
+Because the predictor has many repeated values (taking only integer values between 80 and 100), we need to specify the initial set to be larger than the most common points score, which is `r shiraz_points$points[1]` with `r shiraz_points$n[1]` observations.
+So we set the initial size to $m = 600$ observations to ensure the initial basic subset does not contain only observations with a single points score.
+The BACON algorithm then identifies outliers as those with large scaled prediction errors from the fitted regression line based on the final basic subset.
 
 ```{r}
 #| label: shiraz-bacon
 #| code-fold: false
 #| dependson: fig-shiraz-regression-scores
+
 bacon_alpha <- 0.05
 bacon_wine <- robustX::BACON(
   x = shiraz$points,
@@ -574,21 +700,25 @@ tibble(
 )
 ```
 
-No predictor outliers are identified by the multivariate BACON algorithm, as all observations have points scores that are close to those of many other observations. However, `r english::words(sum(wine_bacon$bacon_outlier))` regression outliers are identified by the regression BACON algorithm, as their prices are inconsistent with the fitted price--points relationship.
+No predictor outliers are identified by the multivariate BACON algorithm, as all observations have points scores that are close to those of many other observations.
+However, `r english::words(sum(wine_bacon$bacon_outlier))` regression outliers are identified by the regression BACON algorithm, as their prices are inconsistent with the fitted price--points relationship.
 
 ```{r}
 #| label: bacon-check2
 #| include: false
 #| dependson: shiraz-bacon
+
 stopifnot(sum(wine_bacon$bacon_x_outlier) == 0)
 ```
 
-The largest BACON distances are shown below. These correspond to wines with prices that are most unusual after accounting for their points score.
+The largest BACON distances are shown below.
+These correspond to wines with prices that are most unusual after accounting for their points score.
 
 ```{r}
 #| label: shiraz-bacon-largest
 #| code-fold: false
 #| dependson: shiraz-bacon
+
 wine_bacon |>
   filter(bacon_outlier) |>
   arrange(desc(bacon_distance)) |>
@@ -597,21 +727,32 @@ wine_bacon |>
 
 These are almost identical to those identified by the linear regression surprisals approach (@sec-regression-log-scores), with one additional anomaly (the last in the table above).
 
-To see the effect of the anomalies on the fitted regression relationship, we refit the least-squares model using only the final BACON basic subset. This gives the regression line shown in @fig-shiraz-bacon that is obtained after omitting the nominated regression outliers. The two lines are almost identical because the nominated outliers have relatively low leverage.
+To see the effect of the anomalies on the fitted regression relationship, we refit the least-squares model using only the final BACON basic subset.
+This gives the regression line shown in @fig-shiraz-bacon that is obtained after omitting the nominated regression outliers.
+The two lines are almost identical because the nominated outliers have relatively low leverage.
 
 ```{r}
 #| label: shiraz-bacon-fit
 #| dependson: shiraz-bacon
 #| echo: true
 #| code-fold: false
-fit_bacon_wine <- lm(log(price) ~ points, data = wine_bacon, subset = !bacon_outlier)
+
+fit_bacon_wine <- lm(
+  log(price) ~ points,
+  data = wine_bacon,
+  subset = !bacon_outlier
+)
 ```
 
 ```{r}
 #| label: fig-shiraz-bacon
-#| fig-cap: "Regression BACON applied to Shiraz wine reviews. Points in red are nominated regression outliers. The dashed line is the ordinary least-squares fit using all observations, while the solid line is the least-squares fit after omitting BACON-nominated outliers."
+#| fig-cap: >-
+#|   Regression BACON applied to Shiraz wine reviews.
+#|   Points in red are nominated regression outliers.
+#|   The dashed line is the ordinary least-squares fit using all observations, while the solid line is the least-squares fit after omitting BACON-nominated outliers.
 #| warning: false
 #| dependson: shiraz-bacon-fit
+
 wine_grid <- tibble(points = range(wine_bacon$points)) |>
   mutate(
     least_squares = exp(predict(fit_wine, newdata = pick(everything()))),
@@ -619,7 +760,12 @@ wine_grid <- tibble(points = range(wine_bacon$points)) |>
   )
 wine_bacon |>
   ggplot(aes(y = price, x = points)) +
-  geom_jitter(aes(colour = bacon_outlier), height = 0, width = 0.1, alpha = 0.6) +
+  geom_jitter(
+    aes(colour = bacon_outlier),
+    height = 0,
+    width = 0.1,
+    alpha = 0.6
+  ) +
   geom_line(
     data = wine_grid,
     aes(x = points, y = least_squares, linetype = "Least squares"),
@@ -631,7 +777,9 @@ wine_bacon |>
     inherit.aes = FALSE
   ) +
   scale_y_log10() +
-  scale_colour_manual(values = c("FALSE" = "#999999", "TRUE" = discrete_colours[1])) +
+  scale_colour_manual(
+    values = c("FALSE" = "#999999", "TRUE" = discrete_colours[1])
+  ) +
   scale_linetype_manual(
     values = c("Least squares" = "dashed", "BACON subset" = "solid")
   ) +
@@ -639,12 +787,17 @@ wine_bacon |>
   guides(colour = "none")
 ```
 
-Finally, @fig-shiraz-bacon-distance shows the absolute scaled prediction errors used by the regression BACON algorithm. The dashed horizontal line is the final $t$ cutoff. Observations above this line are those excluded from the final basic subset.
+Finally, @fig-shiraz-bacon-distance shows the absolute scaled prediction errors used by the regression BACON algorithm.
+The dashed horizontal line is the final $t$ cutoff.
+Observations above this line are those excluded from the final basic subset.
 
 ```{r}
 #| label: fig-shiraz-bacon-distance
-#| fig-cap: "Absolute scaled prediction errors from regression BACON for Shiraz wine reviews. The dashed line shows the final cutoff used to nominate regression outliers."
+#| fig-cap: >-
+#|   Absolute scaled prediction errors from regression BACON for Shiraz wine reviews.
+#|   The dashed line shows the final cutoff used to nominate regression outliers.
 #| dependson: shiraz-bacon-fit
+
 regression_p <- length(coef(fit_bacon_wine))
 regression_r <- sum(bacon_wine$subset)
 bacon_wine_limit <- qt(
@@ -656,7 +809,9 @@ wine_bacon |>
   ggplot(aes(x = points, y = bacon_distance, colour = bacon_outlier)) +
   geom_jitter(height = 0, width = 0.1, alpha = 0.6) +
   geom_hline(yintercept = bacon_wine_limit, linetype = "dashed") +
-  scale_colour_manual(values = c("FALSE" = "#999999", "TRUE" = discrete_colours[1])) +
+  scale_colour_manual(
+    values = c("FALSE" = "#999999", "TRUE" = discrete_colours[1])
+  ) +
   labs(x = "Points", y = "Absolute scaled prediction error") +
   guides(colour = "none")
 ```

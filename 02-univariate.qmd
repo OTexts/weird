@@ -4,29 +4,40 @@
 #| label: setup2
 #| include: false
 #| cache: false
+
 source("before-each-chapter.R")
 ```
 
-In this book, we take a probabilistic perspective on anomaly detection. That is, we are interested in the likelihood of each observation. So before we discuss any anomaly detection methods, we first need to discuss probability distributions. Some of this material (especially @sec-common) should be familiar to most readers, but is covered here as a refresher, and to introduce some notation that will be used in later chapters.
+In this book, we take a probabilistic perspective on anomaly detection.
+That is, we are interested in the likelihood of each observation.
+So before we discuss any anomaly detection methods, we first need to discuss probability distributions.
+Some of this material (especially @sec-common) should be familiar to most readers, but is covered here as a refresher, and to introduce some notation that will be used in later chapters.
 
-We are interested in data obtained from a range of possible sample spaces in this book, but for now we will assume that all data are real numbers, and come from continuous probability distributions. Later we will consider other types of data, including discrete data, data that are functions, images, video, networks, text, or even probability distributions as data objects. But for the first half of the book, we will only deal with numerical data.
+We are interested in data obtained from a range of possible sample spaces in this book, but for now we will assume that all data are real numbers, and come from continuous probability distributions.
+Later we will consider other types of data, including discrete data, data that are functions, images, video, networks, text, or even probability distributions as data objects.
+But for the first half of the book, we will only deal with numerical data.
 
 ## Common distributions {#sec-common}
 
 Let $Y$ denote a continuous random variable taking values in $\mathbb{R}$ (the real numbers), with its cumulative probability distribution (cdf) given by
-$$F(y) = \Pr(Y \le y).
+$$
+  F(y) = \Pr(Y \le y).
 $$ {#eq-cdf}
-This function is monotonically increasing in $y$, and takes values between 0 and 1. Because $Y$ is a continuous random variable, $F(y)$ is a continuous function of $y$. The probability density function (pdf) is defined as the derivative of the cdf, so $f(y) = F'(y)$, assuming the derivative exists at $y$. The pdf is non-negative, and integrates to 1.
+This function is monotonically increasing in $y$, and takes values between 0 and 1.
+Because $Y$ is a continuous random variable, $F(y)$ is a continuous function of $y$.
+The probability density function (pdf) is defined as the derivative of the cdf, so $f(y) = F'(y)$, assuming the derivative exists at $y$.
+The pdf is non-negative, and integrates to 1.
 
 The probability that $Y$ lies in the interval $[a,b]$ is given by $\Pr(a \le Y \le b) = \int_a^b f(y)dy = F(b) - F(a)$.
 
 The expected value (or mean) of $Y$ is given by
 $$
-\text{E}(Y) = \int_{-\infty}^\infty y f(y)dy,
+  \text{E}(Y) = \int_{-\infty}^\infty y f(y)dy,
 $$
 and the variance is given by
 $$
-\text{Var}(Y) = \text{E}[(Y-\text{E}(Y))^2] = \int_{-\infty}^\infty (y-\text{E}(Y))^2 f(y)dy.
+  \text{Var}(Y) = \text{E}[(Y - \text{E}(Y))^2]
+                = \int_{-\infty}^\infty (y - \text{E}(Y))^2 f(y)dy.
 $$
 The standard deviation is the square root of the variance.
 
@@ -34,18 +45,23 @@ The standard deviation is the square root of the variance.
 
 The simplest continuous distribution is the **Uniform** distribution, which takes two parameters, $a$ and $b$, and has pdf given by
 $$
-  f(y;a,b) = \begin{cases}
-    \frac{1}{b-a} & \text{if } a \le y \le b, \\
-    0 & \text{otherwise}.
-  \end{cases}
+  f(y;a,b) =
+\begin{cases}
+  \frac{1}{b - a} & \text{if } a \le y \le b, \\
+  0               & \text{otherwise}.
+\end{cases}
 $$
-Thus, it can only take values between $a$ and $b$, and every value in that range is equally likely. We refer to a Uniform random variable with parameters $a$ and $b$ as $Y \sim \text{U}(a,b)$. It has mean $(a+b)/2$ and variance $(b-a)^2/12$.
+Thus, it can only take values between $a$ and $b$, and every value in that range is equally likely.
+We refer to a Uniform random variable with parameters $a$ and $b$ as $Y \sim \text{U}(a,b)$.
+It has mean $(a + b)/2$ and variance $(b - a)^2/12$.
 
 The U(0,1) distribution is shown in @fig-uniform.
 
 ```{r}
 #| label: fig-uniform
-#| fig-cap: Probability density function for a U(0,1) distribution. The mean is 0.5 and the variance is 1/12.
+#| fig-cap: Probability density function for a U(0,1) distribution.
+#|   The mean is 0.5 and the variance is 1/12.
+
 dist_uniform(0, 1) |>
   gg_density() +
   labs(x = "y", y = "Probability Density Function: f(y)")
@@ -53,17 +69,22 @@ dist_uniform(0, 1) |>
 
 ### Normal (Gaussian) distribution
 
-The most widely used continuous distribution is the **Normal** distribution, also known as the **Gaussian** distribution, named after the German mathematician Carl Friedrich Gauss. It takes two parameters, the mean $\mu$, and the variance, $\sigma^2$. The pdf is given by
+The most widely used continuous distribution is the **Normal** distribution, also known as the **Gaussian** distribution, named after the German mathematician Carl Friedrich Gauss.
+It takes two parameters, the mean $\mu$, and the variance, $\sigma^2$.
+The pdf is given by
 $$
-  f(y; \mu, \sigma^2) = \frac{1}{\sigma\sqrt{2\pi}} \exp\left(-\frac{(y-\mu)^2}{2\sigma^2}\right).
+  f(y; \mu, \sigma^2) = \frac{1}{\sigma\sqrt{2\pi}} \exp\left(-\frac{(y - \mu)^2}{2\sigma^2}\right).
 $$
-We refer to a Normal random variable with mean $\mu$ and variance $\sigma^2$ as $Y \sim \text{N}(\mu, \sigma^2)$. When $\mu=0$ and $\sigma^2=1$, we call it the **standard Normal** distribution N(0,1), and denote the pdf as $\phi(y)$ and the cdf as $\Phi(y)$.
+We refer to a Normal random variable with mean $\mu$ and variance $\sigma^2$ as $Y \sim \text{N}(\mu, \sigma^2)$.
+When $\mu = 0$ and $\sigma^2 = 1$, we call it the **standard Normal** distribution N(0,1), and denote the pdf as $\phi(y)$ and the cdf as $\Phi(y)$.
 
 Three Normal distributions are shown in @fig-normal.
 
 ```{r}
 #| label: fig-normal
-#| fig-cap: Probability density functions for three Normal distributions. The mean $\mu$ controls the location of the distribution, while the variance $\sigma^2$ controls the spread.
+#| fig-cap: Probability density functions for three Normal distributions.
+#|   The mean $\mu$ controls the location of the distribution, while the variance $\sigma^2$ controls the spread.
+
 dist_normal(c(0, 0, 1), c(1, 2, 1)) |>
   gg_density() +
   labs(x = "y", y = "Probability Density Function: f(y)")
@@ -71,18 +92,25 @@ dist_normal(c(0, 0, 1), c(1, 2, 1)) |>
 
 ### $\chi^2$ distribution
 
-The $\chi^2$ (or **chi-squared**) distribution takes one parameter, the degrees of freedom $k$. The pdf is given by
+The $\chi^2$ (or **chi-squared**) distribution takes one parameter, the degrees of freedom $k$.
+The pdf is given by
 $$
-  f_k(y) = \frac{y^{k/2-1}e^{-y/2}}{2^{k/2}\Gamma(k/2)},
+  f_k(y) = \frac{y^{k/2 - 1}e^{-y/2}}{2^{k/2}\Gamma(k/2)},
 $$
-where $\Gamma(u) = \int_0^\infty x^{u-1}e^{-x}dx$ is the gamma function. For positive integers $u$, $\Gamma(u) = (u-1)!$. The $\chi^2$ distribution arises naturally as the sum of the squares of $k$ independent standard Normal random variables. We refer to a $\chi^2$ random variable with $k$ degrees of freedom as $Y \sim \chi^2_k$. It has mean $k$ and variance $2k$.
+where $\Gamma(u) = \int_0^\infty x^{u - 1}e^{-x}dx$ is the gamma function.
+For positive integers $u$, $\Gamma(u) = (u - 1)!$.
+The $\chi^2$ distribution arises naturally as the sum of the squares of $k$ independent standard Normal random variables.
+We refer to a $\chi^2$ random variable with $k$ degrees of freedom as $Y \sim \chi^2_k$.
+It has mean $k$ and variance $2k$.
 
 Three $\chi^2$ distributions are shown in @fig-chisq.
 
 ```{r}
 #| label: fig-chisq
 #| message: false
-#| fig-cap: Probability density functions for three $\chi^2$ distributions. As the degrees of freedom $k$ increases, the distribution becomes more symmetric, and approximates the Normal distribution N$(k,2k)$.
+#| fig-cap: Probability density functions for three $\chi^2$ distributions.
+#|   As the degrees of freedom $k$ increases, the distribution becomes more symmetric, and approximates the Normal distribution N$(k,2k)$.
+
 dist_chisq(c(1, 2, 5)) |>
   gg_density() +
   labs(x = "y", y = "Probability Density Function: f(y)") +
@@ -98,19 +126,28 @@ dist_chisq(c(1, 2, 5)) |>
 
 ### t distribution
 
-The **t** distribution was first described by the English statistician and chemist, William Gosset, who worked for the Guinness brewery in Dublin, Ireland, and published under the pseudonym "Student". It arises naturally as the ratio $Z/\sqrt{S/k}$, where $Z\sim \text{N}(0,1)$ and $S\sim \chi^2_k$ are independent random variables, and is commonly used in variations of $t$-tests. It takes one parameter, the degrees of freedom $k$. The pdf is given by
+The **t** distribution was first described by the English statistician and chemist, William Gosset, who worked for the Guinness brewery in Dublin, Ireland, and published under the pseudonym "Student".
+It arises naturally as the ratio $Z/\sqrt{S/k}$, where $Z \sim \text{N}(0,1)$ and $S \sim \chi^2_k$ are independent random variables, and is commonly used in variations of $t$-tests.
+It takes one parameter, the degrees of freedom $k$.
+The pdf is given by
 $$
-  f_k(y) = \frac{\Gamma\left(\frac{k+1}{2}\right)}{\sqrt{k\pi}\Gamma\left(\frac{k}{2}\right)}
-  \left(1 + \frac{y^2}{k}\right)^{-\frac{k+1}{2}}.
+  f_k(y) = \frac{\Gamma\left(\frac{k + 1}{2}\right)}{\sqrt{k\pi}\Gamma\left(\frac{k}{2}\right)} \left(1 + \frac{y^2}{k}\right)^{-\frac{k + 1}{2}}.
 $$
-We refer to a t random variable with $k$ degrees of freedom as $Y \sim \text{t}_k$. The t distribution is similar in shape to the standard Normal distribution, but has heavier tails. When $k=1$, the t distribution is known as the "Cauchy" distribution (after the French mathematician Augustin-Louis Cauchy), which has undefined mean and variance. For $k=2$, it has mean 0 and infinite variance. For $k > 2$, it has mean $0$ and variance $k/(k-2)$. When $k\rightarrow\infty$, the t distribution converges to the standard Normal distribution.
+We refer to a t random variable with $k$ degrees of freedom as $Y \sim \text{t}_k$.
+The t distribution is similar in shape to the standard Normal distribution, but has heavier tails.
+When $k = 1$, the t distribution is known as the "Cauchy" distribution (after the French mathematician Augustin-Louis Cauchy), which has undefined mean and variance.
+For $k = 2$, it has mean 0 and infinite variance.
+For $k > 2$, it has mean $0$ and variance $k/(k - 2)$.
+When $k \rightarrow \infty$, the t distribution converges to the standard Normal distribution.
 
 Three t distributions are shown in @fig-t.
 
 ```{r}
 #| label: fig-t
 #| message: false
-#| fig-cap: Probability density functions for three $t$ distributions. As the degrees of freedom $k$ increases, the distribution converges to a N(0,1) distribution.
+#| fig-cap: Probability density functions for three $t$ distributions.
+#|   As the degrees of freedom $k$ increases, the distribution converges to a N(0,1) distribution.
+
 dist_student_t(c(1, 5, 99)) |>
   gg_density(ngrid = 10001) +
   coord_cartesian(xlim = c(-8, 8)) +
@@ -127,17 +164,26 @@ dist_student_t(c(1, 5, 99)) |>
 
 ### $\Gamma$ distribution
 
-The $\Gamma$ (or **Gamma**) distribution is a generalisation of the $\chi^2$ distribution, and is used in many statistical models. There are several parameterisations. Here, we use the shape/rate parameterisation which uses the shape $\alpha$ and the rate $\beta$. The pdf is given by
+The $\Gamma$ (or **Gamma**) distribution is a generalisation of the $\chi^2$ distribution, and is used in many statistical models.
+There are several parameterisations.
+Here, we use the shape/rate parameterisation which uses the shape $\alpha$ and the rate $\beta$.
+The pdf is given by
 $$
-  f(y; \alpha, \beta) = \frac{\beta^\alpha}{\Gamma(\alpha)} y^{\alpha-1}e^{-\beta y}.
+  f(y; \alpha, \beta) = \frac{\beta^\alpha}{\Gamma(\alpha)} y^{\alpha - 1}e^{-\beta y}.
 $$
-We refer to a $\Gamma$ random variable with shape $\alpha$ and rate $\beta$ as $Y \sim \Gamma(\alpha, \beta)$. The mean and variance of a $\Gamma$ random variable are $\alpha/\beta$ and $\alpha/\beta^2$ respectively. The $\chi^2_k$ distribution is a special case of the $\Gamma$ distribution, with $\alpha = k/2$ and $\beta = 1/2$. The Exponential distribution is another special case of the $\Gamma$ distribution, with $\alpha = 1$. The sum of $k$ independent Exponential random variables with rate $\beta$ has a $\Gamma(k, \beta)$ distribution.
+We refer to a $\Gamma$ random variable with shape $\alpha$ and rate $\beta$ as $Y \sim \Gamma(\alpha, \beta)$.
+The mean and variance of a $\Gamma$ random variable are $\alpha/\beta$ and $\alpha/\beta^2$ respectively.
+The $\chi^2_k$ distribution is a special case of the $\Gamma$ distribution, with $\alpha = k/2$ and $\beta = 1/2$.
+The Exponential distribution is another special case of the $\Gamma$ distribution, with $\alpha = 1$.
+The sum of $k$ independent Exponential random variables with rate $\beta$ has a $\Gamma(k, \beta)$ distribution.
 
 Three $\Gamma$ distributions are shown in @fig-gamma.
 
 ```{r}
 #| label: fig-gamma
-#| fig-cap: Probability density functions for three $\Gamma$ distributions. As $\alpha$ increases, the distribution converges to a N$(\alpha/\beta, \alpha/\beta^2)$ distribution.
+#| fig-cap: Probability density functions for three $\Gamma$ distributions.
+#|   As $\alpha$ increases, the distribution converges to a N$(\alpha/\beta, \alpha/\beta^2)$ distribution.
+
 dist_gamma(c(1, 1, 2), c(1, 2, 1)) |>
   gg_density() +
   labs(x = "y", y = "Probability Density Function: f(y)")
@@ -145,27 +191,33 @@ dist_gamma(c(1, 1, 2), c(1, 2, 1)) |>
 
 ### Mixture distributions
 
-A **mixture distribution** is a distribution that is formed by mixing together other distributions. That is, a sample value is drawn from a mixture distribution by first randomly selecting one of the component distributions with some specified probability, and then sampling from the selected component distribution.
+A **mixture distribution** is a distribution that is formed by mixing together other distributions.
+That is, a sample value is drawn from a mixture distribution by first randomly selecting one of the component distributions with some specified probability, and then sampling from the selected component distribution.
 
-The pdf of a mixture distribution is given by the weighted sum of the pdfs of the component distributions, where the weights correspond to the probability of sampling from each component. For example, suppose $Y$ is a mixture of two Normal distributions, with parameters $(\mu_1,\sigma_1^2)$ and $(\mu_2,\sigma_2^2)$, where the first distribution has weight $p$ and the second has weight $1-p$. Then the resulting pdf of the mixture distribution is given by
+The pdf of a mixture distribution is given by the weighted sum of the pdfs of the component distributions, where the weights correspond to the probability of sampling from each component.
+For example, suppose $Y$ is a mixture of two Normal distributions, with parameters $(\mu_1,\sigma_1^2)$ and $(\mu_2,\sigma_2^2)$, where the first distribution has weight $p$ and the second has weight $1 - p$.
+Then the resulting pdf of the mixture distribution is given by
 $$
-  pf(y;\mu_1,\sigma_1^2) + (1-p)f(y;\mu_2,\sigma_2^2),
+  pf(y;\mu_1,\sigma_1^2) + (1 - p)f(y;\mu_2,\sigma_2^2),
 $$
-where $f(y;\mu_j,\sigma_j^2)$ is the pdf of the Normal distribution with mean $\mu_j$ and variance $\sigma_j^2$. The mean and variance of the mixture distribution are given by
+where $f(y;\mu_j,\sigma_j^2)$ is the pdf of the Normal distribution with mean $\mu_j$ and variance $\sigma_j^2$.
+The mean and variance of the mixture distribution are given by
 $$
-  \text{E}(Y) = p\mu_1 + (1-p)\mu_2,
+  \text{E}(Y) = p\mu_1 + (1 - p)\mu_2,
 $$
 and
 $$
-\text{Var}(Y) = p\sigma_1^2 + (1-p)\sigma_2^2 + p(1-p)(\mu_1 - \mu_2)^2,
+  \text{Var}(Y) = p\sigma_1^2 + (1 - p)\sigma_2^2 + p(1 - p)(\mu_1 - \mu_2)^2,
 $$
 respectively.
 
-An example is shown in @fig-mixture, where $\mu_1 = -2$, $\mu_2 = 2$, $\sigma_1^2 = \sigma_2^2 = 1$, and $p=1/3$.
+An example is shown in @fig-mixture, where $\mu_1 = -2$, $\mu_2 = 2$, $\sigma_1^2 = \sigma_2^2 = 1$, and $p = 1/3$.
 
 ```{r}
 #| label: fig-mixture
-#| fig-cap: Probability density function for a mixture of two Normal distributions. The dashed lines show the (scaled) component densities, and the solid line shows the mixture density, equal to the sum of the dashed lines.
+#| fig-cap: Probability density function for a mixture of two Normal distributions.
+#|   The dashed lines show the (scaled) component densities, and the solid line shows the mixture density, equal to the sum of the dashed lines.
+
 d1 <- dist_normal(-2, 1)
 d2 <- dist_normal(2, 1)
 dmix <- dist_mixture(d1, d2, weights = c(1 / 3, 2 / 3))
@@ -184,7 +236,9 @@ density_df(c(d1, d2, dmix)) |>
   theme(legend.position = "none")
 ```
 
-This is an example of a multimodal density function, with modes at $-2$ and $2$. The mixture distribution is not Normal, even though both component distributions are Normal. The mixture distribution is also not symmetric, even though both component distributions are symmetric.
+This is an example of a multimodal density function, with modes at $-2$ and $2$.
+The mixture distribution is not Normal, even though both component distributions are Normal.
+The mixture distribution is also not symmetric, even though both component distributions are symmetric.
 
 ### Further reading
 
@@ -192,57 +246,73 @@ A good introduction to other probability distributions on real sample spaces is 
 
 ## Probability integral transform {#sec-pit}
 
-The **probability integral transform** is a useful result that allows us to transform any continuous random variable into a uniform random variable. If $Y$ is a continuous random variable with cdf $F$, then the random variable $U = F(Y)$ has a U(0,1) distribution. This is because $\Pr(U \le u) = \Pr(F(Y) \le u) = \Pr(Y \le F^{-1}(u)) = F(F^{-1}(u)) = u$ for $0 < u < 1$. The inverse is also true: if $U$ is a U(0,1) random variable, then the random variable $Y = F^{-1}(U)$ has distribution $F$. A useful consequence of this result is that it is possible to simulate from any continuous distribution by first simulating from a U(0,1) distribution, and then applying the inverse cdf of the desired distribution.
+The **probability integral transform** is a useful result that allows us to transform any continuous random variable into a uniform random variable.
+If $Y$ is a continuous random variable with cdf $F$, then the random variable $U = F(Y)$ has a U(0,1) distribution.
+This is because $\Pr(U \le u) = \Pr(F(Y) \le u) = \Pr(Y \le F^{-1}(u)) = F(F^{-1}(u)) = u$ for $0 < u < 1$.
+The inverse is also true: if $U$ is a U(0,1) random variable, then the random variable $Y = F^{-1}(U)$ has distribution $F$.
+A useful consequence of this result is that it is possible to simulate from any continuous distribution by first simulating from a U(0,1) distribution, and then applying the inverse cdf of the desired distribution.
 
 There is also a discrete version of the probability integral transform, but we will not need to use it in this book.
 
 ## Central limit theorem {#sec-clt}
 
-The central limit theorem (CLT) is one of the most important results in statistics. There are several variations of the theorem; the simplest version states that the sum of many independent and identically distributed (iid) random variables, with finite mean and variance, is approximately Normally distributed.
+The central limit theorem (CLT) is one of the most important results in statistics.
+There are several variations of the theorem; the simplest version states that the sum of many independent and identically distributed (iid) random variables, with finite mean and variance, is approximately Normally distributed.
 
 ::: {.callout-tip}
 ## Central Limit Theorem {-}
 
 If $Y_1,\dots,Y_n$ are iid random variables with mean $\mu$ and variance $\sigma^2 < \infty$, then
 $$
-  \frac{\sum_{i=1}^n Y_i - n\mu}{\sigma\sqrt{n}} \longrightarrow \text{N}(0,1).
+  \frac{\sum_{i = 1}^n Y_i - n\mu}{\sigma\sqrt{n}} \longrightarrow \text{N}(0,1).
 $$
 where $\longrightarrow$ denotes convergence in distribution.
 :::
 
-This is a remarkable result as it does not require any assumptions about the underlying distribution of the random variables $Y_1,\dots,Y_n$, other than that they have finite mean and variance. It is also a useful result, as it allows us to use the Normal distribution to approximate the distribution of many statistics.
+This is a remarkable result as it does not require any assumptions about the underlying distribution of the random variables $Y_1,\dots,Y_n$, other than that they have finite mean and variance.
+It is also a useful result, as it allows us to use the Normal distribution to approximate the distribution of many statistics.
 
-For example, the sample mean (or average), is simply the sum of the observations divided by the sample size. So by the CLT, for a large sample size, the sample mean will have a Normal distribution. That is, if the observations come from *any* distribution with finite mean $\mu$ and variance $\sigma^2$, then the sample mean will have distribution $\text{N}(\mu, \sigma^2/n)$ when $n$ is large.
+For example, the sample mean (or average), is simply the sum of the observations divided by the sample size.
+So by the CLT, for a large sample size, the sample mean will have a Normal distribution.
+That is, if the observations come from *any* distribution with finite mean $\mu$ and variance $\sigma^2$, then the sample mean will have distribution $\text{N}(\mu, \sigma^2/n)$ when $n$ is large.
 
 Variations on the theorem allow the variables $Y_1,\dots,Y_n$ to be independent but not necessarily identically distributed, or to be weakly dependent.
 
-It is because of the CLT that a $\chi^2_k$ distribution is approximately Normal for large $k$. (Recall that the sum of the squares of $k$ independent N(0,1) random variables has a $\chi^2_k$ distribution.)
+It is because of the CLT that a $\chi^2_k$ distribution is approximately Normal for large $k$.
+(Recall that the sum of the squares of $k$ independent N(0,1) random variables has a $\chi^2_k$ distribution.)
 
-Similarly, a $\Gamma(\alpha,\beta)$ distribution is approximately Normal for large $\alpha$. (Recall that the sum of $\alpha$ independent $\Gamma(1,\beta)$, or Exponential, random variables has a $\Gamma(\alpha,\beta)$ distribution.)
+Similarly, a $\Gamma(\alpha,\beta)$ distribution is approximately Normal for large $\alpha$.
+(Recall that the sum of $\alpha$ independent $\Gamma(1,\beta)$, or Exponential, random variables has a $\Gamma(\alpha,\beta)$ distribution.)
 
 @Wasserman2004 provides some further details and examples of the CLT.
 
 ## Order statistics and spacings {#sec-gaps}
 
-The **order statistics** of a sample $y_1,\dots,y_n$ are the values rearranged in ascending order, denoted $y_{(1)} \le y_{(2)} \le \cdots \le y_{(n)}$. The $i$th **spacing** is the gap between consecutive order statistics,
+The **order statistics** of a sample $y_1,\dots,y_n$ are the values rearranged in ascending order, denoted $y_{(1)} \le y_{(2)} \le \cdots \le y_{(n)}$.
+The $i$th **spacing** is the gap between consecutive order statistics,
 $$
-  d_i = y_{(i+1)} - y_{(i)}, \quad i = 1, \ldots, n-1.
+  d_i = y_{(i + 1)} - y_{(i)}, \quad i = 1, \ldots, n - 1.
 $$ {#eq-spacing}
 
-If the sample is iid from a uniform distribution, then for large $n$ the spacings are approximately iid exponential random variables with mean $1/(n+1)$, i.e., $\text{Exp}(n+1)$. A spacing substantially larger than $1/(n+1)$ therefore signals an unusually large gap at that location, which may indicate an anomalous observation.
+If the sample is iid from a uniform distribution, then for large $n$ the spacings are approximately iid exponential random variables with mean $1/(n + 1)$, i.e., $\text{Exp}(n + 1)$.
+A spacing substantially larger than $1/(n + 1)$ therefore signals an unusually large gap at that location, which may indicate an anomalous observation.
 
-For other non-uniform distributions, raw spacings are difficult to compare across the distribution: where the density is high they tend to be small, and where the density is low they tend to be large. To put them on a common scale, we can apply the **probability integral transform** (@sec-pit). If the observations are iid from a continuous distribution $F$, then $u_i = F(y_{(i)})$ are distributed as uniform order statistics on $[0,1]$, and the above results apply to the transformed spacings $F(y_{(i+1)}) - F(y_{(i)})$.
+For other non-uniform distributions, raw spacings are difficult to compare across the distribution: where the density is high they tend to be small, and where the density is low they tend to be large.
+To put them on a common scale, we can apply the **probability integral transform** (@sec-pit).
+If the observations are iid from a continuous distribution $F$, then $u_i = F(y_{(i)})$ are distributed as uniform order statistics on $[0,1]$, and the above results apply to the transformed spacings $F(y_{(i + 1)}) - F(y_{(i)})$.
 
 Methods based on this idea are discussed in @sec-gap-tests.
 
-
 ## Quantiles {#sec-quantiles}
 
-A quantile of a continuous univariate distribution is a point that divides the sample space into two regions, based on the probability of observations falling below or above the quantile value. If $Q(p)$ denotes the quantile corresponding to probability $p$, then $\Pr(Y \le Q(p)) = p$ and $\Pr(Y > Q(p)) = 1-p$.
+A quantile of a continuous univariate distribution is a point that divides the sample space into two regions, based on the probability of observations falling below or above the quantile value.
+If $Q(p)$ denotes the quantile corresponding to probability $p$, then $\Pr(Y \le Q(p)) = p$ and $\Pr(Y > Q(p)) = 1 - p$.
 
 ```{r}
 #| label: fig-quantile
-#| fig-cap: The 0.8 quantile of a $\chi^2_5$ distribution is the value $Q(0.8) = 7.29$ such that $\Pr(Y \le 7.29) = 0.8$. The shaded area is 0.8, and the probability of observing a value greater than 7.29 is 0.2.
+#| fig-cap: The 0.8 quantile of a $\chi^2_5$ distribution is the value $Q(0.8) = 7.29$ such that $\Pr(Y \le 7.29) = 0.8$.
+#|   The shaded area is 0.8, and the probability of observing a value greater than 7.29 is 0.2.
+
 dist <- dist_chisq(5)
 q80 <- quantile(dist, p = 0.8)
 x5 <- tibble(
@@ -268,15 +338,21 @@ x5 |>
 
 The quantiles of a continuous distribution are given by the inverse of the cumulative distribution function, $Q(p) = F^{-1}(p)$.
 
-Some quantiles are given special names. The $p=0.5$ quantile is called the **median**. The $p=0.25$ and $p=0.75$ quantiles are called the **lower** and **upper quartiles** respectively. The **deciles** are defined with $p=0.1,0.2,\dots,0.9$, while the **percentiles** are defined with $p=0.01,0.02,\dots,0.99$.
+Some quantiles are given special names.
+The $p = 0.5$ quantile is called the **median**.
+The $p = 0.25$ and $p = 0.75$ quantiles are called the **lower** and **upper quartiles** respectively.
+The **deciles** are defined with $p = 0.1,0.2,\dots,0.9$, while the **percentiles** are defined with $p = 0.01,0.02,\dots,0.99$.
 
 ```{r}
 #| label: normal_iqr
 #| include: false
+
 normal_iqr <- qnorm(0.75) - qnorm(0.25)
 ```
 
-The "interquartile range" (IQR) is the difference between the upper and lower quartiles. It is a measure of the spread of the distribution, and is often used as a robust alternative to the standard deviation. For a Normal distribution, the IQR equals `r sprintf("%.3f", normal_iqr)` times the standard deviation (and hence the standard deviation is approximately `r sprintf("%.3f", 1/normal_iqr)` times the IQR).
+The "interquartile range" (IQR) is the difference between the upper and lower quartiles.
+It is a measure of the spread of the distribution, and is often used as a robust alternative to the standard deviation.
+For a Normal distribution, the IQR equals `r sprintf("%.3f", normal_iqr)` times the standard deviation (and hence the standard deviation is approximately `r sprintf("%.3f", 1/normal_iqr)` times the IQR).
 
 The quantile functions for a standard Normal distribution, a $\text{t}_5$ distribution, and a $\chi^2_5$ distribution are shown in @fig-quantile2.
 
@@ -284,6 +360,7 @@ The quantile functions for a standard Normal distribution, a $\text{t}_5$ distri
 #| label: fig-quantile2
 #| fig-cap: Quantile function for a standard Normal distribution, a $\text{t}_5$ distribution, and a $\chi^2_5$ distribution.
 #| message: false
+
 p <- seq(0, 1, l = 501)
 c(dist_normal(0, 1), dist_student_t(5), dist_chisq(5)) |>
   quantile(p = p) |>
@@ -305,33 +382,44 @@ c(dist_normal(0, 1), dist_student_t(5), dist_chisq(5)) |>
 
 ## Sample quantiles {#sec-sample-quantiles}
 
-The **sample quantiles** of a data set are estimates of the quantiles of the underlying distribution. Suppose we have data on a single variable, $\{y_1,\dots,y_n\}$, and we want to estimate a quantile $Q(p)$. There are a surprising number of ways this can be done, and there is no accepted standard approach.
+The **sample quantiles** of a data set are estimates of the quantiles of the underlying distribution.
+Suppose we have data on a single variable, $\{y_1,\dots,y_n\}$, and we want to estimate a quantile $Q(p)$.
+There are a surprising number of ways this can be done, and there is no accepted standard approach.
 
 ### The `quantile()` function
 
-The R function `quantile()` includes nine variations when applied to numerical inputs, based on @HF96. Which variation you use makes little difference except for tiny data sets where $n$ is small, or when you are interested in the tails when $p$ is close to 0 or 1. However, for anomaly detection, we are usually interested in the tails, so we will need to use a method that works well for extreme values of $p$.
+The R function `quantile()` includes nine variations when applied to numerical inputs, based on @HF96.
+Which variation you use makes little difference except for tiny data sets where $n$ is small, or when you are interested in the tails when $p$ is close to 0 or 1.
+However, for anomaly detection, we are usually interested in the tails, so we will need to use a method that works well for extreme values of $p$.
 
 Let's compare two of the possible variations available in `quantile()`: `type = 7` which is the default method, and `type = 8` which was the recommendation of @HF96 due to it having smaller bias.
 
-The sample quantile $\hat{Q}(p)$ is given by linear interpolation between consecutive order statistics. That is, if $k^+= p(n+1-2a) +a$ for some constant $a$, and $k = \lfloor k^+ \rfloor$ is the integer part of $k^+$, then
+The sample quantile $\hat{Q}(p)$ is given by linear interpolation between consecutive order statistics.
+That is, if $k^+ = p(n + 1 - 2a) + a$ for some constant $a$, and $k = \lfloor k^+\rfloor$ is the integer part of $k^+$, then
 $$
-  \hat{Q}(p) = (1-\gamma) y_{(k)} + \gamma y_{(k+1)},
+  \hat{Q}(p) = (1 - \gamma) y_{(k)} + \gamma y_{(k + 1)},
 $$
-where $\gamma = k^+ - k$ is the remainder. Most of the different methods for estimating quantiles differ only in the value of $a$.
+where $\gamma = k^+ - k$ is the remainder.
+Most of the different methods for estimating quantiles differ only in the value of $a$.
 
-* When the default `type = 7` is used, $a = 1$, so $k^+ = p(n-1) + 1$.
-* When `type = 8` is used, $a= 1/3$, so $k^+ = p(n+1/3) + 1/3$.
+- When the default `type = 7` is used, $a = 1$, so $k^+ = p(n - 1) + 1$.
+- When `type = 8` is used, $a = 1/3$, so $k^+ = p(n + 1/3) + 1/3$.
 
-For any value of $a$, if $p=0.5$ then $k^+ = (n+1)/2$, and we obtain the sample median:
+For any value of $a$, if $p = 0.5$ then $k^+ = (n + 1)/2$, and we obtain the sample median:
 
-  * When $n$ is even, then $k=n/2$ and $\gamma = 1/2$, so $\hat{Q}(0.5)$ is the average of the middle two observations.
-  * When $n$ is odd, then $k=(n+1)/2$ and $\gamma = 0$, so $\hat{Q}(0.5)$ is the middle observation.
+- When $n$ is even, then $k = n/2$ and $\gamma = 1/2$, so $\hat{Q}(0.5)$ is the average of the middle two observations.
+- When $n$ is odd, then $k = (n + 1)/2$ and $\gamma = 0$, so $\hat{Q}(0.5)$ is the middle observation.
 
-For large $n$, the sample quantile should provide a good estimate of the true quantile, so that $\hat{Q}(p) \approx Q(p)$. We can study the bias of the estimator by simulating from a known distribution, and comparing the sample quantiles to the true quantiles. In @fig-quantile-bias, we do this for samples drawn from a N(0,1) distribution. The estimated bias is based on repeating the exercise 10,000 times and averaging the results.
+For large $n$, the sample quantile should provide a good estimate of the true quantile, so that $\hat{Q}(p) \approx Q(p)$.
+We can study the bias of the estimator by simulating from a known distribution, and comparing the sample quantiles to the true quantiles.
+In @fig-quantile-bias, we do this for samples drawn from a N(0,1) distribution.
+The estimated bias is based on repeating the exercise 10,000 times and averaging the results.
 
 ```{r}
 #| label: fig-quantile-bias
-#| fig-cap: Bias of the sample quantile for a N(0,1) distribution. The orange line shows the bias of the default `type = 7` quantile method, while the blue line shows the bias of the preferred `type = 8` quantile method.
+#| fig-cap: Bias of the sample quantile for a N(0,1) distribution.
+#|   The orange line shows the bias of the default `type = 7` quantile method, while the blue line shows the bias of the preferred `type = 8` quantile method.
+
 avequantile <- function(n, p, N) {
   Q7 <- Q8 <- numeric(length(p))
   for (i in seq(N)) {
@@ -375,15 +463,18 @@ qbias |>
   )
 ```
 
-Clearly, the `type = 8` sample quantile gives much better results than the default `type = 7` method, especially when $p$ is close to 0 or 1. Consequently, we will always use `type = 8` when computing sample quantiles in the remainder of this book.
+Clearly, the `type = 8` sample quantile gives much better results than the default `type = 7` method, especially when $p$ is close to 0 or 1.
+Consequently, we will always use `type = 8` when computing sample quantiles in the remainder of this book.
 
 ### Example: Test cricket batting averages {-}
 
-We can calculate some of the sample quantiles for Test cricket batting averages, considering only those batters who have played at least 20 innings. These values are easily computed using the `quantile()` function with argument `type = 8`.
+We can calculate some of the sample quantiles for Test cricket batting averages, considering only those batters who have played at least 20 innings.
+These values are easily computed using the `quantile()` function with argument `type = 8`.
 
 ```{r}
 #| label: battingquantiles
 #| code-fold: false
+
 cricket_batting |>
   filter(Innings > 20) |>
   pull(Average) |>
@@ -396,6 +487,7 @@ cricket_batting |>
 #| warning: false
 #| message: false
 #| fig-cap: "Some sample quantiles of career batting averages for all men and women to have played test cricket and batted more than 20 times."
+
 batave <- cricket_batting |>
   filter(Innings > 20)
 p <- c(0.25, 0.5, 0.75, 0.99)
@@ -427,28 +519,38 @@ Half of all batters average above `r sprintf("%.2f", quantile(batave$Average, pr
 
 With a large sample size $n$, the sample quantile $\hat{Q}(p)$ has an approximate Normal distribution,
 $$
-\hat{Q}(p) \approx \text{N}\left(Q(p), \frac{p(1-p)}{n f^2(Q(p))}\right)
+  \hat{Q}(p) \approx \text{N}\left(Q(p), \frac{p(1 - p)}{n f^2(Q(p))}\right)
 $$ {#eq-sample-quantile-distribution}
-where $f(Q(p)) > 0$ and $f(y)$ is the density of the underlying distribution [@van2000asymptotic, p. 308]. This is an asymptotic result, which assumes $np$ is large, and holds for all types of sample quantiles.
-
+where $f(Q(p)) > 0$ and $f(y)$ is the density of the underlying distribution [@van2000asymptotic, p. 308].
+This is an asymptotic result, which assumes $np$ is large, and holds for all types of sample quantiles.
 
 ## Highest density regions {#sec-hdr}
 
-A **highest density region** is defined as the region of the sample space where the density is higher than a given threshold [@HDR96]. It is commonly specified using the probability mass that the HDR contains. For example, a 95% HDR is the region of the sample space that contains 95% of the probability mass, and where every point inside the region has higher density than any point outside the region.
+A **highest density region** is defined as the region of the sample space where the density is higher than a given threshold [@HDR96].
+It is commonly specified using the probability mass that the HDR contains.
+For example, a 95% HDR is the region of the sample space that contains 95% of the probability mass, and where every point inside the region has higher density than any point outside the region.
 
-For the univariate random variable $Y$, with a smooth, continuous density function $f$, the $100(1-\alpha)$% HDR is the set
+For the univariate random variable $Y$, with a smooth, continuous density function $f$, the $100(1 - \alpha)$% HDR is the set
 $$
   R_\alpha = \{y: f(y) \ge f_\alpha\}
 $$ {#eq-hdr}
-where $\Pr(Y \in R_\alpha) = 1-\alpha$.
+where $\Pr(Y \in R_\alpha) = 1 - \alpha$.
 
-A useful property of the HDR is that it is the smallest region containing $1-\alpha$ of the probability mass.
+A useful property of the HDR is that it is the smallest region containing $1 - \alpha$ of the probability mass.
 
-For a symmetric unimodal distribution such as the Normal or t distributions, the HDR is an interval centred on the mean (which is equal to the median), with the ends given by the $\alpha/2$ and $1-\alpha/2$ quantiles. For a skewed unimodal distribution such as the $\chi^2$ or Gamma distributions, the HDR is also an interval, but it is not centred on the mean (or median), and the ends are not given by symmetric quantiles. An example is shown in @fig-hdr, with two 90% regions for a $\chi^2_5$ distribution. The one shown in blue is based on the 0.05 and 0.95 quantiles, while the orange region is the 90% HDR. Notice that both are intervals, and that the orange interval is smaller than the blue interval. The value of the density at the ends of the HDR is the same, and is given by $f_\alpha$.
+For a symmetric unimodal distribution such as the Normal or t distributions, the HDR is an interval centred on the mean (which is equal to the median), with the ends given by the $\alpha/2$ and $1 - \alpha/2$ quantiles.
+For a skewed unimodal distribution such as the $\chi^2$ or Gamma distributions, the HDR is also an interval, but it is not centred on the mean (or median), and the ends are not given by symmetric quantiles.
+An example is shown in @fig-hdr, with two 90% regions for a $\chi^2_5$ distribution.
+The one shown in blue is based on the 0.05 and 0.95 quantiles, while the orange region is the 90% HDR.
+Notice that both are intervals, and that the orange interval is smaller than the blue interval.
+The value of the density at the ends of the HDR is the same, and is given by $f_\alpha$.
 
 ```{r}
 #| label: fig-hdr
-#| fig-cap: Highest density region for a $\chi^2_5$ distribution. The blue bar shows the 90% interval based on the 0.05 and 0.95 quantiles. The orange bar shows the 90% HDR, which is the smallest region containing 90% of the probability mass.
+#| fig-cap: Highest density region for a $\chi^2_5$ distribution.
+#|   The blue bar shows the 90% interval based on the 0.05 and 0.95 quantiles.
+#|   The orange bar shows the 90% HDR, which is the smallest region containing 90% of the probability mass.
+
 dist <- dist_chisq(5)
 interval1 <- quantile(dist, p = c(0.05, 0.95)) |> unlist()
 interval2 <- hdr(dist, size = 90) |> unlist()
@@ -487,11 +589,15 @@ gg_density(dist) +
   )
 ```
 
-For a multimodal distribution, the HDR may be a union of intervals. For example, the HDR for the mixture shown in @fig-mixture is displayed in @fig-hdr-mixture.
+For a multimodal distribution, the HDR may be a union of intervals.
+For example, the HDR for the mixture shown in @fig-mixture is displayed in @fig-hdr-mixture.
 
 ```{r}
 #| label: fig-hdr-mixture
-#| fig-cap: Highest density region for the mixture distribution shown in @fig-mixture. The blue bar shows the 90% interval based on the 0.05 and 0.95 quantiles. The orange bar shows the 90% HDR, which is the smallest region containing 90% of the probability mass.
+#| fig-cap: Highest density region for the mixture distribution shown in @fig-mixture.
+#|   The blue bar shows the 90% interval based on the 0.05 and 0.95 quantiles.
+#|   The orange bar shows the 90% HDR, which is the smallest region containing 90% of the probability mass.
+
 dist <- dist_mixture(
   dist_normal(-2, 1),
   dist_normal(2, 1),
@@ -545,9 +651,11 @@ p +
 
 ## Robust estimation {#sec-robust-univariate}
 
-Many anomaly detection methods will need an estimate of the centre and the spread of the distribution of data. The usual estimators are the sample mean and sample standard deviation, but these are sensitive to outliers, so we will need to use alternatives.
+Many anomaly detection methods will need an estimate of the centre and the spread of the distribution of data.
+The usual estimators are the sample mean and sample standard deviation, but these are sensitive to outliers, so we will need to use alternatives.
 
-For univariate data, the sample median provides a convenient robust estimator of the centre of the distribution. A simple robust estimator of the spread is the IQR, defined as
+For univariate data, the sample median provides a convenient robust estimator of the centre of the distribution.
+A simple robust estimator of the spread is the IQR, defined as
 $$
   \text{IQR} = \hat{Q}(0.75) - \hat{Q}(0.25).
 $$ {#eq-iqr}
@@ -555,29 +663,45 @@ Another commonly used robust estimator of spread is the median absolute deviatio
 $$
   \text{MAD} = \text{median}(|y_i - \text{median}(y)|).
 $$ {#eq-mad}
-If our data come from a Normal distribution, then the standard deviation is given by $s = 0.7413\times\text{IQR} = 1.4826\times\text{MAD}$.
+If our data come from a Normal distribution, then the standard deviation is given by $s = 0.7413 \times \text{IQR} = 1.4826 \times \text{MAD}$.
 
-A third robust estimator of the spread is the $Q_n$ estimator [@Rousseeuw1993-tq], based on pairwise differences between observations. Let $\Delta_{ij} = |y_i-y_j|$ denote the absolute difference between the $i$th and $j$th observations, for $1 \le i < j \le n$. There are $n(n-1)/2$ such differences. Let $\Delta_{(k)}$ be the $k$th largest of these differences, where $k = {\lfloor n/2\rfloor + 1 \choose 2}$ and $\lfloor n/2\rfloor$ is the integer part of $n/2$. Thus, $\Delta_{(k)}$ is approximately equal to the first quartile of the absolute pairwise differences. Then
-$$Q_n = d_n\Delta_{(k)},$$
-where $d_n$ is a constant that depends on $n$ and is designed to scale $Q_n$ so that it provides an estimate of the standard deviation for a Normal distribution. For large $n$, $d_n = 2.219$. While the IQR and MAD estimators are somewhat simpler and easier to understand, the $Q_n$ estimator has some useful properties [as discussed in @Rousseeuw1993-tq].
+A third robust estimator of the spread is the $Q_n$ estimator [@Rousseeuw1993-tq], based on pairwise differences between observations.
+Let $\Delta_{ij} = |y_i - y_j|$ denote the absolute difference between the $i$th and $j$th observations, for $1 \le i < j \le n$.
+There are $n(n - 1)/2$ such differences.
+Let $\Delta_{(k)}$ be the $k$th largest of these differences, where $k = {\lfloor n/2\rfloor + 1 \choose 2}$ and $\lfloor n/2\rfloor$ is the integer part of $n/2$.
+Thus, $\Delta_{(k)}$ is approximately equal to the first quartile of the absolute pairwise differences.
+Then
+$$
+  Q_n = d_n\Delta_{(k)},
+$$
+where $d_n$ is a constant that depends on $n$ and is designed to scale $Q_n$ so that it provides an estimate of the standard deviation for a Normal distribution.
+For large $n$, $d_n = 2.219$.
+While the IQR and MAD estimators are somewhat simpler and easier to understand, the $Q_n$ estimator has some useful properties [as discussed in @Rousseeuw1993-tq].
 
 All three of these robust estimators of the standard deviation can be computed using the `robustbase` package, with the functions `s_IQR()`, `s_mad()`, and `s_Qn()` respectively.
 
 ## Univariate kernel density estimation {#sec-kde}
 
-Unlike the examples discussed in @sec-common, we will not normally know what distribution our data come from, and they will almost never be from a standard parametric distribution such as a Normal, t, $\chi^2$ or Gamma distribution. Instead, we will need to estimate the probability density function from the data. Kernel density estimation is the most popular method for nonparametric estimation of a probability density function.
+Unlike the examples discussed in @sec-common, we will not normally know what distribution our data come from, and they will almost never be from a standard parametric distribution such as a Normal, t, $\chi^2$ or Gamma distribution.
+Instead, we will need to estimate the probability density function from the data.
+Kernel density estimation is the most popular method for nonparametric estimation of a probability density function.
 
 ### Kernel density estimates
 
-Suppose we have $n$ univariate observations, $\{y_1,\dots,y_n\}$, which are independent draws from a probability distribution, and we want to estimate the underlying probability density function. The kernel density estimate [see @WJ1995] is given by
+Suppose we have $n$ univariate observations, $\{y_1,\dots,y_n\}$, which are independent draws from a probability distribution, and we want to estimate the underlying probability density function.
+The kernel density estimate [see @WJ1995] is given by
 $$
-  \hat{f}(y) = \frac{1}{n} \sum_{i=1}^n K_h(y-y_i),
+  \hat{f}(y) = \frac{1}{n} \sum_{i = 1}^n K_h(y - y_i),
 $$ {#eq-kde}
-where $K_h$ is a "kernel" function and $h$ is a bandwidth to be determined. We will use kernel functions that are themselves probability density functions with mean 0 and standard deviation $h$. Thus, a kernel density estimate is a mixture distribution with $n$ components, each of which is a kernel function centred at one of the observations. For example, the "Gaussian" kernel (which we will use in all examples) is $K_h(u) = \exp(-\frac12u^2/h^2)/(h\sqrt{2\pi})$, equal to the Normal density function with mean zero and standard deviation $h$.
+where $K_h$ is a "kernel" function and $h$ is a bandwidth to be determined.
+We will use kernel functions that are themselves probability density functions with mean 0 and standard deviation $h$.
+Thus, a kernel density estimate is a mixture distribution with $n$ components, each of which is a kernel function centred at one of the observations.
+For example, the "Gaussian" kernel (which we will use in all examples) is $K_h(u) = \exp(-\frac12u^2/h^2)/(h\sqrt{2\pi})$, equal to the Normal density function with mean zero and standard deviation $h$.
 
 ```{r}
 #| label: of2021
 #| include: false
+
 of2021 <- oldfaithful |>
   filter(as.Date(time) > "2021-01-01") |>
   head(10) |>
@@ -585,9 +709,11 @@ of2021 <- oldfaithful |>
 h <- kde_bandwidth(of2021$duration)
 ```
 
-Now we will apply @eq-kde to the first ten Old Faithful eruption durations from 2021 that are in the `oldfaithful` data set. The kernel density estimate can be visualised as a sum of kernel functions centred over each observation with width determined by $h$, and height given by $K_h(0)/n$.
+Now we will apply @eq-kde to the first ten Old Faithful eruption durations from 2021 that are in the `oldfaithful` data set.
+The kernel density estimate can be visualised as a sum of kernel functions centred over each observation with width determined by $h$, and height given by $K_h(0)/n$.
 
-Let's suppose $K_h$ is a Gaussian kernel and let $h = `r round(h, 1)`$ (I will explain this choice below). Then we get the following set of kernel functions.
+Let's suppose $K_h$ is a Gaussian kernel and let $h = `r round(h, 1)`$ (I will explain this choice below).
+Then we get the following set of kernel functions.
 
 ```{r}
 #| label: fig-kde1
@@ -595,6 +721,7 @@ Let's suppose $K_h$ is a Gaussian kernel and let $h = `r round(h, 1)`$ (I will e
 #| depends: of2021
 #| echo: false
 #| fig-cap: Kernel functions centred over the observations.
+
 k <- tibble(x = seq(-3 * h, 3 * h, l = 1000)) |>
   mutate(y = dnorm(x, 0, h) / 10)
 of2021kde <- of2021 |>
@@ -617,7 +744,7 @@ ggplot() +
   labs(x = "y = Duration (seconds)", y = latex2exp::TeX("$K_h(y - y_i)/n$"))
 ```
 
-The vertical ticks show the location of the ten observations, while the grey lines show $\frac{1}{n}K_h(y - y_i)$ for $i=1,\dots,n$.
+The vertical ticks show the location of the ten observations, while the grey lines show $\frac{1}{n}K_h(y - y_i)$ for $i = 1,\dots,n$.
 
 These functions are then added together, as in @eq-kde, to give the density estimate.
 
@@ -627,6 +754,7 @@ These functions are then added together, as in @eq-kde, to give the density esti
 #| dependson: kde1
 #| echo: false
 #| fig-cap: Density estimate formed by summing the kernel functions centred on the observations.
+
 ggplot() +
   geom_line(
     data = of2021kde,
@@ -643,9 +771,12 @@ ggplot() +
   labs(x = "y = Duration (seconds)", y = "Density")
 ```
 
-We made two choices when producing this estimate: the value of $h$ and the type of kernel $K_h$. If either was replaced with a different choice, the estimate would be different. For large data sets, it does not make much difference which kernel function is used.
+We made two choices when producing this estimate: the value of $h$ and the type of kernel $K_h$.
+If either was replaced with a different choice, the estimate would be different.
+For large data sets, it does not make much difference which kernel function is used.
 
-The choice of $h$ is more difficult and will change the shape of the density estimate substantially. Here are three versions of the density estimate with bandwidths given by $h=5$, $h=15$ and $h=40$.
+The choice of $h$ is more difficult and will change the shape of the density estimate substantially.
+Here are three versions of the density estimate with bandwidths given by $h = 5$, $h = 15$ and $h = 40$.
 
 ```{r}
 #| label: fig-kde3
@@ -653,6 +784,7 @@ The choice of $h$ is more difficult and will change the shape of the density est
 #| dependson: of2021
 #| echo: false
 #| fig-cap: Kernel density estimates based on different bandwidth values $h$.
+
 of2021 |>
   ggplot(aes(x = duration)) +
   geom_rug(sides = "b", linewidth = 1) +
@@ -667,7 +799,9 @@ of2021 |>
   geom_label(x = 320, y = 0.004, label = "h = 40", col = "#009E73")
 ```
 
-When $h$ is too small, the density estimate is too rough, with many peaks and troughs. When $h$ is too large, the density estimate is too smooth and we fail to see any features in the data. A popular choice for $h$ is the "normal reference rule" [@Silverman1986, p. 45] given by
+When $h$ is too small, the density estimate is too rough, with many peaks and troughs.
+When $h$ is too large, the density estimate is too smooth and we fail to see any features in the data.
+A popular choice for $h$ is the "normal reference rule" [@Silverman1986, p. 45] given by
 $$
   h = 1.059 s n^{-1/5}.
 $$ {#eq-nrr}
@@ -677,15 +811,19 @@ Because we want our results to be robust to outliers, it is usually better to re
 $$
   h = 1.059 Q_n n^{-1/5}.
 $$ {#eq-rnrr}
-We will call this the "robust normal reference rule"; it is implemented in the function `kde_bandwidth()` when `method = "robust"` (which is the default setting). For the 10 observations in the example above, it gives $h = `r round(h, 1)`$, which is the value we used.
+We will call this the "robust normal reference rule"; it is implemented in the function `kde_bandwidth()` when `method = "robust"` (which is the default setting).
+For the 10 observations in the example above, it gives $h = `r round(h, 1)`$, which is the value we used.
 
-This example using only 10 observations was purely to illustrate the method. Let's now estimate a kernel density estimate for the full data set. We will use the `dist_kde()` function, which uses the Gaussian kernel, and by default sets the bandwidth using the robust normal reference rule (@eq-rnrr) via the `kde_bandwidth()` function.
+This example using only 10 observations was purely to illustrate the method.
+Let's now estimate a kernel density estimate for the full data set.
+We will use the `dist_kde()` function, which uses the Gaussian kernel, and by default sets the bandwidth using the robust normal reference rule (@eq-rnrr) via the `kde_bandwidth()` function.
 
 ```{r}
 #| label: fig-oldfaithful4
 #| fig-asp: 0.45
 #| code-fold: false
 #| fig-cap: "Kernel density estimate of Old Faithful eruption durations between 2017 and 2023."
+
 of_density <- dist_kde(oldfaithful$duration)
 of_density |>
   gg_density() +
@@ -696,10 +834,14 @@ of_density |>
 ```{r}
 #| label: of-bandwidth
 #| include: false
+
 h <- kde_bandwidth(oldfaithful$duration)
 ```
 
-As this is a much bigger data set (with `r NROW(oldfaithful)` observations), the selected bandwidth is smaller and is now $h = `r round(h, 2)`$. Here the estimated density has clearly identified the two groups of eruptions, one much larger than the other. The extreme observations of 1 minute or less, and the unusual observations between 140 and 180 seconds are in the areas of low density. Later we will use density estimates at each observation to identify anomalous points.
+As this is a much bigger data set (with `r NROW(oldfaithful)` observations), the selected bandwidth is smaller and is now $h = `r round(h, 2)`$.
+Here the estimated density has clearly identified the two groups of eruptions, one much larger than the other.
+The extreme observations of 1 minute or less, and the unusual observations between 140 and 180 seconds are in the areas of low density.
+Later we will use density estimates at each observation to identify anomalous points.
 
 ### Statistical properties {-}
 
@@ -707,62 +849,80 @@ The statistical properties of the kernel density estimator (@eq-kde) have been e
 
 An important asymptotic result is that the mean square error (MSE) of $\hat{f}(y)$ is
 $$
-  \text{E}\left[(\hat{f}(y) - f(y))^2\right] \approx
-  \frac{1}{4}h^4[f''(y)]^2 + \frac{f(y)R(K)}{nh},
+  \text{E}\left[(\hat{f}(y) - f(y))^2\right] \approx \frac{1}{4}h^4[f''(y)]^2
+                                                     + \frac{f(y)R(K)}{nh},
 $$ {#eq-mse}
-where $R(K) = \int K^2(u)du$ is the "roughness" of the kernel function. An estimator is "consistent" if the MSE goes to zero as the sample size $n$ goes to infinity. So @eq-kde gives a consistent estimator of the underlying density $f$ when both terms in @eq-mse go to zero. That is,
+where $R(K) = \int K^2(u)du$ is the "roughness" of the kernel function.
+An estimator is "consistent" if the MSE goes to zero as the sample size $n$ goes to infinity.
+So @eq-kde gives a consistent estimator of the underlying density $f$ when both terms in @eq-mse go to zero.
+That is,
 $$
-  \lim_{n\rightarrow\infty} h = 0
-  \qquad\text{and}\qquad
-  \lim_{n\rightarrow\infty} nh = \infty,
+  \lim_{n \rightarrow \infty} h = 0 \qquad\text{and}\qquad \lim_{n \rightarrow \infty} nh
+                                = \infty,
 $$ {#eq-asymptotickde}
-and so $h$ should decrease slowly as $n$ increases. Note that these conditions hold for @eq-rnrr.
+and so $h$ should decrease slowly as $n$ increases.
+Note that these conditions hold for @eq-rnrr.
 
 If we integrate the MSE given by @eq-mse over $y$ (assuming $f$ is sufficiently smooth for the integral to exist), we obtain the mean integrated squared error (MISE) given by
 $$
-  \int \text{E}\left[(\hat{f}(y) - f(y))^2\right] dy \approx
-  \frac{1}{4}h^4R(f'') + \frac{R(K)}{nh},
+  \int \text{E}\left[(\hat{f}(y) - f(y))^2\right] dy \approx \frac{1}{4}h^4R(f'')
+                                                             + \frac{R(K)}{nh},
 $$ {#eq-mise}
-where $R(f'') = \int [f''(y)]^2 dy$ is the roughness of the second derivative of the underlying density. This gives us the average squared error over the whole range of $y$.
+where $R(f'') = \int [f''(y)]^2 dy$ is the roughness of the second derivative of the underlying density.
+This gives us the average squared error over the whole range of $y$.
 
 ### Bandwidth selection
 
-The optimal overall bandwidth is obtained by minimising the MISE. This can be calculated by differentiating @eq-mise with respect to $h$ and setting the derivative to zero, yielding
+The optimal overall bandwidth is obtained by minimising the MISE.
+This can be calculated by differentiating @eq-mise with respect to $h$ and setting the derivative to zero, yielding
 $$
   h = \left(\frac{R(K)}{R(f'')n}\right)^{1/5}.
 $$ {#eq-opth}
 So the optimal $h$ is proportional to $n^{-1/5}$, which clearly satisfies the conditions given by @eq-asymptotickde.
 
-However, this value of $h$ depends on the underlying density $f$ which we don't know. If $f$ is a Normal density with variance $\sigma^2$, then $R(f) = \frac{1}{2\sqrt{\pi}}\sigma^{-1}$ and $R(f'') = \frac{3}{8\sqrt{\pi}}\sigma^{-5}$. So if we use a Gaussian kernel, and assume the underlying density has the same roughness as a Normal density, we obtain
+However, this value of $h$ depends on the underlying density $f$ which we don't know.
+If $f$ is a Normal density with variance $\sigma^2$, then $R(f) = \frac{1}{2\sqrt{\pi}}\sigma^{-1}$ and $R(f'') = \frac{3}{8\sqrt{\pi}}\sigma^{-5}$.
+So if we use a Gaussian kernel, and assume the underlying density has the same roughness as a Normal density, we obtain
 $$
   h = \sigma \left(\frac{4}{3n}\right)^{1/5}.
 $$ {#eq-opth2}
-Replacing $\sigma$ by the sample standard deviation gives us the normal reference rule @eq-nrr. When $\sigma$ is replaced the robust estimate $Q_n$, we obtain the robust normal reference rule @eq-rnrr.
+Replacing $\sigma$ by the sample standard deviation gives us the normal reference rule @eq-nrr.
+When $\sigma$ is replaced the robust estimate $Q_n$, we obtain the robust normal reference rule @eq-rnrr.
 
-Several other related bandwidth selection methods are widely used. For example, instead of using $Q_n$ to estimate $s$, we might use the minimum of the sample standard deviation and the robust estimate based on the IQR, giving
+Several other related bandwidth selection methods are widely used.
+For example, instead of using $Q_n$ to estimate $s$, we might use the minimum of the sample standard deviation and the robust estimate based on the IQR, giving
 $$
-  h = 1.06 \min(s, 0.7413\times\text{IQR}) n^{-1/5}.
+  h = 1.06 \min(s, 0.7413 \times \text{IQR}) n^{-1/5}.
 $$ {#eq-nrd}
-Silverman's "rule-of-thumb" is similar, but it replaces 1.06 in @eq-nrd by 0.9, because Silverman argued that most densities are not as smooth as a Normal density, and so a smaller bandwidth is required. This is the default bandwidth used by `geom_density()` and `density()`.
+Silverman's "rule-of-thumb" is similar, but it replaces 1.06 in @eq-nrd by 0.9, because Silverman argued that most densities are not as smooth as a Normal density, and so a smaller bandwidth is required.
+This is the default bandwidth used by `geom_density()` and `density()`.
 
-Another popular bandwidth choice is the "plug-in" bandwidth [@SJ91], obtained by replacing $R(f'')$ in @eq-opth by an estimate based on the data. This is computed by `kde_bandwidth()` when `method = "plugin"`. For most data sets, this will give a smaller value than @eq-nrr.
+Another popular bandwidth choice is the "plug-in" bandwidth [@SJ91], obtained by replacing $R(f'')$ in @eq-opth by an estimate based on the data.
+This is computed by `kde_bandwidth()` when `method = "plugin"`.
+For most data sets, this will give a smaller value than @eq-nrr.
 
-Bandwidths obtained in this way are designed to give a good overall estimate of the underlying density, but may not be optimal for any particular point of the density. Our goal is to find anomalies in the data, rather than find a good representation for the rest of the data, and so we are interested in the regions of low density.
+Bandwidths obtained in this way are designed to give a good overall estimate of the underlying density, but may not be optimal for any particular point of the density.
+Our goal is to find anomalies in the data, rather than find a good representation for the rest of the data, and so we are interested in the regions of low density.
 
 If we optimized MSE (@eq-mse) rather than MISE (@eq-mise), we would obtain
 $$
-h = \left(\frac{f(y)R(K)}{n[f''(y)]^2}\right)^{1/5}.
+  h = \left(\frac{f(y)R(K)}{n[f''(y)]^2}\right)^{1/5}.
 $$
-This shows that larger bandwidths are required when $f(y)/[f''(y)]^2$ is relatively large, which often occurs in the extreme tails of a distribution. So bandwidths for anomaly detection tend to be larger than bandwidths for other purposes.
+This shows that larger bandwidths are required when $f(y)/[f''(y)]^2$ is relatively large, which often occurs in the extreme tails of a distribution.
+So bandwidths for anomaly detection tend to be larger than bandwidths for other purposes.
 
-A final option in `kde_bandwidth()` is `method = "lookout"`. We will defer a description of that method until @sec-mvkde.
+A final option in `kde_bandwidth()` is `method = "lookout"`.
+We will defer a description of that method until @sec-mvkde.
 
 ### Highest kernel density regions
 
-The kernel density estimate can be used to identify regions of highest density in the data. We can apply the `hdr()` function to the estimated distribution to find the HDR regions with specified probability coverage. For example, we can compute the 90% HDR for the `oldfaithful` data set as follows:
+The kernel density estimate can be used to identify regions of highest density in the data.
+We can apply the `hdr()` function to the estimated distribution to find the HDR regions with specified probability coverage.
+For example, we can compute the 90% HDR for the `oldfaithful` data set as follows:
 
 ```{r}
 #| code-fold: false
+
 hdr <- hdr(of_density, size = 90)
 hdr
 ```
@@ -774,6 +934,7 @@ The resulting estimate is shown in @fig-of-hdr, along with the 10% of observatio
 ```{r}
 #| label: fig-of-hdr
 #| fig-cap: 90% highest density region for the `oldfaithful` data set.
+
 of_density |>
   gg_density(
     hdr = "fill",
@@ -787,64 +948,85 @@ of_density |>
 
 ## Extreme value theory {#sec-evt}
 
-Extreme Value Theory is used to model rare, extreme events and is useful in anomaly detection. Suppose we have $n$ independent and identically distributed random variables $Y_1, \dots, Y_n$ with a cdf $F(y) = \Pr(Y \le y)$. Then the maximum of these $n$ random variables is $M_n = \max \{Y_1, \dots, Y_n\}$. If $F$ is known, the cdf of $M_n$ is given by $\Pr(M_n \le z) = \Pr(Y_1 \le z, \dots, Y_n \le z) = \left(F(z)\right)^n$. However, $F$ is often not known in practice. This gap is filled by Extreme Value Theory, which studies approximate families of models for $F^n$ so that extremes can be modeled and their uncertainty quantified.
+Extreme Value Theory is used to model rare, extreme events and is useful in anomaly detection.
+Suppose we have $n$ independent and identically distributed random variables $Y_1, \dots, Y_n$ with a cdf $F(y) = \Pr(Y \le y)$.
+Then the maximum of these $n$ random variables is $M_n = \max \{Y_1, \dots, Y_n\}$.
+If $F$ is known, the cdf of $M_n$ is given by $\Pr(M_n \le z) = \Pr(Y_1 \le z, \dots, Y_n \le z) = \left(F(z)\right)^n$.
+However, $F$ is often not known in practice.
+This gap is filled by Extreme Value Theory, which studies approximate families of models for $F^n$ so that extremes can be modeled and their uncertainty quantified.
 
-It is well known, due to the [central limit theorem](02-tools.html#sec-clt), that the average of a set of iid random variables will converge to the Normal distribution if the mean and variance both exist and are finite. The Fisher-Tippett-Gnedenko (FTG) Theorem provides an analogous result for the maximum. It was developed in a series of papers by @Frechet1927, @Fisher1928, and @Gnedenko1943. Independently, @Mises1936 proposed a similar result. The FTG Theorem states that if the maximum can be scaled so that it converges, then the scaled maximum will converge to either a Gumbel, Fréchet or Weibull distribution [@coles2001introduction, p. 46]; no other limits are possible.
+It is well known, due to the [central limit theorem](02-tools.html#sec-clt), that the average of a set of iid random variables will converge to the Normal distribution if the mean and variance both exist and are finite.
+The Fisher-Tippett-Gnedenko (FTG) Theorem provides an analogous result for the maximum.
+It was developed in a series of papers by @Frechet1927, @Fisher1928, and @Gnedenko1943.
+Independently, @Mises1936 proposed a similar result.
+The FTG Theorem states that if the maximum can be scaled so that it converges, then the scaled maximum will converge to either a Gumbel, Fréchet or Weibull distribution [@coles2001introduction, p. 46]; no other limits are possible.
 
 ::: {.callout-tip}
 ## Fisher-Tippett-Gnedenko Theorem {-}
 
 If there exist sequences $\{a_n\}$ and $\{b_n\}$ such that
 $$
-  \Pr\left\{ \frac{(M_n - a_n)}{b_n} \le z \right\} \rightarrow G(z) \quad \text{as} \quad n \to \infty,
+  \Pr\left\{ \frac{(M_n - a_n)}{b_n} \le z \right\} \rightarrow G(z) \quad \text{as} \quad n
+                                                    \to \infty,
 $$
 where $G$ is a non-degenerate cumulative distribution function, then $G$ belongs to one of the following families:
 \begin{align*}
-  &\text{Gumbel} :  && G(z) = \exp\left(-\exp \left[- \Big(\frac{z-b}{a}\Big) \right] \right), \quad -\infty < z < \infty , \\
-  &\text{Fréchet} : && G(z) =
-    \begin{cases}
-      0 ,                                                           & z \le b  , \\
-      \exp \left( - \left( \frac{z-b}{a}\right)^{-\alpha} \right) , & z > b    ,
-    \end{cases}                     \\
-  &\text{Weibull} : && G(z) =
-    \begin{cases}
-      \exp \left( - \left(- \left[\frac{z-b}{a}\right]\right)^{\alpha} \right) , & z < b  ,    \\
-      1 ,                                                                        & z \ge b  ,
-    \end{cases}
+   & \text{Gumbel} :  &  & G(z) = \exp\left(-\exp \left[-\Big(\frac{z - b}{a}\Big) \right] \right), \quad - \infty < z < \infty , \\
+   & \text{Fréchet} : &  & G(z) =
+  \begin{cases} 0 , & z \le b , \\ \exp \left(-\left( \frac{z - b}{a}\right)^{-\alpha} \right) , & z > b , \end{cases} \\
+   & \text{Weibull} : &  & G(z) =
+  \begin{cases}
+    \exp \left(-\left(-\left[\frac{z - b}{a}\right]\right)^{\alpha} \right) , & z < b ,   \\
+    1 ,                                                                       & z \ge b ,
+  \end{cases}
 \end{align*}
-for parameters $a, b$ and $\alpha$ where $a, \alpha >0$.
+for parameters $a, b$ and $\alpha$ where $a, \alpha > 0$.
 :::
 
 The three types of limits correspond to different forms of the tail behaviour of $F$.
 
-  * When $F$ has a finite upper bound, such as with a uniform distribution, then $G$ is a Weibull distribution.
-  * When $F$ has light tails (exponentially decaying or faster), such as with a Normal distribution or a Gamma distribution, then $G$ is a Gumbel distribution.
-  * When $F$ has heavy tails (such as polynomial decay), then $G$ is a Fréchet distribution. One example is when $F$ itself is a Fréchet distribution, for example.
+- When $F$ has a finite upper bound, such as with a uniform distribution, then $G$ is a Weibull distribution.
+- When $F$ has light tails (exponentially decaying or faster), such as with a Normal distribution or a Gamma distribution, then $G$ is a Gumbel distribution.
+- When $F$ has heavy tails (such as polynomial decay), then $G$ is a Fréchet distribution.
+  One example is when $F$ itself is a Fréchet distribution, for example.
 
-We refer to $F$ as being in the "domain of attraction" of the corresponding limit distribution. For example, the Normal distribution is in the domain of attraction of the Gumbel distribution.
+We refer to $F$ as being in the "domain of attraction" of the corresponding limit distribution.
+For example, the Normal distribution is in the domain of attraction of the Gumbel distribution.
 
 If we take the negative of the random variables $Y_1,\dots,Y_n$, it becomes clear that a similar result holds for the minimum.
 
 These three families of distributions can be further combined into a single family by using the following cdf known as the Generalised Extreme Value (GEV) distribution,
 $$
-  G(z) = \exp\left\{ -\left[ 1 + \xi\Big(\frac{z - \mu_G}{\sigma_G} \Big)\right]^{-1/\xi} \right\},
+  G(z) = \exp\left\{ - \left[ 1 + \xi\Big(\frac{z - \mu_G}{\sigma_G} \Big)\right]^{-1/\xi} \right\},
 $$ {#eq-EVT4}
-where the domain of the function is $\{z: 1 + \xi (z - \mu_G)/\sigma_G >0 \}$. The location parameter is $\mu_G\in\mathbb{R}$, $\sigma_G>0$ is the scale parameter, while $\xi\in\mathbb{R}$ is the shape parameter. When $\xi = 0$ we obtain a Gumbel distribution with exponentially decaying tails. When $\xi < 0$ we get a Weibull distribution with a finite upper end, and when $\xi > 0$ we get a Fréchet family of distributions with heavy tails including polynomial tails.
+where the domain of the function is $\{z: 1 + \xi (z - \mu_G)/\sigma_G > 0 \}$.
+The location parameter is $\mu_G \in \mathbb{R}$, $\sigma_G > 0$ is the scale parameter, while $\xi \in \mathbb{R}$ is the shape parameter.
+When $\xi = 0$ we obtain a Gumbel distribution with exponentially decaying tails.
+When $\xi < 0$ we get a Weibull distribution with a finite upper end, and when $\xi > 0$ we get a Fréchet family of distributions with heavy tails including polynomial tails.
 
-To illustrate, suppose $F$ is a standard Normal distribution N(0,1) and we have $n=1000$ observations, $Y_1,\dots,Y_n$. Then we know that the distribution of the maximum is given by
+To illustrate, suppose $F$ is a standard Normal distribution N(0,1) and we have $n = 1000$ observations, $Y_1,\dots,Y_n$.
+Then we know that the distribution of the maximum is given by
 $$
   \Pr\left\{ \max \{Y_1, \dots, Y_n\} \le z \right\} = \left[ \Phi(z) \right]^n,
 $$
 so the density of the maximum is given by
 $$
-  f(z) = n \left[ \Phi(z) \right]^{n-1} \phi(z).
+  f(z) = n \left[ \Phi(z) \right]^{n - 1} \phi(z).
 $$ {#eq-maxn01}
 
-According to the FTG theorem, the distribution of the maximum can be approximated by a Gumbel distribution. We can find the parameters of the Gumbel distribution by estimating them from simulated maximums. We simulate 2000 maximums (each from 1000 N(0,1) draws), and fit a Gumbel distribution to the resulting data. The resulting Gumbel distribution is shown in @fig-evdexample (in orange), along with the true distribution of the maximum given by @eq-maxn01 (in blue). The approximation is so good, that it is hard to distinguish the two distributions.
+According to the FTG theorem, the distribution of the maximum can be approximated by a Gumbel distribution.
+We can find the parameters of the Gumbel distribution by estimating them from simulated maximums.
+We simulate 2000 maximums (each from 1000 N(0,1) draws), and fit a Gumbel distribution to the resulting data.
+The resulting Gumbel distribution is shown in @fig-evdexample (in orange), along with the true distribution of the maximum given by @eq-maxn01 (in blue).
+The approximation is so good, that it is hard to distinguish the two distributions.
 
 ```{r}
 #| label: "fig-evdexample"
-#| fig-cap: "Distribution of the maximum of 1000 N(0,1) draws. Here we have simulated 2000 such maximums and shown the estimated GEV distribution (in orange), along with the true distribution (in blue). The approximation is so good, that it is hard to distinguish the two distributions."
+#| fig-cap: >-
+#|   Distribution of the maximum of 1000 N(0,1) draws.
+#|   Here we have simulated 2000 such maximums and shown the estimated GEV distribution (in orange), along with the true distribution (in blue).
+#|   The approximation is so good, that it is hard to distinguish the two distributions.
+
 n <- 1000
 maximums <- replicate(2000, max(rnorm(n)))
 # Fit GEV distribution
@@ -864,23 +1046,33 @@ c(
 
 ### The Generalised Pareto Distribution {-}
 
-The Peaks Over Threshold (POT) approach regards extremes as observations greater than a threshold $u$. The probability distribution of *exceedances* above a specified threshold $u$ can be expressed as the conditional distribution
+The Peaks Over Threshold (POT) approach regards extremes as observations greater than a threshold $u$.
+The probability distribution of *exceedances* above a specified threshold $u$ can be expressed as the conditional distribution
 $$
   H(y) = \Pr\left \{Y \le u + y \mid Y > u \right \}
-  = \frac{ F(u+y) - F(u)}{1 - F(u)}.
+       = \frac{F(u + y) - F(u)}{1 - F(u)}.
 $$ {#eq-POT3}
 When the distribution $F$ satisfies the FTG theorem, then [@coles2001introduction, p. 75] $H$ is well-approximated by a **Generalised Pareto Distribution** (GPD) defined by
-  $$
-    H(y) \approx 1 - \Big( 1 + \frac{\xi y}{\sigma_u} \Big)^{-1/\xi} ,
-  $$ {#eq-POT}
-where the domain of $H$ is $\{y > 0 : 1 + \xi y/\sigma_u > 0 \}$, and $\sigma_u = \sigma_G + \xi(u- \mu_G)$. The GPD parameters are determined from the associated GEV parameters. In particular, the shape parameter $\xi$ is the same in both distributions.
+$$
+  H(y) \approx 1 - \Big( 1 + \frac{\xi y}{\sigma_u} \Big)^{-1/\xi} ,
+$$ {#eq-POT}
+where the domain of $H$ is $\{y > 0 : 1 + \xi y/\sigma_u > 0 \}$, and $\sigma_u = \sigma_G + \xi(u - \mu_G)$.
+The GPD parameters are determined from the associated GEV parameters.
+In particular, the shape parameter $\xi$ is the same in both distributions.
 
-Continuing the previous example, we now look at the probability distribution of exceedances above 3 from a N(0,1) distribution. We simulate 100,000 N(0,1) values and only keep those above 3. Then two GPD estimates are drawn. The blue GPD uses the parameters obtained previously from the GEV estimate, while the orange GPD estimates the parameters from the exceedances.
+Continuing the previous example, we now look at the probability distribution of exceedances above 3 from a N(0,1) distribution.
+We simulate 100,000 N(0,1) values and only keep those above 3.
+Then two GPD estimates are drawn.
+The blue GPD uses the parameters obtained previously from the GEV estimate, while the orange GPD estimates the parameters from the exceedances.
 
 ```{r}
 #| label: fig-pot
 #| dependson: evdexample
-#| fig-cap: "Conditional distribution of exceedances above 3 from N(0,1) draws. Here we have simulated 100,000 values and only kept those above 3. The density implied by the GEV distribution is shown in blue, and an estimated GPD distribution is shown in orange."
+#| fig-cap: >-
+#|   Conditional distribution of exceedances above 3 from N(0,1) draws.
+#|   Here we have simulated 100,000 values and only kept those above 3.
+#|   The density implied by the GEV distribution is shown in blue, and an estimated GPD distribution is shown in orange.
+
 # Generate random normal data above 3 and fit GPD distribution
 df <- tibble(y = rnorm(1e5)) |> filter(y >= 3)
 gpd_fit <- evd::fpot(df$y, 3)$estimate
@@ -907,4 +1099,6 @@ The GEV (blue) estimate is better because it is based on more information (2000 
 
 Another important result from EVT is Weissman's spacing theorem [@Weissman1978], which states that the spacings between the largest observations often behave asymptotically like independent exponential random variables.
 
-Specifically, let $D_k = Y_{(k+1)} - Y_{(k)}$ denote the spacing between successive order statistics. If $F$ is in the domain of attraction of the Gumbel distribution, then, for fixed $r$, the upper spacings $D_{n-1}, D_{n-2}, \dots, D_{n-r}$ are asymptotically independent and approximately exponentially distributed, with $D_{k}$ having mean $b_n/(n-k)$. (Here $b_n$ is the same scaling constant that was used in the FTG theorem.)
+Specifically, let $D_k = Y_{(k + 1)} - Y_{(k)}$ denote the spacing between successive order statistics.
+If $F$ is in the domain of attraction of the Gumbel distribution, then, for fixed $r$, the upper spacings $D_{n - 1}, D_{n - 2}, \dots, D_{n - r}$ are asymptotically independent and approximately exponentially distributed, with $D_{k}$ having mean $b_n/(n - k)$.
+(Here $b_n$ is the same scaling constant that was used in the FTG theorem.)
