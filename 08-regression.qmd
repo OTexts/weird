@@ -487,46 +487,66 @@ If $f$ is Normal, $\bm{\theta} = \sigma^2$, $\ell$ is the identity, and $g_k(u) 
 #| include: false
 
 df_no <- cricket_batting |>
-  filter(Innings > 0) |>
+  filter(Innings > 0, Innings > NotOuts, Gender == "Men") |>
   mutate(prop_no = NotOuts / Innings)
 p <- sum(df_no$NotOuts) / sum(df_no$Innings)
 ```
 
-Consider the number of "not outs" for each batter in the `cricket_batting` data set.
-A "not out" occurs when a batsman has not been dismissed at the end of the team's innings.
+Consider the number of "not outs" for each male batter in the `cricket_batting` data set who has been dismissed at least once.
+A "not out" occurs when a batter has not been dismissed at the end of the team's innings.
+This can occur when the other ten batters have been dismissed (as the last batter cannot continue alone), or when the innings ends for some other reason (e.g., the captain declares the innings ended, or the team reaches its target and wins).
+
 Let's consider if there are some batters who have an unusually high proportion of not outs.
 The data set contains results from `r sum(df_no$Innings)` innings, of which `r sum(df_no$NotOuts)` were not outs.
 So the overall proportion of not outs is $`r sum(df_no[["NotOuts"]])` / `r sum(df_no[["Innings"]])` = `r sprintf("%.3f", p)`$.
 
-@fig-notouts shows the proportion of not outs for each batter as a function of the number of innings they played.
-The unusual pattern on the left of the plot is due to the discrete nature of the data --- both the number of not outs and the number of innings must be integers.
-There is some overplotting that occurs due to batters having the same numbers of not-outs and innings, which results in the higher colour density of the corresponding plotted points.
-Batters who have played only a few innings tend to have a higher proportion of not outs on average, and a higher variance, than those who have played many innings.
+@fig-notouts shows the proportion of not outs for each batter, plotted against their batting average.
+The relationship turns out to be U-shaped, due to two different mechanisms.
+Weaker batters (with a batting average below 25) typically bat near the end of the batting order, so they are disproportionately likely to be the "last man standing", which inflates their not-out proportion.
+At the high-average end (above about 40), a different mechanism applies: the best batters are simply harder to dismiss, so they often survive longer than weaker batters.
+Batters with moderate averages (25--40) benefit from neither mechanism, so they have the lowest not-out proportions of all.
 
 ```{r}
 #| label: fig-notouts
-#| fig-cap: "Proportion of not outs for each batter as a function of the number of innings they played."
+#| fig-cap: "Proportion of not outs for each batter as a function of their batting average. Batters with few innings (no more than 20) are shown in orange and partially transparent, to highlight the pattern from batters with more innings, shown in blue."
 #| message: false
 #| code-fold: false
 
 df_no <- cricket_batting |>
-  filter(Innings > 0) |>
-  mutate(prop_no = NotOuts / Innings)
+  filter(Innings > 0, Innings > NotOuts, Gender == "Men") |>
+  mutate(prop_no = NotOuts / Innings) |>
+  arrange(Innings)
 df_no |>
-  ggplot(aes(x = Innings, y = NotOuts / Innings)) +
-  geom_point(alpha = 0.15)
+  ggplot(
+    aes(
+      x = Average,
+      y = prop_no,
+      colour = Innings > 20,
+      alpha = 0.5 * (1 + Innings > 20)
+    )
+  ) +
+  geom_point() +
+  labs(y = "Proportion of not-outs", x = "Batting average") +
+  guides(alpha = "none")
 ```
 
-This suggests that we can construct a GAM for the number of not outs for each batter as a function of the number of innings they played.
+The unusual horizontal patterns in the orange points are due to the discrete nature of the data --- batters that have played only two innings must have a not-out proportion of either 0 or 1/2, while those that have played only three innings must have a not-out proportion of either 0, 1/3, or 2/3, and so on.
+As the number of innings played goes up, more possible not-out proportions are possible.
+
+We also expect that the pattern of not outs has changed over time.
+Test cricket has been played for over 150 years, and the style of play and the nature of playing conditions have changed considerably over that time.
+
+To take all this into account, we can construct a GAM for the number of not outs for each batter as a function of their batting average and the year they started playing.
 It is natural to use a Binomial distribution with a logit link function:
 $$
-  \text{NotOuts} \mid \text{Innings} \sim \text{Binomial}(\text{Innings},~ q),
+  \text{NotOuts} \mid \text{Average}, \text{Start}
+                 \sim \text{Binomial}(\text{Innings},~ q),
 $$
 where $q$ denotes the probability of a batter not being dismissed in an innings, and
 $$
-  \log(q/(1 - q)) = g(\text{Innings}).
-$$
-We can fit this model using the `mgcv` package.
+  \log(q/(1 - q)) = g_1(\text{Average}) + g_2(\text{Start}).
+$$ {#eq-gam-notouts}
+We can fit this model using the `mgcv` package, with the resulting estimates shown in @fig-gam-notouts.
 
 ```{r}
 #| label: fig-notouts-gam
@@ -538,35 +558,31 @@ We can fit this model using the `mgcv` package.
 #|   The blue line shows the probability of a batter being not out as a function of the number of Innings they have played.
 
 fit_notouts <- mgcv::gam(
-  prop_no ~ s(Innings),
+  prop_no ~ s(Average) + s(Start),
   data = df_no,
-  family = binomial(link = logit),
-  weights = Innings
+  weights = Innings,
+  family = binomial(link = logit)
 )
-notouts_aug <- broom::augment(
-  fit_notouts,
-  data = df_no,
-  type.predict = "response"
-)
-notouts_aug |>
-  ggplot(aes(x = Innings, y = prop_no)) +
-  geom_point(alpha = 0.2) +
-  geom_line(aes(y = .fitted), colour = "#0072B2") +
-  geom_ribbon(
-    aes(
-      ymin = .fitted - 2 * .se.fit,
-      ymax = .fitted + 2 * .se.fit
-    ),
-    fill = "#0072B2",
-    alpha = 0.2
-  ) +
-  labs(y = "Proportion of not outs")
 ```
+
+```{r}
+#| label: fig-gam-notouts
+#| fig-cap: "Estimated values of $g_1$ and $g_2$ from @eq-gam-notouts, with 95% confidence intervals."
+#| code-fold: false
+#| fig-height: 3.35
+
+gratia::draw(fit_notouts)
+```
+
+As expected, the probability of being not-out decreases as the batting average increases to about 35, and then increases again for the very best batters.
+The confidence interval on the curve is very wide after about 60, as there are very few batters with averages that high, and most of those have played very few innings.
+The probability of being not-out also increases as the year of debut increases, until about 1975, and then decreases again.
+This is likely due to the introduction of limited overs cricket in the 1970s, which changed the style of play in Test cricket, and batters have since become more aggressive.
 
 Now we can use the fitted model to compute the surprisals from the Binomial distribution, and find the most anomalous batters.
 Unfortunately, there is not a convenient way to compute LOO surprisals for GAM models, so we will only consider regular surprisals in this example.
 While the Binomial distribution is probably a good first approximation, it does assume that the probability of a batter being dismissed does not change over their career, which is an unlikely assumption as it does not allow for the development of skill, the value of experience, or the effect of ageing.
-So we will use the GPD approximation to compute the surprisal probabilities.
+So we will use the GPD approximation to compute the surprisal probabilities, which allows for some mis-specification in the distribution of not-outs.
 
 ```{r}
 #| code-fold: false
@@ -574,26 +590,22 @@ So we will use the GPD approximation to compute the surprisal probabilities.
 #| label: notouts_aug
 #| dependson: fig-notouts-gam
 
-notouts_aug <- notouts_aug |>
-  mutate(
-    surprisals = surprisals(fit_notouts),
-    prob = surprisals_prob(fit_notouts)
-  ) |>
-  select(Player:Country, Innings:NotOuts, prop_no:.fitted, surprisals:prob) |>
-  arrange(desc(surprisals))
+notouts_aug <- augment(fit_notouts, data = df_no, type.predict = "response") |>
+  mutate(p = surprisals_prob(fit_notouts, approximation = "gpd")) |>
+  select(Player:End, Innings, NotOuts, Average, .fitted, prop_no, p) |>
+  arrange(p)
+
 notouts_aug
 ```
 
 The most anomalous batters are all "tail-enders" (i.e., not skilled batters) who played for a long time (so they have many innings).
-Because they batted last, or nearly last, they are more likely to be not out at the end of the team's innings.
+Because they batted last, or nearly last, they are more likely to be not out at the end of the team's innings. Although none of the top four anomalies were great batters, they were all good at defence, and were able to bat for a long time without being dismissed, leaving the other batter time to score runs.
 
 The `.fitted` value is the expected proportion of not outs for each player given the number of innings they have played, while `prop_no` gives the actual proportion of not outs they have had.
-The largest surprisal is for English batter Jimmy Anderson, who has had `r notouts_aug$NotOuts[1]` not outs in `r notouts_aug$Innings[1]` innings, which is much higher than the expected number of not outs of $`r notouts_aug[["Innings"]][1]` \times `r sprintf("%.3f", notouts_aug[[".fitted"]][1])` = `r sprintf("%.1f", notouts_aug[[".fitted"]][1]*notouts_aug[["Innings"]][1])`$.
-This anomaly is also seen in @fig-notouts-gam, as being somewhat unusual for that part of the data.
-Although Jimmy Anderson was not a great batter, he was good at defence, and was able to bat for a long time without being dismissed, leaving the other batter time to score runs.
+The largest surprisal is for New Zealand batter Trent Boult, who has had `r notouts_aug$NotOuts[1]` not outs in `r notouts_aug$Innings[1]` innings, which is much higher than the expected number of not outs of $`r notouts_aug[["Innings"]][1]` \times `r sprintf("%.3f", notouts_aug[[".fitted"]][1])` = `r sprintf("%.1f", notouts_aug[[".fitted"]][1]*notouts_aug[["Innings"]][1])`$.
 
-We have identified an anomaly that is not anomalous in the proportion of not-outs, or in the number of innings, and the difference between the actual proportion and the predicted proportion is not anomalous either compared to some of the other values.
-However, because we have used a statistical model, we have been able to account for the particular features of this data set, such as the discrete nature of the data, and the changing variance, to identify an observation that is anomalous in the context of the model.
+None of these anomalies are particularly unusual in their proportion of not-outs, but they become anomalous once their batting average and year of debut are taken into account.
+Because we have used a statistical model, we have been able to account for the particular features of this data set, such as the discrete nature of the data, and the changing variance, to identify observations that are anomalous in the context of the model.
 
 ## BACON algorithm for linear regression {#sec-bacon-reg}
 
