@@ -9,6 +9,7 @@ all: build
 build: _book/.built
 
 _book/.built: $(qmd_files) $(rds_files) $(shared_deps)
+	sed -i -E 's/(most_anomalous\$$price\[1\])\\`/\1`/g; s/(underpriced\$$price\[1\])\\`/\1`/g' 08-regression.qmd
 	quarto render --to html
 	perl -i htmlreplace.pl _book/*.html
 	touch $@
