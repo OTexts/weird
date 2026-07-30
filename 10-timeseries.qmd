@@ -208,24 +208,46 @@ The threshold is often set under the assumption of a Normal distribution, for wh
 So it is common to set $\tau = k/0.6745$ where $k$ is the number of standard deviations permitted before an observation is considered an outlier.
 Because we apply the rule repeatedly over the length of a time series, we need to be careful of the problem of multiple comparisons, where the probability of a false positive overall is much larger than the probability of a false positive for each individual test.
 However, it is not straightforward to adjust the probabilities because the tests are not independent, and the dependency between them depends on the window size $h$, and the characteristics of the time series.
-Setting $k = 5$ or 6 seems to work quite well for many problems.
-
 The `hampel_anomalies()` function implements this algorithm.
+
+The implied statistical model is
+$$
+  y_t \sim \text{N}(\mu_t, \sigma_t^2),
+$$
+where $\mu_t$ is estimated as $m_t$, and $\sigma_t$ is estimated as $a_t/0.6745$.
+Using this model, we can apply the surprisal probability approach to identify anomalies, as discussed in @sec-density-methods.
+A threshold of $k = 3$, for example, is equivalent to a surprisal probability threshold of $\alpha = `r sprintf("%.4f", pnorm(-3))`$.
+Rather than using the Normal distribution, we can use a GPD approximation to the tail of the distribution, as discussed in @sec-approximate-surprisal-prob.
+That is, the normal distribution is used to compute the surprisals, but the GPD is used to compute their probabilities.
+Then we would specify the threshold as a probability $\alpha$ rather than a number of standard deviations $k$.
+
 The code below applies the algorithm to all 172 time series in `fr_mortality`.
-The `bandwidth` argument corresponds to $h$, and the `k` argument corresponds to $k$ above.
+The `bandwidth` argument corresponds to $h$, and we set $\alpha = 0.01$.
 
 ```{r}
 #| label: hampel-anomalies
 #| code-fold: false
+#| warning: false
 
 fr_anomalies <- fr_mortality |>
   group_by(Age, Sex) |>
-  mutate(hampel = hampel_anomalies(Mortality, bandwidth = 7, k = 6)) |>
+  mutate(
+    hampel = hampel_anomalies(
+      Mortality,
+      bandwidth = 7,
+      alpha = 0.01,
+      approximation = "gpd"
+    )
+  ) |>
   ungroup() |>
   filter(hampel) |>
   arrange(Year, Age)
 fr_anomalies
 ```
+
+@fig-hampel_fr shows the `r NROW(fr_anomalies)` observations (out of `r NROW(fr_mortality)`) that have been identified as anomalies.
+Because we set $\alpha = 0.01$, there will be occasional spurious anomalies; the interesting years are those with multiple anomalies, as that is unlikely to occur by chance, and usually correspond to wars or epidemics.
+In @fig-hampel_fr, we only show anomalies if there are at least three anomalies in that year/sex combination.
 
 ```{r}
 #| label: fig-hampel_fr
@@ -236,10 +258,10 @@ fr_anomalies
 
 # Find years containing anomalies
 yrs <- fr_anomalies |>
-  select(Year, Sex) |>
-  distinct()
+  count(Year, Sex) |>
+  filter(n >= 3)
 fr_anomalies_plot_male2 <- fr_anomalies |>
-  filter(Sex == "Male") |>
+  filter(Sex == "Male", Year %in% yrs$Year[yrs$Sex == "Male"]) |>
   ggplot(aes(x = Year, y = Age)) +
   facet_grid(. ~ Sex) +
   scale_x_continuous(
@@ -253,16 +275,16 @@ fr_anomalies_plot_male2 <- fr_anomalies |>
   ) +
   geom_point(col = "#478cb2") +
   ggrepel::geom_text_repel(
-    data = yrs |>
-      filter(Sex == "Male", !Year %in% 1915:1918),
+    data = yrs[yrs$Sex == "Male", ],
+    #yrs |> filter(Sex == "Male", !Year %in% 1915:1918),
     aes(y = 75, label = Year),
     col = "#478cb2",
     size = 3,
     seed = 1967
   ) +
-  ylim(4, 85)
+  ylim(0, 85)
 fr_anomalies_plot_female2 <- fr_anomalies |>
-  filter(Sex == "Female") |>
+  filter(Sex == "Female", Year %in% yrs$Year[yrs$Sex == "Female"]) |>
   ggplot(aes(x = Year, y = Age)) +
   facet_grid(. ~ Sex) +
   scale_x_continuous(
@@ -283,7 +305,7 @@ fr_anomalies_plot_female2 <- fr_anomalies |>
     size = 3,
     seed = 1967
   ) +
-  ylim(4, 85)
+  ylim(0, 85)
 patchwork::wrap_plots(
   fr_anomalies_plot_female2,
   fr_anomalies_plot_male2,
@@ -291,16 +313,17 @@ patchwork::wrap_plots(
 )
 ```
 
-@fig-hampel_fr shows the `r NROW(fr_anomalies)` observations (out of `r NROW(fr_mortality)`) that have been identified as anomalies, showing the wars and epidemics that have occurred over time.
 The following events in French history are evident in the data:
 
-- 1832, 1849, 1854: Cholera outbreaks
-- 1853-1856: Crimean war
+- 1832, 1849: Cholera outbreaks
 - 1870: Franco-Prussian war
 - 1871: Repression of the 'Commune de Paris'
 - 1914-1918: World War I
 - 1918: Spanish flu outbreak
 - 1940-1944: World War II
+
+There also appear to be a couple of additional years involving significant mortality events, whose cause is unknown: there is unusually high infant mortality in 1834, and unusually high elder mortality in 1837.
+I was unable to find any information about these events, but it is possible that they were due to epidemics that have long been forgotten.
 
 ### Surprisal anomalies
 
