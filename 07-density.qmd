@@ -18,7 +18,7 @@ Wherever it comes from, we will treat $f$ as an appropriate probability density 
 When $\bm{y}_i$ takes values on a discrete space (such as the integers), then $f$ is a probability mass function, but we will call it a "density" for convenience when discussing methods that can apply to both discrete and continuous data.
 In many cases, $f(\bm{y}_i)$ is the estimated *likelihood* of the observation from a given model.
 
-Note that some of the methods we discussed in @sec-distance-methods are often called "density-based" methods, including LOF [@sec-lof] and GLOSH [@sec-glosh].
+Note that some of the methods we discussed in @sec-distance-methods are often called "density-based" methods, including LOF\ [@sec-lof] and GLOSH\ [@sec-glosh].
 These methods use an *implicit* measure of density, based on the crowdedness of the neighbourhood of each observation.
 In this chapter, we will only discuss methods that *explicitly* involve a density function.
 
@@ -36,13 +36,13 @@ measuring the surprise in seeing the observation.
 So it is a measure of how surprising (or anomalous) that observation is, given the density $f$.
 A large value of $s_i$ indicates that $\bm{y}_i$ is not a likely value, and so is a potential anomaly.
 On the other hand, typical values will have low surprisals.
-In information theory, the average surprisal is known as the entropy of a random variable [@Cover2006;@Stone2022], and provides a measure of uncertainty.
+In information theory, the average surprisal is known as the entropy of a random variable\ [@Cover2006;@Stone2022], and provides a measure of uncertainty.
 
 Although the term "surprisal" may not be in common use amongst statisticians and other data scientists, the underlying idea is widely used.
 For example, if $f$ is obtained from a model with parameters that need to be estimated from the data, then the sum of the surprisals is equal to minus the log likelihood of the data.
 Therefore, finding parameters that minimise the sum of the surprisals is equivalent to maximum likelihood estimation.
 
-Surprisals are also commonly used in forecasting and prediction problems (where they are called log scores) to assess whether an estimated distribution $f$ provides a good description of the future data values $y$ [@Gneiting2014].
+Surprisals are also commonly used in forecasting and prediction problems (where they are called log scores) to assess whether an estimated distribution $f$ provides a good description of the future data values $y$\ [@Gneiting2014].
 In that context, the data are thought to be a reliable reflection of the underlying processes, and once the data are observed, the surprisal is used to assess how well the estimated distribution $f$ matches what actually happened.
 In this book, we are using surprisals in reverse --- we assume $f$ is a good description of the underlying processes, and then we use the surprisals to identify observations that are unlikely to have come from that distribution.
 
