@@ -509,7 +509,9 @@ Batters with moderate averages (25--40) benefit from neither mechanism, so they 
 
 ```{r}
 #| label: fig-notouts
-#| fig-cap: "Proportion of not outs for each batter as a function of their batting average. Batters with few innings (no more than 20) are shown in orange and partially transparent, to highlight the pattern from batters with more innings, shown in blue."
+#| fig-cap: >-
+#|   Proportion of not outs for each batter as a function of their batting average.
+#|   Batters with few innings (no more than 20) are shown in orange and partially transparent, to highlight the pattern from batters with more innings, shown in blue.
 #| message: false
 #| code-fold: false
 
@@ -599,10 +601,11 @@ notouts_aug <- augment(fit_notouts, data = df_no, type.predict = "response") |>
 notouts_aug
 ```
 
-The most anomalous batters are all "tail-enders" (i.e., not skilled batters) who played for a long time (so they have many innings).
-Because they batted last, or nearly last, they are more likely to be not out at the end of the team's innings. Although none of the top four anomalies were great batters, they were all good at defence, and were able to bat for a long time without being dismissed, leaving the other batter time to score runs.
+The top four anomalies are not all the same kind of player.
+Shaun Pollock was a bowling all-rounder who batted defensively in the lower order, playing a crucial role in building partnerships with the weakest batters.
+On the other hand, Trent Boult, Jimmy Anderson, and Josh Hazlewood were all specialist bowlers who batted near the end of the batting order, but who had good defensive technique and were able to survive for long periods without being dismissed.
 
-The `.fitted` value is the expected proportion of not outs for each player given the number of innings they have played, while `prop_no` gives the actual proportion of not outs they have had.
+The `.fitted` value is the expected proportion of not outs for each player under the fitted model, while `prop_no` gives the actual proportion of not outs they have had.
 The largest surprisal is for New Zealand batter Trent Boult, who has had `r notouts_aug$NotOuts[1]` not outs in `r notouts_aug$Innings[1]` innings, which is much higher than the expected number of not outs of $`r notouts_aug[["Innings"]][1]` \times `r sprintf("%.3f", notouts_aug[[".fitted"]][1])` = `r sprintf("%.1f", notouts_aug[[".fitted"]][1]*notouts_aug[["Innings"]][1])`$.
 
 None of these anomalies are particularly unusual in their proportion of not-outs, but they become anomalous once their batting average and year of debut are taken into account.
