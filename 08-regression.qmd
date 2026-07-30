@@ -163,7 +163,7 @@ Standardised residuals are obtained by dividing each residual by its estimated s
 $$
   r_i = \frac{e_i}{\hat{\sigma}\sqrt{1 - h_i}}, \qquad i = 1,\dots, n,
 $$
-where
+where $h_i$ is the leverage (@eq-leverage) and
 $$
   \hat\sigma^2 = \frac{1}{n - p}\sum_{i = 1}^n e_i^2
 $$ {#eq-residual-variance}
@@ -533,7 +533,7 @@ df_no |>
   guides(alpha = "none")
 ```
 
-The unusual horizontal patterns in the orange points are due to the discrete nature of the data --- batters that have played only two innings must have a not-out proportion of either 0 or 1/2, while those that have played only three innings must have a not-out proportion of either 0, 1/3, or 2/3, and so on.
+The unusual horizontal patterns in the orange points are due to the discrete nature of the data --- batters who have played only two innings must have a not-out proportion of either 0 or 1/2, while those who have played only three innings must have a not-out proportion of either 0, 1/3, or 2/3, and so on.
 As the number of innings played goes up, more possible not-out proportions are possible.
 
 We also expect that the pattern of not outs has changed over time.
@@ -552,13 +552,10 @@ $$ {#eq-gam-notouts}
 We can fit this model using the `mgcv` package, with the resulting estimates shown in @fig-gam-notouts.
 
 ```{r}
-#| label: fig-notouts-gam
+#| label: notouts-gam
 #| message: false
 #| code-fold: false
 #| dependson: fig-notouts
-#| fig-cap: >-
-#|   Proportion of not outs for each batter as a function of the number of innings they played, with a GAM fit using a Binomial distribution.
-#|   The blue line shows the probability of a batter being not out as a function of the number of Innings they have played.
 
 fit_notouts <- mgcv::gam(
   prop_no ~ s(Average) + s(Start),
@@ -573,6 +570,7 @@ fit_notouts <- mgcv::gam(
 #| fig-cap: "Estimated values of $g_1$ and $g_2$ from @eq-gam-notouts, with 95% confidence intervals."
 #| code-fold: false
 #| fig-height: 3.35
+#| dependson: notouts-gam
 
 gratia::draw(fit_notouts)
 ```
@@ -591,7 +589,7 @@ So we will use the GPD approximation to compute the surprisal probabilities, whi
 #| code-fold: false
 #| warning: false
 #| label: notouts_aug
-#| dependson: fig-notouts-gam
+#| dependson: notouts-gam
 
 notouts_aug <- augment(fit_notouts, data = df_no, type.predict = "response") |>
   mutate(p = surprisals_prob(fit_notouts, approximation = "gpd")) |>
@@ -650,7 +648,7 @@ The algorithm then proceeds as follows.
 
 **Step 1: Initialise the basic subset.** Apply the multivariate BACON algorithm (@sec-bacon) to the predictor variables, ignoring the response.
 This identifies observations with central predictor values and protects the first regression fit from high-leverage points.
-These observations are then used to construct a full-rank initial regression subset, which is grown using the smallest scaled prediction errors until it reaches approximately $m = cp$, where $c$ is usually 4 or 5.
+These observations are then used to construct a full-rank initial regression subset, which is grown using the smallest scaled prediction errors until it reaches approximately $s = cp$, where $c$ is usually 4 or 5.
 Larger values of $c$ may be needed if the predictor variables have many repeated values, as then the resulting initial predictor matrix $\bm{X}_B$ may be of low rank.
 
 **Step 2: Fit the regression model.** Fit least squares to the current basic subset $B$, obtaining $\hat{\bm{\beta}}_B$ and $\hat{\sigma}_B$.
@@ -685,8 +683,9 @@ shiraz_points <- shiraz |> count(points) |> arrange(desc(n))
 We now apply regression BACON to the same `shiraz` data set containing wine reviews that was used in @sec-ols, with `points` as the predictor and `log(price)` as the response.
 Multivariate BACON is first applied to the predictor variable, and then the regression version of the algorithm uses scaled prediction errors.
 Because the predictor has many repeated values (taking only integer values between 80 and 100), we need to specify the initial set to be larger than the most common points score, which is `r shiraz_points$points[1]` with `r shiraz_points$n[1]` observations.
-So we set the initial size to $m = 600$ observations to ensure the initial basic subset does not contain only observations with a single points score.
+So we set the initial size to $s = 600$ observations to ensure the initial basic subset does not contain only observations with a single points score.
 The BACON algorithm then identifies outliers as those with large scaled prediction errors from the fitted regression line based on the final basic subset.
+This initial size $s$ is set using the `m` argument of `robustX::BACON()` below.
 
 ```{r}
 #| label: shiraz-bacon

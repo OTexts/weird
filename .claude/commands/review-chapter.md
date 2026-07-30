@@ -16,7 +16,7 @@ Also update this skill to take account of any new issues you find when reviewing
 - Math symbols used consistently throughout (e.g. `\Pr` vs `\text{Pr}`, `\le` vs `\leq`, `\ge` vs `\geq`, `\bm{}` for vectors/matrices). The book uses `\le` and `\ge` (not `\leq`/`\geq`).
 - Parameter lists in pdfs match the parameterisation stated in the text
 - The sample size of the data is always $n$.
-- The data dimension is $m$ consistently throughout the book.
+- The data dimension is $m$ consistently throughout the book. The BACON algorithm's initial-subset-size parameter uses $s$ in both `06-distance.qmd` and `08-regression.qmd`, to avoid clashing with $m$ = dimension, even though `robustX::BACON()`'s R argument for this value is literally called `m`. Where a code chunk exposes that `m` argument, there should be a short bridging sentence just before the chunk noting that it sets $s$ (e.g. "This initial size $s$ is set using the `m` argument of `robustX::BACON()` below.") — check this sentence is present rather than re-deriving whether $m$ or $s$ is "more correct".
 - For regression problems, use $p$ for the number of predictors (including the intercept where included).
 - Bold notation applied consistently to vectors and matrices
 - Matrix transposes use `^\intercal`, not `'` or `^T` or `^\prime`.
@@ -63,6 +63,7 @@ Also update this skill to take account of any new issues you find when reviewing
 - All R chunks should have labels
 - If an R chunk uses an object created in a previous chunk, add a dependency using `#| dependson <chunk-label>`.
 - Do not change any code contained in an R chunk
+- A chunk label starting `fig-` should belong to a chunk that actually produces a plot. Watch for chunks that only fit a model or prepare data but were left with a stale `fig-` label and `fig-cap` (likely a leftover from restructuring) — the caption ends up describing an output that doesn't exist and the label is never (or wrongly) cross-referenced. Rename the label (dropping `fig-`) and remove the orphaned `fig-cap`; update any downstream `#| dependson:` that pointed at the old label. After such a rename, `quarto render <file> --to html` is worth running to confirm cross-references still resolve and figure numbering is unaffected.
 
 ## What NOT to change
 
