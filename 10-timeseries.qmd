@@ -82,7 +82,7 @@ When considering time series data, we can distinguish between three different an
 
 1. **Weird times**: Identifying anomalies within a time series in historical data.
 1. **Weird series**: Identifying an anomalous time series within a collection of time series.
-1. **Surveillance**: Identifying anomalies within a time series in real time
+1. **Surveillance**: Identifying anomalies within a time series in real time.
 
 These can be illustrated using the following examples.
 
@@ -216,7 +216,7 @@ $$
 $$
 where $\mu_t$ is estimated as $m_t$, and $\sigma_t$ is estimated as $a_t/0.6745$.
 Using this model, we can apply the surprisal probability approach to identify anomalies, as discussed in @sec-density-methods.
-A threshold of $k = 3$, for example, is equivalent to a surprisal probability threshold of $\alpha = `r sprintf("%.4f", pnorm(-3))`$.
+A threshold of $k = 3$, for example, is equivalent to a surprisal probability threshold of $\alpha = `r sprintf("%.4f", 2 * pnorm(-3))`$.
 Rather than using the Normal distribution, we can use a GPD approximation to the tail of the distribution, as discussed in @sec-approximate-surprisal-prob.
 That is, the normal distribution is used to compute the surprisals, but the GPD is used to compute their probabilities.
 Then we would specify the threshold as a probability $\alpha$ rather than a number of standard deviations $k$.
@@ -318,9 +318,9 @@ The following events in French history are evident in the data:
 - 1832, 1849: Cholera outbreaks
 - 1870: Franco-Prussian war
 - 1871: Repression of the 'Commune de Paris'
-- 1914-1918: World War I
+- 1914--1918: World War I
 - 1918: Spanish flu outbreak
-- 1940-1944: World War II
+- 1940--1944: World War II
 
 There also appear to be a couple of additional years involving significant mortality events, whose cause is unknown: there is unusually high infant mortality in 1834, and unusually high elder mortality in 1837.
 I was unable to find any information about these events, but it is possible that they were due to epidemics that have long been forgotten.
@@ -453,6 +453,7 @@ if (n_low_mortality != 1L) {
 }
 ```
 
+@fig-stl_anomalies shows the identified anomalies.
 A total of `r NROW(stmf_scores)` observations have surprisal probabilities less than 0.02, with the most extreme being in weeks 15--16 of 2020, in the elderly age groups.
 Although the test can pick up unusually low or unusually high mortality rates, only `r n_low_mortality` of the `r NROW(stmf_scores)` identified anomalies is for low mortality, and that is for 85+ year olds in Week 3 of 2020.
 It is possible that the elderly were taking precautions against COVID-19, resulting in restricted movements, and therefore lower mortality rates.
@@ -584,7 +585,7 @@ PBS_prcomp |>
   labs(x = "Principal component 1", y = "Principal component 2")
 ```
 
-There are two series which are clearly separated from the rest, with principal component 2 less than -15.
+In @fig-weirdseries_pca, there are two series which are clearly separated from the rest, with principal component 2 less than -15.
 Although it is not necessary here, because these two anomalies are so obvious, we can confirm them using KDE surprisal probabilities.
 
 ```{r}
@@ -604,7 +605,7 @@ PBS_prcomp <- PBS_prcomp |>
 PBS_prcomp
 ```
 
-Now, let's plot the two most anomalous series, to see if we can spot what is so unusual about them.
+Now, let's plot the two most anomalous series in @fig-weirdseries_anomalies, to see if we can spot what is so unusual about them.
 
 ```{r}
 #| label: fig-weirdseries_anomalies
@@ -623,7 +624,7 @@ PBS |>
 ```
 
 These series both contain almost all zeros, with just a few non-zero values.
-The three series we omitted may also be unusual, so let's plot them as well.
+The three series we omitted may also be unusual, so let's plot them as well in @fig-pbs_missing.
 
 ```{r}
 #| label: fig-pbs_missing
@@ -684,7 +685,7 @@ pbs |>
   labs(title = "Scripts for ATC group A12 (Mineral supplements)")
 ```
 
-Here there has been a sudden drop in sales at the end of 2005, most likely because of some products no longer being eligible for subsidy.
+In @fig-a12, there has been a sudden drop in sales at the end of 2005, most likely because of some products no longer being eligible for subsidy.
 There can also be sudden jumps in sales when a new product becomes available, or a new class of drugs is added to the scheme.
 
 ### The surveillance algorithm
@@ -697,7 +698,7 @@ Statistical forecasting models provide forecasts in the form of probability dist
 Let $y_t$ denote the observation of a time series at time $t$.
 Then a forecast can be expressed as a conditional distribution
 $$
-  f(y_{t + h} | y_1, \dots, y_{t}, \bm{x}_t),
+  f(y_{t + h} \mid y_1, \dots, y_{t}, \bm{x}_t),
 $$
 where $y_1,\dots,y_t$ denotes the observed history of the series, and $\bm{x}_t$ contains any other information available at time $t$ that is used in the model.
 The forecast "horizon" is given by $h$, denoting the number of time periods into the future that we wish to forecast.
@@ -705,10 +706,10 @@ Different forecasting methods use different conditioning information, and result
 See @fpp3 for a detailed discussion of forecasting methods.
 
 Once we observe the value of $y_{t + h}$, we can calculate the corresponding surprisal probability in the same way as we discussed in @sec-surprisal-probabilities.
-Because we are interested in real-time surveillance, we need only consider the one-step-ahead forecast density, $f(y_{t + 1} | y_1, \dots, y_{t})$.
+Because we are interested in real-time surveillance, we need only consider the one-step-ahead forecast density, $f(y_{t + 1} \mid y_1, \dots, y_{t})$.
 We can then calculate the surprisal as
 $$
-  s_{t + 1} = -\log f(y_{t + 1} | y_1, \dots, y_{t}, \bm{x}_t).
+  s_{t + 1} = -\log f(y_{t + 1} \mid y_1, \dots, y_{t}, \bm{x}_t).
 $$
 This needs to be done iteratively for each time period, updating the model as new data becomes available.
 Since we need some observations with which to fit a model, we can't begin the process at time $t = 1$.
@@ -751,7 +752,7 @@ tscv_plot(.init = 8, .step = 1, h = 1) +
 
 Let's step through the process for the first iteration, with $t = 36$.
 We fit ETS models to each of the time series, with the specific ETS model selected according to the characteristics of the series.
-See [Ch8, @fpp3] for details of how this is done.
+See [Ch 8, @fpp3] for details of how this is done.
 
 ```{r}
 #| label: pbsfit
@@ -807,6 +808,7 @@ pbs_compare
 ```
 
 ```{r}
+#| label: check_s01
 #| include: false
 
 s01 <- pbs_compare |> pull(ATC2) |> head(1)
@@ -877,6 +879,7 @@ compute_pbs_scores <- function(pbs) {
 ```
 
 ```{r}
+#| label: pbsloop-display
 #| eval: false
 #| code-fold: false
 
@@ -903,12 +906,13 @@ pbs_anomalies <- pbs_scores |> filter(prob < 0.001)
 pbs_anomalies
 ```
 
-Now let's look at the A12 series that we started with, and consider the times when anomalies occur.
+Now let's look at the A12 series that we started with, and consider the times when anomalies occur, as shown in @fig-pbs-a12-anomalies.
 
 ```{r}
-#| label: pbs_scores4
+#| label: fig-pbs-a12-anomalies
 #| code-fold: false
 #| dependson: pbs_scores3
+#| fig-cap: Surveillance anomalies identified over time for ATC group A12 (Mineral supplements).
 
 pbs_plot(pbs, pbs_anomalies, "A12")
 ```
@@ -916,23 +920,25 @@ pbs_plot(pbs, pbs_anomalies, "A12")
 One potential anomaly is identified in 2002, and the sudden drop at the start of 2006 causes several anomalies indicating a series of unusual observations.
 Eventually the "new normal" leads to fewer and fewer observations being labelled as anomalies.
 
-This process of model adjustment is much faster in this next example, where the first jump leads to two anomalies, and then the second much larger jump leads to two more anomalies.
+This process of model adjustment is much faster in the next example, shown in @fig-pbs-n07-anomalies, where the first jump leads to two anomalies, and then the second much larger jump leads to two more anomalies.
 After that, the model has learned to allow for large jumps in the series, so the later jump is not seen as anomalous.
 
 ```{r}
-#| label: pbs_scores5
+#| label: fig-pbs-n07-anomalies
 #| code-fold: false
 #| dependson: pbs_scores3
+#| fig-cap: Surveillance anomalies identified over time for ATC group N07.
 
 pbs_plot(pbs, pbs_anomalies, "N07")
 ```
 
-The next example shows less dramatic anomalies that would be harder to identify without a model.
+The next example, shown in @fig-pbs-r05-anomalies, shows less dramatic anomalies that would be harder to identify without a model.
 
 ```{r}
-#| label: pbs_scores6
+#| label: fig-pbs-r05-anomalies
 #| dependson: pbs_scores3
 #| code-fold: false
+#| fig-cap: Surveillance anomalies identified over time for ATC group R05.
 
 pbs_plot(pbs, pbs_anomalies, "R05")
 ```
