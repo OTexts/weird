@@ -290,7 +290,8 @@ where $\phi(u) = (2\pi)^{-1/2}e^{-u^2/2}$ is the standard Normal density.
 We return to the Shiraz wine reviews introduced in @sec-ols.
 Now that we have added a distributional assumption, the fitted model can be written as
 $$
-  \log(\text{Price}) \sim \text{N}(`r sprintf("%.3f",coef(fit_wine)[1])` + `r sprintf("%.3f",coef(fit_wine)[2])` \times \text{Points}, `r sprintf("%.3f",sigma(fit_wine))`^2),
+  \log(\text{Price}) \mid \text{Points}
+                     \sim \text{N}(`r sprintf("%.3f",coef(fit_wine)[1])` + `r sprintf("%.3f",coef(fit_wine)[2])` \times \text{Points}, `r sprintf("%.3f",sigma(fit_wine))`^2),
 $$
 and we can compute 95% prediction intervals as shown in @fig-shiraz-regression-density.
 
