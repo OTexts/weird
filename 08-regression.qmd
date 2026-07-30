@@ -377,7 +377,7 @@ good_buy <- wine_aug |>
 
 The over-priced wines under this model are shown in blue, while the under-priced wines are shown in orange.
 This shows that the most anomalous observations are the two with LOO surprisals above 17, and standardised residuals close to 6.
-The largest LOO surprisal is for the most over-priced wine (under this model), a 2009 Shiraz from the Henschke winery in the Eden Valley region of South Australia, with `r most_anomalous$points[1]` points and a price of $`r most_anomalous$price[1]`.
+The largest LOO surprisal is for the most over-priced wine (under this model), a 2009 Shiraz from the Henschke winery in the Eden Valley region of South Australia, with `r most_anomalous$points[1]` points and a price of \$`r most_anomalous$price[1]`.
 
 ```{r}
 #| label: shiraz-most-anomalous
@@ -389,7 +389,7 @@ wine_aug |>
   select(country:winery, year, points, price, std_loo_res, loo_surprisals)
 ```
 
-The largest LOO surprisal corresponding to an under-priced wine is for the wine with the lowest residual value, with `r underpriced$points[1]` points and a price of $`r underpriced$price[1]`.
+The largest LOO surprisal corresponding to an under-priced wine is for the wine with the lowest residual value, with `r underpriced$points[1]` points and a price of \$`r underpriced$price[1]`.
 Another good buy, at the higher quality end, is the 2007 Syrah from the Rulo winery in the Columbia Valley in Washington State, USA:
 
 ```{r}
