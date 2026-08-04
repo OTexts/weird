@@ -109,7 +109,7 @@
       "License": "GPL (>= 2)",
       "Author": "Eduardo L. T. Conceicao [aut, cre], Martin Maechler [ctb] (ORCID: <https://orcid.org/0000-0002-8685-9910>)",
       "Maintainer": "Eduardo L. T. Conceicao <mail@eduardoconceicao.org>",
-      "Repository": "binary",
+      "Repository": "RSPM",
       "Repository/R-Forge/Project": "robustbase",
       "Repository/R-Forge/Revision": "1025",
       "Repository/R-Forge/DateTimeStamp": "2026-06-07 16:58:58",
@@ -269,7 +269,7 @@
       "Author": "Kaveh Vakili [aut, cre]",
       "Maintainer": "Kaveh Vakili <vakili.kaveh.email@gmail.com>",
       "NeedsCompilation": "yes",
-      "Repository": "binary",
+      "Repository": "RSPM",
       "Encoding": "UTF-8"
     },
     "GGally": {
@@ -412,11 +412,11 @@
     },
     "MASS": {
       "Package": "MASS",
-      "Version": "7.3-65",
+      "Version": "7.3-66",
       "Source": "Repository",
       "Priority": "recommended",
-      "Date": "2025-02-19",
-      "Revision": "$Rev: 3681 $",
+      "Date": "2026-07-15",
+      "Revision": "$Rev: 3693 $",
       "Depends": [
         "R (>= 4.4.0)",
         "grDevices",
@@ -444,20 +444,21 @@
       "NeedsCompilation": "yes",
       "Author": "Brian Ripley [aut, cre, cph], Bill Venables [aut, cph], Douglas M. Bates [ctb], Kurt Hornik [trl] (partial port ca 1998), Albrecht Gebhardt [trl] (partial port ca 1998), David Firth [ctb] (support functions for polr)",
       "Maintainer": "Brian Ripley <Brian.Ripley@R-project.org>",
-      "Repository": "CRAN"
+      "Repository": "RSPM",
+      "Encoding": "UTF-8"
     },
     "Matrix": {
       "Package": "Matrix",
-      "Version": "1.7-5",
+      "Version": "1.7-6",
       "Source": "Repository",
       "VersionNote": "do also bump src/version.h, inst/include/Matrix/version.h",
-      "Date": "2026-03-20",
+      "Date": "2026-07-24",
       "Priority": "recommended",
       "Title": "Sparse and Dense Matrix Classes and Methods",
       "Description": "A rich hierarchy of sparse and dense matrix classes, including general, symmetric, triangular, and diagonal matrices with numeric, logical, or pattern entries.  Efficient methods for operating on such matrices, often wrapping the 'BLAS', 'LAPACK', and 'SuiteSparse' libraries.",
       "License": "GPL (>= 2) | file LICENCE",
-      "URL": "https://Matrix.R-forge.R-project.org",
-      "BugReports": "https://R-forge.R-project.org/tracker/?atid=294&group_id=61",
+      "URL": "https://codeberg.org/jaganmn/Matrix",
+      "BugReports": "https://codeberg.org/jaganmn/Matrix/issues",
       "Contact": "Matrix-authors@R-project.org",
       "Authors@R": "c(person(\"Douglas\", \"Bates\", role = \"aut\", comment = c(ORCID = \"0000-0001-8316-9503\")), person(\"Martin\", \"Maechler\", role = c(\"aut\", \"cre\"), email = \"mmaechler+Matrix@gmail.com\", comment = c(ORCID = \"0000-0002-8685-9910\")), person(\"Mikael\", \"Jagan\", role = \"aut\", comment = c(ORCID = \"0000-0002-3542-2938\")), person(\"Timothy A.\", \"Davis\", role = \"ctb\", comment = c(ORCID = \"0000-0001-7614-6899\", \"SuiteSparse libraries\", \"collaborators listed in dir(system.file(\\\"doc\\\", \\\"SuiteSparse\\\", package=\\\"Matrix\\\"), pattern=\\\"License\\\", full.names=TRUE, recursive=TRUE)\")), person(\"George\", \"Karypis\", role = \"ctb\", comment = c(ORCID = \"0000-0003-2753-1437\", \"METIS library\", \"Copyright: Regents of the University of Minnesota\")), person(\"Jason\", \"Riedy\", role = \"ctb\", comment = c(ORCID = \"0000-0002-4345-4200\", \"GNU Octave's condest() and onenormest()\", \"Copyright: Regents of the University of California\")), person(\"Jens\", \"Oehlschlägel\", role = \"ctb\", comment = \"initial nearPD()\"), person(\"R Core Team\", role = \"ctb\", comment = c(ROR = \"02zz1nj61\", \"base R's matrix implementation\")))",
       "Depends": [
@@ -489,7 +490,7 @@
       "NeedsCompilation": "yes",
       "Author": "Douglas Bates [aut] (ORCID: <https://orcid.org/0000-0001-8316-9503>), Martin Maechler [aut, cre] (ORCID: <https://orcid.org/0000-0002-8685-9910>), Mikael Jagan [aut] (ORCID: <https://orcid.org/0000-0002-3542-2938>), Timothy A. Davis [ctb] (ORCID: <https://orcid.org/0000-0001-7614-6899>, SuiteSparse libraries, collaborators listed in dir(system.file(\"doc\", \"SuiteSparse\", package=\"Matrix\"), pattern=\"License\", full.names=TRUE, recursive=TRUE)), George Karypis [ctb] (ORCID: <https://orcid.org/0000-0003-2753-1437>, METIS library, Copyright: Regents of the University of Minnesota), Jason Riedy [ctb] (ORCID: <https://orcid.org/0000-0002-4345-4200>, GNU Octave's condest() and onenormest(), Copyright: Regents of the University of California), Jens Oehlschlägel [ctb] (initial nearPD()), R Core Team [ctb] (ROR: <https://ror.org/02zz1nj61>, base R's matrix implementation)",
       "Maintainer": "Martin Maechler <mmaechler+Matrix@gmail.com>",
-      "Repository": "CRAN"
+      "Repository": "RSPM"
     },
     "MatrixModels": {
       "Package": "MatrixModels",
@@ -757,7 +758,7 @@
       "NeedsCompilation": "yes",
       "Author": "CRAN Team [ctb] (de facto maintainer in 2013-2026), Duncan Temple Lang [aut] (ORCID: <https://orcid.org/0000-0003-0159-1546>), Ivan Krylov [cre]",
       "Maintainer": "Ivan Krylov <ikrylov@disroot.org>",
-      "Repository": "binary",
+      "Repository": "RSPM",
       "Encoding": "UTF-8"
     },
     "Rcpp": {
@@ -790,15 +791,15 @@
       "NeedsCompilation": "yes",
       "Author": "Dirk Eddelbuettel [aut, cre] (ORCID: <https://orcid.org/0000-0001-6419-907X>), Romain Francois [aut] (ORCID: <https://orcid.org/0000-0002-2444-4226>), JJ Allaire [aut] (ORCID: <https://orcid.org/0000-0003-0174-9868>), Kevin Ushey [aut] (ORCID: <https://orcid.org/0000-0003-2880-7407>), Qiang Kou [aut] (ORCID: <https://orcid.org/0000-0001-6786-5453>), Nathan Russell [aut], Iñaki Ucar [aut] (ORCID: <https://orcid.org/0000-0001-6403-5550>), Doug Bates [aut] (ORCID: <https://orcid.org/0000-0001-8316-9503>), John Chambers [aut]",
       "Maintainer": "Dirk Eddelbuettel <edd@debian.org>",
-      "Repository": "binary"
+      "Repository": "RSPM"
     },
     "RcppArmadillo": {
       "Package": "RcppArmadillo",
-      "Version": "15.4.0-1",
+      "Version": "15.4.2-1",
       "Source": "Repository",
       "Type": "Package",
       "Title": "'Rcpp' Integration for the 'Armadillo' Templated Linear Algebra Library",
-      "Date": "2026-06-17",
+      "Date": "2026-07-25",
       "Authors@R": "c(person(\"Dirk\", \"Eddelbuettel\", role = c(\"aut\", \"cre\"), email = \"edd@debian.org\", comment = c(ORCID = \"0000-0001-6419-907X\")), person(\"Romain\", \"Francois\", role = \"aut\", comment = c(ORCID = \"0000-0002-2444-4226\")), person(\"Doug\", \"Bates\", role = \"aut\", comment = c(ORCID = \"0000-0001-8316-9503\")), person(\"Binxiang\", \"Ni\", role = \"aut\"), person(\"Conrad\", \"Sanderson\", role = \"aut\", comment = c(ORCID = \"0000-0002-0049-4501\")))",
       "Description": "'Armadillo' is a templated C++ linear algebra library aiming towards a good balance between speed and ease of use. It provides high-level syntax and functionality deliberately similar to Matlab. It is useful for algorithm development directly in C++, or quick conversion of research code into production environments. It provides efficient classes for vectors, matrices and cubes where dense and sparse matrices are supported. Integer, floating point and complex numbers are supported. A sophisticated expression evaluator (based on template meta-programming) automatically combines several operations to increase speed and efficiency. Dynamic evaluation automatically chooses optimal code paths based on detected matrix structures. Matrix decompositions are provided through integration with LAPACK, or one of its high performance drop-in replacements (such as 'MKL' or 'OpenBLAS'). It can automatically use 'OpenMP' multi-threading (parallelisation) to speed up computationally expensive operations. . The 'RcppArmadillo' package includes the header files from the 'Armadillo' library; users do not need to install 'Armadillo' itself in order to use 'RcppArmadillo'. Starting from release 15.0.0, the minimum compilation standard is C++14. . Since release 7.800.0, 'Armadillo' is licensed under Apache License 2; previous releases were under licensed as MPL 2.0 from version 3.800.0 onwards and LGPL-3 prior to that; 'RcppArmadillo' (the 'Rcpp' bindings/bridge to Armadillo) is licensed under the GNU GPL version 2 or later, as is the rest of 'Rcpp'.",
       "License": "GPL (>= 2)",
@@ -830,7 +831,7 @@
       "NeedsCompilation": "yes",
       "Author": "Dirk Eddelbuettel [aut, cre] (ORCID: <https://orcid.org/0000-0001-6419-907X>), Romain Francois [aut] (ORCID: <https://orcid.org/0000-0002-2444-4226>), Doug Bates [aut] (ORCID: <https://orcid.org/0000-0001-8316-9503>), Binxiang Ni [aut], Conrad Sanderson [aut] (ORCID: <https://orcid.org/0000-0002-0049-4501>)",
       "Maintainer": "Dirk Eddelbuettel <edd@debian.org>",
-      "Repository": "https://packagemanager.posit.co/cran/latest"
+      "Repository": "RSPM"
     },
     "RcppEigen": {
       "Package": "RcppEigen",
@@ -867,12 +868,12 @@
       "NeedsCompilation": "yes",
       "Author": "Doug Bates [aut] (<https://orcid.org/0000-0001-8316-9503>), Dirk Eddelbuettel [aut, cre] (<https://orcid.org/0000-0001-6419-907X>), Romain Francois [aut] (<https://orcid.org/0000-0002-2444-4226>), Yixuan Qiu [aut] (<https://orcid.org/0000-0003-0109-6692>), Authors of Eigen [cph] (Authorship and copyright in included Eigen library as detailed in inst/COPYRIGHTS)",
       "Maintainer": "Dirk Eddelbuettel <edd@debian.org>",
-      "Repository": "binary",
+      "Repository": "RSPM",
       "Encoding": "UTF-8"
     },
     "RcppEnsmallen": {
       "Package": "RcppEnsmallen",
-      "Version": "0.3.10.0.1",
+      "Version": "0.3.11.0.1",
       "Source": "Repository",
       "Title": "Header-Only C++ Mathematical Optimization Library for 'Armadillo'",
       "Authors@R": "c( person(\"James Joseph\", \"Balamuta\", email = \"balamut2@illinois.edu\",  role = c(\"aut\", \"cre\", \"cph\"),  comment = c(ORCID = \"0000-0003-2826-8458\")), person(\"Dirk\", \"Eddelbuettel\", email = \"edd@debian.org\",  role = c(\"aut\", \"cph\"), comment = c(ORCID = \"0000-0001-6419-907X\")) )",
@@ -1269,9 +1270,10 @@
     },
     "bitops": {
       "Package": "bitops",
-      "Version": "1.0-9",
+      "Version": "1.1-0",
       "Source": "Repository",
-      "Date": "2024-10-03",
+      "VersionNote": "Last CRAN: 1.0-9 on 2024-10-03",
+      "Date": "2026-07-30",
       "Authors@R": "c( person(\"Steve\", \"Dutky\", role = \"aut\", email = \"sdutky@terpalum.umd.edu\", comment = \"S original; then (after MM's port) revised and modified\"), person(\"Martin\", \"Maechler\", role = c(\"cre\", \"aut\"), email = \"maechler@stat.math.ethz.ch\", comment = c(\"Initial R port; tweaks\", ORCID = \"0000-0002-8685-9910\")))",
       "Title": "Bitwise Operations",
       "Description": "Functions for bitwise operations on integer vectors.",
@@ -1279,7 +1281,7 @@
       "URL": "https://github.com/mmaechler/R-bitops",
       "BugReports": "https://github.com/mmaechler/R-bitops/issues",
       "NeedsCompilation": "yes",
-      "Author": "Steve Dutky [aut] (S original; then (after MM's port) revised and modified), Martin Maechler [cre, aut] (Initial R port; tweaks, <https://orcid.org/0000-0002-8685-9910>)",
+      "Author": "Steve Dutky [aut] (S original; then (after MM's port) revised and modified), Martin Maechler [cre, aut] (Initial R port; tweaks, ORCID: <https://orcid.org/0000-0002-8685-9910>)",
       "Maintainer": "Martin Maechler <maechler@stat.math.ethz.ch>",
       "Repository": "RSPM",
       "Encoding": "UTF-8"
@@ -1515,7 +1517,7 @@
     },
     "bslib": {
       "Package": "bslib",
-      "Version": "0.11.0",
+      "Version": "0.12.0",
       "Source": "Repository",
       "Title": "Custom 'Bootstrap' 'Sass' Themes for 'shiny' and 'rmarkdown'",
       "Authors@R": "c( person(\"Carson\", \"Sievert\", , \"carson@posit.co\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0002-4958-2844\")), person(\"Joe\", \"Cheng\", , \"joe@posit.co\", role = \"aut\"), person(\"Garrick\", \"Aden-Buie\", , \"garrick@posit.co\", role = \"aut\", comment = c(ORCID = \"0000-0002-7111-0077\")), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")), person(, \"Bootstrap contributors\", role = \"ctb\", comment = \"Bootstrap library\"), person(, \"Twitter, Inc\", role = \"cph\", comment = \"Bootstrap library\"), person(\"Javi\", \"Aguilar\", role = c(\"ctb\", \"cph\"), comment = \"Bootstrap colorpicker library\"), person(\"Thomas\", \"Park\", role = c(\"ctb\", \"cph\"), comment = \"Bootswatch library\"), person(, \"PayPal\", role = c(\"ctb\", \"cph\"), comment = \"Bootstrap accessibility plugin\") )",
@@ -1568,11 +1570,11 @@
       "Config/testthat/parallel": "true",
       "Config/testthat/start-first": "zzzz-bs-sass, fonts, zzz-precompile, theme-*, rmd-*",
       "Encoding": "UTF-8",
-      "Collate": "'accordion.R' 'breakpoints.R' 'bs-current-theme.R' 'bs-dependencies.R' 'bs-global.R' 'bs-remove.R' 'bs-theme-layers.R' 'bs-theme-preset-bootswatch.R' 'bs-theme-preset-brand.R' 'bs-theme-preset-builtin.R' 'bs-theme-preset.R' 'utils.R' 'bs-theme-preview.R' 'bs-theme-update.R' 'bs-theme.R' 'bslib-package.R' 'buttons.R' 'card.R' 'deprecated.R' 'files.R' 'fill.R' 'imports.R' 'input-code-editor.R' 'input-dark-mode.R' 'input-submit.R' 'input-switch.R' 'layout.R' 'nav-items.R' 'nav-update.R' 'navbar_options.R' 'navs-legacy.R' 'navs.R' 'onLoad.R' 'page.R' 'popover.R' 'precompiled.R' 'print.R' 'shiny-devmode.R' 'sidebar.R' 'staticimports.R' 'toast.R' 'toolbar.R' 'tooltip.R' 'utils-deps.R' 'utils-shiny.R' 'utils-tags.R' 'value-box.R' 'version-default.R' 'versions.R'",
+      "Collate": "'accordion.R' 'breakpoints.R' 'bs-current-theme.R' 'bs-dependencies.R' 'bs-global.R' 'bs-remove.R' 'bs-theme-layers.R' 'bs-theme-preset-bootswatch.R' 'bs-theme-preset-brand.R' 'bs-theme-preset-builtin.R' 'bs-theme-preset.R' 'utils.R' 'bs-theme-preview.R' 'bs-theme-update.R' 'bs-theme.R' 'bslib-package.R' 'buttons.R' 'card.R' 'deprecated.R' 'files.R' 'fill.R' 'imports.R' 'input-code-editor.R' 'input-dark-mode.R' 'input-submit.R' 'input-switch.R' 'layout.R' 'nav-items.R' 'nav-update.R' 'navbar_options.R' 'navs-legacy.R' 'navs.R' 'offcanvas.R' 'onLoad.R' 'page.R' 'popover.R' 'precompiled.R' 'print.R' 'shiny-devmode.R' 'sidebar.R' 'staticimports.R' 'toast.R' 'toolbar.R' 'tooltip.R' 'utils-deps.R' 'utils-shiny.R' 'utils-tags.R' 'value-box.R' 'version-default.R' 'versions.R'",
       "NeedsCompilation": "no",
       "Author": "Carson Sievert [aut, cre] (ORCID: <https://orcid.org/0000-0002-4958-2844>), Joe Cheng [aut], Garrick Aden-Buie [aut] (ORCID: <https://orcid.org/0000-0002-7111-0077>), Posit Software, PBC [cph, fnd], Bootstrap contributors [ctb] (Bootstrap library), Twitter, Inc [cph] (Bootstrap library), Javi Aguilar [ctb, cph] (Bootstrap colorpicker library), Thomas Park [ctb, cph] (Bootswatch library), PayPal [ctb, cph] (Bootstrap accessibility plugin)",
       "Maintainer": "Carson Sievert <carson@posit.co>",
-      "Repository": "RSPM"
+      "Repository": "CRAN"
     },
     "cachem": {
       "Package": "cachem",
@@ -1639,7 +1641,7 @@
       "NeedsCompilation": "no",
       "Author": "Gábor Csárdi [aut, cre, cph] (ORCID: <https://orcid.org/0000-0001-7098-9676>), Winston Chang [aut], Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>), Ascent Digital Services [cph, fnd]",
       "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
-      "Repository": "binary"
+      "Repository": "RSPM"
     },
     "cellWise": {
       "Package": "cellWise",
@@ -1874,9 +1876,9 @@
     },
     "colorspace": {
       "Package": "colorspace",
-      "Version": "2.1-2",
+      "Version": "2.1-3",
       "Source": "Repository",
-      "Date": "2025-09-22",
+      "Date": "2026-07-10",
       "Title": "A Toolbox for Manipulating and Assessing Colors and Palettes",
       "Authors@R": "c(person(given = \"Ross\", family = \"Ihaka\", role = \"aut\", email = \"ihaka@stat.auckland.ac.nz\"), person(given = \"Paul\", family = \"Murrell\", role = \"aut\", email = \"paul@stat.auckland.ac.nz\", comment = c(ORCID = \"0000-0002-3224-8858\")), person(given = \"Kurt\", family = \"Hornik\", role = \"aut\", email = \"Kurt.Hornik@R-project.org\", comment = c(ORCID = \"0000-0003-4198-9911\")), person(given = c(\"Jason\", \"C.\"), family = \"Fisher\", role = \"aut\", email = \"jfisher@usgs.gov\", comment = c(ORCID = \"0000-0001-9032-8912\")), person(given = \"Reto\", family = \"Stauffer\", role = \"aut\", email = \"Reto.Stauffer@uibk.ac.at\", comment = c(ORCID = \"0000-0002-3798-5507\")), person(given = c(\"Claus\", \"O.\"), family = \"Wilke\", role = \"aut\", email = \"wilke@austin.utexas.edu\", comment = c(ORCID = \"0000-0002-7470-9261\")), person(given = c(\"Claire\", \"D.\"), family = \"McWhite\", role = \"aut\", email = \"claire.mcwhite@utmail.utexas.edu\", comment = c(ORCID = \"0000-0001-7346-3047\")), person(given = \"Achim\", family = \"Zeileis\", role = c(\"aut\", \"cre\"), email = \"Achim.Zeileis@R-project.org\", comment = c(ORCID = \"0000-0003-0918-3766\")))",
       "Description": "Carries out mapping between assorted color spaces including RGB, HSV, HLS, CIEXYZ, CIELUV, HCL (polar CIELUV), CIELAB, and polar CIELAB. Qualitative, sequential, and diverging color palettes based on HCL colors are provided along with corresponding ggplot2 color scales. Color palette choice is aided by an interactive app (with either a Tcl/Tk or a shiny graphical user interface) and shiny apps with an HCL color picker and a color vision deficiency emulator. Plotting functions for displaying and assessing palettes include color swatches, visualizations of the HCL space, and trajectories in HCL and/or RGB spectrum. Color manipulation functions include: desaturation, lightening/darkening, mixing, and simulation of color vision deficiencies (deutanomaly, protanomaly, tritanomaly). Details can be found on the project web page at <https://colorspace.R-Forge.R-project.org/> and in the accompanying scientific paper: Zeileis et al. (2020, Journal of Statistical Software, <doi:10.18637/jss.v096.i01>).",
@@ -2092,7 +2094,7 @@
       "License": "GPL (>= 3)",
       "URL": "https://github.com/JeffreyRacine/R-Package-crs",
       "BugReports": "https://github.com/JeffreyRacine/R-Package-crs/issues",
-      "Repository": "binary",
+      "Repository": "RSPM",
       "NeedsCompilation": "yes",
       "Author": "Jeffrey S. Racine [aut, cre], Zhenghua Nie [aut], Brian D. Ripley [ctb] (stepCV.R)",
       "Maintainer": "Jeffrey S. Racine <racinej@mcmaster.ca>",
@@ -2262,7 +2264,7 @@
       "NeedsCompilation": "no",
       "Author": "Hadley Wickham [aut, cre], Maximilian Girlich [aut], Edgar Ruiz [aut], Posit Software, PBC [cph, fnd]",
       "Maintainer": "Hadley Wickham <hadley@posit.co>",
-      "Repository": "https://packagemanager.posit.co/cran/latest"
+      "Repository": "RSPM"
     },
     "dbscan": {
       "Package": "dbscan",
@@ -2305,7 +2307,7 @@
       "NeedsCompilation": "yes",
       "Author": "Michael Hahsler [aut, cre, cph] (ORCID: <https://orcid.org/0000-0003-2716-1405>), Matthew Piekenbrock [aut, cph], Sunil Arya [ctb, cph], David Mount [ctb, cph], Claudia Malzer [ctb]",
       "Maintainer": "Michael Hahsler <mhahsler@lyle.smu.edu>",
-      "Repository": "binary"
+      "Repository": "RSPM"
     },
     "desc": {
       "Package": "desc",
@@ -2416,11 +2418,11 @@
       "NeedsCompilation": "no",
       "Author": "Mitchell O'Hara-Wild [aut, cre] (ORCID: <https://orcid.org/0000-0001-6729-7695>), Matthew Kay [aut] (ORCID: <https://orcid.org/0000-0001-9446-0419>), Alex Hayes [aut] (ORCID: <https://orcid.org/0000-0002-4985-5160>), Rob Hyndman [aut] (ORCID: <https://orcid.org/0000-0002-2140-5352>), Earo Wang [ctb] (ORCID: <https://orcid.org/0000-0001-6448-5260>), Vencislav Popov [ctb] (ORCID: <https://orcid.org/0000-0002-8073-4199>)",
       "Maintainer": "Mitchell O'Hara-Wild <mail@mitchelloharawild.com>",
-      "Repository": "https://packagemanager.posit.co/cran/latest"
+      "Repository": "RSPM"
     },
     "dobin": {
       "Package": "dobin",
-      "Version": "1.0.4",
+      "Version": "1.0.5",
       "Source": "Repository",
       "Type": "Package",
       "Title": "Dimension Reduction for Outlier Detection",
@@ -2447,7 +2449,7 @@
       ],
       "URL": "https://sevvandi.github.io/dobin/",
       "NeedsCompilation": "no",
-      "Author": "Sevvandi Kandanaarachchi [aut, cre] (<https://orcid.org/0000-0002-0337-0395>)",
+      "Author": "Sevvandi Kandanaarachchi [aut, cre] (ORCID: <https://orcid.org/0000-0002-0337-0395>)",
       "Repository": "RSPM"
     },
     "dotCall64": {
@@ -2827,7 +2829,7 @@
       "NeedsCompilation": "no",
       "Author": "Mitchell O'Hara-Wild [aut, cre] (ORCID: <https://orcid.org/0000-0001-6729-7695>), Rob Hyndman [aut], Earo Wang [aut] (ORCID: <https://orcid.org/0000-0001-6448-5260>), Di Cook [ctb], George Athanasopoulos [ctb], David Holt [ctb]",
       "Maintainer": "Mitchell O'Hara-Wild <mail@mitchelloharawild.com>",
-      "Repository": "https://packagemanager.posit.co/cran/latest"
+      "Repository": "RSPM"
     },
     "fanplot": {
       "Package": "fanplot",
@@ -3527,7 +3529,7 @@
       "NeedsCompilation": "no",
       "Author": "Malcolm Barrett [aut, cre] (<https://orcid.org/0000-0003-0299-5825>)",
       "Maintainer": "Malcolm Barrett <malcolmbarrett@gmail.com>",
-      "Repository": "binary"
+      "Repository": "RSPM"
     },
     "ggplot2": {
       "Package": "ggplot2",
@@ -3824,7 +3826,7 @@
     },
     "gh": {
       "Package": "gh",
-      "Version": "1.6.0",
+      "Version": "1.6.1",
       "Source": "Repository",
       "Title": "'GitHub' 'API'",
       "Authors@R": "c( person(\"Gábor\", \"Csárdi\", , \"csardi.gabor@gmail.com\", role = c(\"cre\", \"ctb\")), person(\"Jennifer\", \"Bryan\", role = \"aut\"), person(\"Hadley\", \"Wickham\", role = \"aut\"), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"), comment = c(ROR = \"03wc8by49\")) )",
@@ -4084,7 +4086,7 @@
     },
     "graphlayouts": {
       "Package": "graphlayouts",
-      "Version": "1.2.4",
+      "Version": "1.2.5",
       "Source": "Repository",
       "Title": "Additional Layout Algorithms for Network Visualizations",
       "Authors@R": "person(\"David\", \"Schoch\", email = \"david@schochastics.net\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0003-2952-4812\"))",
@@ -4115,7 +4117,7 @@
       "NeedsCompilation": "yes",
       "Author": "David Schoch [aut, cre] (ORCID: <https://orcid.org/0000-0003-2952-4812>)",
       "Maintainer": "David Schoch <david@schochastics.net>",
-      "Repository": "binary"
+      "Repository": "RSPM"
     },
     "gratia": {
       "Package": "gratia",
@@ -4191,7 +4193,7 @@
       "Language": "en-GB",
       "NeedsCompilation": "no",
       "Author": "Gavin L. Simpson [aut, cre, cph] (ORCID: <https://orcid.org/0000-0002-9084-8413>), Henrik Singmann [ctb] (ORCID: <https://orcid.org/0000-0002-4842-3657>)",
-      "Repository": "binary"
+      "Repository": "RSPM"
     },
     "gridExtra": {
       "Package": "gridExtra",
@@ -4221,7 +4223,7 @@
       "NeedsCompilation": "no",
       "Author": "Baptiste Auguie [aut, cre], Anton Antonov [ctb]",
       "Maintainer": "Baptiste Auguie <baptiste.auguie@vuw.ac.nz>",
-      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "Repository": "RSPM",
       "Encoding": "UTF-8"
     },
     "gtable": {
@@ -4533,7 +4535,7 @@
     },
     "httr2": {
       "Package": "httr2",
-      "Version": "1.2.3",
+      "Version": "1.3.0",
       "Source": "Repository",
       "Title": "Perform HTTP Requests and Process the Responses",
       "Authors@R": "c( person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = c(\"aut\", \"cre\")), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")), person(\"Maximilian\", \"Girlich\", role = \"ctb\") )",
@@ -4552,8 +4554,7 @@
         "magrittr",
         "openssl",
         "R6",
-        "rappdirs",
-        "rlang (>= 1.1.0)",
+        "rlang (>= 1.3.0)",
         "vctrs (>= 0.6.3)",
         "withr"
       ],
@@ -4574,6 +4575,7 @@
         "otelsdk (>= 0.2.0)",
         "paws.common (>= 0.8.0)",
         "promises",
+        "rappdirs",
         "rmarkdown",
         "testthat (>= 3.1.8)",
         "tibble",
@@ -4590,7 +4592,7 @@
       "NeedsCompilation": "no",
       "Author": "Hadley Wickham [aut, cre], Posit Software, PBC [cph, fnd], Maximilian Girlich [ctb]",
       "Maintainer": "Hadley Wickham <hadley@posit.co>",
-      "Repository": "https://packagemanager.posit.co/cran/latest"
+      "Repository": "RSPM"
     },
     "ids": {
       "Package": "ids",
@@ -4686,7 +4688,7 @@
       "NeedsCompilation": "yes",
       "Author": "Gábor Csárdi [aut] (ORCID: <https://orcid.org/0000-0001-7098-9676>), Tamás Nepusz [aut] (ORCID: <https://orcid.org/0000-0002-1451-338X>), Vincent Traag [aut] (ORCID: <https://orcid.org/0000-0003-3170-3879>), Szabolcs Horvát [aut] (ORCID: <https://orcid.org/0000-0002-3100-523X>), Fabio Zanini [aut] (ORCID: <https://orcid.org/0000-0001-7097-8539>), Daniel Noom [aut], Kirill Müller [aut, cre] (ORCID: <https://orcid.org/0000-0002-1416-3412>), Michael Antonov [ctb], Chan Zuckerberg Initiative [fnd] (ROR: <https://ror.org/02qenvm24>), David Schoch [aut] (ORCID: <https://orcid.org/0000-0003-2952-4812>), Maëlle Salmon [aut] (ORCID: <https://orcid.org/0000-0002-2815-0399>), R Consortium [fnd] (ROR: <https://ror.org/01z833950>)",
       "Maintainer": "Kirill Müller <kirill@cynkra.com>",
-      "Repository": "binary"
+      "Repository": "RSPM"
     },
     "ini": {
       "Package": "ini",
@@ -4898,14 +4900,14 @@
     },
     "kableExtra": {
       "Package": "kableExtra",
-      "Version": "1.4.0",
+      "Version": "1.4.1",
       "Source": "Repository",
       "Type": "Package",
       "Title": "Construct Complex Table with 'kable' and Pipe Syntax",
       "Authors@R": "c( person('Hao', 'Zhu', email = 'haozhu233@gmail.com', role = c('aut', 'cre'), comment = c(ORCID = '0000-0002-3386-6076')), person('Thomas', 'Travison', role = 'ctb'), person('Timothy', 'Tsai', role = 'ctb'), person('Will', 'Beasley', email = 'wibeasley@hotmail.com', role = 'ctb'), person('Yihui', 'Xie', email = 'xie@yihui.name', role = 'ctb'), person('GuangChuang', 'Yu', email = 'guangchuangyu@gmail.com', role = 'ctb'), person('Stéphane', 'Laurent', role = 'ctb'), person('Rob', 'Shepherd', role = 'ctb'), person('Yoni', 'Sidi', role = 'ctb'),  person('Brian', 'Salzer', role = 'ctb'), person('George', 'Gui', role = 'ctb'), person('Yeliang', 'Fan', role = 'ctb'), person('Duncan', 'Murdoch', role = 'ctb'), person('Vincent', 'Arel-Bundock', role = 'ctb'), person('Bill', 'Evans',  role = 'ctb') )",
       "Description": "Build complex HTML or 'LaTeX' tables using 'kable()' from 'knitr'  and the piping syntax from 'magrittr'. Function 'kable()' is a light weight  table generator coming from 'knitr'. This package simplifies the way to  manipulate the HTML or 'LaTeX' codes generated by 'kable()' and allows  users to construct complex tables and customize styles using a readable  syntax.",
       "License": "MIT + file LICENSE",
-      "URL": "http://haozhu233.github.io/kableExtra/, https://github.com/haozhu233/kableExtra",
+      "URL": "https://haozhu233.github.io/kableExtra/, https://github.com/haozhu233/kableExtra",
       "BugReports": "https://github.com/haozhu233/kableExtra/issues",
       "Depends": [
         "R (>= 3.1.0)"
@@ -4938,10 +4940,10 @@
       "Config/testthat/edition": "3",
       "VignetteBuilder": "knitr",
       "Encoding": "UTF-8",
-      "RoxygenNote": "7.2.3",
+      "RoxygenNote": "7.3.2",
       "Language": "en-US",
       "NeedsCompilation": "no",
-      "Author": "Hao Zhu [aut, cre] (<https://orcid.org/0000-0002-3386-6076>), Thomas Travison [ctb], Timothy Tsai [ctb], Will Beasley [ctb], Yihui Xie [ctb], GuangChuang Yu [ctb], Stéphane Laurent [ctb], Rob Shepherd [ctb], Yoni Sidi [ctb], Brian Salzer [ctb], George Gui [ctb], Yeliang Fan [ctb], Duncan Murdoch [ctb], Vincent Arel-Bundock [ctb], Bill Evans [ctb]",
+      "Author": "Hao Zhu [aut, cre] (ORCID: <https://orcid.org/0000-0002-3386-6076>), Thomas Travison [ctb], Timothy Tsai [ctb], Will Beasley [ctb], Yihui Xie [ctb], GuangChuang Yu [ctb], Stéphane Laurent [ctb], Rob Shepherd [ctb], Yoni Sidi [ctb], Brian Salzer [ctb], George Gui [ctb], Yeliang Fan [ctb], Duncan Murdoch [ctb], Vincent Arel-Bundock [ctb], Bill Evans [ctb]",
       "Maintainer": "Hao Zhu <haozhu233@gmail.com>",
       "Repository": "RSPM"
     },
@@ -5303,19 +5305,18 @@
     },
     "lintr": {
       "Package": "lintr",
-      "Version": "3.3.0-1",
+      "Version": "3.4.0",
       "Source": "Repository",
       "Title": "A 'Linter' for R Code",
-      "Authors@R": "c( person(\"Jim\", \"Hester\", , role = \"aut\"), person(\"Florent\", \"Angly\", role = \"aut\", comment = c(GitHub = \"fangly\")), person(\"Russ\", \"Hyde\", role = \"aut\"), person(\"Michael\", \"Chirico\", email = \"michaelchirico4@gmail.com\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0003-0787-087X\")), person(\"Kun\", \"Ren\", role = \"aut\"), person(\"Alexander\", \"Rosenstock\", role = \"aut\", comment = c(GitHub = \"AshesITR\")), person(\"Indrajeet\", \"Patil\", email = \"patilindrajeet.science@gmail.com\", role = \"aut\", comment = c(ORCID = \"0000-0003-1995-6531\")), person(\"Hugo\", \"Gruson\", role = \"aut\", comment = c(ORCID = \"0000-0002-4094-1476\")) )",
+      "Authors@R": "c( person(\"Jim\", \"Hester\", , role = \"aut\"), person(\"Florent\", \"Angly\", role = \"aut\", comment = c(GitHub = \"fangly\")), person(\"Russ\", \"Hyde\", role = \"aut\"), person(\"Michael\", \"Chirico\", email = \"michaelchirico4@gmail.com\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0003-0787-087X\")), person(\"Kun\", \"Ren\", role = \"aut\"), person(\"Alexander\", \"Rosenstock\", role = \"aut\", comment = c(GitHub = \"AshesITR\")), person(\"Indrajeet\", \"Patil\", email = \"patilindrajeet.science@gmail.com\", role = \"aut\", comment = c(ORCID = \"0000-0003-1995-6531\")), person(\"Hugo\", \"Gruson\", role = \"aut\", comment = c(ORCID = \"0000-0002-4094-1476\")), person(\"Emmanuel\", \"Ferdman\", role = \"aut\") )",
       "Description": "Checks adherence to a given style, syntax errors and possible semantic issues.  Supports on the fly checking of R code edited with 'RStudio IDE', 'Emacs', 'Vim', 'Sublime Text', 'Atom' and 'Visual Studio Code'.",
       "License": "MIT + file LICENSE",
       "URL": "https://lintr.r-lib.org, https://github.com/r-lib/lintr",
       "BugReports": "https://github.com/r-lib/lintr/issues",
       "Depends": [
-        "R (>= 4.0)"
+        "R (>= 4.1.0)"
       ],
       "Imports": [
-        "backports (>= 1.5.0)",
         "cli (>= 3.4.0)",
         "codetools",
         "digest",
@@ -5325,7 +5326,7 @@
         "stats",
         "utils",
         "xfun",
-        "xml2 (>= 1.0.0)",
+        "xml2 (>= 1.3.4)",
         "xmlparsedata (>= 1.0.5)"
       ],
       "Suggests": [
@@ -5336,7 +5337,7 @@
         "rlang",
         "rmarkdown",
         "rstudioapi (>= 0.2)",
-        "testthat (>= 3.2.1)",
+        "testthat (>= 3.3.0)",
         "tibble",
         "tufte",
         "withr (>= 2.5.0)"
@@ -5349,11 +5350,11 @@
       "Config/Needs/development": "pkgload, testthat, patrick",
       "Config/testthat/edition": "3",
       "Encoding": "UTF-8",
-      "RoxygenNote": "7.3.3",
-      "Collate": "'make_linter_from_xpath.R' 'xp_utils.R' 'utils.R' 'AAA.R' 'T_and_F_symbol_linter.R' 'absolute_path_linter.R' 'actions.R' 'addins.R' 'all_equal_linter.R' 'any_duplicated_linter.R' 'any_is_na_linter.R' 'assignment_linter.R' 'backport_linter.R' 'boolean_arithmetic_linter.R' 'brace_linter.R' 'cache.R' 'class_equals_linter.R' 'coalesce_linter.R' 'commas_linter.R' 'commented_code_linter.R' 'comparison_negation_linter.R' 'condition_call_linter.R' 'condition_message_linter.R' 'conjunct_test_linter.R' 'consecutive_assertion_linter.R' 'consecutive_mutate_linter.R' 'cyclocomp_linter.R' 'declared_functions.R' 'deprecated.R' 'download_file_linter.R' 'duplicate_argument_linter.R' 'empty_assignment_linter.R' 'equals_na_linter.R' 'exclude.R' 'expect_comparison_linter.R' 'expect_identical_linter.R' 'expect_length_linter.R' 'expect_lint.R' 'expect_named_linter.R' 'expect_not_linter.R' 'expect_null_linter.R' 'expect_s3_class_linter.R' 'expect_s4_class_linter.R' 'expect_true_false_linter.R' 'expect_type_linter.R' 'extract.R' 'fixed_regex_linter.R' 'for_loop_index_linter.R' 'function_argument_linter.R' 'function_left_parentheses_linter.R' 'function_return_linter.R' 'get_source_expressions.R' 'ids_with_token.R' 'if_not_else_linter.R' 'if_switch_linter.R' 'ifelse_censor_linter.R' 'implicit_assignment_linter.R' 'implicit_integer_linter.R' 'indentation_linter.R' 'infix_spaces_linter.R' 'inner_combine_linter.R' 'is_lint_level.R' 'is_numeric_linter.R' 'keyword_quote_linter.R' 'length_levels_linter.R' 'length_test_linter.R' 'lengths_linter.R' 'library_call_linter.R' 'line_length_linter.R' 'lint.R' 'linter_tag_docs.R' 'linter_tags.R' 'lintr-deprecated.R' 'lintr-package.R' 'list2df_linter.R' 'list_comparison_linter.R' 'literal_coercion_linter.R' 'make_linter_from_regex.R' 'matrix_apply_linter.R' 'methods.R' 'missing_argument_linter.R' 'missing_package_linter.R' 'namespace.R' 'namespace_linter.R' 'nested_ifelse_linter.R' 'nested_pipe_linter.R' 'nonportable_path_linter.R' 'shared_constants.R' 'nrow_subset_linter.R' 'numeric_leading_zero_linter.R' 'nzchar_linter.R' 'object_length_linter.R' 'object_name_linter.R' 'object_overwrite_linter.R' 'object_usage_linter.R' 'one_call_pipe_linter.R' 'outer_negation_linter.R' 'package_hooks_linter.R' 'paren_body_linter.R' 'paste_linter.R' 'path_utils.R' 'pipe_call_linter.R' 'pipe_consistency_linter.R' 'pipe_continuation_linter.R' 'pipe_return_linter.R' 'print_linter.R' 'quotes_linter.R' 'redundant_equals_linter.R' 'redundant_ifelse_linter.R' 'regex_subset_linter.R' 'rep_len_linter.R' 'repeat_linter.R' 'return_linter.R' 'routine_registration_linter.R' 'sample_int_linter.R' 'scalar_in_linter.R' 'semicolon_linter.R' 'seq_linter.R' 'settings.R' 'settings_utils.R' 'sort_linter.R' 'source_utils.R' 'spaces_inside_linter.R' 'spaces_left_parentheses_linter.R' 'sprintf_linter.R' 'stopifnot_all_linter.R' 'string_boundary_linter.R' 'strings_as_factors_linter.R' 'system_file_linter.R' 'terminal_close_linter.R' 'todo_comment_linter.R' 'trailing_blank_lines_linter.R' 'trailing_whitespace_linter.R' 'tree_utils.R' 'undesirable_function_linter.R' 'undesirable_operator_linter.R' 'unnecessary_concatenation_linter.R' 'unnecessary_lambda_linter.R' 'unnecessary_nesting_linter.R' 'unnecessary_placeholder_linter.R' 'unreachable_code_linter.R' 'unused_import_linter.R' 'use_lintr.R' 'vector_logic_linter.R' 'which_grepl_linter.R' 'whitespace_linter.R' 'with.R' 'with_id.R' 'xml_nodes_to_lints.R' 'xml_utils.R' 'yoda_test_linter.R' 'zzz.R'",
+      "Collate": "'make_linter_from_xpath.R' 'xp_utils.R' 'utils.R' 'AAA.R' 'T_and_F_symbol_linter.R' 'absolute_path_linter.R' 'actions.R' 'addins.R' 'all_equal_linter.R' 'any_duplicated_linter.R' 'any_is_na_linter.R' 'assignment_linter.R' 'backport_linter.R' 'boolean_arithmetic_linter.R' 'brace_linter.R' 'cache.R' 'class_equals_linter.R' 'coalesce_linter.R' 'commas_linter.R' 'commented_code_linter.R' 'comparison_negation_linter.R' 'condition_call_linter.R' 'condition_message_linter.R' 'conjunct_test_linter.R' 'consecutive_assertion_linter.R' 'consecutive_mutate_linter.R' 'cyclocomp_linter.R' 'declared_functions.R' 'deprecated.R' 'download_file_linter.R' 'duplicate_argument_linter.R' 'empty_assignment_linter.R' 'equals_na_linter.R' 'exclude.R' 'expect_comparison_linter.R' 'expect_identical_linter.R' 'expect_length_linter.R' 'expect_lint.R' 'expect_named_linter.R' 'expect_not_linter.R' 'expect_null_linter.R' 'expect_s3_class_linter.R' 'expect_s4_class_linter.R' 'expect_true_false_linter.R' 'expect_type_linter.R' 'extract.R' 'fixed_regex_linter.R' 'for_loop_index_linter.R' 'function_argument_linter.R' 'function_left_parentheses_linter.R' 'function_return_linter.R' 'get_source_expressions.R' 'ids_with_token.R' 'if_not_else_linter.R' 'if_switch_linter.R' 'ifelse_censor_linter.R' 'implicit_assignment_linter.R' 'implicit_integer_linter.R' 'indentation_linter.R' 'infix_spaces_linter.R' 'inner_combine_linter.R' 'is_lint_level.R' 'is_numeric_linter.R' 'keyword_quote_linter.R' 'length_levels_linter.R' 'length_test_linter.R' 'lengths_linter.R' 'library_call_linter.R' 'line_length_linter.R' 'lint.R' 'linter_tag_docs.R' 'linter_tags.R' 'lintr-package.R' 'list2df_linter.R' 'list_comparison_linter.R' 'literal_coercion_linter.R' 'make_linter_from_regex.R' 'matrix_apply_linter.R' 'methods.R' 'missing_argument_linter.R' 'missing_package_linter.R' 'namespace.R' 'namespace_linter.R' 'nested_ifelse_linter.R' 'nested_pipe_linter.R' 'nonportable_path_linter.R' 'shared_constants.R' 'nrow_subset_linter.R' 'numeric_leading_zero_linter.R' 'nzchar_linter.R' 'object_length_linter.R' 'object_name_linter.R' 'object_overwrite_linter.R' 'object_usage_linter.R' 'one_call_pipe_linter.R' 'outer_negation_linter.R' 'package_hooks_linter.R' 'paren_body_linter.R' 'paste_linter.R' 'path_utils.R' 'pipe_call_linter.R' 'pipe_consistency_linter.R' 'pipe_continuation_linter.R' 'pipe_return_linter.R' 'print_linter.R' 'quotes_linter.R' 'redundant_equals_linter.R' 'redundant_ifelse_linter.R' 'regex_subset_linter.R' 'rep_len_linter.R' 'repeat_linter.R' 'return_linter.R' 'routine_registration_linter.R' 'sample_int_linter.R' 'scalar_in_linter.R' 'semicolon_linter.R' 'seq_linter.R' 'settings.R' 'settings_utils.R' 'sort_linter.R' 'source_utils.R' 'spaces_inside_linter.R' 'spaces_left_parentheses_linter.R' 'sprintf_linter.R' 'stopifnot_all_linter.R' 'string_boundary_linter.R' 'strings_as_factors_linter.R' 'system_file_linter.R' 'terminal_close_linter.R' 'todo_comment_linter.R' 'trailing_blank_lines_linter.R' 'trailing_whitespace_linter.R' 'tree_utils.R' 'undesirable_function_linter.R' 'undesirable_operator_linter.R' 'unnecessary_concatenation_linter.R' 'unnecessary_lambda_linter.R' 'unnecessary_nesting_linter.R' 'unnecessary_placeholder_linter.R' 'unreachable_code_linter.R' 'unused_import_linter.R' 'use_lintr.R' 'vector_logic_linter.R' 'which_grepl_linter.R' 'whitespace_linter.R' 'with.R' 'with_id.R' 'xml_nodes_to_lints.R' 'xml_utils.R' 'yoda_test_linter.R' 'zzz.R'",
       "Language": "en-US",
+      "Config/roxygen2/version": "8.0.0",
       "NeedsCompilation": "no",
-      "Author": "Jim Hester [aut], Florent Angly [aut] (GitHub: fangly), Russ Hyde [aut], Michael Chirico [aut, cre] (ORCID: <https://orcid.org/0000-0003-0787-087X>), Kun Ren [aut], Alexander Rosenstock [aut] (GitHub: AshesITR), Indrajeet Patil [aut] (ORCID: <https://orcid.org/0000-0003-1995-6531>), Hugo Gruson [aut] (ORCID: <https://orcid.org/0000-0002-4094-1476>)",
+      "Author": "Jim Hester [aut], Florent Angly [aut] (GitHub: fangly), Russ Hyde [aut], Michael Chirico [aut, cre] (ORCID: <https://orcid.org/0000-0003-0787-087X>), Kun Ren [aut], Alexander Rosenstock [aut] (GitHub: AshesITR), Indrajeet Patil [aut] (ORCID: <https://orcid.org/0000-0003-1995-6531>), Hugo Gruson [aut] (ORCID: <https://orcid.org/0000-0002-4094-1476>), Emmanuel Ferdman [aut]",
       "Maintainer": "Michael Chirico <michaelchirico4@gmail.com>",
       "Repository": "RSPM"
     },
@@ -5392,7 +5393,7 @@
     },
     "lookout": {
       "Package": "lookout",
-      "Version": "2.0.1",
+      "Version": "2.0.2",
       "Source": "Repository",
       "Type": "Package",
       "Title": "Leave One Out Kernel Density Estimates for Outlier Detection",
@@ -5401,7 +5402,6 @@
       "Description": "Outlier detection using leave-one-out kernel density estimates and extreme value theory. The bandwidth for kernel density estimates is computed using persistent homology, a technique in topological data analysis. Using peak-over-threshold method, a generalized Pareto distribution is fitted to the log of leave-one-out kde values to identify outliers.",
       "License": "GPL-3",
       "Encoding": "UTF-8",
-      "RoxygenNote": "7.3.3",
       "BugReports": "https://github.com/sevvandi/lookout/issues",
       "Imports": [
         "evd",
@@ -5419,6 +5419,7 @@
       ],
       "URL": "https://sevvandi.github.io/lookout/, https://github.com/sevvandi/lookout",
       "Config/testthat/edition": "3",
+      "Config/roxygen2/version": "8.0.0",
       "NeedsCompilation": "no",
       "Author": "Sevvandi Kandanaarachchi [aut, cre] (ORCID: <https://orcid.org/0000-0002-0337-0395>), Rob Hyndman [aut] (ORCID: <https://orcid.org/0000-0002-2140-5352>), Chris Fraley [ctb]",
       "Repository": "RSPM"
@@ -5655,7 +5656,7 @@
       "License": "GPL (>= 2)",
       "URL": "https://mclust-org.github.io/mclust/",
       "VignetteBuilder": "knitr",
-      "Repository": "binary",
+      "Repository": "RSPM",
       "ByteCompile": "true",
       "NeedsCompilation": "yes",
       "LazyData": "yes",
@@ -5786,17 +5787,16 @@
       "NeedsCompilation": "no",
       "Author": "Charlie Gao [aut, cre] (ORCID: <https://orcid.org/0000-0002-0750-061X>), Joe Cheng [ctb], Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>), Hibiki AI Limited [cph]",
       "Maintainer": "Charlie Gao <charlie.gao@posit.co>",
-      "Repository": "https://packagemanager.posit.co/cran/latest"
+      "Repository": "RSPM"
     },
     "mlpack": {
       "Package": "mlpack",
-      "Version": "4.7.0",
+      "Version": "4.8.0-1",
       "Source": "Repository",
       "Title": "'Rcpp' Integration for the 'mlpack' Library",
-      "Date": "2026-02-01",
-      "Authors@R": "c( person(\"Yashwant\", \"Singh Parihar\", email = \"yashwantsingh.sngh@gmail.com\", role = c(\"aut\", \"ctb\", \"cph\")), person(\"Ryan\", \"Curtin\", email = \"ryan@ratml.org\", role = c(\"aut\", \"ctb\", \"cph\", \"cre\")), person(\"Dirk\", \"Eddelbuettel\", email = \"edd@debian.org\", role = c(\"aut\", \"ctb\", \"cph\")), person(\"James\", \"Balamuta\", email = \"james.balamuta@gmail.com\", role = c(\"aut\", \"ctb\", \"cph\")), person(\"Bill\", \"March\", email = \"march@gatech.edu\", role = c(\"ctb\", \"cph\")), person(\"Dongryeol\", \"Lee\", email = \"dongryel@cc.gatech.edu\", role = c(\"ctb\", \"cph\")), person(\"Nishant\", \"Mehta\", email = \"niche@cc.gatech.edu\", role = c(\"ctb\", \"cph\")), person(\"Parikshit\", \"Ram\", email = \"p.ram@gatech.edu\", role = c(\"ctb\", \"cph\")), person(\"James\", \"Cline\", email = \"james.cline@gatech.edu\", role = c(\"ctb\", \"cph\")), person(\"Sterling\", \"Peet\", email = \"sterling.peet@gatech.edu\", role = c(\"ctb\", \"cph\")), person(\"Matthew\", \"Amidon\", email = \"mamidon@gatech.edu\", role = c(\"ctb\", \"cph\")), person(\"Neil\", \"Slagle\", email = \"npslagle@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Ajinkya\", \"Kale\", email = \"kaleajinkya@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Vlad\", \"Grantcharov\", email = \"vlad321@gatech.edu\", role = c(\"ctb\", \"cph\")), person(\"Noah\", \"Kauffman\", email = \"notoriousnoah@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Rajendran\", \"Mohan\", email = \"rmohan88@gatech.edu\", role = c(\"ctb\", \"cph\")), person(\"Trironk\", \"Kiatkungwanglai\", email = \"trironk@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Patrick\", \"Mason\", email = \"patrick.s.mason@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Marcus\", \"Edel\", email = \"marcus.edel@fu-berlin.de\", role = c(\"ctb\", \"cph\")), person(\"Mudit\", \"Raj Gupta\", email = \"mudit.raaj.gupta@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Sumedh\", \"Ghaisas\", email = \"sumedhghaisas@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Michael\", \"Fox\", email = \"michaelfox99@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Siddharth\", \"Agrawal\", email = \"siddharth.950@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Saheb\", \"Motiani\", email = \"saheb210692@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Yash\", \"Vadalia\", email = \"yashdv@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Abhishek\", \"Laddha\", email = \"laddhaabhishek11@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Vahab\", \"Akbarzadeh\", email = \"v.akbarzadeh@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Andrew\", \"Wells\", email = \"andrewmw94@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Zhihao\", \"Lou\", email = \"lzh1984@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Udit\", \"Saxena\", email = \"saxenda.udit@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Stephen\", \"Tu\", email = \"tu.stephenl@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Jaskaran\", \"Singh\", email = \"jaskaranvirdi@ymail.com\", role = c(\"ctb\", \"cph\")), person(\"Hritik\", \"Jain\", email = \"hritik.jain.cse13@itbhu.ac.in\", role = c(\"ctb\", \"cph\")), person(\"Vladimir\", \"Glazachev\", email = \"glazachev.vladimir@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"QiaoAn\", \"Chen\", email = \"kazenoyumechen@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Janzen\", \"Brewer\", email = \"jahabrewer@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Trung\", \"Dinh\", email = \"dinhanhtrung@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Tham\", \"Ngap Wei\", email = \"thamngapwei@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Grzegorz\", \"Krajewski\", email = \"krajekg@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Joseph\", \"Mariadassou\", email = \"joe.mariadassou@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Pavel\", \"Zhigulin\", email = \"pashaworking@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Andy\", \"Fang\", email = \"AndyFang.DZ@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Barak\", \"Pearlmutter\", email = \"barak+git@pearlmutter.net\", role = c(\"ctb\", \"cph\")), person(\"Ivari\", \"Horm\", email = \"ivari@risk.ee\", role = c(\"ctb\", \"cph\")), person(\"Dhawal\", \"Arora\", email = \"d.p.arora1@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Alexander\", \"Leinoff\", email = \"alexander-leinoff@uiowa.edu\", role = c(\"ctb\", \"cph\")), person(\"Palash\", \"Ahuja\", email = \"abhor902@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Yannis\", \"Mentekidis\", email = \"mentekid@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Ranjan\", \"Mondal\", email = \"ranjan.rev@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Mikhail\", \"Lozhnikov\", email = \"lozhnikovma@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Marcos\", \"Pividori\", email = \"marcos.pividori@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Keon\", \"Kim\", email = \"kwk236@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Nilay\", \"Jain\", email = \"nilayjain13@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Peter\", \"Lehner\", email = \"peter.lehner@dlr.de\", role = c(\"ctb\", \"cph\")), person(\"Anuraj\", \"Kanodia\", email = \"akanuraj200@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Ivan\", \"Georgiev\", email = \"ivan@jonan.info\", role = c(\"ctb\", \"cph\")), person(\"Shikhar\", \"Bhardwaj\", email = \"shikharbhardwaj68@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Yashu\", \"Seth\", email = \"yashuseth2503@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Mike\", \"Izbicki\", email = \"mike@izbicki.me\", role = c(\"ctb\", \"cph\")), person(\"Sudhanshu\", \"Ranjan\", email = \"sranjan.sud@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Piyush\", \"Jaiswal\", email = \"piyush.jaiswal@st.niituniversity.in\", role = c(\"ctb\", \"cph\")), person(\"Dinesh\", \"Raj\", email = \"dinu.iota@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Vivek\", \"Pal\", email = \"vivekpal.dtu@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Prasanna\", \"Patil\", email = \"prasannapatil08@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Lakshya\", \"Agrawal\", email = \"zeeshan.lakshya@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Praveen\", \"Ch\", email = \"chvsp972911@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Kirill\", \"Mishchenko\", email = \"ki.mishchenko@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Abhinav\", \"Moudgil\", email = \"abhinavmoudgil95@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Thyrix\", \"Yang\", email = \"thyrixyang@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Sagar\", \"B Hathwar\", email = \"sagarbhathwar@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Nishanth\", \"Hegde\", email = \"hegde.nishanth@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Parminder\", \"Singh\", email = \"parmsingh101@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"CodeAi\", \"\", email = \"benjamin.bales@assrc.us\", role = c(\"ctb\", \"cph\")), person(\"Franciszek\", \"Stokowacki\", email = \"franek.stokowacki@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Samikshya\", \"Chand\", email = \"samikshya289@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"N\", \"Rajiv Vaidyanathan\", email = \"rajivvaidyanathan4@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Kartik\", \"Nighania\", email = \"kartiknighania@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Eugene\", \"Freyman\", email = \"evg.freyman@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Manish\", \"Kumar\", email = \"manish887kr@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Haritha\", \"Sreedharan Nair\", email = \"haritha1313@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Sourabh\", \"Varshney\", email = \"sourabhvarshney111@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Projyal\", \"Dev\", email = \"projyal@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Nikhil\", \"Goel\", email = \"nikhilgoel199797@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Shikhar\", \"Jaiswal\", email = \"jaiswalshikhar87@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"B\", \"Kartheek Reddy\", email = \"bkartheekreddy@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Atharva\", \"Khandait\", email = \"akhandait45@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Wenhao\", \"Huang\", email = \"wenhao.huang.work@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Roberto\", \"Hueso\", email = \"robertohueso96@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Prabhat\", \"Sharma\", email = \"prabhatsharma7298@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Tan\", \"Jun An\", email = \"yamidarkxxx@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Moksh\", \"Jain\", email = \"mokshjn00@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Manthan-R-Sheth\", \"\", email = \"manthanrsheth96@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Namrata\", \"Mukhija\", email = \"namratamukhija@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Conrad\", \"Sanderson\", role = c(\"ctb\", \"cph\")), person(\"Thanasis\", \"Mattas\", email = \"mattasa@auth.gr\", role = c(\"ctb\", \"cph\")), person(\"Shashank\", \"Shekhar\", email = \"contactshashankshekhar@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Yasmine\", \"Dumouchel\", email = \"yasmine.dumouchel@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"German\", \"Lancioni\", role = c(\"ctb\", \"cph\")), person(\"Arash\", \"Abghari\", email = \"arash.abghari@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Ayush\", \"Chamoli\", role = c(\"ctb\", \"cph\")), person(\"Tommi\", \"Laivamaa\", email = \"tommi.laivamaa@protonmail.com\", role = c(\"ctb\", \"cph\")), person(\"Kim\", \"SangYeon\", email = \"sy0814k@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Niteya\", \"Shah\", email = \"niteya.56@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Toshal\", \"Agrawal\", email = \"tagrawal1339@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Dan\", \"Timson\", role = c(\"ctb\", \"cph\")), person(\"Miguel\", \"Canteras\", email = \"mcanteras@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Bishwa\", \"Karki\", email = \"karkeebishwa1@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Mehul\", \"Kumar Nirala\", email = \"mehulkumarnirala@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Heet\", \"Sankesara\", email = \"heetsankesara3@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Jeffin\", \"Sam\", email = \"sam.jeffin@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Vikas\", \"S Shetty\", email = \"shettyvikas209@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Khizir\", \"Siddiqui\", email = \"khizirsiddiqui@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Tejasvi\", \"Tomar\", email = \"tstomar@outlook.com\", role = c(\"ctb\", \"cph\")), person(\"Jai\", \"Agarwal\", email = \"jai.bhageria@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Ziyang\", \"Jiang\", email = \"zij004@alumni.stanford.edu\", role = c(\"ctb\", \"cph\")), person(\"Rohit\", \"Kartik\", email = \"rohit.audrey@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Aditya\", \"Viki\", email = \"adityaviki01@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Kartik\", \"Dutt\", email = \"kartikdutt@live.in\", role = c(\"ctb\", \"cph\")), person(\"Suryoday\", \"Basak\", email = \"suryodaybasak@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Sriram\", \"S K\", email = \"sriramsk1999@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Manoranjan\", \"Kumar Bharti ( Nakul Bharti )\", email = \"knakul853@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Saraansh\", \"Tandon\", email = \"saraanshtandon1999@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Gaurav\", \"Singh\", email = \"gs8763076@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Lakshya\", \"Ojha\", email = \"ojhalakshya@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Bisakh\", \"Mondal\", email = \"bisakhmondal00@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Benson\", \"Muite\", email = \"benson_muite@emailplus.org\", role = c(\"ctb\", \"cph\")), person(\"Sarthak\", \"Bhardwaj\", email = \"7sarthakbhardwaj@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Aakash\", \"Kaushik\", email = \"kaushikaakash7539@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Anush\", \"Kini\", email = \"anushkini@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Nippun\", \"Sharma\", email = \"inbox.nippun@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Rishabh\", \"Garg\", email = \"rishabhgarg108@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Sudhakar\", \"Brar\", email = \"dxhrmhall1449@tutanota.com\", role = c(\"ctb\", \"cph\")), person(\"Alex\", \"Nguyen\", email = \"alexvn.edu@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Gaurav\", \"Ghati\", email = \"gauravghatii@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Anmolpreet\", \"Singh\", email = \"anmol323c@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Anjishnu\", \"Mukherjee\", email = \"amukher6@gmu.edu\", role = c(\"ctb\", \"cph\")), person(\"Omar\", \"Shrit\", email = \"omar@shrit.me\", role = c(\"ctb\", \"cph\")), person(\"Tru\", \"Hoang\", email = \"trugiahoang@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Mark\", \"Fischinger\", email = \"markfischinger@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Muhammad\", \"Fawwaz Mayda\", email = \"maydafawwaz@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Roshan\", \"Nrusing Swain\", email = \"swainroshan001@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Suvarsha\", \"Chennareddy\", email = \"suvarshachennareddy@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Shubham\", \"Agrawal\", email = \"shubham.agra1206@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Sri\", \"Madhan M\", email = \"srimadhan11@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Zhuojin\", \"Liu\", email = \"zhuojinliu.cs@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Richèl\", \"Bilderbeek\", email = \"richel@richelbilderbeek.nl\", role = c(\"ctb\", \"cph\")), person(\"Chetan\", \"Pandey\", email = \"chetanpandey1266@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Nikolay\", \"Apanasov\", email = \"nikolay@apanasov.org\", role = c(\"ctb\", \"cph\")), person(\"Martin\", \"Lambertsen\", email = \"github@lambertsen.one\", role = c(\"ctb\", \"cph\")), person(\"Andrea\", \"Novellini\", email = \"andre.novellini@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Felix\", \"Patschkowski\", email = \"felix.patschkowski@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Benjamin\", \"A. Beasley\", email = \"code@musicinmybrain.net\", role = c(\"ctb\", \"cph\")), person(\"Maksym\", \"Prots\", email = \"imaxprots@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Zachary\", \"Ng\", email = \"zachn716@gmail.com\", role = c(\"ctb\", \"cph\")))",
+      "Date": "2026-07-20",
+      "Authors@R": "c( person(\"Yashwant\", \"Singh Parihar\", email = \"yashwantsingh.sngh@gmail.com\", role = c(\"aut\", \"ctb\", \"cph\")), person(\"Ryan\", \"Curtin\", email = \"ryan@ratml.org\", role = c(\"aut\", \"ctb\", \"cph\", \"cre\")), person(\"Dirk\", \"Eddelbuettel\", email = \"edd@debian.org\", role = c(\"aut\", \"ctb\", \"cph\")), person(\"James\", \"Balamuta\", email = \"james.balamuta@gmail.com\", role = c(\"aut\", \"ctb\", \"cph\")), person(\"Bill\", \"March\", email = \"march@gatech.edu\", role = c(\"ctb\", \"cph\")), person(\"Dongryeol\", \"Lee\", email = \"dongryel@cc.gatech.edu\", role = c(\"ctb\", \"cph\")), person(\"Nishant\", \"Mehta\", email = \"niche@cc.gatech.edu\", role = c(\"ctb\", \"cph\")), person(\"Parikshit\", \"Ram\", email = \"p.ram@gatech.edu\", role = c(\"ctb\", \"cph\")), person(\"James\", \"Cline\", email = \"james.cline@gatech.edu\", role = c(\"ctb\", \"cph\")), person(\"Sterling\", \"Peet\", email = \"sterling.peet@gatech.edu\", role = c(\"ctb\", \"cph\")), person(\"Matthew\", \"Amidon\", email = \"mamidon@gatech.edu\", role = c(\"ctb\", \"cph\")), person(\"Neil\", \"Slagle\", email = \"npslagle@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Ajinkya\", \"Kale\", email = \"kaleajinkya@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Vlad\", \"Grantcharov\", email = \"vlad321@gatech.edu\", role = c(\"ctb\", \"cph\")), person(\"Noah\", \"Kauffman\", email = \"notoriousnoah@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Rajendran\", \"Mohan\", email = \"rmohan88@gatech.edu\", role = c(\"ctb\", \"cph\")), person(\"Trironk\", \"Kiatkungwanglai\", email = \"trironk@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Patrick\", \"Mason\", email = \"patrick.s.mason@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Marcus\", \"Edel\", email = \"marcus.edel@fu-berlin.de\", role = c(\"ctb\", \"cph\")), person(\"Mudit\", \"Raj Gupta\", email = \"mudit.raaj.gupta@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Sumedh\", \"Ghaisas\", email = \"sumedhghaisas@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Michael\", \"Fox\", email = \"michaelfox99@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Siddharth\", \"Agrawal\", email = \"siddharth.950@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Saheb\", \"Motiani\", email = \"saheb210692@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Yash\", \"Vadalia\", email = \"yashdv@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Abhishek\", \"Laddha\", email = \"laddhaabhishek11@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Vahab\", \"Akbarzadeh\", email = \"v.akbarzadeh@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Andrew\", \"Wells\", email = \"andrewmw94@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Zhihao\", \"Lou\", email = \"lzh1984@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Udit\", \"Saxena\", email = \"saxenda.udit@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Stephen\", \"Tu\", email = \"tu.stephenl@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Jaskaran\", \"Singh\", email = \"jaskaranvirdi@ymail.com\", role = c(\"ctb\", \"cph\")), person(\"Hritik\", \"Jain\", email = \"hritik.jain.cse13@itbhu.ac.in\", role = c(\"ctb\", \"cph\")), person(\"Vladimir\", \"Glazachev\", email = \"glazachev.vladimir@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"QiaoAn\", \"Chen\", email = \"kazenoyumechen@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Janzen\", \"Brewer\", email = \"jahabrewer@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Trung\", \"Dinh\", email = \"dinhanhtrung@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Tham\", \"Ngap Wei\", email = \"thamngapwei@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Grzegorz\", \"Krajewski\", email = \"krajekg@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Joseph\", \"Mariadassou\", email = \"joe.mariadassou@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Pavel\", \"Zhigulin\", email = \"pashaworking@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Andy\", \"Fang\", email = \"AndyFang.DZ@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Barak\", \"Pearlmutter\", email = \"barak+git@pearlmutter.net\", role = c(\"ctb\", \"cph\")), person(\"Ivari\", \"Horm\", email = \"ivari@risk.ee\", role = c(\"ctb\", \"cph\")), person(\"Dhawal\", \"Arora\", email = \"d.p.arora1@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Alexander\", \"Leinoff\", email = \"alexander-leinoff@uiowa.edu\", role = c(\"ctb\", \"cph\")), person(\"Palash\", \"Ahuja\", email = \"abhor902@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Yannis\", \"Mentekidis\", email = \"mentekid@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Ranjan\", \"Mondal\", email = \"ranjan.rev@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Mikhail\", \"Lozhnikov\", email = \"lozhnikovma@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Marcos\", \"Pividori\", email = \"marcos.pividori@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Keon\", \"Kim\", email = \"kwk236@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Nilay\", \"Jain\", email = \"nilayjain13@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Peter\", \"Lehner\", email = \"peter.lehner@dlr.de\", role = c(\"ctb\", \"cph\")), person(\"Anuraj\", \"Kanodia\", email = \"akanuraj200@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Ivan\", \"Georgiev\", email = \"ivan@jonan.info\", role = c(\"ctb\", \"cph\")), person(\"Shikhar\", \"Bhardwaj\", email = \"shikharbhardwaj68@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Yashu\", \"Seth\", email = \"yashuseth2503@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Mike\", \"Izbicki\", email = \"mike@izbicki.me\", role = c(\"ctb\", \"cph\")), person(\"Sudhanshu\", \"Ranjan\", email = \"sranjan.sud@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Piyush\", \"Jaiswal\", email = \"piyush.jaiswal@st.niituniversity.in\", role = c(\"ctb\", \"cph\")), person(\"Dinesh\", \"Raj\", email = \"dinu.iota@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Vivek\", \"Pal\", email = \"vivekpal.dtu@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Prasanna\", \"Patil\", email = \"prasannapatil08@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Lakshya\", \"Agrawal\", email = \"zeeshan.lakshya@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Praveen\", \"Ch\", email = \"chvsp972911@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Kirill\", \"Mishchenko\", email = \"ki.mishchenko@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Abhinav\", \"Moudgil\", email = \"abhinavmoudgil95@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Thyrix\", \"Yang\", email = \"thyrixyang@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Sagar\", \"B Hathwar\", email = \"sagarbhathwar@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Nishanth\", \"Hegde\", email = \"hegde.nishanth@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Parminder\", \"Singh\", email = \"parmsingh101@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"CodeAi\", \"\", email = \"benjamin.bales@assrc.us\", role = c(\"ctb\", \"cph\")), person(\"Franciszek\", \"Stokowacki\", email = \"franek.stokowacki@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Samikshya\", \"Chand\", email = \"samikshya289@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"N\", \"Rajiv Vaidyanathan\", email = \"rajivvaidyanathan4@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Kartik\", \"Nighania\", email = \"kartiknighania@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Eugene\", \"Freyman\", email = \"evg.freyman@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Manish\", \"Kumar\", email = \"manish887kr@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Haritha\", \"Sreedharan Nair\", email = \"haritha1313@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Sourabh\", \"Varshney\", email = \"sourabhvarshney111@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Projyal\", \"Dev\", email = \"projyal@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Nikhil\", \"Goel\", email = \"nikhilgoel199797@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Shikhar\", \"Jaiswal\", email = \"jaiswalshikhar87@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"B\", \"Kartheek Reddy\", email = \"bkartheekreddy@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Atharva\", \"Khandait\", email = \"akhandait45@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Wenhao\", \"Huang\", email = \"wenhao.huang.work@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Roberto\", \"Hueso\", email = \"robertohueso96@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Prabhat\", \"Sharma\", email = \"prabhatsharma7298@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Tan\", \"Jun An\", email = \"yamidarkxxx@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Moksh\", \"Jain\", email = \"mokshjn00@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Manthan-R-Sheth\", \"\", email = \"manthanrsheth96@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Namrata\", \"Mukhija\", email = \"namratamukhija@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Conrad\", \"Sanderson\", role = c(\"ctb\", \"cph\")), person(\"Thanasis\", \"Mattas\", email = \"mattasa@auth.gr\", role = c(\"ctb\", \"cph\")), person(\"Shashank\", \"Shekhar\", email = \"contactshashankshekhar@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Yasmine\", \"Dumouchel\", email = \"yasmine.dumouchel@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"German\", \"Lancioni\", role = c(\"ctb\", \"cph\")), person(\"Arash\", \"Abghari\", email = \"arash.abghari@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Ayush\", \"Chamoli\", role = c(\"ctb\", \"cph\")), person(\"Tommi\", \"Laivamaa\", email = \"tommi.laivamaa@protonmail.com\", role = c(\"ctb\", \"cph\")), person(\"Kim\", \"SangYeon\", email = \"sy0814k@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Niteya\", \"Shah\", email = \"niteya.56@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Toshal\", \"Agrawal\", email = \"tagrawal1339@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Dan\", \"Timson\", role = c(\"ctb\", \"cph\")), person(\"Miguel\", \"Canteras\", email = \"mcanteras@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Bishwa\", \"Karki\", email = \"karkeebishwa1@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Mehul\", \"Kumar Nirala\", email = \"mehulkumarnirala@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Heet\", \"Sankesara\", email = \"heetsankesara3@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Jeffin\", \"Sam\", email = \"sam.jeffin@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Vikas\", \"S Shetty\", email = \"shettyvikas209@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Khizir\", \"Siddiqui\", email = \"khizirsiddiqui@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Tejasvi\", \"Tomar\", email = \"tstomar@outlook.com\", role = c(\"ctb\", \"cph\")), person(\"Jai\", \"Agarwal\", email = \"jai.bhageria@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Ziyang\", \"Jiang\", email = \"zij004@alumni.stanford.edu\", role = c(\"ctb\", \"cph\")), person(\"Rohit\", \"Kartik\", email = \"rohit.audrey@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Aditya\", \"Viki\", email = \"adityaviki01@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Kartik\", \"Dutt\", email = \"kartikdutt@live.in\", role = c(\"ctb\", \"cph\")), person(\"Suryoday\", \"Basak\", email = \"suryodaybasak@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Sriram\", \"S K\", email = \"sriramsk1999@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Manoranjan\", \"Kumar Bharti ( Nakul Bharti )\", email = \"knakul853@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Saraansh\", \"Tandon\", email = \"saraanshtandon1999@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Gaurav\", \"Singh\", email = \"gs8763076@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Lakshya\", \"Ojha\", email = \"ojhalakshya@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Bisakh\", \"Mondal\", email = \"bisakhmondal00@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Benson\", \"Muite\", email = \"benson_muite@emailplus.org\", role = c(\"ctb\", \"cph\")), person(\"Sarthak\", \"Bhardwaj\", email = \"7sarthakbhardwaj@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Aakash\", \"Kaushik\", email = \"kaushikaakash7539@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Anush\", \"Kini\", email = \"anushkini@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Nippun\", \"Sharma\", email = \"inbox.nippun@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Rishabh\", \"Garg\", email = \"rishabhgarg108@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Sudhakar\", \"Brar\", email = \"dxhrmhall1449@tutanota.com\", role = c(\"ctb\", \"cph\")), person(\"Alex\", \"Nguyen\", email = \"alexvn.edu@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Gaurav\", \"Ghati\", email = \"gauravghatii@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Anmolpreet\", \"Singh\", email = \"anmol323c@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Anjishnu\", \"Mukherjee\", email = \"amukher6@gmu.edu\", role = c(\"ctb\", \"cph\")), person(\"Omar\", \"Shrit\", email = \"omar@shrit.me\", role = c(\"ctb\", \"cph\")), person(\"Tru\", \"Hoang\", email = \"trugiahoang@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Mark\", \"Fischinger\", email = \"markfischinger@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Muhammad\", \"Fawwaz Mayda\", email = \"maydafawwaz@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Roshan\", \"Nrusing Swain\", email = \"swainroshan001@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Suvarsha\", \"Chennareddy\", email = \"suvarshachennareddy@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Shubham\", \"Agrawal\", email = \"shubham.agra1206@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Sri\", \"Madhan M\", email = \"srimadhan11@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Zhuojin\", \"Liu\", email = \"zhuojinliu.cs@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Richèl\", \"Bilderbeek\", email = \"richel@richelbilderbeek.nl\", role = c(\"ctb\", \"cph\")), person(\"Chetan\", \"Pandey\", email = \"chetanpandey1266@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Nikolay\", \"Apanasov\", email = \"nikolay@apanasov.org\", role = c(\"ctb\", \"cph\")), person(\"Martin\", \"Lambertsen\", email = \"github@lambertsen.one\", role = c(\"ctb\", \"cph\")), person(\"Andrea\", \"Novellini\", email = \"andre.novellini@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Felix\", \"Patschkowski\", email = \"felix.patschkowski@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Benjamin\", \"A. Beasley\", email = \"code@musicinmybrain.net\", role = c(\"ctb\", \"cph\")), person(\"Maksym\", \"Prots\", email = \"imaxprots@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Zachary\", \"Ng\", email = \"zachn716@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Ranjodh\", \"Singh\", email = \"ranjodhsingh1729@gmail.com\", role = c(\"ctb\", \"cph\")), person(\"Mohammad\", \"Mundiwala\", email = \"mohammadmundiwala@gmail.com\", role = c(\"ctb\", \"cph\")))",
       "Description": "A fast, flexible machine learning library, written in C++, that aims to provide fast, extensible implementations of cutting-edge machine learning algorithms.  See also Curtin et al. (2023) <doi:10.21105/joss.05026>.",
-      "SystemRequirements": "A C++17 compiler. Version 8 or later of GCC will be fine.",
       "License": "BSD_3_clause + file LICENSE",
       "Depends": [
         "R (>= 4.3.0)"
@@ -5814,10 +5814,10 @@
       ],
       "URL": "https://www.mlpack.org/doc/user/bindings/r.html, https://github.com/mlpack/mlpack",
       "BugReports": "https://github.com/mlpack/mlpack/issues",
-      "RoxygenNote": "7.3.3",
       "Encoding": "UTF-8",
+      "Config/roxygen2/version": "8.0.0",
       "NeedsCompilation": "yes",
-      "Author": "Yashwant Singh Parihar [aut, ctb, cph], Ryan Curtin [aut, ctb, cph, cre], Dirk Eddelbuettel [aut, ctb, cph], James Balamuta [aut, ctb, cph], Bill March [ctb, cph], Dongryeol Lee [ctb, cph], Nishant Mehta [ctb, cph], Parikshit Ram [ctb, cph], James Cline [ctb, cph], Sterling Peet [ctb, cph], Matthew Amidon [ctb, cph], Neil Slagle [ctb, cph], Ajinkya Kale [ctb, cph], Vlad Grantcharov [ctb, cph], Noah Kauffman [ctb, cph], Rajendran Mohan [ctb, cph], Trironk Kiatkungwanglai [ctb, cph], Patrick Mason [ctb, cph], Marcus Edel [ctb, cph], Mudit Raj Gupta [ctb, cph], Sumedh Ghaisas [ctb, cph], Michael Fox [ctb, cph], Siddharth Agrawal [ctb, cph], Saheb Motiani [ctb, cph], Yash Vadalia [ctb, cph], Abhishek Laddha [ctb, cph], Vahab Akbarzadeh [ctb, cph], Andrew Wells [ctb, cph], Zhihao Lou [ctb, cph], Udit Saxena [ctb, cph], Stephen Tu [ctb, cph], Jaskaran Singh [ctb, cph], Hritik Jain [ctb, cph], Vladimir Glazachev [ctb, cph], QiaoAn Chen [ctb, cph], Janzen Brewer [ctb, cph], Trung Dinh [ctb, cph], Tham Ngap Wei [ctb, cph], Grzegorz Krajewski [ctb, cph], Joseph Mariadassou [ctb, cph], Pavel Zhigulin [ctb, cph], Andy Fang [ctb, cph], Barak Pearlmutter [ctb, cph], Ivari Horm [ctb, cph], Dhawal Arora [ctb, cph], Alexander Leinoff [ctb, cph], Palash Ahuja [ctb, cph], Yannis Mentekidis [ctb, cph], Ranjan Mondal [ctb, cph], Mikhail Lozhnikov [ctb, cph], Marcos Pividori [ctb, cph], Keon Kim [ctb, cph], Nilay Jain [ctb, cph], Peter Lehner [ctb, cph], Anuraj Kanodia [ctb, cph], Ivan Georgiev [ctb, cph], Shikhar Bhardwaj [ctb, cph], Yashu Seth [ctb, cph], Mike Izbicki [ctb, cph], Sudhanshu Ranjan [ctb, cph], Piyush Jaiswal [ctb, cph], Dinesh Raj [ctb, cph], Vivek Pal [ctb, cph], Prasanna Patil [ctb, cph], Lakshya Agrawal [ctb, cph], Praveen Ch [ctb, cph], Kirill Mishchenko [ctb, cph], Abhinav Moudgil [ctb, cph], Thyrix Yang [ctb, cph], Sagar B Hathwar [ctb, cph], Nishanth Hegde [ctb, cph], Parminder Singh [ctb, cph], CodeAi [ctb, cph], Franciszek Stokowacki [ctb, cph], Samikshya Chand [ctb, cph], N Rajiv Vaidyanathan [ctb, cph], Kartik Nighania [ctb, cph], Eugene Freyman [ctb, cph], Manish Kumar [ctb, cph], Haritha Sreedharan Nair [ctb, cph], Sourabh Varshney [ctb, cph], Projyal Dev [ctb, cph], Nikhil Goel [ctb, cph], Shikhar Jaiswal [ctb, cph], B Kartheek Reddy [ctb, cph], Atharva Khandait [ctb, cph], Wenhao Huang [ctb, cph], Roberto Hueso [ctb, cph], Prabhat Sharma [ctb, cph], Tan Jun An [ctb, cph], Moksh Jain [ctb, cph], Manthan-R-Sheth [ctb, cph], Namrata Mukhija [ctb, cph], Conrad Sanderson [ctb, cph], Thanasis Mattas [ctb, cph], Shashank Shekhar [ctb, cph], Yasmine Dumouchel [ctb, cph], German Lancioni [ctb, cph], Arash Abghari [ctb, cph], Ayush Chamoli [ctb, cph], Tommi Laivamaa [ctb, cph], Kim SangYeon [ctb, cph], Niteya Shah [ctb, cph], Toshal Agrawal [ctb, cph], Dan Timson [ctb, cph], Miguel Canteras [ctb, cph], Bishwa Karki [ctb, cph], Mehul Kumar Nirala [ctb, cph], Heet Sankesara [ctb, cph], Jeffin Sam [ctb, cph], Vikas S Shetty [ctb, cph], Khizir Siddiqui [ctb, cph], Tejasvi Tomar [ctb, cph], Jai Agarwal [ctb, cph], Ziyang Jiang [ctb, cph], Rohit Kartik [ctb, cph], Aditya Viki [ctb, cph], Kartik Dutt [ctb, cph], Suryoday Basak [ctb, cph], Sriram S K [ctb, cph], Manoranjan Kumar Bharti ( Nakul Bharti ) [ctb, cph], Saraansh Tandon [ctb, cph], Gaurav Singh [ctb, cph], Lakshya Ojha [ctb, cph], Bisakh Mondal [ctb, cph], Benson Muite [ctb, cph], Sarthak Bhardwaj [ctb, cph], Aakash Kaushik [ctb, cph], Anush Kini [ctb, cph], Nippun Sharma [ctb, cph], Rishabh Garg [ctb, cph], Sudhakar Brar [ctb, cph], Alex Nguyen [ctb, cph], Gaurav Ghati [ctb, cph], Anmolpreet Singh [ctb, cph], Anjishnu Mukherjee [ctb, cph], Omar Shrit [ctb, cph], Tru Hoang [ctb, cph], Mark Fischinger [ctb, cph], Muhammad Fawwaz Mayda [ctb, cph], Roshan Nrusing Swain [ctb, cph], Suvarsha Chennareddy [ctb, cph], Shubham Agrawal [ctb, cph], Sri Madhan M [ctb, cph], Zhuojin Liu [ctb, cph], Richèl Bilderbeek [ctb, cph], Chetan Pandey [ctb, cph], Nikolay Apanasov [ctb, cph], Martin Lambertsen [ctb, cph], Andrea Novellini [ctb, cph], Felix Patschkowski [ctb, cph], Benjamin A. Beasley [ctb, cph], Maksym Prots [ctb, cph], Zachary Ng [ctb, cph]",
+      "Author": "Yashwant Singh Parihar [aut, ctb, cph], Ryan Curtin [aut, ctb, cph, cre], Dirk Eddelbuettel [aut, ctb, cph], James Balamuta [aut, ctb, cph], Bill March [ctb, cph], Dongryeol Lee [ctb, cph], Nishant Mehta [ctb, cph], Parikshit Ram [ctb, cph], James Cline [ctb, cph], Sterling Peet [ctb, cph], Matthew Amidon [ctb, cph], Neil Slagle [ctb, cph], Ajinkya Kale [ctb, cph], Vlad Grantcharov [ctb, cph], Noah Kauffman [ctb, cph], Rajendran Mohan [ctb, cph], Trironk Kiatkungwanglai [ctb, cph], Patrick Mason [ctb, cph], Marcus Edel [ctb, cph], Mudit Raj Gupta [ctb, cph], Sumedh Ghaisas [ctb, cph], Michael Fox [ctb, cph], Siddharth Agrawal [ctb, cph], Saheb Motiani [ctb, cph], Yash Vadalia [ctb, cph], Abhishek Laddha [ctb, cph], Vahab Akbarzadeh [ctb, cph], Andrew Wells [ctb, cph], Zhihao Lou [ctb, cph], Udit Saxena [ctb, cph], Stephen Tu [ctb, cph], Jaskaran Singh [ctb, cph], Hritik Jain [ctb, cph], Vladimir Glazachev [ctb, cph], QiaoAn Chen [ctb, cph], Janzen Brewer [ctb, cph], Trung Dinh [ctb, cph], Tham Ngap Wei [ctb, cph], Grzegorz Krajewski [ctb, cph], Joseph Mariadassou [ctb, cph], Pavel Zhigulin [ctb, cph], Andy Fang [ctb, cph], Barak Pearlmutter [ctb, cph], Ivari Horm [ctb, cph], Dhawal Arora [ctb, cph], Alexander Leinoff [ctb, cph], Palash Ahuja [ctb, cph], Yannis Mentekidis [ctb, cph], Ranjan Mondal [ctb, cph], Mikhail Lozhnikov [ctb, cph], Marcos Pividori [ctb, cph], Keon Kim [ctb, cph], Nilay Jain [ctb, cph], Peter Lehner [ctb, cph], Anuraj Kanodia [ctb, cph], Ivan Georgiev [ctb, cph], Shikhar Bhardwaj [ctb, cph], Yashu Seth [ctb, cph], Mike Izbicki [ctb, cph], Sudhanshu Ranjan [ctb, cph], Piyush Jaiswal [ctb, cph], Dinesh Raj [ctb, cph], Vivek Pal [ctb, cph], Prasanna Patil [ctb, cph], Lakshya Agrawal [ctb, cph], Praveen Ch [ctb, cph], Kirill Mishchenko [ctb, cph], Abhinav Moudgil [ctb, cph], Thyrix Yang [ctb, cph], Sagar B Hathwar [ctb, cph], Nishanth Hegde [ctb, cph], Parminder Singh [ctb, cph], CodeAi [ctb, cph], Franciszek Stokowacki [ctb, cph], Samikshya Chand [ctb, cph], N Rajiv Vaidyanathan [ctb, cph], Kartik Nighania [ctb, cph], Eugene Freyman [ctb, cph], Manish Kumar [ctb, cph], Haritha Sreedharan Nair [ctb, cph], Sourabh Varshney [ctb, cph], Projyal Dev [ctb, cph], Nikhil Goel [ctb, cph], Shikhar Jaiswal [ctb, cph], B Kartheek Reddy [ctb, cph], Atharva Khandait [ctb, cph], Wenhao Huang [ctb, cph], Roberto Hueso [ctb, cph], Prabhat Sharma [ctb, cph], Tan Jun An [ctb, cph], Moksh Jain [ctb, cph], Manthan-R-Sheth [ctb, cph], Namrata Mukhija [ctb, cph], Conrad Sanderson [ctb, cph], Thanasis Mattas [ctb, cph], Shashank Shekhar [ctb, cph], Yasmine Dumouchel [ctb, cph], German Lancioni [ctb, cph], Arash Abghari [ctb, cph], Ayush Chamoli [ctb, cph], Tommi Laivamaa [ctb, cph], Kim SangYeon [ctb, cph], Niteya Shah [ctb, cph], Toshal Agrawal [ctb, cph], Dan Timson [ctb, cph], Miguel Canteras [ctb, cph], Bishwa Karki [ctb, cph], Mehul Kumar Nirala [ctb, cph], Heet Sankesara [ctb, cph], Jeffin Sam [ctb, cph], Vikas S Shetty [ctb, cph], Khizir Siddiqui [ctb, cph], Tejasvi Tomar [ctb, cph], Jai Agarwal [ctb, cph], Ziyang Jiang [ctb, cph], Rohit Kartik [ctb, cph], Aditya Viki [ctb, cph], Kartik Dutt [ctb, cph], Suryoday Basak [ctb, cph], Sriram S K [ctb, cph], Manoranjan Kumar Bharti ( Nakul Bharti ) [ctb, cph], Saraansh Tandon [ctb, cph], Gaurav Singh [ctb, cph], Lakshya Ojha [ctb, cph], Bisakh Mondal [ctb, cph], Benson Muite [ctb, cph], Sarthak Bhardwaj [ctb, cph], Aakash Kaushik [ctb, cph], Anush Kini [ctb, cph], Nippun Sharma [ctb, cph], Rishabh Garg [ctb, cph], Sudhakar Brar [ctb, cph], Alex Nguyen [ctb, cph], Gaurav Ghati [ctb, cph], Anmolpreet Singh [ctb, cph], Anjishnu Mukherjee [ctb, cph], Omar Shrit [ctb, cph], Tru Hoang [ctb, cph], Mark Fischinger [ctb, cph], Muhammad Fawwaz Mayda [ctb, cph], Roshan Nrusing Swain [ctb, cph], Suvarsha Chennareddy [ctb, cph], Shubham Agrawal [ctb, cph], Sri Madhan M [ctb, cph], Zhuojin Liu [ctb, cph], Richèl Bilderbeek [ctb, cph], Chetan Pandey [ctb, cph], Nikolay Apanasov [ctb, cph], Martin Lambertsen [ctb, cph], Andrea Novellini [ctb, cph], Felix Patschkowski [ctb, cph], Benjamin A. Beasley [ctb, cph], Maksym Prots [ctb, cph], Zachary Ng [ctb, cph], Ranjodh Singh [ctb, cph], Mohammad Mundiwala [ctb, cph]",
       "Maintainer": "Ryan Curtin <ryan@ratml.org>",
       "Repository": "RSPM"
     },
@@ -5920,15 +5920,14 @@
       "RoxygenNote": "7.2.2",
       "NeedsCompilation": "yes",
       "Author": "Matteo Fasiolo [aut, cre], Thijs van den Berg [ctb]",
-      "Repository": "binary",
+      "Repository": "RSPM",
       "Encoding": "UTF-8"
     },
     "mvtnorm": {
       "Package": "mvtnorm",
-      "Version": "1.4-1",
+      "Version": "1.4-2",
       "Source": "Repository",
       "Title": "Multivariate Normal and t Distributions",
-      "Date": "2026-06-06",
       "Authors@R": "c(person(\"Alan\", \"Genz\", role = \"aut\"), person(\"Frank\", \"Bretz\", role = \"aut\"), person(\"Tetsuhisa\", \"Miwa\", role = \"aut\"), person(\"Xuefei\", \"Mi\", role = \"aut\"), person(\"Friedrich\", \"Leisch\", role = \"ctb\"), person(\"Fabian\", \"Scheipl\", role = \"ctb\"), person(\"Bjoern\", \"Bornkamp\", role = \"ctb\", comment = c(ORCID = \"0000-0002-6294-8185\")), person(\"Martin\", \"Maechler\", role = \"ctb\", comment = c(ORCID = \"0000-0002-8685-9910\")), person(\"Torsten\", \"Hothorn\", role = c(\"aut\", \"cre\"), email = \"Torsten.Hothorn@R-project.org\", comment = c(ORCID = \"0000-0001-8301-0471\")))",
       "Description": "Computes multivariate normal and t probabilities, quantiles, random deviates,  and densities. Log-likelihoods for multivariate Gaussian models and Gaussian copulae  parameterised by Cholesky factors of covariance or precision matrices are implemented  for interval-censored and exact data, or a mix thereof. Score functions for these  log-likelihoods are available. A class representing multiple lower triangular matrices  and corresponding methods are part of this package.",
       "Imports": [
@@ -5948,7 +5947,7 @@
       "NeedsCompilation": "yes",
       "Author": "Alan Genz [aut], Frank Bretz [aut], Tetsuhisa Miwa [aut], Xuefei Mi [aut], Friedrich Leisch [ctb], Fabian Scheipl [ctb], Bjoern Bornkamp [ctb] (ORCID: <https://orcid.org/0000-0002-6294-8185>), Martin Maechler [ctb] (ORCID: <https://orcid.org/0000-0002-8685-9910>), Torsten Hothorn [aut, cre] (ORCID: <https://orcid.org/0000-0001-8301-0471>)",
       "Maintainer": "Torsten Hothorn <Torsten.Hothorn@R-project.org>",
-      "Repository": "binary",
+      "Repository": "RSPM",
       "Encoding": "UTF-8"
     },
     "nanonext": {
@@ -5984,13 +5983,13 @@
       "NeedsCompilation": "yes",
       "Author": "Charlie Gao [aut, cre] (ORCID: <https://orcid.org/0000-0002-0750-061X>), Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>), Hibiki AI Limited [cph], Staysail Systems, Inc. [cph] (NNG library), Capitar IT Group BV [cph] (NNG library), The Mbed TLS Contributors [cph] (Mbed TLS library), Pierre L'Ecuyer [cph] (RngStreams library), sakura authors [cph] (Serialization hooks), R Consortium [fnd] (ROR: <https://ror.org/01z833950>)",
       "Maintainer": "Charlie Gao <charlie.gao@posit.co>",
-      "Repository": "https://packagemanager.posit.co/cran/latest"
+      "Repository": "RSPM"
     },
     "nlme": {
       "Package": "nlme",
-      "Version": "3.1-169",
+      "Version": "3.1-170",
       "Source": "Repository",
-      "Date": "2026-03-27",
+      "Date": "2026-07-15",
       "Priority": "recommended",
       "Title": "Linear and Nonlinear Mixed Effects Models",
       "Authors@R": "c(person(\"José\", \"Pinheiro\", role = \"aut\", comment = \"S version\"), person(\"Douglas\", \"Bates\", role = \"aut\", comment = \"up to 2007\"), person(\"Saikat\", \"DebRoy\", role = \"ctb\", comment = \"up to 2002\"), person(\"Deepayan\", \"Sarkar\", role = \"ctb\", comment = \"up to 2005\"), person(\"EISPACK authors\", role = \"ctb\", comment = \"src/rs.f\"), person(\"Siem\", \"Heisterkamp\", role = \"ctb\", comment = \"Author fixed sigma\"), person(\"Bert\", \"Van Willigen\",role = \"ctb\", comment = \"Programmer fixed sigma\"), person(\"Johannes\", \"Ranke\", role = \"ctb\", comment = \"varConstProp()\"), person(\"R Core Team\", email = \"R-core@R-project.org\", role = c(\"aut\", \"cre\"), comment = c(ROR = \"02zz1nj61\")))",
@@ -6006,8 +6005,7 @@
         "lattice"
       ],
       "Suggests": [
-        "MASS",
-        "SASmixed"
+        "MASS"
       ],
       "LazyData": "yes",
       "Encoding": "UTF-8",
@@ -6018,14 +6016,14 @@
       "NeedsCompilation": "yes",
       "Author": "José Pinheiro [aut] (S version), Douglas Bates [aut] (up to 2007), Saikat DebRoy [ctb] (up to 2002), Deepayan Sarkar [ctb] (up to 2005), EISPACK authors [ctb] (src/rs.f), Siem Heisterkamp [ctb] (Author fixed sigma), Bert Van Willigen [ctb] (Programmer fixed sigma), Johannes Ranke [ctb] (varConstProp()), R Core Team [aut, cre] (ROR: <https://ror.org/02zz1nj61>)",
       "Maintainer": "R Core Team <R-core@R-project.org>",
-      "Repository": "CRAN"
+      "Repository": "RSPM"
     },
     "nnet": {
       "Package": "nnet",
-      "Version": "7.3-20",
+      "Version": "7.3-21",
       "Source": "Repository",
       "Priority": "recommended",
-      "Date": "2025-01-01",
+      "Date": "2026-08-01",
       "Depends": [
         "R (>= 3.0.0)",
         "stats",
@@ -6047,9 +6045,9 @@
     },
     "np": {
       "Package": "np",
-      "Version": "0.70-4",
+      "Version": "0.70-5",
       "Source": "Repository",
-      "Date": "2026-06-03",
+      "Date": "2026-07-15",
       "Depends": [
         "R (>= 3.5.0)"
       ],
@@ -6086,7 +6084,7 @@
       "Encoding": "UTF-8",
       "URL": "https://github.com/JeffreyRacine/R-Package-np",
       "BugReports": "https://github.com/JeffreyRacine/R-Package-np/issues",
-      "Repository": "binary",
+      "Repository": "RSPM",
       "NeedsCompilation": "yes",
       "Author": "Jeffrey S. Racine [aut, cre], Tristen Hayfield [aut]"
     },
@@ -6141,7 +6139,7 @@
       "NeedsCompilation": "yes",
       "Author": "Jeroen Ooms [aut, cre] (ORCID: <https://orcid.org/0000-0002-4035-0289>), Oliver Keyes [ctb]",
       "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
-      "Repository": "binary"
+      "Repository": "RSPM"
     },
     "otel": {
       "Package": "otel",
@@ -6177,7 +6175,7 @@
       "NeedsCompilation": "no",
       "Author": "Gábor Csárdi [aut, cre]",
       "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
-      "Repository": "https://packagemanager.posit.co/cran/__linux__/resolute/latest"
+      "Repository": "RSPM"
     },
     "patchwork": {
       "Package": "patchwork",
@@ -6446,7 +6444,7 @@
       "NeedsCompilation": "no",
       "Author": "Hadley Wickham [aut], Winston Chang [aut], Jim Hester [aut], Lionel Henry [aut, cre], Posit Software, PBC [cph, fnd], R Core team [ctb] (Some namespace and vignette code extracted from base R)",
       "Maintainer": "Lionel Henry <lionel@posit.co>",
-      "Repository": "https://packagemanager.posit.co/cran/latest"
+      "Repository": "RSPM"
     },
     "plyr": {
       "Package": "plyr",
@@ -6684,7 +6682,7 @@
       "NeedsCompilation": "no",
       "Author": "Henrik Bengtsson [aut, cre, cph] (ORCID: <https://orcid.org/0000-0002-7579-5165>)",
       "Maintainer": "Henrik Bengtsson <henrikb@braju.com>",
-      "Repository": "binary"
+      "Repository": "RSPM"
     },
     "ps": {
       "Package": "ps",
@@ -7102,7 +7100,7 @@
     },
     "renv": {
       "Package": "renv",
-      "Version": "1.2.3",
+      "Version": "1.2.4",
       "Source": "Repository",
       "Type": "Package",
       "Title": "Project Environments",
@@ -7144,16 +7142,16 @@
         "webfakes"
       ],
       "Encoding": "UTF-8",
-      "RoxygenNote": "7.3.3",
       "VignetteBuilder": "knitr",
       "Config/Needs/website": "tidyverse/tidytemplate",
       "Config/testthat/edition": "3",
       "Config/testthat/parallel": "true",
       "Config/testthat/start-first": "bioconductor,python,install,restore,snapshot,retrieve,remotes",
+      "Config/roxygen2/version": "8.0.0",
       "NeedsCompilation": "no",
       "Author": "Kevin Ushey [aut, cre] (ORCID: <https://orcid.org/0000-0003-2880-7407>), Hadley Wickham [aut] (ORCID: <https://orcid.org/0000-0003-4757-117X>), Posit Software, PBC [cph, fnd]",
       "Maintainer": "Kevin Ushey <kevin@rstudio.com>",
-      "Repository": "RSPM"
+      "Repository": "CRAN"
     },
     "reprex": {
       "Package": "reprex",
@@ -7398,7 +7396,7 @@
       "NeedsCompilation": "yes",
       "Author": "Lionel Henry [aut, cre], Hadley Wickham [aut], mikefc [cph] (Hash implementation based on Mike's xxhashlite), Yann Collet [cph] (Author of the embedded xxHash library), Posit, PBC [cph, fnd]",
       "Maintainer": "Lionel Henry <lionel@posit.co>",
-      "Repository": "binary"
+      "Repository": "RSPM"
     },
     "rmarkdown": {
       "Package": "rmarkdown",
@@ -7722,7 +7720,7 @@
       "Config/roxygen2/version": "8.0.0",
       "NeedsCompilation": "no",
       "Author": "Kevin Ushey [aut, cre], JJ Allaire [aut], Hadley Wickham [aut], Gary Ritchie [aut], RStudio [cph]",
-      "Repository": "https://packagemanager.posit.co/cran/latest"
+      "Repository": "RSPM"
     },
     "rvest": {
       "Package": "rvest",
@@ -7881,7 +7879,7 @@
       "NeedsCompilation": "no",
       "Author": "Simon Potter [aut, trl, cre], Simon Sapin [aut], Ian Bicking [aut]",
       "Maintainer": "Simon Potter <simon@sjp.co.nz>",
-      "Repository": "https://packagemanager.posit.co/cran/latest"
+      "Repository": "RSPM"
     },
     "shape": {
       "Package": "shape",
@@ -8076,12 +8074,12 @@
       "License": "GPL-2 | GPL-3",
       "NeedsCompilation": "yes",
       "Author": "Gordon Smyth [cre, aut], Lizhong Chen [aut], Yifang Hu [ctb], Peter Dunn [ctb], Belinda Phipson [ctb], Yunshun Chen [ctb]",
-      "Repository": "binary",
+      "Repository": "RSPM",
       "Encoding": "UTF-8"
     },
     "stbl": {
       "Package": "stbl",
-      "Version": "0.3.0",
+      "Version": "0.4.0",
       "Source": "Repository",
       "Title": "Stabilize Function Arguments",
       "Authors@R": "person(\"Jon\", \"Harmon\", , \"jonthegeek@gmail.com\", role = c(\"aut\", \"cre\", \"cph\"), comment = c(ORCID = \"0000-0003-4781-4346\"))",
@@ -8099,7 +8097,7 @@
         "vctrs"
       ],
       "Suggests": [
-        "astgrepr",
+        "covr",
         "knitr",
         "rmarkdown",
         "stringi",
@@ -8109,10 +8107,11 @@
       "VignetteBuilder": "knitr",
       "Config/testthat/edition": "3",
       "Config/testthat/parallel": "true",
+      "Config/Needs/website": "quarto",
       "Encoding": "UTF-8",
       "Language": "en-US",
-      "RoxygenNote": "7.3.3",
-      "NeedsCompilation": "no",
+      "NeedsCompilation": "yes",
+      "Config/roxygen2/version": "8.0.0",
       "Author": "Jon Harmon [aut, cre, cph] (ORCID: <https://orcid.org/0000-0003-4781-4346>)",
       "Maintainer": "Jon Harmon <jonthegeek@gmail.com>",
       "Repository": "RSPM"
@@ -8272,13 +8271,13 @@
     },
     "survival": {
       "Package": "survival",
-      "Version": "3.8-6",
+      "Version": "3.8-9",
       "Source": "Repository",
       "Title": "Survival Analysis",
       "Priority": "recommended",
-      "Date": "2026-01-09",
+      "Date": "2026-07-07",
       "Depends": [
-        "R (>= 3.5.0)"
+        "R (>= 4.1.0)"
       ],
       "Imports": [
         "graphics",
@@ -8291,14 +8290,15 @@
       "LazyData": "Yes",
       "LazyDataCompression": "xz",
       "ByteCompile": "Yes",
-      "Authors@R": "c(person(c(\"Terry\", \"M\"), \"Therneau\", email=\"therneau.terry@mayo.edu\", role=c(\"aut\", \"cre\")), person(\"Thomas\", \"Lumley\", role=c(\"ctb\", \"trl\"), comment=\"original S->R port and R maintainer until 2009\"), person(\"Atkinson\", \"Elizabeth\", role=\"ctb\"), person(\"Crowson\", \"Cynthia\", role=\"ctb\"))",
+      "Authors@R": "c(person(c(\"Terry\", \"M\"), \"Therneau\", email=\"terry.therneau@proton.me\", role=c(\"aut\", \"cre\")), person(\"Thomas\", \"Lumley\", role=c(\"ctb\", \"trl\"), comment=\"original S->R port and R maintainer until 2009\"), person(\"Atkinson\", \"Elizabeth\", role=\"ctb\"), person(\"Crowson\", \"Cynthia\", role=\"ctb\"))",
       "Description": "Contains the core survival analysis routines, including definition of Surv objects,  Kaplan-Meier and Aalen-Johansen (multi-state) curves, Cox models, and parametric accelerated failure time models.",
       "License": "LGPL (>= 2)",
       "URL": "https://github.com/therneau/survival",
       "NeedsCompilation": "yes",
       "Author": "Terry M Therneau [aut, cre], Thomas Lumley [ctb, trl] (original S->R port and R maintainer until 2009), Atkinson Elizabeth [ctb], Crowson Cynthia [ctb]",
-      "Maintainer": "Terry M Therneau <therneau.terry@mayo.edu>",
-      "Repository": "CRAN"
+      "Maintainer": "Terry M Therneau <terry.therneau@proton.me>",
+      "Repository": "RSPM",
+      "Encoding": "UTF-8"
     },
     "svd": {
       "Package": "svd",
@@ -8901,7 +8901,7 @@
       "NeedsCompilation": "no",
       "Author": "Yihui Xie [aut, cre, cph] (ORCID: <https://orcid.org/0000-0003-0645-5666>), Posit Software, PBC [cph, fnd], Christophe Dervieux [ctb] (ORCID: <https://orcid.org/0000-0003-4474-2498>), Devon Ryan [ctb] (ORCID: <https://orcid.org/0000-0002-8549-0971>), Ethan Heinzen [ctb], Fernando Cagua [ctb]",
       "Maintainer": "Yihui Xie <xie@yihui.name>",
-      "Repository": "https://packagemanager.posit.co/cran/latest"
+      "Repository": "RSPM"
     },
     "tsibble": {
       "Package": "tsibble",
@@ -9016,7 +9016,7 @@
       "VignetteBuilder": "knitr",
       "Author": "Peter K. Dunn [cre, aut]",
       "Maintainer": "Peter K. Dunn <pdunn2@usc.edu.au>",
-      "Repository": "binary"
+      "Repository": "RSPM"
     },
     "tweenr": {
       "Package": "tweenr",
@@ -9529,14 +9529,16 @@
       "Config/testthat/edition": "3",
       "Config/roxygen2/version": "8.0.0",
       "Config/Needs/website": "tidyverse/tidytemplate",
-      "Author": "Rob Hyndman [aut, cre, cph] (ORCID: <https://orcid.org/0000-0002-2140-5352>), Torben Tvedebrink [ctb], Posit Software, PBC [cph]",
-      "Maintainer": "Rob Hyndman <Rob.Hyndman@monash.edu>",
       "RemoteType": "github",
-      "RemoteUsername": "robjhyndman",
+      "RemoteHost": "api.github.com",
       "RemoteRepo": "weird",
-      "RemoteRef": "main",
+      "RemoteUsername": "robjhyndman",
+      "RemotePkgRef": "robjhyndman/weird",
+      "RemoteRef": "HEAD",
       "RemoteSha": "b429b2aaa66337e454ecbf37920d4ccc56dee070",
-      "RemoteHost": "api.github.com"
+      "NeedsCompilation": "no",
+      "Author": "Rob Hyndman [aut, cre, cph] (ORCID: <https://orcid.org/0000-0002-2140-5352>), Torben Tvedebrink [ctb], Posit Software, PBC [cph]",
+      "Maintainer": "Rob Hyndman <Rob.Hyndman@monash.edu>"
     },
     "withr": {
       "Package": "withr",
@@ -9574,11 +9576,11 @@
       "NeedsCompilation": "no",
       "Author": "Jim Hester [aut], Lionel Henry [aut, cre], Kirill Müller [aut], Kevin Ushey [aut], Hadley Wickham [aut], Winston Chang [aut], Jennifer Bryan [ctb], Richard Cotton [ctb], Posit Software, PBC [cph, fnd]",
       "Maintainer": "Lionel Henry <lionel@posit.co>",
-      "Repository": "https://packagemanager.posit.co/cran/latest"
+      "Repository": "RSPM"
     },
     "xfun": {
       "Package": "xfun",
-      "Version": "0.59",
+      "Version": "0.60",
       "Source": "Repository",
       "Type": "Package",
       "Title": "Supporting Functions for Packages Maintained by 'Yihui Xie'",
@@ -9622,7 +9624,7 @@
       "NeedsCompilation": "yes",
       "Author": "Yihui Xie [aut, cre, cph] (ORCID: <https://orcid.org/0000-0003-0645-5666>, URL: https://yihui.org), Wush Wu [ctb], Daijiang Li [ctb], Xianying Tan [ctb], Salim Brüggemann [ctb] (ORCID: <https://orcid.org/0000-0002-5329-5987>), Christophe Dervieux [ctb]",
       "Maintainer": "Yihui Xie <xie@yihui.name>",
-      "Repository": "https://packagemanager.posit.co/cran/latest"
+      "Repository": "RSPM"
     },
     "xml2": {
       "Package": "xml2",
@@ -9662,7 +9664,7 @@
       "NeedsCompilation": "yes",
       "Author": "Hadley Wickham [aut], Jim Hester [aut], Jeroen Ooms [aut, cre], Posit Software, PBC [cph, fnd], R Foundation [ctb] (Copy of R-project homepage cached as example)",
       "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
-      "Repository": "https://packagemanager.posit.co/cran/latest"
+      "Repository": "RSPM"
     },
     "xmlparsedata": {
       "Package": "xmlparsedata",
@@ -9717,12 +9719,12 @@
     },
     "zoo": {
       "Package": "zoo",
-      "Version": "1.8-15",
+      "Version": "1.9-0",
       "Source": "Repository",
-      "Date": "2025-12-15",
+      "Date": "2026-07-30",
       "Title": "S3 Infrastructure for Regular and Irregular Time Series (Z's Ordered Observations)",
       "Authors@R": "c(person(given = \"Achim\", family = \"Zeileis\", role = c(\"aut\", \"cre\"), email = \"Achim.Zeileis@R-project.org\", comment = c(ORCID = \"0000-0003-0918-3766\")), person(given = \"Gabor\", family = \"Grothendieck\", role = \"aut\", email = \"ggrothendieck@gmail.com\"), person(given = c(\"Jeffrey\", \"A.\"), family = \"Ryan\", role = \"aut\", email = \"jeff.a.ryan@gmail.com\"), person(given = c(\"Joshua\", \"M.\"), family = \"Ulrich\", role = \"ctb\", email = \"josh.m.ulrich@gmail.com\"), person(given = \"Felix\", family = \"Andrews\", role = \"ctb\", email = \"felix@nfrac.org\"))",
-      "Description": "An S3 class with methods for totally ordered indexed observations. It is particularly aimed at irregular time series of numeric vectors/matrices and factors. zoo's key design goals are independence of a particular index/date/time class and consistency with ts and base R by providing methods to extend standard generics.",
+      "Description": "An S3 class with methods for working with regular and irregular time series. The class stores data as numeric vectors/matrices (or factors) along with a time index of arbitrary class (including numeric, Date, POSIXct, chron, yearmon, yearqtr, etc.). Functions and methods are consistent with the ts class and base R and also extend standard generics. Tools include: Data import/export, coercion, visualization (with base R, 'ggplot2', 'lattice', 'tinyplot'), alignment and merging, aggregation, lags and subsets, rolling analytics, and time-based interpolation/filling. The design is introduced in Zeileis and Grothendieck (2005) <doi:10.18637/jss.v014.i06>.",
       "Depends": [
         "R (>= 3.1.0)",
         "stats"
@@ -9732,12 +9734,13 @@
         "coda",
         "chron",
         "ggplot2 (>= 3.5.0)",
+        "knitr",
         "mondate",
         "scales",
         "stinepack",
         "strucchange",
         "timeDate",
-        "timeSeries",
+        "timeSeries (>= 4021.104)",
         "tinyplot",
         "tis",
         "tseries",
@@ -9750,7 +9753,9 @@
         "lattice (>= 0.20-27)"
       ],
       "License": "GPL-2 | GPL-3",
-      "URL": "https://zoo.R-Forge.R-project.org/",
+      "VignetteBuilder": "knitr",
+      "URL": "https://zeileis.codeberg.page/zoo/",
+      "BugReports": "https://codeberg.org/zeileis/zoo/issues",
       "NeedsCompilation": "yes",
       "Author": "Achim Zeileis [aut, cre] (ORCID: <https://orcid.org/0000-0003-0918-3766>), Gabor Grothendieck [aut], Jeffrey A. Ryan [aut], Joshua M. Ulrich [ctb], Felix Andrews [ctb]",
       "Maintainer": "Achim Zeileis <Achim.Zeileis@R-project.org>",
