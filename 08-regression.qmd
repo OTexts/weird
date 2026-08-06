@@ -488,7 +488,7 @@ If $f$ is Normal, $\bm{\theta} = \sigma^2$, $\ell$ is the identity, and $g_k(u) 
 #| include: false
 
 df_no <- cricket_batting |>
-  filter(Innings > 0, Innings > NotOuts, Gender == "Men") |>
+  filter(Innings > 0, Gender == "Men") |>
   mutate(prop_no = NotOuts / Innings)
 p <- sum(df_no$NotOuts) / sum(df_no$Innings)
 ```
@@ -501,53 +501,63 @@ Let's consider if there are some batters who have an unusually high proportion o
 The data set contains results from `r sum(df_no$Innings)` innings, of which `r sum(df_no$NotOuts)` were not outs.
 So the overall proportion of not outs is $`r sum(df_no[["NotOuts"]])` / `r sum(df_no[["Innings"]])` = `r sprintf("%.3f", p)`$.
 
-@fig-notouts shows the proportion of not outs for each batter, plotted against their batting average.
-The relationship turns out to be U-shaped, due to two different mechanisms.
-Weaker batters (with a batting average below 25) typically bat near the end of the batting order, so they are disproportionately likely to be the "last man standing", which inflates their not-out proportion.
-At the high-average end (above about 40), a different mechanism applies: the best batters are simply harder to dismiss, so they often survive longer than weaker batters.
-Batters with moderate averages (25--40) benefit from neither mechanism, so they have the lowest not-out proportions of all.
+Players who bat first in the batting order are more likely to be dismissed than those who bat last, simply because there is more time for them to be dismissed.
+Unfortunately the data set does not include information about the position in which each player normally batted, so we can't use batting order directly.
+However, the best batters tend to bat early in the order, leaving the most unskilled batters (who are usually specialist bowlers) to bat last.
+A measure of a batter's skill is the number of runs they scored per innings (RPI), also known as the uncensored batting average.
+This is slightly different from the conventional batting average, which is the total number of runs scored divided by the number of times a batter has been dismissed.^[We use the uncensored batting average so that it is not directly affected by the number of not outs for each batter, which is the response variable in our fitted model.]
+
+@fig-notouts shows the proportion of not outs for each batter, plotted against their RPI.
+The relationship turns out to be slightly U-shaped, due to two different mechanisms.
+Weaker batters (with an RPI below 25) typically bat near the end of the batting order, so they are disproportionately likely to be the "last man standing", which inflates their not-out proportion.
+At the high end (RPI above about 40), a different mechanism applies: the best batters are simply harder to dismiss, so they often survive longer than weaker batters.
+Batters with moderate RPIs (25--40) benefit from neither mechanism, so they have the lowest not-out proportions of all.
 
 ```{r}
 #| label: fig-notouts
 #| fig-cap: >-
-#|   Proportion of not outs for each batter as a function of their batting average.
+#|   Proportion of not outs for each batter as a function of their runs per innings.
 #|   Batters with few innings (no more than 20) are shown in orange and partially transparent, to highlight the pattern from batters with more innings, shown in blue.
 #| message: false
-#| code-fold: false
+#| code-fold: true
 
 df_no <- cricket_batting |>
-  filter(Innings > 0, Innings > NotOuts, Gender == "Men") |>
-  mutate(prop_no = NotOuts / Innings) |>
+  filter(Innings > 0, Gender == "Men") |>
+  mutate(
+    prop_no = NotOuts / Innings,
+    RPI = Runs / Innings
+  ) |>
   arrange(Innings)
 df_no |>
   ggplot(
     aes(
-      x = Average,
+      x = RPI,
       y = prop_no,
       colour = Innings > 20,
       alpha = 0.5 * (1 + Innings > 20)
     )
   ) +
   geom_point() +
-  labs(y = "Proportion of not-outs", x = "Batting average") +
+  labs(y = "Proportion of not-outs", x = "Runs per innings") +
   guides(alpha = "none")
 ```
 
-The unusual horizontal patterns in the orange points are due to the discrete nature of the data --- batters who have played only two innings must have a not-out proportion of either 0 or 1/2, while those who have played only three innings must have a not-out proportion of either 0, 1/3, or 2/3, and so on.
+The unusual horizontal patterns in the orange points are due to the discrete nature of the data --- batters who have played only two innings must have a not-out proportion of either 0, 1/2, or 1, while those who have played only three innings must have a not-out proportion of either 0, 1/3, 2/3, or 1, and so on.
 As the number of innings played goes up, more possible not-out proportions are possible.
 
 We also expect that the pattern of not outs has changed over time.
-Test cricket has been played for over 150 years, and the style of play and the nature of playing conditions have changed considerably over that time.
+Test cricket has been played for almost 150 years, and the style of play and the nature of playing conditions have changed considerably over that time.
+Modern players tend to be more aggressive, and the pitches tend to be in better condition (and easier to bat on), than in earlier eras.
 
-To take all this into account, we can construct a GAM for the number of not outs for each batter as a function of their batting average and the year they started playing.
+To take all this into account, we can construct a GAM for the number of not outs for each batter as a function of their RPI and the year they started playing.
 It is natural to use a Binomial distribution with a logit link function:
 $$
-  \text{NotOuts} \mid \text{Average}, \text{Start}
+  \text{NotOuts} \mid \text{RPI}, \text{Start}
                  \sim \text{Binomial}(\text{Innings},~ q),
 $$
 where $q$ denotes the probability of a batter not being dismissed in an innings, and
 $$
-  \log(q/(1 - q)) = g_1(\text{Average}) + g_2(\text{Start}).
+  \log(q/(1 - q)) = g_1(\text{RPI}) + g_2(\text{Start}).
 $$ {#eq-gam-notouts}
 We can fit this model using the `mgcv` package, with the resulting estimates shown in @fig-gam-notouts.
 
@@ -558,7 +568,7 @@ We can fit this model using the `mgcv` package, with the resulting estimates sho
 #| dependson: fig-notouts
 
 fit_notouts <- mgcv::gam(
-  prop_no ~ s(Average) + s(Start),
+  prop_no ~ s(RPI) + s(Start),
   data = df_no,
   weights = Innings,
   family = binomial(link = logit)
@@ -575,8 +585,8 @@ fit_notouts <- mgcv::gam(
 gratia::draw(fit_notouts)
 ```
 
-As expected, the probability of being not-out decreases as the batting average increases to about 35, and then increases again for the very best batters.
-The confidence interval on the curve is very wide after about 60, as there are very few batters with averages that high, and most of those have played very few innings.
+As expected, the probability of being not-out decreases as the RPI increases to about 30, and then increases again for the very best batters.
+The confidence interval on the curve is very wide after about 50, as there are very few batters with RPIs that high.
 The probability of being not-out also increases as the year of debut increases, until about 1975, and then decreases again.
 This is likely due to the introduction of limited overs cricket in the 1970s, which changed the style of play in Test cricket, and batters have since become more aggressive.
 
@@ -593,20 +603,19 @@ So we will use the GPD approximation to compute the surprisal probabilities, whi
 
 notouts_aug <- augment(fit_notouts, data = df_no, type.predict = "response") |>
   mutate(p = surprisals_prob(fit_notouts, approximation = "gpd")) |>
-  select(Player:End, Innings, NotOuts, Average, .fitted, prop_no, p) |>
+  select(Player:End, Innings, NotOuts, RPI, .fitted, prop_no, p) |>
   arrange(p)
 
 notouts_aug
 ```
 
 The `.fitted` value is the expected proportion of not outs for each player under the fitted model, while `prop_no` gives the actual proportion of not outs they have had.
-The largest surprisal is for New Zealand batter Trent Boult, who has had `r notouts_aug$NotOuts[1]` not outs in `r notouts_aug$Innings[1]` innings, which is much higher than the expected number of not outs of $`r notouts_aug[["Innings"]][1]` \times `r sprintf("%.3f", notouts_aug[[".fitted"]][1])` = `r sprintf("%.1f", notouts_aug[[".fitted"]][1]*notouts_aug[["Innings"]][1])`$.
 
-The top four anomalies are not all the same kind of player.
-Shaun Pollock was a bowling all-rounder who batted defensively in the lower order, playing a crucial role in building partnerships with the weakest batters.
-On the other hand, Trent Boult, Jimmy Anderson, and Josh Hazlewood were all specialist bowlers who batted near the end of the batting order, but who had good defensive technique and were able to survive for long periods without being dismissed.
+The largest surprisal is for South African Shaun Pollock, who has had `r notouts_aug$NotOuts[1]` not outs in `r notouts_aug$Innings[1]` innings, which is much higher than the expected number of not outs of $`r notouts_aug[["Innings"]][1]` \times `r sprintf("%.3f", notouts_aug[[".fitted"]][1])` = `r sprintf("%.1f", notouts_aug[[".fitted"]][1]*notouts_aug[["Innings"]][1])`$.
+Shaun Pollock was a bowling all-rounder and a capable batter in the lower order, playing a crucial role in building partnerships with the weakest batters.
+Trent Boult was a specialist bowler who batted last, and for a while was Test cricket's leading run-scorer in that position, showing an unusual flair for entertaining batting.
 
-None of these anomalies are particularly unusual in their proportion of not-outs, but they become anomalous once their batting average and year of debut are taken into account.
+Neither of these anomalies is particularly unusual in their proportion of not-outs, but they become anomalous once their RPI and year of debut are taken into account.
 Because we have used a statistical model, we have been able to account for the particular features of this data set, such as the discrete nature of the data, and the changing variance, to identify observations that are anomalous in the context of the model.
 
 ## BACON algorithm for linear regression {#sec-bacon-reg}
