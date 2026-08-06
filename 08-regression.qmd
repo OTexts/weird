@@ -613,7 +613,8 @@ The `.fitted` value is the expected proportion of not outs for each player under
 
 The largest surprisal is for South African Shaun Pollock, who had `r notouts_aug$NotOuts[1]` not outs in `r notouts_aug$Innings[1]` innings, which is much higher than the expected number of not outs of $`r notouts_aug[["Innings"]][1]` \times `r sprintf("%.3f", notouts_aug[[".fitted"]][1])` = `r sprintf("%.1f", notouts_aug[[".fitted"]][1]*notouts_aug[["Innings"]][1])`$.
 Shaun Pollock was a bowling all-rounder and a capable batter in the lower order, playing a crucial role in building partnerships with the weakest batters.
-Trent Boult was a specialist bowler who batted last, and for a while was Test cricket's leading run-scorer in that position, showing an unusual flair for entertaining batting.
+
+The next most anomalous result is for New Zealander Trent Boult, a specialist bowler who batted last, who was for a while was Test cricket's leading run-scorer in that position, showing an unusual flair for entertaining batting.
 He had `r notouts_aug$NotOuts[2]` not outs in `r notouts_aug$Innings[2]` innings, compared to the expected number of not outs of $`r notouts_aug[["Innings"]][2]` \times `r sprintf("%.3f", notouts_aug[[".fitted"]][2])` = `r sprintf("%.1f", notouts_aug[[".fitted"]][2]*notouts_aug[["Innings"]][2])`$.
 
 Neither of these anomalies is particularly unusual in their proportion of not-outs, but they become anomalous once their RPI and year of debut are taken into account.
