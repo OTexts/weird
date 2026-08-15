@@ -354,7 +354,7 @@ R <- Y - as.matrix(W) %*% t(A)
 az_aq_proj <- az_aq_proj |>
   mutate(od = sqrt(rowSums(R^2)))
 az_aq_proj |>
-  filter(od > sort(od, decreasing = TRUE)[10])
+  slice_max(order_by = od, n = 10)
 az_aq_proj |> gg_hdrboxplot(od)
 ```
 
@@ -443,7 +443,7 @@ set.seed(1)
 ao <- robustbase::adjOutlyingness(Y)
 az_aq_proj |>
   mutate(sd_out = ao$adjout) |>
-  filter(sd_out > sort(sd_out, decreasing = TRUE)[10])
+  slice_max(order_by = sd_out, n = 10)
 ```
 
 The top 10 most anomalous observations by this measure are shown above.
@@ -740,7 +740,7 @@ W_od <- pca_robpca$scores |>
 iso_model <- isotree::isolation.forest(W_od)
 az_aq_proj |>
   mutate(iso_score = predict(iso_model, W_od)) |>
-  filter(iso_score > sort(iso_score, decreasing = TRUE)[10])
+  slice_max(order_by = iso_score, n = 10)
 ```
 
 These are the most extreme hours by this combined measure: the isolated points and the extreme hours late on 31 May that the other methods also single out.
@@ -822,7 +822,7 @@ W4_od <- as_tibble(W4) |>
 iso_model <- isotree::isolation.forest(W4_od)
 az_aq_proj |>
   mutate(iso_score = predict(iso_model, W4_od)) |>
-  filter(iso_score > sort(iso_score, decreasing = TRUE)[10])
+  slice_max(order_by = iso_score, n = 10)
 ```
 
 With only four components, the isolation forest flags both the morning cluster of 22 May seen in @fig-proj-kde and the extreme hours late on 31 May, together with the isolated points the other methods also identify.
@@ -979,7 +979,7 @@ This distance is the FastPCS outlyingness index, and corresponds to the PCA scor
 az_aq_proj <- az_aq_proj |>
   mutate(fpcs = fpcs_fit$distance)
 az_aq_proj |>
-  filter(fpcs > sort(fpcs, decreasing = TRUE)[10])
+  slice_max(order_by = fpcs, n = 10)
 ```
 
 Where the earlier methods flagged only the most extreme hours of 31 May 2014, FastPCS resolves the whole daytime build-up of that day --- a run of hours dominated by extreme carbon monoxide and sulphur dioxide (both around four standard deviations above their means), together with warm temperatures, a high dew point and low wind speeds that would have inhibited dispersion.
@@ -1047,7 +1047,7 @@ az_aq_proj |>
     stray = stray_scores(Y),
     stray_anomaly = stray_anomalies(Y)
   ) |>
-  filter(stray > sort(stray, decreasing = TRUE)[10])
+  slice_max(order_by = stray, n = 10)
 ```
 
 Stray confirms the extreme hours of 31 May and the isolated points the other methods agree on, but it reaches them without fitting any covariance: working only from nearest-neighbour distances, it makes no assumption about the shape of the bulk of the data, and so can flag anomalies that sit away from an elliptical centre --- here it also picks up the transition late on 29--30 May.
