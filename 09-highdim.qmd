@@ -328,6 +328,8 @@ As the tour rotates through different projections, the bulk of the data keeps ro
 A point that is hidden inside the cloud in one frame can suddenly appear as a clear anomaly in another, and vice versa.
 This is the practical value of a tour for anomaly detection: instead of hoping that a single chosen projection (such as the one in @fig-proj-11dto2d) happens to reveal every anomaly, we can watch many projections in sequence and catch anomalies as they emerge.
 
+For an excellent overview of tours in interactively exploring high-dimensional data through projections, see @mulgar.
+
 ### Regression projections
 
 We have, in fact, already met projections in @sec-ols.
@@ -480,8 +482,7 @@ Anomalies that lie in low-density regions of the residual space, but which have 
 
 ## Stahel--Donoho outlyingness {#sec-stahel-donoho}
 
-Stahel--Donoho outlyingness is a robust projection-based measure of how far each
-observation is from the main body of the data [@Stahel81;@Donoho81] in at least one projection.
+Stahel--Donoho outlyingness is a robust projection-based measure of how far each observation is from the main body of the data [@Stahel81;@Donoho81] in at least one projection.
 
 For any unit vector $\bm{a}$, project the data to one dimension via $\bm{a}^\intercal\bm{y}_i$, then scale the result using a robust z-score (@sec-scaling), adjusted for skewness [@Brys2005-pc].
 The outlyingness of $\bm{y}_i$ is the largest absolute z-score over all possible directions $\bm{a}$, so an observation is flagged when it looks extreme in at least one projection.
