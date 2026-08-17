@@ -24,8 +24,8 @@ The high-dimensional methods described in this chapter are designed to address t
 ## Projections {#sec-projections}
 
 The simplest way to reduce the dimensionality of the data is to use **linear projections**: linear combinations of the original variables that map each $m$-dimensional observation to a lower-dimensional space.
-Different projection directions preserve different aspects of the joint structure, so the choice of direction matters.
 While anomalies may be hard to detect in the full high-dimensional space, they often become visible when viewed from the right projection direction.
+Different projection directions preserve different aspects of the joint structure, so the choice of direction matters.
 Understanding the geometry of projections sets the foundation for the methods described in the rest of this chapter.
 
 To keep the geometry simple, we will scale all variables to have mean zero and unit variance, although to preserve interpretability, no rotation will be applied in the scaling (@sec-scaling).
@@ -268,7 +268,65 @@ This illustrates the challenge of anomaly detection in high dimensions: we may n
 
 ### A tour of projections
 
-For an excellent introduction to interactively exploring all possible projections, see @mulgar.
+@fig-proj-11dto2d used one particular mapping matrix $\bm{A}$ to project the 11-dimensional data onto two dimensions.
+A different choice of $\bm{A}$ would give a different 2D shadow of the data, potentially hiding some anomalies while revealing others.
+Rather than selecting a specific $\bm{A}$, a **tour** [@Asimov1985] moves continuously through many projections, playing them as an animation so that we can watch the data cloud change shape as the projection changes.
+
+A tour follows a sequence of target mapping matrices $\bm{A}_1, \bm{A}_2, \ldots$, smoothly interpolating between them following a *geodesic* path.
+That is, the interpolation follows the shortest path between two projections that keeps the columns of $\bm{A}$ orthonormal throughout, so every frame of the animation is itself a valid projection.
+
+How the target matrices are chosen distinguishes different types of tours.
+
+- A **grand tour** chooses the target mapping matrices at random, so that every possible projection is equally likely to be shown.
+  This gives a broad view of the data, useful for spotting structure that might not be visible in any single projection chosen in advance.
+- A **guided tour** instead finds target matrices that increase some numerical measure of "interestingness", known as a **projection pursuit index**.
+  Rather than sweeping through projections at random, the tour moves towards projections that best reveal whatever feature the index is designed to detect.
+  In the context of anomaly detection, a guided tour would use an index that measures anomalousness.
+
+@fig-grand-tour shows a grand tour of the 11 standardised air quality and meteorological variables from Aotizhongxin, generated using the `tourr` package [@tourr].
+
+```{r}
+#| label: grand-tour
+#| code-fold: true
+#| dependson: aotizhongxin
+#| message: false
+#| warning: false
+#| output: false
+
+set.seed(1)
+tourr::render_gif(
+  as.matrix(Y),
+  tourr::grand_tour(),
+  tourr::display_xy(
+    axes = "bottomleft",
+    col = "#0072B2",
+    pch = 19,
+    cex = 1.1,
+    half_range = 11
+  ),
+  gif_file = "gifs/highdim-grand-tour.gif",
+  frames = 150,
+  width = 900,
+  height = 900
+)
+```
+
+```{r}
+#| label: fig-grand-tour
+#| echo: false
+#| dependson: grand-tour
+#| message: false
+#| warning: false
+#| fig-cap: >-
+#|   A grand tour of the 11 standardised air quality and meteorological variables at Aotizhongxin.
+#|   Each frame is a different 2-dimensional projection of the data, with axis labels showing the (abbreviated) contribution of each variable to that projection.
+
+knitr::include_graphics("gifs/highdim-grand-tour.gif")
+```
+
+As the tour rotates through different projections, the bulk of the data keeps roughly the same shape, but individual points move in and out of the data cloud.
+A point that is hidden inside the cloud in one frame can suddenly appear as a clear anomaly in another, and vice versa.
+This is the practical value of a tour for anomaly detection: instead of hoping that a single chosen projection (such as the one in @fig-proj-11dto2d) happens to reveal every anomaly, we can watch many projections in sequence and catch anomalies as they emerge.
 
 ### Regression projections
 
@@ -449,6 +507,56 @@ az_aq_proj |>
 The top 10 most anomalous observations by this measure are shown above.
 Without our having to choose a projection in advance, it recovers the residual-space anomalies of @fig-proj-residuals2 --- including the run of hours early on 11 May --- because an observation that is extreme in any single direction is found by maximising over all directions.
 The price is the opposite blind spot: because the measure relies on one-dimensional projections, it can miss anomalies that only appear unusual when several variables are considered jointly.
+
+### Finding outlyingness with a guided tour
+
+Stahel--Donoho outlyingness is itself defined by a search over one-dimensional projections: for each candidate direction $\bm{a}$, compute the robust z-scores of the projected data, and keep track of the largest value seen so far.
+This is exactly what a guided tour does, so we can use one to watch the search happen, rather than treating `adjOutlyingness()` as a black box.
+
+We define a projection pursuit index that reproduces a simplified version of the outlyingness measure (without the skewness adjustment): given a 1-dimensional projection, it returns the largest robust z-score among the projected points.
+
+```{r}
+#| label: sd-guided-index
+#| code-fold: false
+#| dependson: aotizhongxin
+
+sd_index <- function(mat) {
+  z <- abs(mat[, 1] - median(mat[, 1])) / mad(mat[, 1])
+  max(z)
+}
+```
+
+Passing this index to `tourr::guided_tour()` produces a 1-dimensional tour that climbs towards the projection maximising it, shown in @fig-sd-guided-tour as an animated density plot, with the weight given to each variable in the current projection shown below.
+
+```{r}
+#| label: fig-sd-guided-tour
+#| code-fold: false
+#| dependson: sd-guided-index
+#| message: false
+#| warning: false
+#| fig-cap: >-
+#|   A guided tour of the 11 standardised air quality and meteorological variables at Aotizhongxin, seeking the 1-dimensional projection that maximises the Stahel--Donoho outlyingness index.
+#|   The top panel shows the density of the projected data; the bottom panel shows the weight given to each variable in the current projection.
+
+gif_file <- "gifs/highdim-sd-guided-tour.gif"
+if (!file.exists(gif_file)) {
+  set.seed(1)
+  tourr::render_gif(
+    as.matrix(Y),
+    tourr::guided_tour(sd_index, d = 1),
+    tourr::display_dist(col = "#0072B2"),
+    gif_file = gif_file,
+    frames = 150,
+    width = 900,
+    height = 700
+  )
+}
+knitr::include_graphics(gif_file)
+```
+
+The tour converges on a projection dominated almost entirely by `rainfall`, pulling a short right-hand tail away from the bulk of the distribution.
+This matches what `adjOutlyingness()` found earlier: the ten most outlying observations under this guided-tour index are the same ten hours identified above, including the run of hours early on 11 May.
+Watching the tour arrive at this projection makes the earlier calculation concrete: Stahel--Donoho outlyingness is what a guided tour finds when the index it climbs is "how extreme is the most extreme point in this direction".
 
 ## Principal component analysis {#sec-pca}
 
