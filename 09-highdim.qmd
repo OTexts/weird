@@ -287,7 +287,7 @@ How the target matrices are chosen distinguishes different types of tours.
 
 - A **grand tour** chooses the target mapping matrices at random, so that every possible projection is equally likely to be shown.
   This gives a broad view of the data, useful for spotting structure that might not be visible in any single projection chosen in advance.
-- A **guided tour** instead finds target matrices that increase some numerical measure of "interestingness", known as a **projection pursuit index**.
+- A **guided tour** instead finds target matrices that increase some numerical measure of "interestingness", known as a **projection pursuit index** [@FriedmanTukey1974].
   Rather than sweeping through projections at random, the tour moves towards projections that best reveal whatever feature the index is designed to detect.
   In the context of anomaly detection, a guided tour would use an index that measures anomalousness.
 
@@ -325,6 +325,7 @@ tourr::render_gif(
 #| dependson: grand-tour
 #| message: false
 #| warning: false
+#| out-width: 70%
 #| fig-cap: >-
 #|   A grand tour of the 11 standardised air quality and meteorological variables at Aotizhongxin.
 #|   Each frame is a different 2-dimensional projection of the data, with axis labels showing the (abbreviated) contribution of each variable to that projection.
@@ -332,7 +333,7 @@ tourr::render_gif(
 knitr::include_graphics("gifs/highdim-grand-tour.gif")
 ```
 
-As the tour rotates through different projections, the bulk of the data keeps roughly the same shape, but individual points move in and out of the data cloud.
+As the tour rotates through different projections, the bulk of the data remains near the centre, but individual points move in and out of the data cloud.
 A point that is hidden inside the cloud in one frame can suddenly appear as a clear anomaly in another, and vice versa.
 This is the practical value of a tour for anomaly detection: instead of hoping that a single chosen projection (such as the one in @fig-proj-11dto2d) happens to reveal every anomaly, we can watch many projections in sequence and catch anomalies as they emerge.
 
