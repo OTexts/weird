@@ -13,8 +13,8 @@ _book/.built: $(qmd_files) $(rds_files) $(shared_deps)
 	perl -i htmlreplace.pl _book/*.html
 	touch $@
 
-launch:
-	xdg-open _book/index.html
+preview: build
+	quarto preview --to html
 
 deploy: build
 	cp .htaccess _book
