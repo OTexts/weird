@@ -486,7 +486,10 @@ Anomalies that lie in low-density regions of the residual space, but which have 
 Stahel--Donoho outlyingness is a robust projection-based measure of how far each observation is from the main body of the data [@Stahel81;@Donoho81] in at least one projection.
 
 For any unit vector $\bm{a}$, project the data to one dimension via $\bm{a}^\intercal\bm{y}_i$, then scale the result using a robust z-score (@sec-scaling), adjusted for skewness [@Brys2005-pc].
-The outlyingness of $\bm{y}_i$ is the largest absolute z-score over all possible directions $\bm{a}$, so an observation is flagged when it looks extreme in at least one projection.
+The "outlyingness" of $\bm{y}_i$ is the largest absolute z-score over all possible directions $\bm{a}$, so an observation is flagged when it looks extreme in at least one projection.
+
+Stahel--Donoho outlyingness is a guided tour index: it searches over one-dimensional projections: for each candidate direction $\bm{a}$, compute the robust z-scores of the projected data, and keep track of the largest value seen so far.
+This is exactly what a guided tour does,
 
 In practice, the optimisation over all directions is approximated using many candidate projections.
 In R, `robustbase::adjOutlyingness()` provides an efficient implementation for computing these scores.
@@ -522,41 +525,160 @@ We define a projection pursuit index that reproduces a simplified version of the
 #| code-fold: false
 #| dependson: aotizhongxin
 
-sd_index <- function(mat) {
-  z <- abs(mat[, 1] - median(mat[, 1])) / mad(mat[, 1])
-  max(z)
+sd_index <- function(Y) {
+  mvscale(Y) |> abs() |> max()
 }
 ```
 
-Passing this index to `tourr::guided_tour()` produces a 1-dimensional tour that climbs towards the projection maximising it, shown in @fig-sd-guided-tour as an animated density plot, with the weight given to each variable in the current projection shown below.
+Passing this index to `tourr::guided_tour()` produces a 1-dimensional tour that climbs towards the projection maximising it.
+Rather than the usual density display, we use a custom `tourr` display that makes the search itself the point of the animation, tracing the index value reached at every frame.
+
+```{r}
+#| label: sd-guided-display
+#| code-fold: true
+#| dependson: sd-guided-index
+
+# Step through a fixed sequence of bases (no plotting), recording the index
+# value reached at every frame and the range of projected values seen --
+# this lets the display below use stable axes from the very first frame.
+trace_tour_path <- function(data, bases, index_f, apf = 1 / 10) {
+  tour <- tourr::new_tour(data, tourr::planned_tour(bases), NULL)
+  step <- tour(0)
+  proj <- data %*% step$proj
+  idx <- index_f(proj)
+  xlim <- range(proj)
+  repeat {
+    step <- tour(apf)
+    if (step$step < 0) {
+      break
+    }
+    proj <- data %*% step$proj
+    idx <- c(idx, index_f(proj))
+    xlim <- range(c(xlim, proj))
+  }
+  list(idx = idx, xlim = xlim)
+}
+
+# A tourr display with a rug of the projected points, a trace of the index
+# value reached so far (log scale, since it blows up as the search isolates
+# a single point), and the variable weights.
+display_trace <- function(index_f, col = "#0072B2") {
+  labels <- NULL
+  idx_history <- numeric(0)
+  frame_i <- 0
+  total_frames <- NULL
+  ylim_trace <- NULL
+  xlim_rug <- NULL
+
+  init <- function(data) {
+    labels <<- abbreviate(colnames(data), 2)
+  }
+  render_frame <- function() {
+    par(mar = c(0, 0, 0, 0), cex.axis = 1.5, cex.lab = 1.6)
+    graphics::layout(matrix(1:3, nrow = 3), heights = c(1, 3, 3))
+  }
+  render_transition <- function() {}
+  render_data <- function(data, proj, geodesic) {
+    frame_i <<- frame_i + 1
+    x <- data %*% proj
+    idx_val <- index_f(x)
+    idx_history[frame_i] <<- idx_val
+
+    par(mar = c(1, 5, 1, 1))
+    plot(
+      NA,
+      xlim = xlim_rug,
+      ylim = c(0, 1),
+      xaxt = "n",
+      yaxt = "n",
+      xlab = "",
+      ylab = ""
+    )
+    segments(x, 0, x, 1, col = col)
+    box(col = "grey70")
+
+    par(mar = c(5.5, 5, 1, 1))
+    plot(
+      seq_len(frame_i),
+      idx_history,
+      type = "l",
+      lwd = 2,
+      col = col,
+      log = "y",
+      xlim = c(1, total_frames),
+      ylim = ylim_trace,
+      xlab = "Frame",
+      ylab = "Index"
+    )
+    points(frame_i, idx_val, pch = 19, col = col)
+
+    par(mar = c(5, 5, 1.5, 1))
+    plot(
+      NA,
+      xlim = c(-1, 1.2),
+      ylim = c(-1.1, 0),
+      xaxs = "i",
+      yaxs = "i",
+      xlab = "",
+      ylab = "Projection",
+      yaxt = "n"
+    )
+    abline(h = 0)
+    box(col = "grey70")
+    ax <- seq_along(proj) / length(proj)
+    segments(0, -ax, proj, -ax, col = "black", lwd = 3)
+    text(1, -ax, labels, pos = 4, cex = 1.4)
+  }
+  list(
+    init = init,
+    render_frame = render_frame,
+    render_transition = render_transition,
+    render_data = render_data,
+    render_target = function(...) NULL,
+    set_total_frames = function(n) total_frames <<- n,
+    set_ylim = function(r) ylim_trace <<- r,
+    set_xlim = function(r) xlim_rug <<- r
+  )
+}
+```
 
 ```{r}
 #| label: fig-sd-guided-tour
 #| code-fold: false
-#| dependson: sd-guided-index
+#| dependson: sd-guided-display
 #| message: false
 #| warning: false
+#| out-width: 80%
 #| fig-cap: >-
 #|   A guided tour of the 11 standardised air quality and meteorological variables at Aotizhongxin, seeking the 1-dimensional projection that maximises the Stahel--Donoho outlyingness index.
-#|   The top panel shows the density of the projected data; the bottom panel shows the weight given to each variable in the current projection.
+#|   The top panel shows a tick for each observation's projected value; the middle panel traces the index value reached so far (log scale); the bottom panel shows the weight given to each variable in the current projection.
 
 gif_file <- "gifs/highdim-sd-guided-tour.gif"
 if (!file.exists(gif_file)) {
   set.seed(1)
+  Ym <- as.matrix(Y)
+  bases <- tourr::save_history(Ym, tourr::guided_tour(sd_index, d = 1))
+  path <- trace_tour_path(Ym, bases, sd_index)
+
+  disp <- display_trace(sd_index)
+  disp$set_total_frames(length(path$idx))
+  disp$set_ylim(range(path$idx) * c(0.9, 1.1))
+  disp$set_xlim(path$xlim * 1.05)
+
   tourr::render_gif(
-    as.matrix(Y),
-    tourr::guided_tour(sd_index, d = 1),
-    tourr::display_dist(col = "#0072B2"),
+    Ym,
+    tourr::planned_tour(bases),
+    disp,
     gif_file = gif_file,
-    frames = 150,
+    frames = length(path$idx),
     width = 900,
-    height = 700
+    height = 900
   )
 }
 knitr::include_graphics(gif_file)
 ```
 
-The tour converges on a projection dominated almost entirely by `rainfall`, pulling a short right-hand tail away from the bulk of the distribution.
+The index climbs steadily across the search, and the tour converges on a projection dominated almost entirely by `rainfall`, pulling a single observation far away from the bulk of the distribution.
 This matches what `adjOutlyingness()` found earlier: the ten most outlying observations under this guided-tour index are the same ten hours identified above, including the run of hours early on 11 May.
 Watching the tour arrive at this projection makes the earlier calculation concrete: Stahel--Donoho outlyingness is what a guided tour finds when the index it climbs is "how extreme is the most extreme point in this direction".
 
