@@ -266,6 +266,14 @@ The arrows help us to interpret individual points in the projection: the cluster
 A few observations in this projection appear to be anomalies, but we may also have missed some anomalies that are only visible in other projections.
 This illustrates the challenge of anomaly detection in high dimensions: we may not know which projection will reveal the anomalies, and there are infinitely many projections to choose from.
 
+### Regression projections
+
+We have, in fact, already met projections in @sec-ols.
+Ordinary least squares produces fitted values $\hat{\bm{y}} = \bm{H}\bm{y}$ via the hat matrix $\bm{H} = \bm{X}(\bm{X}^\intercal\bm{X})^{-1}\bm{X}^\intercal$, which is the orthogonal projection of the response vector onto the subspace spanned by the predictor columns.
+Like the projection matrix $\bm{P} = \bm{A}\bm{A}^\intercal$, the hat matrix is symmetric and idempotent ($\bm{H} = \bm{H}^\intercal = \bm{H}^2$), so it too is a projection matrix; indeed, if the predictor columns were orthonormal, then $\bm{X}^\intercal\bm{X} = \bm{I}$ and $\bm{H}$ would reduce to $\bm{X}\bm{X}^\intercal$, exactly the form of $\bm{P}$.
+The key difference is *what* is being projected: here we project each observation onto a subspace of the **variable** space to reduce dimension, whereas regression projects the **response** vector onto the column space of the **predictors**.
+In both cases the residual is the part of the vector orthogonal to the subspace, so the orthogonal distance (the magnitude of the residual $\bm{r}_i$ defined above) plays the same role as the regression residual $\bm{e} = (\bm{I} - \bm{H})\bm{y}$.
+
 ### A tour of projections
 
 @fig-proj-11dto2d used one particular mapping matrix $\bm{A}$ to project the 11-dimensional data onto two dimensions.
@@ -329,14 +337,6 @@ A point that is hidden inside the cloud in one frame can suddenly appear as a cl
 This is the practical value of a tour for anomaly detection: instead of hoping that a single chosen projection (such as the one in @fig-proj-11dto2d) happens to reveal every anomaly, we can watch many projections in sequence and catch anomalies as they emerge.
 
 For an excellent overview of tours in interactively exploring high-dimensional data through projections, see @mulgar.
-
-### Regression projections
-
-We have, in fact, already met projections in @sec-ols.
-Ordinary least squares produces fitted values $\hat{\bm{y}} = \bm{H}\bm{y}$ via the hat matrix $\bm{H} = \bm{X}(\bm{X}^\intercal\bm{X})^{-1}\bm{X}^\intercal$, which is the orthogonal projection of the response vector onto the subspace spanned by the predictor columns.
-Like the projection matrix $\bm{P} = \bm{A}\bm{A}^\intercal$, the hat matrix is symmetric and idempotent ($\bm{H} = \bm{H}^\intercal = \bm{H}^2$), so it too is a projection matrix; indeed, if the predictor columns were orthonormal, then $\bm{X}^\intercal\bm{X} = \bm{I}$ and $\bm{H}$ would reduce to $\bm{X}\bm{X}^\intercal$, exactly the form of $\bm{P}$.
-The key difference is *what* is being projected: here we project each observation onto a subspace of the **variable** space to reduce dimension, whereas regression projects the **response** vector onto the column space of the **predictors**.
-In both cases the residual is the part of the vector orthogonal to the subspace, so the orthogonal distance (the magnitude of the residual $\bm{r}_i$ defined above) plays the same role as the regression residual $\bm{e} = (\bm{I} - \bm{H})\bm{y}$.
 
 ## Types of projection anomalies {#sec-projection-anomalies}
 
