@@ -1073,7 +1073,7 @@ HDoutliers therefore takes the smallest half of the distances to be typical, fit
 It then works upwards through the remaining distances one at a time: each candidate that exceeds the current threshold is flagged as an anomaly, while each one that does not is absorbed into the typical set and the threshold re-estimated.
 Because the cutoff is a quantile of a fitted distribution, it carries a genuine probability, and the user controls the false-discovery rate directly through the significance level $\alpha$.
 
-An implementation of the HDoutliers algorithm is available in the `HDoutliers` package.
+An implementation of the HDoutliers algorithm was previously available in the [HDoutliers](https://CRAN.R-project.org/package=HDoutliers) package, but it is now archived on CRAN.
 
 ## Stray algorithm {#sec-stray}
 
