@@ -8,7 +8,7 @@
 source("before-each-chapter.R")
 ```
 
-Most readers will have first come across anomaly detection using boxplots, invented by John Tukey as a quick summary of medium-sized data sets [@Tukey75;@Tukey1977-xd;@wickhamboxplots].
+Most readers will have first come across anomaly detection using boxplots, proposed by John Tukey as a quick summary of medium-sized data sets [@Tukey75;@Tukey1977-xd;@wickhamboxplots;@kafadar26].
 Tukey never proposed that boxplots be a generic anomaly detection method, but they have become widely used for this purpose, and are often the first method that people think of when they want to identify anomalies in univariate data.
 
 In this chapter, we will describe the original boxplot method, along with some variations that have been developed to address some of the limitations of the original approach.
