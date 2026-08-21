@@ -47,6 +47,7 @@ fig-height: 5
 fig-align: center
 fig-dpi: 150
 output-width: 100%
+syntax-highlighting: kate
 
 execute:
   freeze: auto

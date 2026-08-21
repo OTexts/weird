@@ -1,7 +1,7 @@
 /*-- scss:defaults --*/
 $theme-main: #65775c;
 $theme-gray: #ebebeb;
-$theme-yellow: #F4BA02;
+$theme-yellow: #f4ba02;
 $theme-orange: #f49b02;
 
 $body-bg: lighten($theme-gray, 20%);
@@ -11,16 +11,16 @@ $primary: $theme-main;
 $sidebar-bg: $theme-main;
 $sidebar-fg: lighten($theme-gray, 10%);
 
-$font-family-sans-serif: 'Fira Sans', sans-serif;
-$font-family-monospace: 'Hack', monospace;
+$font-family-sans-serif: "Fira Sans", sans-serif;
+$font-family-monospace: "Hack", monospace;
 
 $h2-font-size: 1.5rem !default;
 $h3-font-size: 1.3rem !default;
 $h4-font-size: 1.1rem !default;
 $h5-font-size: 0.9rem !default;
 
-$code-block-bg: #f8f9fa;
-$code-block-border-left: 3px solid $theme-main;
+$code-block-bg: #f2f2f2;
+$code-block-border-left: #aaaaaa;
 $code-color: $body-color;
 
 $callout-color-tip: $theme-orange;
@@ -125,7 +125,7 @@ table th {
   line-height: 1.4 !important;
 }
 
-.table>:not(caption)>*>* {
+.table > :not(caption) > * > * {
   background-color: lighten($theme-main, 40%);
 }
 
@@ -169,7 +169,7 @@ div.sourceCode pre.sourceCode {
   color: $body-color;
 }
 
-.quarto-page-breadcrumbs .breadcrumb-item+.breadcrumb-item,
+.quarto-page-breadcrumbs .breadcrumb-item + .breadcrumb-item,
 .quarto-page-breadcrumbs .breadcrumb-item {
   font-family: $font-family-sans-serif;
 }
@@ -183,7 +183,7 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
 }
 
 .sidebar-navigation .sidebar-item {
-  font-size: .85rem;
+  font-size: 0.85rem;
   line-height: 1.2;
   margin-top: 0.3em;
   margin-bottom: 0em;
@@ -201,7 +201,7 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   font-weight: bold;
 }
 
-.sidebar-title>a:hover {
+.sidebar-title > a:hover {
   color: $theme-orange !important;
 }
 
@@ -212,23 +212,23 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   background-color: $theme-main !important;
 }
 
-.sidebar nav[role=doc-toc] ul>li>ul>li>a.active {
+.sidebar nav[role="doc-toc"] ul > li > ul > li > a.active {
   color: saturate($theme-main, 60%) !important;
   border-left: 2px solid saturate($theme-main, 60%) !important;
 }
 
-.sidebar nav[role=doc-toc] ul>li>a.active {
+.sidebar nav[role="doc-toc"] ul > li > a.active {
   color: saturate($theme-main, 60%) !important;
   border-left: 1px solid saturate($theme-main, 60%) !important;
 }
 
-.sidebar nav[role=doc-toc] a:hover {
+.sidebar nav[role="doc-toc"] a:hover {
   color: saturate($theme-main, 60%) !important;
   background-color: lighten($theme-gray, 50%);
 }
 
-.sidebar nav[role=doc-toc] ul>li>a:hover,
-.sidebar nav[role=doc-toc] ul>li>ul>li>a:hover {
+.sidebar nav[role="doc-toc"] ul > li > a:hover,
+.sidebar nav[role="doc-toc"] ul > li > ul > li > a:hover {
   color: saturate($theme-main, 60%) !important;
 }
 
