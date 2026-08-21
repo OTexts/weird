@@ -47,7 +47,6 @@ fig-height: 5
 fig-align: center
 fig-dpi: 150
 output-width: 100%
-highlight-style: tango
 
 execute:
   freeze: auto
