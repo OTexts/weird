@@ -991,6 +991,10 @@ bind_rows(
 The two extreme anomalies in the non-metric scaling map are from 19 May and 31 May:
 
 ```{r}
+#| label: mds-nonmetric-cases
+#| code-fold: false
+#| dependson: mds-nonmetric
+
 az_aq[nm$points[, 2] < -50, ]
 ```
 
