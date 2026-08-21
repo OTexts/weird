@@ -306,8 +306,7 @@ norm_prob |>
   geom_line()
 ```
 
-In summary, even when we don't know the distribution of the data, we can use some
-incorrect assumed distribution to compute the surprisals, and then apply either a GPD or the rank approximation to obtain good estimates of the surprisal probabilities.
+In summary, even when we don't know the distribution of the data, we can use some incorrect assumed distribution to compute the surprisals, and then apply either a GPD or the rank approximation to obtain good estimates of the surprisal probabilities.
 
 ## KDE surprisals {#sec-kdesurprisals}
 

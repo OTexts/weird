@@ -32,5 +32,4 @@ This loads the relevant data sets, and various other packages needed to reproduc
 
 &nbsp;<br>
 
-Rob J Hyndman <br>
-`r format(Sys.Date(), "%B %Y")`
+Rob J Hyndman <br> `r format(Sys.Date(), "%B %Y")`

@@ -895,10 +895,7 @@ In the original iForest algorithm, all splits involve only one variable at a tim
 As a result, the partitions are always rectangular and parallel to the axes.
 This may lead to a directional bias in the anomaly scores, and also tends to lead to more splits when isolating observations.
 
-@Hariri2021 addressed this with the **Extended Isolation Forest** (EIF), which replaces
-axis-parallel splits by random hyperplane splits: at each node, a random direction in the
-$m$-dimensional space is chosen, and observations are divided according to which side of
-the corresponding hyperplane they fall on.
+@Hariri2021 addressed this with the **Extended Isolation Forest** (EIF), which replaces axis-parallel splits by random hyperplane splits: at each node, a random direction in the $m$-dimensional space is chosen, and observations are divided according to which side of the corresponding hyperplane they fall on.
 In our two-dimensional Dongsi air quality example, this means that splits can be made at any angle, rather than being restricted to vertical or horizontal lines.
 This removes the directional bias at the cost of a slight increase in computational effort.
 
@@ -912,9 +909,7 @@ The three most important parameters of `isolation.forest()` are:
 - `ntrees`: the number of trees $T$ (default 500).
 - `sample_size`: the subsample size $\psi$ (default uses the minimum of the full training set and 10000).
 - `ndim`: the number of columns combined at each split.
-  Setting `ndim = 1` (the default)
-  gives the original iForest with axis-parallel splits; `ndim = m` (the number of
-  variables) gives the extended model with hyperplane splits.
+  Setting `ndim = 1` (the default) gives the original iForest with axis-parallel splits; `ndim = m` (the number of variables) gives the extended model with hyperplane splits.
 
 ### Example: Dongsi air quality data
 

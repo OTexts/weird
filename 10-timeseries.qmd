@@ -547,8 +547,7 @@ Unusually low mortality rates have also been identified in Weeks 13 and 15 of 20
 
 Next we consider unusual series within a large collection of time series.
 
-To illustrate the ideas we will use a data set of monthly observations on
-the Australian Pharmaceutical Benefits Scheme (PBS), from July 1991 to June 2008.
+To illustrate the ideas we will use a data set of monthly observations on the Australian Pharmaceutical Benefits Scheme (PBS), from July 1991 to June 2008.
 The PBS involves the Australian government subsidising certain pharmaceutical products, to allow more equitable access to essential medicines.
 The data set contains monthly sales volumes of those products being subsidised, classified according to the Anatomical Therapeutic Chemical (ATC) classification system, by the type of government subsidy, and by whether the purchaser was in a concession group (such as pensioner, unemployed, etc.).
 There are `r NROW(attributes(tsibbledata::PBS)$key)` separate time series contained in the `PBS` data set.
