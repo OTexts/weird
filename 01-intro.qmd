@@ -289,7 +289,7 @@ gun_deaths
 
 ### Air quality in Beijing {-}
 
-The `air_quality` data set contains hourly data on air quality from 12 monitoring stations in Beijing, China, collected between 1 January 2013 and 31 December 2017.
+The `air_quality` data set contains hourly data on air quality from 12 monitoring stations in Beijing, China, collected between 1 March 2013 and 28 February 2017.
 The data set contains `r scales::comma(NROW(air_quality))` hourly observations of the concentration of various pollutants, including PM2.5 (particulate matter with diameter less than 2.5 microns), PM10 (particulate matter with diameter less than 10 microns), SO2 (sulfur dioxide), NO2 (nitrogen dioxide), CO (carbon monoxide), and O3 (ozone).
 The data set also includes several weather variables, including temperature, pressure, dew point, rainfall, wind direction and speed.
 Because it is a rather large data set, it does not come pre-loaded with the package, but can be obtained using the `fetch_air_quality()` function.
@@ -311,7 +311,7 @@ air_quality
 
 ### Wine prices and quality {-}
 
-The `wine_reviews` data set contains data on `r scales::comma(NROW(wine_reviews))` wines from 44 countries, taken from the *Wine Enthusiast Magazine* during the week of 15 June 2017.
+The `wine_reviews` data set contains data on `r scales::comma(NROW(wine_reviews))` wines from `r dplyr::n_distinct(wine_reviews$country, na.rm = TRUE)` countries, taken from the *Wine Enthusiast Magazine* during the week of 15 June 2017.
 The data set contains information on the winery and its location, the variety of grape used to make the wine, the year of harvest, the price of the wine in $US, and a points value that provides a measure of the quality of the wine based on a taster's assessment on a scale of 0 to 100.
 Again, it does not come pre-loaded with the package, but can be obtained using the `fetch_wine_reviews()` function.
 
@@ -367,6 +367,7 @@ The most common measure of a batter's ability is their career average --- the to
 
 ```{r}
 #| label: fig-cricket1
+#| dependson: cricket0
 #| fig-asp: 0.2
 #| fig-cap: !expr paste("Career batting averages for all men and women to have played test cricket and batted at least 20 times. The anomaly is Don Bradman, who averaged", scales::number(donave, 0.01), "over his career.")
 
@@ -402,6 +403,7 @@ We see that almost all the eruptions were between 100 and 300 seconds in length,
 If we view the recorded durations, we can see a problem:
 
 ```{r}
+#| label: oldfaithfulsorted
 #| code-fold: false
 
 oldfaithful |> arrange(duration)
@@ -495,7 +497,7 @@ We will consider the problem of high dimensions in @sec-highdim, while various t
 When we have many variables, showing the pairwise scatterplots in a matrix is a useful way to see a lot of information quickly.
 This is called a scatterplot matrix, and can be produced using the `GGally` package.
 
-@fig-nn01 show the scatterplot matrix of all 10 variables in the `n01` data set.
+@fig-nn01 shows the scatterplot matrix of all 10 variables in the `n01` data set.
 Some transparency has been used to help reduce the overplotting, but with 1000 observations in each small point cloud, it is hard to see any detail other than around the edges.
 
 ```{r}
