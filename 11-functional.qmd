@@ -75,7 +75,7 @@ In the following code, we use a smoothing method proposed by @HU07, that takes a
 library(vital)
 fr_smooth <- fr_mortality |>
   as_vital(index = Year, key = c(Age, Sex), .age = "Age", .sex = "Sex") |>
-  smooth_mortality(Mortality, k = 20)
+  smooth_mortality(Mortality, k = 21)
 ```
 
 @fig-fr-smooth shows the resulting smooth curve for one year along with the original data, while @fig-fr-smooth2 shows the smooth curves for all years.
@@ -122,6 +122,11 @@ fr_smooth |>
   )
 ```
 
+Working with the smoothed curves rather than the raw mortality rates has several advantages for anomaly detection.
+Smoothing removes measurement noise that otherwise be mistaken for genuine functional variation, so isolated noisy observations are not flagged as anomalies, and real anomalies are not masked by noise.
+It also gives us a curve that can be evaluated, and differentiated, at any age, which is needed for the basis function and depth-based methods used later in this chapter.
+Finally, smoothing borrows strength across neighbouring ages, using the fact that mortality varies smoothly with age to produce more stable and reliable estimates than the raw data alone.
+
 ## Dimension reduction using basis functions {#sec-basis-functions}
 
 We can approximate functional data using a linear combination of basis functions:
@@ -163,8 +168,7 @@ In the following example, we find the first few principal components (empirical 
 #| echo: true
 #| code-fold: false
 #| message: false
-#| label: fig-pca-bases
-#| fig-cap: First two principal components (empirical basis functions) for the French male mortality data.
+#| label: pca-bases
 
 # Wide version of log Mortality with ages on columns
 frmort_wide <- fr_mortality |>
@@ -177,10 +181,23 @@ frmort_wide <- fr_mortality |>
     names_prefix = "Age"
   )
 
-# Compute first two principal components
+# Compute first three principal components
 pca <- frmort_wide |>
   select(-Year) |>
-  prcomp(center = TRUE, scale = FALSE, rank = 2)
+  prcomp(center = TRUE, scale = FALSE, rank = 3)
+summary(pca)
+```
+
+The first three principal components explain `r round(100 * sum(pca$sdev[1:3]^2) / sum(pca$sdev^2), 1)`% of the variation in the data.
+Instead of working in the 86 dimensional space containing all ages, we can work in the 3-dimensional space of the first three principal component scores, which is a much simpler problem.
+
+```{r}
+#| echo: true
+#| code-fold: false
+#| message: false
+#| label: fig-pca-bases
+#| dependson: pca-bases
+#| fig-cap: First three principal components (empirical basis functions) for the French male mortality data.
 
 pca_bases <- broom::tidy(pca, "loadings") |>
   mutate(
@@ -192,28 +209,39 @@ pca_bases |>
   aes(x = Age, y = value, group = PC, colour = PC) +
   geom_line()
 ```
+@fig-pca-bases shows the first three empirical basis functions.
+
+1. The first basis function is negative at every age, and largest in magnitude in early childhood, so a high score on this component corresponds to lower mortality at all ages, but especially for children.
+2. The second basis function contrasts men of fighting age (roughly ages 18--40) against children, so it picks out years where mortality among young men was unusually high (or low) relative to mortality in childhood.
+3. The third basis function contrasts infant mortality and older mortality (above age 40), with mortality of pre-teens and early 20s.
 
 ```{r}
 #| echo: true
 #| code-fold: false
 #| message: false
 #| label: fig-pca-scores
+#| dependson: pca-bases
 #| fig-cap: First two principal component scores for the French male mortality data.
 
 # Compute principal component scores
 pca_scores <- broom::augment(pca, frmort_wide[, "Year"]) |>
-  select(-.rownames)
+  select(-.rownames) |>
+  rename_with(~ gsub("\\.fitted", "", .x))
 # Time series plot of scores
 pca_scores |>
   tidyr::pivot_longer(
     -Year,
     names_to = "PC",
-    values_to = "value",
-    names_prefix = ".fittedPC"
+    values_to = "value"
   ) |>
   ggplot(aes(x = Year, y = value)) +
   geom_line(aes(colour = PC))
 ```
+
+@fig-pca-scores shows how the two component scores evolve over time.
+Other than during the two world wars, the first component score increases steadily and fairly smoothly across the study period, reflecting the long-run, near-continuous decline in mortality at all ages.
+The second component score sits close to zero for most years but spikes sharply during 1914--1918 and 1940--1945, capturing the additional mortality among young French men during the two world wars.
+The third component is more subtle, and reflects slow changes in mortality patterns over time, rather than the sharp spikes seen in the second component.
 
 ```{r}
 #| echo: true
@@ -223,25 +251,146 @@ pca_scores |>
 #| fig-cap: Scatterplot of first two principal component scores for the French male mortality data.
 
 pca_scores |>
-  ggplot(aes(x = .fittedPC1, y = .fittedPC2)) +
-  geom_point()
+  select(-Year) |>
+  GGally::ggpairs()
 ```
+
+@fig-pca-scores2 plots the pairwise scatterplots of the first three component scores against each other.
+Most years fall along a narrow band in each plot, but there are some clear anomalies, especially in the second component.
+
+This low-dimensional view foreshadows the anomaly detection approach of the next section, where we treat points that lie far from the bulk of the data in this principal component space as candidate anomalies.
 
 ## Anomalies in the principal component space {#sec-functional-pca}
 
+Once the functional data have been reduced to a handful of principal component scores, each curve (here, each year) is just a point in a low-dimensional numerical space, and we can apply the same methods introduced previously in this book.
+For example, we can compute a surprisal probability for each year from the first two component scores, using a GPD approximation for the tail (@sec-approximate-surprisal-prob), and flag any year with a probability below 0.05 as anomalous.
+We restrict attention to the first two components here so the results can be shown more easily in a scatterplot; we return to all three components below using the O3 plot.
+
 ```{r}
+#| echo: true
+#| code-fold: false
+#| label: fig-pca-outliers
+#| dependson: fig-pca-scores
+#| fig-cap: French principal component scores, with anomalous years (surprisal probability below 0.05) shown in red.
+
 # Find outliers in the PCs
-pca_no_year <- pca_scores |> select(-Year)
-pca_scores <- pca_scores |>
-  mutate(prob = surprisals_prob(pca_no_year, approximation = "gpd"))
-outliers <- pca_scores |> filter(prob < 0.05)
+outliers <- pca_scores |>
+  mutate(prob = surprisals_prob(pick(PC1, PC2), approximation = "gpd")) |>
+  filter(prob < 0.05)
+
 pca_scores |>
-  ggplot(aes(x = .fittedPC1, y = .fittedPC2)) +
+  ggplot(aes(x = PC1, y = PC2)) +
   geom_point() +
   geom_point(data = outliers, colour = "red") +
-  ggrepel::geom_label_repel(data = outliers, aes(label = Year), )
+  ggrepel::geom_label_repel(data = outliers, aes(label = Year))
 ```
+
+```{r}
+#| label: format-years
+#| echo: false
+
+# Format a vector of years as individual years and ranges (3+ consecutive years)
+format_years <- function(years) {
+  years <- sort(unique(years))
+  grp <- cumsum(c(1L, diff(years) != 1L))
+  parts <- unlist(lapply(
+    split(years, grp),
+    \(g) {
+      if (length(g) >= 3) paste0(g[1], "--", g[length(g)]) else as.character(g)
+    }
+  ))
+  if (length(parts) > 1) {
+    paste(
+      paste(parts[-length(parts)], collapse = ", "),
+      "and",
+      parts[length(parts)]
+    )
+  } else {
+    parts
+  }
+}
+```
+
+@fig-pca-outliers identifies `r english::words(nrow(outliers))` anomalous years: `r format_years(outliers$Year)`.
+These are unsurprising given @fig-fr-mortality, and most coincide with years already flagged in @sec-weird-times using the Hampel identifier applied directly to the raw age-specific series --- a quite different method, applied to the raw data rather than to PCA scores.
+The following historical events are relevant:
+
+- 1871: Repression of the 'Commune de Paris'
+- 1914--1918: World War I
+- 1919: Spanish flu pandemic
+- 1940--1944: World War II
+
+To take another perspective, we can apply the O3 plot (@sec-o3) to the first three principal component scores.
+
+```{r}
+#| label: pca_o3prep
+#| dependson: fig-pca-outliers
+#| code-fold: false
+
+o3 <- pca_scores |>
+  select(-Year) |>
+  OutliersO3::O3prep(
+    method = c("PCS", "adjOut", "MCD", "BAC", "DDC"),
+    tolPCS = 0.05,
+    toladj = 0.15,
+    tolMCD = 0.001,
+    tolBAC = 0.001,
+    tolDDC = 0.025
+  )
+o3_plots <- OutliersO3::O3plotM(
+  o3,
+  coltxtsize = 10,
+  caseNames = paste0("Y", pca_scores$Year)
+)
+```
+
+```{r}
+#| label: fig-o3-pca
+#| fig-width: 14
+#| fig-asp: 0.2
+#| dependson: pca_o3prep
+#| code-fold: false
+
+o3_plots$gO3
+```
+
+The years flagged at least 7 times across all five methods and variable combinations are given below.
+
+```{r}
+#| label: o3-outliers
+#| dependson: pca_o3prep
+
+red_case <- o3_plots$outsTable |>
+  distinct(Case, Combination, Method) |>
+  count(Case, Combination, name = "n_agree") |>
+  filter(n_agree == 5L)
+out_table <- o3_plots$outsTable |>
+  count(Case, name = "n_flagged") |>
+  filter(n_flagged > 6) |>
+  mutate(red = Case %in% red_case$Case)
+pca_scores |>
+  slice(out_table$Case) |>
+  mutate(n_flagged = out_table$n_flagged, red = out_table$red) |>
+  arrange(Year)
+```
+
+```{r}
+#| label: o3-summary
+#| echo: false
+#| dependson: o3-outliers
+
+o3_years <- sort(pca_scores$Year[out_table$Case])
+o3_red_years <- sort(pca_scores$Year[out_table$Case[out_table$red]])
+n_pc_o3 <- ncol(pca_scores) - 1
+n_pc_surprisal <- pca_scores |> select(-Year, -PC3) |> ncol()
+n_methods <- length(unique(o3_plots$outsTable$Method))
+same_years <- setequal(outliers$Year, o3_years)
+```
+
+Reassuringly, the O3 plot, using all `r english::words(n_pc_o3)` principal components and `r english::words(n_methods)` quite different outlier-detection methods, flags `r english::words(length(o3_years))` years (`r format_years(o3_years)`) --- `r if (same_years) "exactly the same years" else "largely the same years"` identified by the two-component surprisal approach above.
+Of these, `r english::words(length(o3_red_years))` --- `r format_years(o3_red_years)` --- are flagged by every method and variable combination (shown in red in @fig-o3-pca), while the rest are flagged consistently but not unanimously.
+This agreement across methods, and with the time series analysis of @sec-weird-times, gives us some confidence that these years are genuine anomalies rather than artefacts of any one method.
 
 ## Functional depth measures {#sec-functional-depth}
 
-There are several existing approaches to identifying functional outliers, summarised in @hubert2015multivariate, almost all based on functional depth.
+There are several other approaches to identifying functional outliers, summarised in @hubert2015multivariate, almost all based on functional depth.
