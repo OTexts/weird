@@ -1119,8 +1119,7 @@ Stray confirms the extreme hours of 31 May and the isolated points the other met
 ## Comparisons using the O3 plot {#sec-o3}
 
 Throughout this chapter we have applied several different anomaly-detection methods to the same air quality data, and while they broadly agree on the most extreme observations, they do not agree on everything.
-FastPCS (@sec-fastpcs) found a run of extreme hours on 31 May whereas other methods only identified a few of these hours, while stray (@sec-stray) caught a transition late on 29--30 May that the covariance-based methods missed.
-Stahel--Donoho outlyingness (@sec-stahel-donoho) found anomalies using one-dimensional projections, without our having to choose a projection, but it can miss anomalies that are only unusual in higher-dimensional projections.
+FastPCS (@sec-fastpcs) found a run of extreme hours on 31 May whereas other methods only identified a few of these hours, while stray (@sec-stray) caught a transition late on 29--30 May that no other method flagged.
 Every method also depends on some choice of variables, whether the full set or a chosen projection, and an anomaly can be missed simply because the wrong variable, or the wrong combination of variables, was used to look for it.
 
 The **O3 plot** ("Overview Of Outliers") of @Unwin2019 addresses this by turning the choice of variables into part of the diagnostic, rather than a decision made once in advance.
@@ -1130,15 +1129,16 @@ An observation flagged across almost every combination and by every method is a 
 ### The `OutliersO3` package
 
 The O3 plot is implemented in the `OutliersO3` package for R [@Unwin2019].
-`O3prep()` takes the data, a range of combination sizes (from `k1` to `K` variables per combination), and one or more outlier-detection methods, and works out which observations are flagged as outliers for every combination.
+`O3prep()` takes the data, a range of combination sizes (up to `K` variables per combination), and one or more outlier-detection methods, and works out which observations are flagged as outliers for every combination of variables.
 Five methods are available, and we have already met all of them elsewhere in this book: FastPCS (@sec-fastpcs), mvBACON (@sec-bacon), adjOutlyingness (Stahel--Donoho outlyingness, @sec-stahel-donoho), DDC (@sec-ddc), and the MCD estimator (@sec-robust-cov).
-Because these methods are not directly comparable at a single shared tolerance level, `O3prep()` takes a separate tolerance argument for each one, and the defaults tend to flag far more outliers than are useful in practice, so these are usually worth adjusting for the dataset at hand.
-The result is passed to `O3plotT()`, which draws an O3 plot comparing up to three tolerance levels for a single method, or `O3plotM()`, which compares up to six different methods against each other.
+Because these methods are not directly comparable at a single shared tolerance level, `O3prep()` takes a separate tolerance argument for each one, and these usually need adjusting for the data set at hand to ensure that the methods flag broadly comparable numbers of anomalies overall.
+The result is passed to `O3plotM()`, which displays how many methods flagged each observation, and for which combinations of variables.
 
 ### Air quality example
 
 Checking every combination of all 11 Aotizhongxin variables would mean examining $2^{11} - 1 = 2047$ combinations for each method, which is impractical to compute and to display together.
-Instead, we restrict attention to five variables that recurred throughout our earlier discussion --- `co`, `no2`, `pm2_5`, `so2` and `dew_point` --- and compare all five methods available in `OutliersO3` across every combination of one to five of them.
+Instead, we restrict attention to five variables that recurred throughout our earlier discussion --- `co`, `so2`, `pm2_5`, `dew_point` and `temperature` --- and compare all five methods available in `OutliersO3` across every combination of one to five of them.
+We omit `rainfall`, because the FastPCS method cannot handle a variable that is constant for more than half of the observations.
 
 ```{r}
 #| label: o3prep
@@ -1148,18 +1148,22 @@ Instead, we restrict attention to five variables that recurred throughout our ea
 
 set.seed(1)
 o3 <- OutliersO3::O3prep(
-  as.data.frame(Y[, c("co", "no2", "pm2_5", "so2", "dew_point")]),
+  as.data.frame(Y[, c("co", "so2", "pm2_5", "dew_point", "temperature")]),
   method = c("PCS", "adjOut", "MCD", "BAC", "DDC"),
   tolPCS = 0.01,
   toladj = 0.15,
   tolMCD = 0.001,
-  tolBAC = 0.02,
+  tolBAC = 0.025,
   tolDDC = 0.025
 )
-o3_plots <- OutliersO3::O3plotM(o3)
+o3_plots <- OutliersO3::O3plotM(
+  o3,
+  coltxtsize = 10,
+  caseNames = paste("Row", seq(NROW(Y)))
+)
 ```
 
-This checks `r o3$nw` combinations of the five variables for each of the five methods, using tolerances tuned so that the methods flag broadly comparable numbers of anomalies overall: from `r o3_plots$nOut[["BAC"]]` for mvBACON up to `r o3_plots$nOut[["MCD"]]` for MCD, with FastPCS (`r o3_plots$nOut[["PCS"]]`), Stahel--Donoho outlyingness (`r o3_plots$nOut[["adjOut"]]`) and DDC (`r o3_plots$nOut[["DDC"]]`) in between.
+This checks `r o3$nw` combinations of the five variables for each of the five methods, using tolerances tuned so that the methods flag broadly comparable numbers of anomalies overall: from `r o3_plots$nOut[["BAC"]]` for mvBACON up to `r o3_plots$nOut[["MCD"]]` for MCD, with FastPCS (`r o3_plots$nOut[["PCS"]]`), DDC (`r o3_plots$nOut[["DDC"]]`) and Stahel--Donoho outlyingness (`r o3_plots$nOut[["adjOut"]]`) in between.
 Even with comparable totals, the methods do not all flag the same observations, which is why the O3 plot looks at how consistently they agree across combinations of variables, rather than at the raw counts alone.
 @fig-o3plot shows the resulting O3 plot.
 
@@ -1171,7 +1175,7 @@ Even with comparable totals, the methods do not all flag the same observations, 
 #| fig-width: 14
 #| fig-asp: 0.5
 #| fig-cap: >-
-#|   O3 plot comparing five outlier-detection methods --- FastPCS, mvBACON, Stahel--Donoho outlyingness (adjOut), DDC and MCD --- across all combinations of one to five of five key air quality variables (`co`, `no2`, `pm2_5`, `so2`, `dew_point`) at Aotizhongxin.
+#|   O3 plot comparing five outlier-detection methods --- FastPCS, mvBACON, Stahel--Donoho outlyingness (adjOut), DDC and MCD --- across all combinations of one to five of five key air quality variables (`co`, `so2`, `pm2_5`, `dew_point`, `temperature`) at Aotizhongxin.
 #|   Rows are variable combinations, grouped by the number of variables used (separated by dashed lines); the grey cells at left show which variables are included in each combination.
 #|   Columns are observations, sorted by how often they are flagged; colour shows how many of the five methods flag that observation for that combination, from light blue (one method) to red (all five methods).
 
@@ -1179,30 +1183,35 @@ o3_plots$gO3
 ```
 
 Reading along any row of @fig-o3plot shows how many of the five methods agree for one combination of variables; reading down a column shows how consistently one observation is flagged, across both combinations and methods.
-Most flagged cells are light or mid blue, meaning only one or two methods agree for that combination, and full agreement is rare: there is a single red cell in the whole plot, for the combination of `no2` and `so2`, marking the one observation that all five methods flag as an anomaly at once.
+Most flagged cells are light or mid blue, meaning no method, or only one method, identified the observation as an anomaly for that combination.
+Full agreement is rare: there is a single red cell in the whole plot, for the combination of `so2`, `dew_point` and `temperature`, marking the one observation that all five methods flag as an anomaly.
 
-We can make this more precise by counting, across every combination and every method, how many times each observation was flagged as an outlier.
+To identify which observations are most consistently flagged, we can find the columns of the O3 plot with the most flags.
 
 ```{r}
 #| label: o3-top
 #| code-fold: false
-#| dependson: o3prep
+#| dependson: ["o3prep", "fig-proj-11dto2d"]
 
+red_case <- o3_plots$outsTable |>
+  distinct(Case, Combination, Method) |>
+  count(Case, Combination, name = "n_agree") |>
+  filter(n_agree == 5L)
 out_table <- o3_plots$outsTable |>
   count(Case, name = "n_flagged") |>
-  slice_max(order_by = n_flagged, n = 15)
+  slice_max(order_by = n_flagged, n = 15) |>
+  mutate(red = Case %in% red_case$Case)
 az_aq_proj |>
   slice(out_table$Case) |>
-  mutate(n_flagged = out_table$n_flagged) |>
-  select(year:hour, n_flagged) |>
+  mutate(n_flagged = out_table$n_flagged, red = out_table$red) |>
+  select(year:hour, n_flagged, red) |>
   arrange(year, month, day, hour)
 ```
 
 The most consistently flagged hours are all from the daytime build-up of 31 May already identified by FastPCS in @sec-fastpcs, together with the morning of 22 May picked out by the KDE surprisals of @fig-proj-kde.
-The single red cell in @fig-o3plot belongs to 11am on 31 May, which is flagged in `r out_table$n_flagged[1]` of the `r o3$nw * 5` combination/method pairs checked --- more than half of them, and enough that all five methods agree on it for at least one combination of variables.
-Even mvBACON, the most conservative of the five methods here, agrees on both episodes: its `r o3_plots$nOut[["BAC"]]` flagged hours include several from 22 and 31 May, even though it only reaches full five-method agreement for that single hour.
-This is the value of comparing methods this way: the identity of the most extreme hours is robust to the choice of method and tolerance, even though individual methods still disagree on the details.
+The single red cell in @fig-o3plot belongs to noon on 31 May, the one hour where all five methods agree, for the combination of `so2`, `dew_point` and `temperature`, flagged in `r out_table$n_flagged[out_table$red]` of the `r o3$nw * 5` combination/method pairs checked.
+The hour flagged most often overall is an hour earlier, 11am on 31 May, flagged in `r out_table$n_flagged[1]` of the pairs checked --- more than half of them --- even though no single combination of variables gets all five methods to agree on it.
 
 No single method, projection, or choice of variables has revealed every anomaly in this data, and none of the methods in this chapter agree completely with each other.
-This is the central lesson of high-dimensional anomaly detection: the curse of dimensionality means that anomalies can hide in some views of the data and stand out in others, so no one projection or method should be trusted on its own.
+This is an important lesson of high-dimensional anomaly detection: the curse of dimensionality means that anomalies can hide in some views of the data and stand out in others, so no one projection or method should be trusted on its own.
 The O3 plot is one way of making this explicit, by comparing many methods across many variable subsets at once, so that we can distinguish anomalies that are robust to these choices from those that are artefacts of a single method or a single view of the data.
