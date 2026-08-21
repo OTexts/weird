@@ -8,6 +8,8 @@ The user will either name a chapter (e.g. "chapter 3" or "03-multivariate.qmd") 
 
 Read the entire chapter in sections using offset/limit, then apply all fixes directly to the file. Do not just report issues — fix them. The user can choose to discard them via sublime merge if needed.
 
+Also run the `deslop` skill over the chapter's prose as part of this review, and apply its fixes directly alongside the others.
+
 Also update this skill to take account of any new issues you find when reviewing the chapter.
 
 ## What to check
