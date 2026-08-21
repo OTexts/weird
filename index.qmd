@@ -8,7 +8,7 @@ We will cover popular but inadvisable methods to identify anomalies (pointing ou
 
 The book is written for two audiences: (1)&nbsp;people finding themselves doing data analysis without having had formal training in anomaly detection; and (2)&nbsp;students studying statistics or data science.
 
-You will need a knowledge of statistics and probability at about second year undergraduate level.
+You will need a knowledge of statistics and probability at about second-year undergraduate level.
 So if you've done a couple of statistics subjects, and are familiar with multiple regression, hypothesis tests and probability distributions, then you should be prepared for what follows.
 This book takes a probabilistic approach to anomaly detection, and so probability distributions are particularly important.
 This is the subject of Chapters @sec-univariate and @sec-multivariate.
