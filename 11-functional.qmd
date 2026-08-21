@@ -20,11 +20,17 @@ Comparing the curves over time, we see that the rates have steadily fallen for a
 The noticeable gap between the curves occurred after World War II due to the effective use of antibiotics, and widespread vaccinations for polio, diphtheria, tetanus, whooping cough, measles, mumps and rubella.
 
 ```{r}
+#| label: frmale
+#| code-fold: false
+
+fr_male <- fr_mortality |> filter(Sex == "Male") |> select(-Sex)
+```
+
+```{r}
 #| label: fig-fr-mortality
 #| fig-cap: French male mortality rates between 1816 and 1999.
 
-fr_mortality |>
-  filter(Sex == "Male") |>
+fr_male |>
   ggplot() +
   aes(x = Age, y = log10(Mortality), colour = Year, group = Year) +
   geom_line() +
@@ -73,8 +79,8 @@ In the following code, we use a smoothing method proposed by @HU07, that takes a
 #| code-fold: false
 
 library(vital)
-fr_smooth <- fr_mortality |>
-  as_vital(index = Year, key = c(Age, Sex), .age = "Age", .sex = "Sex") |>
+fr_smooth <- fr_male |>
+  as_vital(index = Year, key = Age, .age = "Age") |>
   smooth_mortality(Mortality, k = 21)
 ```
 
@@ -85,12 +91,12 @@ fr_smooth <- fr_mortality |>
 #| dependson: fr_smooth
 #| fig-cap: Smoothed French male mortality rates for 1999.
 
-fr_mortality |>
-  filter(Year == 1999, Sex == "Male") |>
+fr_male |>
+  filter(Year == 1999) |>
   ggplot(aes(x = Age, y = Mortality)) +
   geom_point() +
   geom_line(
-    data = fr_smooth |> filter(Year == 1999, Sex == "Male"),
+    data = fr_smooth |> filter(Year == 1999),
     aes(y = .smooth)
   ) +
   scale_y_log10(
@@ -106,7 +112,6 @@ fr_mortality |>
 #| fig-cap: Smoothed French male mortality rates for all years.
 
 fr_smooth |>
-  filter(Sex == "Male") |>
   ggplot() +
   aes(x = Age, y = log10(.smooth), colour = Year, group = Year) +
   geom_line() +
@@ -170,11 +175,11 @@ In the following example, we find the first few principal components (empirical 
 #| message: false
 #| label: pca-bases
 
-# Wide version of log Mortality with ages on columns
-frmort_wide <- fr_mortality |>
-  filter(Sex == "Male") |>
-  mutate(logmx = log(Mortality)) |>
-  select(-Mortality, -Sex) |>
+# Wide version of smoothed log Mortality with ages on columns
+frmort_wide <- fr_smooth |>
+  as_tibble() |>
+  mutate(logmx = log(.smooth)) |>
+  select(Year, Age, logmx) |>
   tidyr::pivot_wider(
     names_from = Age,
     values_from = logmx,
