@@ -396,6 +396,296 @@ Reassuringly, the O3 plot, using all `r english::words(n_pc_o3)` principal compo
 Of these, `r english::words(length(o3_red_years))` --- `r format_years(o3_red_years)` --- are flagged by every method and variable combination (shown in red in @fig-o3-pca), while the rest are flagged consistently but not unanimously.
 This agreement across methods, and with the time series analysis of @sec-weird-times, gives us some confidence that these years are genuine anomalies rather than artefacts of any one method.
 
-## Functional depth measures {#sec-functional-depth}
+## Functional bagplot {#sec-functional-bagplot}
+
+A boxplot summarises a univariate sample using a central box and whiskers, with points beyond the whiskers flagged as outliers.
+Three different ways of extending this idea to functional data are in common use here.
+The functional bagplot and the functional HDR boxplot, covered in this section and the next, were proposed by @HS08: reduce each curve to its first two functional principal component scores (@sec-basis-functions), draw the ordinary bivariate bagplot or HDR boxplot of those scores (@sec-bagplots, @sec-hdr-boxplots), and then map the boundary of the resulting central region back through the principal component basis to obtain an envelope of curves.
+A third approach, the functional depth boxplot (@sec-functional-depth), instead works directly with the modified band depth of the curves, without going through a low-dimensional projection first.
+
+For the two PCA-based versions, we need a way to turn a point $(s_1, s_2)$ in principal component score space back into a curve.
+Using the notation of @sec-basis-functions, this is just
+$$
+  \hat y(x) = b_0(x) + s_1 b_1(x) + s_2 b_2(x),
+$$
+the mean function plus a weighted combination of the first two empirical basis functions.
+
+Before mapping anything back to curve space, it helps to see the bagplot of the scores themselves.
+@fig-pca-bagplot shows the ordinary bivariate bagplot of the first two principal component scores.
+Each point is a year; the dark region is the bag, the light region is the loop, and any points beyond the loop are flagged as bivariate outliers.
+
+```{r}
+#| label: fig-pca-bagplot
+#| dependson: pca-reconstruct
+#| code-fold: false
+#| fig-cap: Bagplot of the first two principal component scores of the French male mortality curves.
+
+pca_scores |> gg_bagplot(PC1, PC2)
+```
+
+Every point in @fig-pca-bagplot corresponds to a whole mortality curve, via the basis reconstruction above, so the bag and loop shown here trace out regions of "typical" curves, while the flagged points correspond to years whose curves depart from that typical shape.
+Mapping the bag and loop boundaries back through the basis functions, rather than just the flagged points, is what turns this ordinary bagplot into a functional bagplot.
+
+The following code identifies the curves contained in the bag and the loop, and those beyond that loop corresponding to the anomalies in @fig-pca-bagplot.
+
+```{r}
+#| label: pca-reconstruct
+#| dependson: fig-pca-scores
+#| code-fold: true
+
+reconstruct_curve <- function(s1, s2, pca) {
+  p <- length(pca$center)
+  matrix(pca$center, nrow = length(s1), ncol = p, byrow = TRUE) +
+    outer(s1, pca$rotation[, 1]) +
+    outer(s2, pca$rotation[, 2])
+}
+envelope <- function(hull, age, pca) {
+  curves <- reconstruct_curve(hull[, 1], hull[, 2], pca)
+  tibble(Age = age, ymin = apply(curves, 2, min), ymax = apply(curves, 2, max))
+}
+classify_bag_region <- function(scores, bag) {
+  match_rows <- function(target) {
+    if (NROW(target) == 0) {
+      return(integer(0))
+    }
+    apply(as.matrix(target), 1, function(r) {
+      which(scores$PC1 == r[1] & scores$PC2 == r[2])
+    }) |>
+      unlist()
+  }
+  region <- rep("bag", nrow(scores))
+  region[match_rows(bag$pxy.outer)] <- "loop"
+  region[match_rows(bag$pxy.outlier)] <- "outlier"
+  region
+}
+```
+
+```{r}
+#| label: bagplot-scores
+#| dependson: pca-reconstruct
+#| code-fold: false
+
+bag <- aplpack::compute.bagplot(as.matrix(pca_scores[, c("PC1", "PC2")]))
+pca_scores <- pca_scores |>
+  mutate(bag_region = classify_bag_region(pca_scores, bag))
+bagplot_outliers <- pca_scores |> filter(bag_region == "outlier")
+```
+
+Mapping the bag and loop boundary vertices back to curves with `reconstruct_curve()`, and taking the pointwise range of each set of boundary curves, gives an envelope for the "typical" region of the functional bagplot at every age.
+
+```{r}
+#| label: fig-fbagplot
+#| dependson: bagplot-scores
+#| fig-cap: Functional bagplot of French male mortality.
+#|   The dark band shows the envelope of the bag (50% region), the light band shows the envelope of the loop; the raw curves for years flagged as bagplot outliers are overlaid.
+
+age <- as.numeric(gsub("Age", "", rownames(pca$rotation)))
+bag_env <- envelope(bag$hull.bag, age, pca)
+loop_env <- envelope(bag$hull.loop, age, pca)
+
+outlier_curves <- fr_male |>
+  filter(Year %in% bagplot_outliers$Year) |>
+  mutate(logmx = log(Mortality))
+
+ggplot() +
+  geom_ribbon(
+    data = loop_env,
+    aes(x = Age, ymin = ymin, ymax = ymax),
+    fill = "grey80"
+  ) +
+  geom_ribbon(
+    data = bag_env,
+    aes(x = Age, ymin = ymin, ymax = ymax),
+    fill = "grey50"
+  ) +
+  geom_line(
+    data = outlier_curves,
+    aes(x = Age, y = logmx, group = Year, colour = factor(Year))
+  ) +
+  labs(y = "Log mortality rate", colour = "Outlier year")
+```
+
+@fig-fbagplot flags `r english::words(nrow(bagplot_outliers))` years as functional bagplot outliers: `r format_years(bagplot_outliers$Year)`.
+These are almost exactly the war years already identified in @sec-functional-pca and @sec-weird-times, and the outlying curves are clearly visible bulging above the typical envelope for young men --- exactly where the second principal component loads most heavily (@fig-pca-bases).
+
+## Functional HDR boxplot {#sec-functional-hdr-boxplot}
+
+The functional HDR boxplot follows the same recipe, but uses the highest density regions of a bivariate kernel density estimate of the scores (@sec-mhdr) in place of the bagplot's bag and loop.
+We use `hdrcde::hdr.2d()`, which returns the density estimated at each data point (`$fxy`) together with the density threshold corresponding to each requested coverage probability (`$falpha`).
+Note that `hdrcde` labels these thresholds by the tail probability $1 - p$ rather than the coverage $p$, so the threshold for the 99% HDR is named `"1%"`.
+
+```{r}
+#| label: hdr-scores
+#| dependson: pca-reconstruct
+#| code-fold: false
+#| message: false
+
+h <- hdrcde::hdr.2d(
+  pca_scores$PC1,
+  pca_scores$PC2,
+  prob = c(50, 99),
+  kde.package = "ks"
+)
+pca_scores <- pca_scores |>
+  mutate(
+    hdr_region = case_when(
+      h$fxy >= h$falpha["50%"] ~ "50%",
+      h$fxy >= h$falpha["1%"] ~ "99%",
+      TRUE ~ "outlier"
+    )
+  )
+hdr_outliers <- pca_scores |> filter(hdr_region == "outlier")
+```
+
+As with the bagplot, we extract the boundary of each HDR as a contour of the density grid, and map it back to a curve envelope.
+The 99% contour is sometimes broken into several disconnected pieces by the kernel density estimate; we keep only the largest piece, as the others are small artefacts of the grid used to estimate the density.
+
+```{r}
+#| label: fig-fhdrboxplot
+#| dependson: hdr-scores
+#| fig-cap: Functional HDR boxplot of French male mortality.
+#|   The dark band shows the envelope of the 50% HDR, the light band the 99% HDR; the raw curves for years flagged as outliers (falling outside the 99% HDR) are overlaid.
+
+largest_piece <- function(contour_lines) {
+  contour_lines[[which.max(sapply(contour_lines, \(piece) length(piece$x)))]]
+}
+contour50 <- largest_piece(
+  grDevices::contourLines(h$den$x, h$den$y, h$den$z, levels = h$falpha["50%"])
+)
+contour99 <- largest_piece(
+  grDevices::contourLines(h$den$x, h$den$y, h$den$z, levels = h$falpha["1%"])
+)
+hdr50_env <- envelope(cbind(contour50$x, contour50$y), age, pca)
+hdr99_env <- envelope(cbind(contour99$x, contour99$y), age, pca)
+
+outlier_curves <- fr_male |>
+  filter(Year %in% hdr_outliers$Year) |>
+  mutate(logmx = log(Mortality))
+
+ggplot() +
+  geom_ribbon(
+    data = hdr99_env,
+    aes(x = Age, ymin = ymin, ymax = ymax),
+    fill = "grey80"
+  ) +
+  geom_ribbon(
+    data = hdr50_env,
+    aes(x = Age, ymin = ymin, ymax = ymax),
+    fill = "grey50"
+  ) +
+  geom_line(
+    data = outlier_curves,
+    aes(x = Age, y = logmx, group = Year, colour = factor(Year))
+  ) +
+  labs(y = "Log mortality rate", colour = "Outlier year")
+```
+
+@fig-fhdrboxplot is more conservative than the functional bagplot, flagging only `r english::words(nrow(hdr_outliers))` years, `r format_years(hdr_outliers$Year)`, as lying outside the 99% HDR of the score distribution.
+Both are among the years already flagged by every method used so far in this chapter.
+
+## Functional depth boxplot {#sec-functional-depth}
 
 There are several other approaches to identifying functional outliers, summarised in @hubert2015multivariate, almost all based on functional depth.
+
+The idea of depth generalises the univariate idea of a median and quantiles to more complex objects.
+We have already seen this with multivariate numeric data (@sec-depth); now we will extend the idea to functional data.
+Given a sample of curves $y_1(x),\dots,y_n(x)$, a depth measure assigns each curve $y_i$ a value between 0 and 1 describing how central it is within the sample: curves near the middle of the distribution receive high depth, while unusual curves receive low depth.
+Curves can then be ranked from the deepest (most typical) to the shallowest (most unusual), giving an ordering analogous to ranking univariate observations from the median outward.
+
+One of the simplest depths is the band depth: it counts how often a curve $y_i$ lies completely within the "band" traced out by every possible group of $J$ other curves in the sample, so that curves often enveloped by others are deep, while curves that stick out --- even briefly --- have low depth.
+Looking at @fig-fr-mortality, we would expect that some of the most recent years, which have low mortality at almost every age, would be shallow; the war years would also be shallow, since they have high mortality at ages 20--40 that is not seen in other years.
+
+Because the exact band depth is expensive to compute for anything beyond a handful of curves, in practice it is usually replaced by the more tractable modified band depth (MBD), which instead measures the proportion of the domain $x$ over which $y_i(x)$ lies within each band, averaged over all bands [@LopezPintado2009].
+MBD, and the other depth-based methods used in the rest of this chapter, are available in the `roahd` package, which we use from here on.
+MBD is also the depth measure underlying the classic functional boxplot introduced below.
+
+```{r}
+#| label: fdata-build
+#| dependson: fr_smooth
+#| code-fold: false
+#| message: false
+
+library(roahd)
+fr_fd <- fData(sort(unique(fr_smooth$Age)), as.matrix(frmort_wide[, -1]))
+
+depth_tbl <- tibble(
+  Year = frmort_wide$Year,
+  MBD = MBD(fr_fd)
+)
+depth_tbl |> arrange(MBD)
+```
+
+```{r}
+#| label: shallowyears
+#| echo: false
+
+shallow_years <- depth_tbl |>
+  arrange(MBD) |>
+  slice_head(n = 10) |>
+  pull(Year)
+shallow_1800s <- shallow_years[shallow_years < 1900] |> sort()
+stopifnot(identical(shallow_1800s, c(1854L, 1870L, 1871L)))
+```
+
+Ranking curves by MBD alone identifies the years whose entire trajectory lies furthest from the bulk of the sample: the shallowest curves are `r format_years(shallow_years)`, whose mortality is lower at almost every age than in any other year.
+Those from the 1800s correspond to the 1854 cholera outbreak, the 1870 Franco-Prussian war and the 1871 Repression of the 'Commune de Paris'.
+
+This illustrates an important feature of depth-based ranking: because French mortality has fallen more or less steadily across the study period, the most recent curves sit at one edge of the whole 184-year sample and are therefore the least "enveloped" by the rest, even though nothing untoward happened in those years.
+Depth ranking on its own cannot distinguish a genuinely anomalous curve from one that simply lies at the extreme end of a long-running, gradual trend.
+
+The classic functional boxplot of @Sun2011 works directly with the smoothed curves via `roahd::fbplot()`, using the modified band depth introduced above rather than a 2-dimensional score projection.
+The central region is formed from the 50% deepest curves, and the fence is this region inflated by a factor (1.5, by default) of its own range at each age; any curve that leaves the fence at any age is flagged as an outlier.
+
+```{r}
+#| label: fig-fbplot-sungenton
+#| dependson: fdata-build
+#| fig-cap: Sun–Genton functional boxplot of the smoothed French male mortality curves.
+#|   The dark band shows the central 50% region, the light band the fence; the raw curves for the flagged outlier years are overlaid.
+
+fb <- fbplot(fr_fd, display = FALSE)
+fb_outlier_years <- frmort_wide$Year[fb$ID_outliers]
+
+central <- fr_fd$values[
+  order(-fb$Depth)[seq_len(round(nrow(fr_fd$values) / 2))],
+  ,
+  drop = FALSE
+]
+central_range <- apply(central, 2, range)
+fence_width <- fb$Fvalue * (central_range[2, ] - central_range[1, ])
+fb_env <- tibble(
+  Age = sort(unique(fr_smooth$Age)),
+  cmin = central_range[1, ],
+  cmax = central_range[2, ],
+  fmin = central_range[1, ] - fence_width,
+  fmax = central_range[2, ] + fence_width
+)
+
+outlier_curves <- fr_smooth |>
+  as_tibble() |>
+  filter(Year %in% fb_outlier_years) |>
+  mutate(loglog = log(.smooth))
+
+ggplot() +
+  geom_ribbon(
+    data = fb_env,
+    aes(x = Age, ymin = fmin, ymax = fmax),
+    fill = "grey80"
+  ) +
+  geom_ribbon(
+    data = fb_env,
+    aes(x = Age, ymin = cmin, ymax = cmax),
+    fill = "grey50"
+  ) +
+  geom_line(
+    data = outlier_curves,
+    aes(x = Age, y = loglog, group = Year, colour = factor(Year))
+  ) +
+  labs(y = "Log mortality rate", colour = "Outlier year")
+```
+
+@fig-fbplot-sungenton tells a different story from the previous two figures: it flags `r english::words(length(fb_outlier_years))` years, `r format_years(fb_outlier_years)`, none of which are war years.
+These are simply the most recent years in the sample, whose mortality is lower at almost every age than any earlier year --- the same phenomenon already noted for the raw MBD ranking above.
+This is a useful reminder that a functional boxplot, like MBD ranking, measures how atypical a whole curve is relative to the rest of the sample, not whether anything unusual happened in a particular year; it will always flag the edges of a strong, gradual trend as "outliers", even though the war years remain the more interesting anomalies from a historical point of view.
+
+The functional bagplot and HDR boxplot do not share this issue, because reducing each curve to two principal component scores loses most of the information about the gradual, whole-of-curve trend captured by MBD, while retaining the specific age-pattern (young men versus children) that made the war years unusual.
+Together, the methods introduced in this chapter --- surprisal probabilities and the O3 plot in principal component space, and the three functional boxplots --- agree closely on the years that matter historically, while disagreeing, instructively, on how to treat the long-run decline in mortality itself.
