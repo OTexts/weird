@@ -16,3 +16,5 @@
 
 **/*.quarto_ipynb
 .posit/assistant
+/.uvr/library/
+/.uvr/activate*

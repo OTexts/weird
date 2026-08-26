@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 qmd_files   := $(wildcard *.qmd)
 rds_files   := $(wildcard rds/*.rds)
 shared_deps := weird.bib before-each-chapter.R apa-single-spaced.csl otexts.scss _quarto.yml
@@ -9,12 +11,12 @@ all: build
 build: _book/.built
 
 _book/.built: $(qmd_files) $(rds_files) $(shared_deps)
-	quarto render --to html
+	source .uvr/activate && quarto render --to html
 	perl -i htmlreplace.pl _book/*.html
 	touch $@
 
 preview: build
-	quarto preview --to html
+	source .uvr/activate && quarto preview --to html
 
 deploy: build
 	cp .htaccess _book

@@ -9,22 +9,22 @@ This is "That's Weird! Anomaly Detection using R", an open-source textbook by Ro
 ## Build Commands
 
 ```bash
-make build     # Render all .qmd files to HTML via quarto, then post-process with htmlreplace.pl
-make launch    # Open built book in browser (xdg-open _book/index.html)
-make all       # build + launch (default target)
+make build     # Render all .qmd files to HTML via quarto, then post-process with htmlreplace.pl (default target)
+make preview   # Build, then launch a live Quarto preview in the browser
 make clean     # Remove _book/, _freeze/, *_cache/, *_files/
 make deploy    # rsync _book/ to production server (OTexts SSH)
 ```
 
 To render and view a single chapter quickly, use Quarto directly:
 ```bash
-quarto render 02-univariate.qmd --to html
+source .uvr/activate && quarto render 02-univariate.qmd --to html
 ```
 
-R packages are managed via `renv`. After cloning, restore dependencies with:
-```r
-renv::restore()
+R packages are managed via [uvr](https://github.com/nbafrank/uvr), not `renv`. After cloning, restore dependencies with:
+```bash
+uvr sync
 ```
+This reads `uvr.toml`/`uvr.lock` and installs packages into a project-local environment at `.uvr/`, which the Makefile sources automatically via `.uvr/activate`.
 
 ## Architecture
 
@@ -40,7 +40,7 @@ Long-running R computations use the `cache(expr, "name")` helper defined in `bef
 After `quarto render`, `htmlreplace.pl` modifies the generated HTML to remove author attributions, reformat author styling, add Amazon affiliate tags to book links, and transform bibliography reference links.
 
 ### R Package: `weird`
-The book's own R package (`weird`, v2.0.0+) is the primary tool demonstrated throughout. It is listed as a dependency in `renv.lock` and loaded in every chapter via `before-each-chapter.R`.
+The book's own R package (`weird`, v2.0.0+) is the primary tool demonstrated throughout. It is listed as a dependency in `uvr.toml`/`uvr.lock` and loaded in every chapter via `before-each-chapter.R`.
 
 ## Code Style
 
