@@ -3628,8 +3628,8 @@ checksum = "md5:b5603af0a2d1b62511f85f5574c747a8"
 name = "weird"
 version = "3.0.0-4.9000"
 source = "github"
-url = "https://api.github.com/repos/robjhyndman/weird/tarball/888c90f4b7d89c1376b41142a2092d31663a89e1"
-checksum = "git:888c90f4b7d89c1376b41142a2092d31663a89e1"
+url = "https://api.github.com/repos/robjhyndman/weird/tarball/6644349bef8903126e1453b807bb8df4f1261d1d"
+checksum = "git:6644349bef8903126e1453b807bb8df4f1261d1d"
 requires = [
     "aplpack",
     "broom",

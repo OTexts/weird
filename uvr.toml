@@ -293,4 +293,3 @@ zoo = "*"
 
 [dependencies.weird]
 git = "robjhyndman/weird"
-rev = "888c90f4b7d89c1376b41142a2092d31663a89e1"
