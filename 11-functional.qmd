@@ -614,9 +614,10 @@ ggplot() +
 
 The bulk of the curves fall into two distinct clusters, corresponding to before and after the end of World War II.
 
-## Functional depth boxplot {#sec-functional-depth}
+## Functional depth {#sec-functional-depth}
 
-There are several other approaches to identifying functional outliers, summarised in @hubert2015multivariate, almost all based on functional depth.
+Rather than reducing each curve to a handful of principal component scores, the remaining approaches in this chapter work directly with the curves themselves, via functional depth or a related measure.
+See @hubert2015multivariate for a more detailed review of these ideas.
 
 The idea of depth generalises the univariate idea of a median and quantiles to more complex objects.
 We have already seen this with multivariate numeric data (@sec-depth); now we will extend the idea to functional data.
@@ -627,8 +628,7 @@ One of the simplest depths is the band depth: it counts how often a curve $y_i$ 
 Looking at @fig-fr-mortality, we would expect that some of the most recent years, which have low mortality at almost every age, would be shallow; the war years would also be shallow, since they have high mortality at ages 20--40 that is not seen in other years.
 
 Because the exact band depth is expensive to compute for anything beyond a handful of curves, in practice it is usually replaced by the more tractable modified band depth (MBD), which instead measures the proportion of the domain $x$ over which $y_i(x)$ lies within each band, averaged over all bands [@LopezPintado2009].
-MBD, and the other depth-based methods used in the rest of this chapter, are available in the `roahd` package, which we use from here on.
-MBD is also the depth measure underlying the functional depth boxplot introduced below.
+MBD is available in the `roahd` package.
 
 ```{r}
 #| label: fdata-build
@@ -659,11 +659,12 @@ shallow_1800s <- shallow_years[shallow_years < 1900] |> sort()
 stopifnot(identical(shallow_1800s, c(1854L, 1870L, 1871L)))
 ```
 
-Ranking curves by MBD alone identifies the years whose entire trajectory lies furthest from the bulk of the sample: the shallowest curves are `r format_years(shallow_years)`, whose mortality is lower at almost every age than in any other year.
-Those from the 1800s correspond to the 1854 cholera outbreak, the 1870 Franco-Prussian war and the 1871 Repression of the 'Commune de Paris'.
+Ranking curves by MBD alone identifies the years whose entire trajectory lies furthest from the bulk of the sample: the shallowest curves are `r format_years(shallow_years)`.
+The `r english::words(length(shallow_years) - length(shallow_1800s))` most recent of these have mortality lower at almost every age than in any other year, while the `r english::words(length(shallow_1800s))` from the 1800s are shallow for the opposite reason --- their mortality is distinctly higher than in surrounding years at almost every age, corresponding to the 1854 cholera outbreak, the 1870 Franco-Prussian war and the 1871 Repression of the 'Commune de Paris'.
 
-This illustrates an important feature of depth-based ranking: because French mortality has fallen more or less steadily across the study period, the most recent curves sit at one edge of the whole 184-year sample and are therefore the least "enveloped" by the rest, even though nothing untoward happened in those years.
-Depth ranking on its own cannot distinguish a genuinely anomalous curve from one that simply lies at the extreme end of a long-running, gradual trend.
+This illustrates an important feature of depth-based ranking: it can fail to distinguish between curves that are unusual due to location and those that are unusual due to shape.
+Because French mortality has fallen more or less steadily across the study period, the most recent curves sit at one edge of the whole 184-year sample and are therefore the least "enveloped" by the rest, even though their shape is not unusual.
+On the other hand, the 1854, 1870 and 1871 curves are unusual in shape, but they are not extreme in location relative to the rest of the 19th century curves.
 
 The depth-based functional boxplot of @Sun2011 works directly with the smoothed curves via `roahd::fbplot()`, using the modified band depth introduced above rather than a 2-dimensional score projection.
 The central region is formed from the 50% deepest curves, and the fence is this region inflated by a factor (1.5, by default) of its own range at each age; any curve that leaves the fence at any age is flagged as an outlier.
