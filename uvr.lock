@@ -1077,6 +1077,15 @@ url = "https://cran.r-project.org/src/contrib/fastmap_1.2.0.tar.gz"
 checksum = "md5:f53773acd6ba9a86413e8c2dc6441544"
 
 [[package]]
+name = "fdaoutlier"
+version = "0.2.1"
+source = "cran"
+raw_version = "0.2.1"
+url = "https://cran.r-project.org/src/contrib/fdaoutlier_0.2.1.tar.gz"
+checksum = "md5:a191f6030566fc8dbaae8837b4bd5801"
+requires = ["MASS"]
+
+[[package]]
 name = "feasts"
 version = "0.5.0"
 source = "cran"
