@@ -448,7 +448,8 @@ To explore outlying anomalies, we can look at the relationship between two diffe
 The **score distance** is the Mahalanobis distance (@sec-distances) of the projected observation from the centre of the projection subspace.
 For an observation $\bm{y}_i$ with scores $\bm{w}_i = \bm{A}^\intercal \bm{y}_i$, it is
 $$
-  \text{SD}_i = \sqrt{\bm{w}_i^\intercal (\bm{A}^\intercal \bm{\Sigma} \bm{A})^{-1} \bm{w}_i}.
+  \text{SD}_i
+  = \sqrt{\bm{w}_i^\intercal (\bm{A}^\intercal \bm{\Sigma} \bm{A})^{-1} \bm{w}_i}.
 $$
 Observations with the largest score distances will be visible as potential anomalies, because they lie far from the centre of the projection subspace.
 
@@ -930,7 +931,8 @@ Classical scaling is therefore PCA computed from the distance matrix instead of 
 Classical scaling reproduces the distances through an eigendecomposition, but we can instead choose the configuration directly to minimise a measure of misfit.
 **Metric MDS** places the points so that the fitted distances $\|\bm{w}_i - \bm{w}_j\|$ match the input distances $d_{ij}$, minimising a loss function known as the *stress*,
 $$
-  \text{Stress} = \sqrt{\frac{\sum_{i < j}\left(\|\bm{w}_i - \bm{w}_j\| - \hat{d}_{ij}\right)^2}{\sum_{i < j} \|\bm{w}_i - \bm{w}_j\|^2}},
+  \text{Stress}
+  = \sqrt{\frac{\sum_{i<j}\left( \|\bm{w}_i - \bm{w}_j\| - \hat{d}_{ij} \right)^2}{\sum_{i<j} \|\bm{w}_i - \bm{w}_j\|^2}},
 $$
 where the *disparities* $\hat{d}_{ij}$ are a fixed transformation of the input distances --- the identity, $\hat{d}_{ij} = d_{ij}$, in the simplest case.
 There is no closed-form solution, so the configuration is found by iterative optimisation, starting from the classical scaling solution.

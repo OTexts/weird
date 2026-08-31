@@ -139,7 +139,8 @@ $$
 $$
 If all variables are continuous, then we can define the joint density function
 $$
-  f(x_1,\dots,x_n) = \frac{\partial^n F(x_1,\dots,x_n)}{\partial x_1 \dots \partial x_n}.
+  f(x_1,\dots,x_n)
+  = \frac{\partial^n F(x_1,\dots,x_n)}{\partial x_1 \dots \partial x_n}.
 $$
 
 ### Conditional distributions

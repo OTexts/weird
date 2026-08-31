@@ -24,17 +24,18 @@ He called these "letter values".
 
 **Letter values** [@Tukey1977-xd;@hoaglin1983letter] are order statistics with specific depths, defined recursively starting with the median.
 The depth of the median is $d_1 = (1 + n)/2$.
-The depths of successive letter values are defined recursively as $d_i = (1 + \lfloor d_{i - 1}\rfloor)/2$, $i = 2,3,\dots$.
+The depths of successive letter values are defined recursively as $d_i = (1 + \lfloor d_{i-1}\rfloor)/2$, $i = 2,3,\dots$.
 The corresponding letter values are defined as
 $$
   L_i = y_{(\lfloor d_i\rfloor)} \qquad\text{and}\qquad U_i
-      = y_{(\lfloor n - d_i + 1\rfloor)},
+      = y_{(\lfloor n-d_i+1\rfloor)},
 $$
 when the depth is an integer.
 Otherwise, the depth is an integer plus 1/2, and the letter values are given by
 $$
-  L_i = (y_{(\lfloor d_i\rfloor)} + y_{(\lfloor d_i\rfloor + 1)})/2 \qquad\text{and}\qquad U_i
-      = (y_{(\lfloor n - d_i + 1\rfloor)} + y_{(\lfloor n - d_i + 1\rfloor + 1)})/2 .
+  L_i
+  = (y_{(\lfloor d_i\rfloor)} + y_{(\lfloor d_i\rfloor+1)})/2 \qquad\text{and}\qquad U_i
+      = (y_{(\lfloor n-d_i+1\rfloor)} + y_{(\lfloor n-d_i+1\rfloor+1)})/2 .
 $$
 Rather than label these using integers ($L_2,L_3,\dots$), Tukey proposed using letters ($L_F,L_E,L_D,\dots$) where $F =$ fourths, $E =$ eighths, $D =$ sixteenths, and so on.
 
@@ -55,20 +56,18 @@ d <- lv[4:7, "depth"]
 Consider the batting averages from @sec-sample-quantiles.
 In this example, $n = `r n`$, so the depths of the first four letter values are given by
 $$
-  d_1 = `r d[1]`,\quad d_2
-      = `r d[2]`,\quad d_3
-      = `r d[3]`,\quad\text{and}\quad d_4
-      = `r d[4]`,
+  d_1 = `r d[1]`,\quad d_2 = `r d[2]`,\quad d_3
+      = `r d[3]`,\quad\text{and}\quad d_4 = `r d[4]`,
 $$
 and the corresponding letter values are given by
 \begin{align*}
-  L_1 & = U_1 = (y_{(`r trunc(d[1])`)} + y_{(`r trunc(d[1] + 1)`)})/2 = `r sprintf("%2.2f", lv[4,"LV"])` &\\
+  L_1 & = U_1 = (y_{(`r trunc(d[1])`)} + y_{(`r trunc(d[1]+1)`)})/2 = `r sprintf("%2.2f", lv[4,"LV"])` &\\
   L_F & = y_{(`r trunc(d[2])`)} = `r sprintf("%2.2f", lv[3,"LV"])` \qquad
-      & U_F                                                                                                  & = y_{(`r trunc(n - d[2] + 1)`)} = `r sprintf("%2.2f", lv[5,"LV"])` \\
+      & U_F                                                                                                & = y_{(`r trunc(n-d[2]+1)`)} = `r sprintf("%2.2f", lv[5,"LV"])` \\
   L_E & = y_{(`r trunc(d[3])`)} = `r sprintf("%2.2f", lv[2,"LV"])` \qquad
-      & U_E                                                                                                  & = y_{(`r trunc(n - d[3] + 1)`)} = `r sprintf("%2.2f", lv[6,"LV"])` \\
+      & U_E                                                                                                & = y_{(`r trunc(n-d[3]+1)`)} = `r sprintf("%2.2f", lv[6,"LV"])` \\
   L_D & = y_{(`r trunc(d[4])`)} = `r sprintf("%2.2f", lv[1,"LV"])` \qquad
-      & U_D                                                                                                  & = y_{(`r trunc(n - d[4] + 1)`)} = `r sprintf("%2.2f", lv[7,"LV"])`
+      & U_D                                                                                                & = y_{(`r trunc(n-d[4]+1)`)} = `r sprintf("%2.2f", lv[7,"LV"])`
 \end{align*}
 We can compute the letter values using the `lvtable()` function from the `lvplot` package.
 
@@ -376,12 +375,12 @@ So it contains all but 2/256 of the data, and shows $2 / 256 \times `r NROW(filt
 
 The stopping rule used in the letter value plot is to show the boxes up to letter value $k$, where
 $$
-  0.5\sqrt{2d_k} z_{1 - \alpha/2} > d_{k + 1}
+  0.5\sqrt{2d_k} z_{1-\alpha/2} > d_{k+1}
 $$
-and $z_{1 - \alpha/2}$ is the $1 - \alpha/2$ quantile of a standard Normal distribution.
+and $z_{1-\alpha/2}$ is the $1 - \alpha/2$ quantile of a standard Normal distribution.
 This choice is based on the idea that the edges of the boxes are quantile estimates, and the confidence interval for each quantile estimate that is displayed should not overlap the subsequent quantile estimate.
 The Normal distribution arises because the quantile estimate has an approximate Normal distribution (@eq-sample-quantile-distribution).
-This stopping rule means that, on average, there should be fewer than $2z^2_{1 - \alpha/2}$ legitimate observations in the tails.
+This stopping rule means that, on average, there should be fewer than $2z^2_{1-\alpha/2}$ legitimate observations in the tails.
 By default, $\alpha = 0.05$, so that, on average, there should be fewer than $2 \times (`r qnorm(1 - 0.05/2)`)^2 = `r round(2 * qnorm(1 - 0.05/2)^2,1)`$ legitimate observations in the tails, regardless of the size of the data set.
 
 Letter value plots were not designed to detect anomalies, but to be a useful data visualisation tool for univariate distributions with large numbers of observations.
@@ -480,7 +479,7 @@ There are no dividing lines that would put the orange point in a halfspace on it
 So it has a Tukey depth of 2.
 
 The depth region $D_k$ is the set of all points $\bm{z}$ with Tukey depth at least $k$.
-These form a series of nested convex hulls where $D_{k + 1} \subseteq D_k$.
+These form a series of nested convex hulls where $D_{k+1} \subseteq D_k$.
 The depth regions for our example are shown in @fig-depthregions.
 The blue region is depth 1, the orange region is depth 2, the pink region is depth 3, and the green region is depth 4.
 
@@ -548,7 +547,7 @@ The bagplot was proposed by @bagplot as a bivariate version of a boxplot, constr
 Like a univariate boxplot, the bivariate bagplot has a central point (the depth median), an inner region (the "bag"), and an outer region (the "loop"), beyond which outliers are shown as individual points.
 
 To define the bag, we first find the smallest depth region $D_k$ containing at least $\lfloor n/2 \rfloor$ of the observations.
-Then the bag is linearly interpolated between $D_k$ and $D_{k - 1}$, with the linear interpolation depending on the number of observations in each depth region.
+Then the bag is linearly interpolated between $D_k$ and $D_{k-1}$, with the linear interpolation depending on the number of observations in each depth region.
 Because the bag is interpolated between depth regions, it is also a convex polygon.
 The procedure is slightly more complicated for small data sets where only $D_1$ might contain more than half of the observations.
 

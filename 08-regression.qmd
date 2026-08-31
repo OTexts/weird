@@ -141,7 +141,8 @@ This is known as **masking**, and occurs when the presence of anomalies distorts
 Robust regression methods address this by producing an estimate of $\bm{\beta}$ that remains stable even when a fraction of the observations are anomalous.
 For example, the *least trimmed squares* (LTS) estimator [@Rousseeuw2003-ip] minimises the sum of the $h$ smallest squared residuals,
 $$
-  \hat{\bm{\beta}}_{\text{LTS}} = \mathop{\arg\min}_{\bm{\beta}} \sum_{i = 1}^{h} e_{(i)}^2,
+  \hat{\bm{\beta}}_{\text{LTS}}
+  = \mathop{\arg\min}_{\bm{\beta}} \sum_{i=1}^{h} e_{(i)}^2,
 $$
 where $e_{(1)}^2 \le e_{(2)}^2 \le \cdots \le e_{(n)}^2$ are the squared residuals in increasing order, and $h = \lfloor n/2 \rfloor + \lfloor (p + 1)/2 \rfloor$.
 Observations with squared residuals beyond the $h$th smallest are effectively discarded.^[The OLS estimate given in @eq-ols is equivalent to setting $h = n$.]
@@ -165,7 +166,7 @@ $$
 $$
 where $h_i$ is the leverage (@eq-leverage) and
 $$
-  \hat\sigma^2 = \frac{1}{n - p}\sum_{i = 1}^n e_i^2
+  \hat\sigma^2 = \frac{1}{n - p}\sum_{i=1}^n e_i^2
 $$ {#eq-residual-variance}
 is the estimated residual variance.
 
@@ -194,13 +195,15 @@ $$
 $$
 so (if we knew $\sigma$) we could standardise each LOO residual to obtain
 $$
-  \frac{e_i / (1 - h_i)}{\sigma/\sqrt{1 - h_i}} = \frac{e_i}{\sigma \sqrt{1 - h_i}}.
+  \frac{e_i / (1 - h_i)}{\sigma/\sqrt{1 - h_i}}
+  = \frac{e_i}{\sigma \sqrt{1 - h_i}}.
 $$
 Of course, we don't know $\sigma$, so we need to estimate it.
 To reduce the effect of anomalies on the estimate of $\sigma$, we consider again the leave-one-out models.
 If we leave out the $i$th observation, and fit a regression model to the remaining observations, then the estimated variance of the residuals is given by [@Montgomery2012, Appendix C.8]
 $$
-  \hat\sigma_{-i}^2 = \frac{1}{n - p - 1}\left[(n - p)\hat\sigma^2 - e_{i}^2/(1 - h_i)\right],
+  \hat\sigma_{-i}^2
+  = \frac{1}{n - p - 1}\left[ (n - p)\hat\sigma^2 - e_{i}^2/(1 - h_i) \right],
 $$
 where $\hat\sigma^2$ is given by @eq-residual-variance.
 
@@ -214,7 +217,8 @@ $$
 
 Another useful "leave-one-out" measure is Cook's distance [@Cook1977], which measures how much all $n$ fitted values change when observation $i$ is omitted:
 $$
-  D_i = \frac{(\hat{\bm{y}} - \hat{\bm{y}}_{-i})^\intercal (\hat{\bm{y}} - \hat{\bm{y}}_{-i})}{p\hat\sigma^2},
+  D_i
+  = \frac{(\hat{\bm{y}} - \hat{\bm{y}}_{-i})^\intercal (\hat{\bm{y}} - \hat{\bm{y}}_{-i})}{p\hat\sigma^2},
 $$
 where $\hat{\bm{y}}_{-i}$ are the fitted values from the model omitting observation $i$.
 As with the LOO residual, this can be computed without refitting the model $n$ times.
@@ -290,8 +294,7 @@ where $\phi(u) = (2\pi)^{-1/2}e^{-u^2/2}$ is the standard Normal density.
 We return to the Shiraz wine reviews introduced in @sec-ols.
 Now that we have added a distributional assumption, the fitted model can be written as
 $$
-  \log(\text{Price}) \mid \text{Points}
-                     \sim \text{N}(`r sprintf("%.3f",coef(fit_wine)[1])` + `r sprintf("%.3f",coef(fit_wine)[2])` \times \text{Points}, `r sprintf("%.3f",sigma(fit_wine))`^2),
+  \log(\text{Price}) \mid \text{Points} \sim \text{N}(`r sprintf("%.3f",coef(fit_wine)[1])` + `r sprintf("%.3f",coef(fit_wine)[2])` \times \text{Points}, `r sprintf("%.3f",sigma(fit_wine))`^2),
 $$
 and we can compute 95% prediction intervals as shown in @fig-shiraz-regression-density.
 
@@ -474,9 +477,8 @@ In some applications, it is not appropriate to assume the conditional density is
 One useful model that allows for non-Gaussian densities, and non-linear relationships, is a generalised additive model or GAM.
 Under this model, the conditional density is given by [@Wood2017gam]
 $$
-  y \mid \bm{x}
-    \sim f(\mu, \bm{\theta}), \qquad \ell(\mu)
-    = \sum_{k = 1}^p g_k(x_{k}),
+  y \mid \bm{x} \sim f(\mu, \bm{\theta}), \qquad \ell(\mu)
+    = \sum_{k=1}^p g_k(x_{k}),
 $$
 where $\mu = \text{E}(y \mid \bm{x})$ denotes the conditional mean, $\bm{\theta}$ is a vector of any other parameters, $\ell()$ is a link function (mapping the mean to an unbounded scale), and each $g_k$ function is smooth.
 If $f$ is Normal, $\bm{\theta} = \sigma^2$, $\ell$ is the identity, and $g_k(u) = \beta_k u$, then this reduces to the linear Gaussian model (@eq-gaussian-regression).
@@ -633,7 +635,8 @@ The regression BACON algorithm begins by using the multivariate BACON algorithm 
 Let $B$ be the current basic subset, with $r$ observations, and let $\bm{X}_B$ and $\bm{y}_B$ denote the corresponding predictor matrix and response vector.
 Let $\hat{\bm{\beta}}_B$ be the least-squares estimate computed using only the observations in $B$, and let
 $$
-  \hat{\sigma}_B^2 = (r - p)^{-1}\sum_{i \in B}(y_i - \bm{x}_i^\intercal\hat{\bm{\beta}}_B)^2
+  \hat{\sigma}_B^2
+  = (r - p)^{-1}\sum_{i \in B}(y_i - \bm{x}_i^\intercal\hat{\bm{\beta}}_B)^2
 $$
 be the corresponding estimate of residual variance.
 We also define
@@ -643,13 +646,12 @@ $$
 as the leverage of observation $i$ with respect to the basic subset $B$.
 The regression discrepancy for observation $i$ is the absolute scaled residual or prediction error
 $$
-  |t_i(B)| =
-\begin{cases}
-  \displaystyle
-  \left|\frac{y_i - \bm{x}_i^\intercal\hat{\bm{\beta}}_B}{\hat{\sigma}_B\sqrt{1 - h_i(B)}}\right|, & i \in B,    \\
-  \displaystyle
-  \left|\frac{y_i - \bm{x}_i^\intercal\hat{\bm{\beta}}_B}{\hat{\sigma}_B\sqrt{1 + h_i(B)}}\right|, & i \notin B.
-\end{cases}
+  |t_i(B)| = \begin{cases}
+               \displaystyle
+               \left| \frac{y_i - \bm{x}_i^\intercal\hat{\bm{\beta}}_B}{\hat{\sigma}_B\sqrt{1 - h_i(B)}} \right|, & i \in B,    \\
+               \displaystyle
+               \left| \frac{y_i - \bm{x}_i^\intercal\hat{\bm{\beta}}_B}{\hat{\sigma}_B\sqrt{1 + h_i(B)}} \right|, & i \notin B.
+             \end{cases}
 $$
 For observations already in the basic subset this is the usual standardised residual.
 For observations outside the basic subset it is a scaled prediction error.
@@ -668,9 +670,9 @@ Larger values of $c$ may be needed if the predictor variables have many repeated
 
 **Step 4: Expand the basic subset.** Update $B$ by admitting every observation with
 $$
-  |t_i(B)| < \text{t}_{r - p,\,1 - \alpha/(2(r + 1))},
+  |t_i(B)| < \text{t}_{r-p,\,1-\alpha/(2(r+1))},
 $$
-where $\text{t}_{r - p,\,1 - \alpha/(2(r + 1))}$ is the $(1 - \alpha/(2(r + 1)))$ quantile of a t-distribution with $r - p$ degrees of freedom.
+where $\text{t}_{r-p,\,1-\alpha/(2(r+1))}$ is the $(1 - \alpha/(2(r + 1)))$ quantile of a t-distribution with $r - p$ degrees of freedom.
 Equivalently, this is the upper $(\alpha/(2(r + 1)))$ tail quantile, as computed in R by `qt(alpha / (2 * (r + 1)), r - p, lower.tail = FALSE)`.
 
 **Step 5: Iterate** Steps 2--4 until the size of $B$ no longer changes.

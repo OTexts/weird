@@ -53,7 +53,7 @@ Let's look at some specific examples.
 Suppose our observations come from a N(0,1) distribution, and that $f$ denotes the corresponding density function.
 Then
 $$
-  s_i = -\log\left(\frac{1}{\sqrt{2\pi}} e^{-y_i^2/2}\right)
+  s_i = -\log\left( \frac{1}{\sqrt{2\pi}} e^{-y_i^2/2} \right)
       = \frac12 y_i^2 + \frac12\log(2\pi).
 $$
 So the surprisals are simply equal to half the squared observations plus a constant.
@@ -63,7 +63,7 @@ This is easily extended to any normal distribution, showing that surprisals are 
 
 For a $\chi^2_k$ distribution, a surprisal is given by
 $$
-  s_i = -\log\left(\frac{y_i^{k/2 - 1}e^{-y_i/2}}{2^{k/2}\Gamma(k/2)}\right)
+  s_i = -\log\left( \frac{y_i^{k/2-1}e^{-y_i/2}}{2^{k/2}\Gamma(k/2)} \right)
       = \frac{1}{2} y_i - (k/2 - 1)\log(y_i) + c_k
 $$
 where $c_k$ is a constant.
@@ -73,7 +73,7 @@ where $c_k$ is a constant.
 Surprisals can also be computed for discrete distributions.
 For a Poisson($\lambda$) distribution, a surprisal is given by
 $$
-  s_i = -\log\left(\frac{\lambda^{y_i} e^{-\lambda}}{y_i!}\right)
+  s_i = -\log\left( \frac{\lambda^{y_i} e^{-\lambda}}{y_i!} \right)
       = \log(y_i!) - y_i\log(\lambda) + \lambda
 $$
 
@@ -82,10 +82,10 @@ $$
 The definition of a surprisal also works for multivariate distributions.
 For an $m$-dimensional N$(\bm{0}, \bm{\Sigma})$ distribution, a surprisal is given by
 $$
-  s_i = -\log\left((2\pi)^{-m/2}|\bm{\Sigma}|^{-1/2} \exp\Big\{ - \frac{1}{2}\bm{y}_i^\intercal\bm{\Sigma}^{-1}\bm{y}_i\Big\} \right)
+  s_i
+  = -\log\left( (2\pi)^{-m/2}|\bm{\Sigma}|^{-1/2} \exp\Big\{-\frac{1}{2}\bm{y}_i^\intercal\bm{\Sigma}^{-1}\bm{y}_i\Big\} \right)
       = \frac{1}{2} \bm{y}_i^\intercal\bm{\Sigma}^{-1}\bm{y}_i
-        + \frac{m}{2}\log(2\pi)
-        + \frac{1}{2} \log|\bm{\Sigma}|
+        + \frac{m}{2}\log(2\pi) + \frac{1}{2} \log|\bm{\Sigma}|
 $$
 When $\bm{\Sigma} = \bm{I}$, this is simply the sum of surprisals computed on each of the marginal distributions.
 
@@ -314,7 +314,7 @@ Suppose, we estimate $f$ using a kernel density estimate.
 In fact, when the `surprisals()` or `surprisals_prob()` functions are applied to data without specifying a probability distribution, a kernel density estimate of the data is used by default.
 The kernel density estimate at each observation is (@eq-mkde)
 $$
-  f_i = \hat{f}(\bm{y}_i) = \frac{1}{n} \sum_{j = 1}^n K_H(\bm{y}_i - \bm{y}_j),
+  f_i = \hat{f}(\bm{y}_i) = \frac{1}{n} \sum_{j=1}^n K_H(\bm{y}_i - \bm{y}_j),
 $$ {#eq-kdescores}
 and so we define the "**kde surprisal**" at each observation as
 $$
@@ -324,8 +324,7 @@ The largest possible surprisal occurs when an observation has no other observati
 Then $f_i \approx K_H(\bm{0})/n$ because $K_H(\bm{y}_i - \bm{y}_j) \approx 0$ when $\|\bm{y}_i - \bm{y}_j\|$ is large.
 So the largest possible kde surprisal, when using a Gaussian kernel, is
 $$
-  -\log(K_H(\bm{0})/n) \approx \log(n)
-                               + \frac{m}{2}\log(2\pi)
+  -\log(K_H(\bm{0})/n) \approx \log(n) + \frac{m}{2}\log(2\pi)
                                + \frac{1}{2}\log|\bm{H}|,
 $$
 where $\bm{H}$ is now the bandwidth matrix.
@@ -353,7 +352,7 @@ Let's take the example of KDE surprisals.
 The contribution of the $i$th point to the kernel density estimate at that point is $K_H(\bm{0})/n$.
 Therefore, the leave-one-out kernel density estimate is given by
 $$
-  f_{-i} = \left[nf_i - K_H(\bm{0})\right]/(n - 1),
+  f_{-i} = \left[ nf_i - K_H(\bm{0}) \right]/(n - 1),
 $$ {#eq-loo-kde}
 where $f_i$ is the kde estimate from @eq-kdescores using all data, so that the leave-one-out kde surprisal is $s_{-i} = -\log (f_{-i})$.
 Thus, we can compute the leave-one-out kde surprisals without needing to re-estimate the density many times.
@@ -465,7 +464,7 @@ A Gaussian mixture model (GMM) is a flexible parametric model for the joint dist
 It comprises a weighted sum of multivariate Normal distributions, each with its own mean vector and covariance matrix.
 That is,
 $$
-  f(\bm{y}) = \sum_{k = 1}^K w_k \phi(\bm{y}; \bm{\mu}_k, \bm{\Sigma}_k),
+  f(\bm{y}) = \sum_{k=1}^K w_k \phi(\bm{y}; \bm{\mu}_k, \bm{\Sigma}_k),
 $$
 where $K$ is the number of components, the weights $w_k \ge 0$ sum to 1, and $\phi(\bm{y}; \bm{\mu}_k, \bm{\Sigma}_k)$ is the multivariate Normal density with mean $\bm{\mu}_k$ and covariance matrix $\bm{\Sigma}_k$.
 In fact, a KDE with a Gaussian kernel can be considered a Gaussian mixture model with a large number of equally-weighted components, each centred at an observation and with a common covariance matrix given by the bandwidth matrix.
@@ -520,22 +519,22 @@ $$
 $$
 covariances
 $$
-  \bm{\Sigma}_1 =
-\begin{bmatrix}
-  `r sprintf("%.1f", sigma[[1]][1,1])` & `r sprintf("%.1f", sigma[[1]][1,2])` \\
-  `r sprintf("%.1f", sigma[[1]][2,1])` & `r sprintf("%.1f", sigma[[1]][2,2])`
-\end{bmatrix}
-  , \quad \bm{\Sigma}_2 =
-\begin{bmatrix}
-  `r sprintf("%.1f", sigma[[2]][1,1])` & `r sprintf("%.1f", sigma[[2]][1,2])` \\
-  `r sprintf("%.1f", sigma[[2]][2,1])` & `r sprintf("%.1f", sigma[[2]][2,2])`
-\end{bmatrix}
-  , \quad\text{and}\quad \bm{\Sigma}_3 =
-\begin{bmatrix}
-  `r sprintf("%.1f", sigma[[3]][1,1])` & `r sprintf("%.1f", sigma[[3]][1,2])` \\
-  `r sprintf("%.1f", sigma[[3]][2,1])` & `r sprintf("%.1f", sigma[[3]][2,2])`
-\end{bmatrix}
-  ,
+    \bm{\Sigma}_1 =
+  \begin{bmatrix}
+    `r sprintf("%.1f", sigma[[1]][1,1])` & `r sprintf("%.1f", sigma[[1]][1,2])` \\
+    `r sprintf("%.1f", sigma[[1]][2,1])` & `r sprintf("%.1f", sigma[[1]][2,2])`
+  \end{bmatrix}
+    , \quad \bm{\Sigma}_2 =
+  \begin{bmatrix}
+    `r sprintf("%.1f", sigma[[2]][1,1])` & `r sprintf("%.1f", sigma[[2]][1,2])` \\
+    `r sprintf("%.1f", sigma[[2]][2,1])` & `r sprintf("%.1f", sigma[[2]][2,2])`
+  \end{bmatrix}
+    , \quad\text{and}\quad \bm{\Sigma}_3 =
+  \begin{bmatrix}
+    `r sprintf("%.1f", sigma[[3]][1,1])` & `r sprintf("%.1f", sigma[[3]][1,2])` \\
+    `r sprintf("%.1f", sigma[[3]][2,1])` & `r sprintf("%.1f", sigma[[3]][2,2])`
+  \end{bmatrix}
+    ,
 $$
 and weights $`r sprintf("%.3f", gmm_wt[1])`$, $`r sprintf("%.3f", gmm_wt[2])`$, and $`r sprintf("%.3f", gmm_wt[3])`$, respectively.
 The component multivariate Normal densities are shown in @fig-gmm-components.
@@ -649,21 +648,21 @@ This construction can be viewed as applying a multivariate Normal model to trans
 
 Under the Gaussian copula model, anomaly scores can be constructed using the Mahalanobis distance of the transformed observations:
 $$
-  d_i^2 = (\bm{w}_i - \bm{\mu}_w)^\intercal \bm{\Sigma}_w^{-1} (\bm{w}_i - \bm{\mu}_w).
+  d_i^2
+  = (\bm{w}_i - \bm{\mu}_w)^\intercal \bm{\Sigma}_w^{-1} (\bm{w}_i - \bm{\mu}_w).
 $$
 Large values of $d_i^2$ indicate that the observation is unusual relative to the data according to the fitted Gaussian copula model, and so are potential anomalies.
 
 These squared distances are directly connected to surprisals.
 The fitted multivariate Normal density of $\bm{w}_i$ is
 $$
-  \hat f_W(\bm{w}_i) = (2\pi)^{-m/2} |\bm{\Sigma}_w|^{-1/2} \exp\left\{ - \frac{1}{2} (\bm{w}_i - \bm{\mu}_w)^\intercal \bm{\Sigma}_w^{-1} (\bm{w}_i - \bm{\mu}_w) \right\},
+  \hat f_W(\bm{w}_i)
+  = (2\pi)^{-m/2} |\bm{\Sigma}_w|^{-1/2} \exp\left\{ -\frac{1}{2} (\bm{w}_i - \bm{\mu}_w)^\intercal \bm{\Sigma}_w^{-1} (\bm{w}_i - \bm{\mu}_w) \right\},
 $$
 so the corresponding surprisal is
 $$
-  s_i = -\log \hat f_W(\bm{w}_i)
-      = \frac{1}{2} d_i^2
-        + \frac{m}{2}\log(2\pi)
-        + \frac{1}{2}\log|\bm{\Sigma}_w|.
+  s_i = -\log \hat f_W(\bm{w}_i) = \frac{1}{2} d_i^2
+        + \frac{m}{2}\log(2\pi) + \frac{1}{2}\log|\bm{\Sigma}_w|.
 $$
 Thus ranking observations by $d_i^2$ is equivalent to ranking them by their surprisals under the fitted Gaussian copula model.
 If the model is appropriate, then $d_i^2$ approximately (when $n$ is large) follows a chi-squared distribution with $m$ degrees of freedom, giving the approximate surprisal probability

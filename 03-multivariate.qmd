@@ -199,7 +199,7 @@ This occurs because, with enough variables, at least one of the univariate obser
 ### The size of neighbourhoods
 
 Another way to think about this is to consider hypercubes that contain 50% of the observations.
-These must have sides of length $2^{1 - 1/m}$, in order for the volume of the hypercube to be $2^{m - 1}$, exactly half of the entire space.
+These must have sides of length $2^{1-1/m}$, in order for the volume of the hypercube to be $2^{m-1}$, exactly half of the entire space.
 For $m = 1$, the hypercube is a unit interval; for $m = 2$, it is a square of side length $\sqrt{2} \approx 1.41$ as shown in @fig-hypercube; for $m = 3$, the central cube must have side length $2^{2/3} \approx 1.59$; and so on.
 
 ```{r}
@@ -263,7 +263,7 @@ $$
 
 The marginal cdfs are defined by $F_i(y) = \Pr(Y_i \le y)$, with corresponding marginal pdfs given by $f_i(y) = F_i'(y)$, $i = 1,\dots,m$.
 
-If the variables are independent, then the joint pdf is the product of the marginal pdfs, $f(\bm{y}) = \prod_{i = 1}^m f_i(y_i)$.
+If the variables are independent, then the joint pdf is the product of the marginal pdfs, $f(\bm{y}) = \prod_{i=1}^m f_i(y_i)$.
 
 The expected value of $\bm{Y}$ is the vector of expectations of its components, and is given by
 $$
@@ -271,7 +271,8 @@ $$
 $$
 The covariance matrix of $\bm{Y}$ is given by
 $$
-  \text{Var}(\bm{Y}) = \text{E}[(\bm{Y} - \text{E}(\bm{Y}))(\bm{Y} - \text{E}(\bm{Y}))^\intercal].
+  \text{Var}(\bm{Y})
+  = \text{E}[(\bm{Y} - \text{E}(\bm{Y}))(\bm{Y} - \text{E}(\bm{Y}))^\intercal].
 $$
 The covariance matrix is an $m \times m$ matrix, with $(i,j)$th element given by $\text{Cov}(Y_i,Y_j) = \text{E}[(Y_i - \text{E}(Y_i))(Y_j - \text{E}(Y_j))]$.
 The diagonal elements are the variances of the individual variables, while the off-diagonal elements are the covariances between the variables.
@@ -291,7 +292,8 @@ If random vector $\bm{Y}$ has a multivariate Normal distribution, we write $\bm{
 
 The multivariate Normal distribution has pdf given by
 $$
-  f(\bm{y}; \bm{\mu}, \bm{\Sigma}) = (2\pi)^{-m/2}|\bm{\Sigma}|^{-1/2} \exp\left\{ - \frac{1}{2}(\bm{y} - \bm{\mu})^\intercal\bm{\Sigma}^{-1}(\bm{y} - \bm{\mu})\right\}.
+  f(\bm{y}; \bm{\mu}, \bm{\Sigma})
+  = (2\pi)^{-m/2}|\bm{\Sigma}|^{-1/2} \exp\left\{ -\frac{1}{2}(\bm{y} - \bm{\mu})^\intercal\bm{\Sigma}^{-1}(\bm{y} - \bm{\mu}) \right\}.
 $$
 The notation $|\bm{\Sigma}|$ denotes the determinant of the matrix $\bm{\Sigma}$.
 
@@ -312,7 +314,7 @@ $$ {#eq-mhdr}
 where $f_\alpha$ is the largest constant such that $\Pr(\bm{Y} \in R_\alpha) = 1 - \alpha$.
 
 HDRs are equivalent to level sets of the density function, and so can be plotted as contours for bivariate density functions.
-For example, the bivariate Normal distribution with mean $(0,0)$ and covariance matrix $\bm{\Sigma} = \begin{bmatrix} 1 & 0.5 \\ 0.5 & 1 \end{bmatrix}$ is shown in @fig-bivariate as a series of HDR contours, each containing an additional 10% of the probability mass.
+For example, the bivariate Normal distribution with mean $(0,0)$ and covariance matrix $\bm{\Sigma} = \begin{bmatrix} 1   & 0.5 \\ 0.5 & 1 \end{bmatrix}$ is shown in @fig-bivariate as a series of HDR contours, each containing an additional 10% of the probability mass.
 
 ```{r}
 #| label: fig-bivariate
@@ -332,7 +334,7 @@ distributional::dist_multivariate_normal(list(mu), list(Sigma)) |>
 ```
 
 Similarly, we can obtain HDRs for a mixture distribution.
-Suppose we had two bivariate Normal distributions with means $(0,0)$ and $(3,1)$, and covariance matrices equal to $\bm{\Sigma} = \begin{bmatrix} 1 & 0.5 \\ 0.5 & 1 \end{bmatrix}$ and the identity matrix $\bm{I}_2$ respectively.
+Suppose we had two bivariate Normal distributions with means $(0,0)$ and $(3,1)$, and covariance matrices equal to $\bm{\Sigma} = \begin{bmatrix} 1   & 0.5 \\ 0.5 & 1 \end{bmatrix}$ and the identity matrix $\bm{I}_2$ respectively.
 Then the HDRs for an equal mixture of these two distributions is shown in @fig-bivariate-mixture.
 
 ```{r}
@@ -374,7 +376,8 @@ We will discuss this approach in @sec-depth.
 
 The sample covariance matrix is a useful measure of the spread of a multivariate distribution, given by
 $$
-  \bm{S} = \frac{1}{n - 1} \sum_{i = 1}^n (\bm{y}_i - \bar{\bm{y}})(\bm{y}_i - \bar{\bm{y}})^\intercal,
+  \bm{S}
+  = \frac{1}{n - 1} \sum_{i=1}^n (\bm{y}_i - \bar{\bm{y}})(\bm{y}_i - \bar{\bm{y}})^\intercal,
 $$ {#eq-cov}
 However, it is sensitive to anomalies, and so is not suitable for our purposes.
 
@@ -384,7 +387,8 @@ The idea is that the subset of observations with the smallest covariance determi
 
 Specifically,
 $$
-  \bm{S}_{\text{MCD}} = \frac{1}{n_\alpha} \sum_{i \in H} (\bm{y}_i - \bar{\bm{y}})(\bm{y}_i - \bar{\bm{y}})^\intercal,
+  \bm{S}_{\text{MCD}}
+  = \frac{1}{n_\alpha} \sum_{i \in H} (\bm{y}_i - \bar{\bm{y}})(\bm{y}_i - \bar{\bm{y}})^\intercal,
 $$ {#eq-mcd}
 where $H$ is the subset of $n_\alpha$ observations that has the smallest covariance determinant.
 The value of $n_\alpha$ is approximately $\alpha n$, where $\alpha$ is the targetted proportion of observations to use in the subset.
@@ -812,13 +816,13 @@ For a general introduction to TDA, see @carlsson2021topological.
 Suppose our observations are $m$-dimensional vectors, $\bm{y}_1,\dots,\bm{y}_n$.
 Then the multivariate version of @eq-kde is given by [@Scott2015]
 $$
-  \hat{f}(\bm{y}) = \frac{1}{n} \sum_{i = 1}^n K_H(\bm{y} - \bm{y}_i),
+  \hat{f}(\bm{y}) = \frac{1}{n} \sum_{i=1}^n K_H(\bm{y} - \bm{y}_i),
 $$ {#eq-mkde}
 where $K_H$ is a multivariate probability density with covariance matrix $\bm{H}$.
 In this book, we will use a multivariate Gaussian kernel given by
 $$
-  K_H(\bm{u}) = (2\pi)^{-m/2} |\bm{H}|^{-1/2} \exp \{
-                - \textstyle\frac12 \bm{u}^\intercal\bm{H}^{-1}\bm{u} \}.
+  K_H(\bm{u})
+  = (2\pi)^{-m/2} |\bm{H}|^{-1/2} \exp \{-\textstyle\frac12 \bm{u}^\intercal\bm{H}^{-1}\bm{u} \}.
 $$
 
 ### Bivariate kernel density estimation
@@ -911,14 +915,14 @@ For example, `geom_density_2d()` uses a bivariate Gaussian kernel with diagonal 
 However, this approach leads to bandwidths that are too small, as it ignores the convergence properties of the multivariate estimator.
 Additionally, any diagonal bandwidth matrix implicitly assumes that the variables are uncorrelated, and leads to more biased estimators.
 
-The optimal bandwidth matrix (minimising the mean integrated squared error between the true density and its estimate) is of the order $n^{-2/(m + 4)}$.
-If such a bandwidth matrix is used, then the estimator converges at rate $n^{-4/(m + 4)}$, implying that kernel density estimation becomes increasingly difficult as the dimension $m$ increases.
+The optimal bandwidth matrix (minimising the mean integrated squared error between the true density and its estimate) is of the order $n^{-2/(m+4)}$.
+If such a bandwidth matrix is used, then the estimator converges at rate $n^{-4/(m+4)}$, implying that kernel density estimation becomes increasingly difficult as the dimension $m$ increases.
 This is to be expected given the curse of dimensionality (@sec-curse), as the number of observations required to obtain a good estimate increases exponentially with the dimension.
 In practice, we rarely attempt to estimate a density in more than $m = 3$ dimensions.
 
 If the underlying density is Normal with mean $\bm{\mu}$ and variance $\bm{\Sigma}$, then the optimal bandwidth matrix is given by
 $$
-  \bm{H} = \left(\frac{4}{m + 2}\right)^{2/(m + 4)} n^{-2/(m + 4)} \bm{\Sigma}.
+  \bm{H} = \left( \frac{4}{m + 2} \right)^{2/(m+4)} n^{-2/(m+4)} \bm{\Sigma}.
 $$ {#eq-gaussianH}
 Notice that in the univariate case, when $m = 1$, this rule gives the same bandwidth as the rule of thumb given by @eq-nrr (where $h = \sqrt{H}$).
 This is what is calculated by `kde_bandwidth()` when `method = "normal"`, where $\bm{\Sigma}$ is estimated using the sample covariance matrix @eq-cov.
@@ -931,12 +935,12 @@ While this typically leads to better estimates of the density as a whole, it can
 
 An alternative approach to finding the bandwidth matrix uses ideas from clustering (@sec-clustering).
 First, we compute robust multivariate z-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \bm{m})$, $i = 1,\dots,n$, where $\bm{m}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}$ is the Cholesky decomposition of $\bm{S}_{\text{MCD}}^{-1}$.
-Then we find the merge distances of the clusters obtained from the z-scores: $\{d_1,\dots,d_{n - 1}\}$.
+Then we find the merge distances of the clusters obtained from the z-scores: $\{d_1,\dots,d_{n-1}\}$.
 Finally, we can set
 $$
   \bm{H} = d_\gamma\bm{S}_{\text{MCD}}
 $$ {#eq-lookoutH}
-where $d_\gamma$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_{n - 1}\}$ for a large value of $\gamma$.
+where $d_\gamma$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_{n-1}\}$ for a large value of $\gamma$.
 @lookout2 showed that this leads to a consistent density estimate, with good properties for anomaly detection, when $\gamma = 0.98$.
 We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-kdesurprisals.
 The `kde_bandwidth()` function will return this bandwidth when `method = "lookout"`.

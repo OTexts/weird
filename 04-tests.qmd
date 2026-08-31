@@ -214,10 +214,10 @@ stopifnot(nanomalies$Zscore == c(1, 3, 0, 1, 18, 15))
 
 ### Probability of spurious anomalies
 
-Even if the data did come from a Normal distribution, the probability of an observation being more than 3 standard deviations from the mean is $`r round(2 * pnorm(-3),4)`$, so we would expect to see approximately 1 in every $1/ `r round(2 * pnorm(-3),4)` = `r round(.5/pnorm(-3))`$ regular observations being identified as an anomaly using this approach.
+Even if the data did come from a Normal distribution, the probability of an observation being more than 3 standard deviations from the mean is $`r round(2 * pnorm(-3),4)`$, so we would expect to see approximately 1 in every $1 / `r round(2 * pnorm(-3),4)` = `r round(.5/pnorm(-3))`$ regular observations being identified as an anomaly using this approach.
 
 In fact, we can be more accurate than this.
-If our $n$ observations come from a Normal distribution, then the z-scores follow (approximately) a $\text{t}_{n - 1}$ distribution.
+If our $n$ observations come from a Normal distribution, then the z-scores follow (approximately) a $\text{t}_{n-1}$ distribution.
 (The approximation arises because we replace the mean and standard deviation by their sample estimates.)
 When we identify anomalies as those points with $|z| > c$, then the probability of finding at least one spurious anomaly is the probability of the maximum being above $c$ or the minimum being below $-c$.
 Since the distribution is symmetric, these probabilities are the same.
@@ -476,12 +476,13 @@ We will mention just two of them here, as they are the most widely used.
 
 Egon Pearson and Chandra Sekar proposed [@Pearson1936] that an observation be considered an anomaly if $|z_i| > c_\alpha$, where the critical value is given by
 $$
-  c_\alpha = t_{\alpha/n, n - 2} \sqrt{\frac{n - 1}{n - 2 + t^2_{\alpha/n, n - 2}}}
+  c_\alpha = t_{\alpha/n, n-2} \sqrt{\frac{n - 1}{n - 2 + t^2_{\alpha/n, n-2}}}
 $$
 and $t_{p, k}$ is the $1 - p$ quantile of the t distribution with $k$ degrees of freedom.
 Later, this was extended by Frank Grubbs [@Grubbs1950] who proposed using
 $$
-  c_\alpha = \frac{(n - 1)t_{\alpha/2n, n - 2}}{\sqrt{n(n - 2 + t^2_{\alpha/2n, n - 2})}}.
+  c_\alpha
+  = \frac{(n - 1)t_{\alpha/2n, n-2}}{\sqrt{n(n - 2 + t^2_{\alpha/2n, n-2})}}.
 $$
 
 @fig-zscoretests shows the critical values at $\alpha = 0.05$ for these tests, along with the corresponding value from @Chauvenet1863 for comparison.
@@ -693,13 +694,13 @@ A different approach looks instead at the **gaps** between consecutive order sta
 
 If $y_{(1)},\dots,y_{(n)}$ denote the ordered values of our sample, then Dixon's Q statistic is given by
 $$
-  Q = \frac{y_{(n)} - y_{(n - 1)}}{y_{(n)} - y_{(1)}},
+  Q = \frac{y_{(n)} - y_{(n-1)}}{y_{(n)} - y_{(1)}},
 $$
 the ratio of the difference between the two largest values to the range of the data.
 If the largest value is the only anomaly, then $Q$ will take a larger value than expected.
 
 The corresponding test for the minimum to be an anomaly uses $y_{(2)} - y_{(1)}$ in the numerator instead, the difference between the second smallest and minimum observations.
-Both minimum and maximum values can be tested simultaneously using the two-sided test, where the numerator is the maximum of $y_{(n)} - y_{(n - 1)}$ and $y_{(2)} - y_{(1)}$.
+Both minimum and maximum values can be tested simultaneously using the two-sided test, where the numerator is the maximum of $y_{(n)} - y_{(n-1)}$ and $y_{(2)} - y_{(1)}$.
 
 The test is clearly flawed for several reasons.
 First, if the two largest values are both anomalies of similar size, then $Q$ will be small and these anomalies will be missed.
@@ -837,7 +838,7 @@ A large tail gap may suggest an outlier; a large interior gap usually suggests a
 
 Consider the spacings defined (@sec-gaps) by
 $$
-  d_i = y_{(i + 1)} - y_{(i)}, \qquad i = 1, \dots, n - 1,
+  d_i = y_{(i+1)} - y_{(i)}, \qquad i = 1, \dots, n - 1,
 $$
 where $y_{(1)} \le y_{(2)} \le \cdots \le y_{(n)}$ are the sorted observations.
 
@@ -918,9 +919,9 @@ This illustrates that the method detects separations, not individual anomalous o
 The Tukey--Wainer--Schacht score does not yield a direct $p$-value.
 A related way to construct a formal gap test is to calculate the uniform spacings (see @sec-gaps) of the data after transforming them using the fitted distribution function $F$:
 $$
-  \delta_i = F(y_{(i + 1)}) - F(y_{(i)}), \quad i = 1, \dots, n - 1.
+  \delta_i = F(y_{(i+1)}) - F(y_{(i)}), \quad i = 1, \dots, n - 1.
 $$
-Since the transformed spacings are approximately $\text{Exp}(n + 1)$ (@sec-gaps), and the exponential distribution is in the Gumbel domain of attraction (@sec-evt), then $\delta_{\max} = \max(\delta_1,\dots,\delta_{n - 1})$ satisfies
+Since the transformed spacings are approximately $\text{Exp}(n + 1)$ (@sec-gaps), and the exponential distribution is in the Gumbel domain of attraction (@sec-evt), then $\delta_{\max} = \max(\delta_1,\dots,\delta_{n-1})$ satisfies
 $$
   t = (n + 1)\delta_{\max} - \log(n - 1) \approx \text{Gumbel}(0,1).
 $$

@@ -261,7 +261,7 @@ In this plot, the triangle near the top represents the same feature as the long 
 
 These topological concepts can be used to determine a bandwidth for a kernel density estimate designed for anomaly detection.
 First we construct the barcode of the data cloud for dimension zero using Vietoris-Rips complexes with increasing diameter $\varepsilon$.
-From the barcode we obtain the sequence of death diameters $\{d_i\}_{i = 1}^n$ for the connected components.
+From the barcode we obtain the sequence of death diameters $\{d_i\}_{i=1}^n$ for the connected components.
 
 Consider the example shown in @fig-tdaknn, comprising $n = 1000$ observations where most points lie on an annulus, with a few points near the centre.
 The left panel shows a scatterplot of the data, while the barcodes for the connected components are shown in the centre.
@@ -311,5 +311,5 @@ Thus, it signifies a global structural property of the point cloud, and we want 
 In this example, an appropriate choice would be $\bm{H} = h_*^2\bm{I}$, which ensures that points within a distance of $h_*$ contribute to the kernel density estimate.
 
 From $\bm{Y}^*$, we can compute the Vietoris-Rips death diameters, $d_1,\dots,d_n$.
-These are then ordered to give $d_{(1)},\dots,d_{(n)}$, and we find the largest interval by computing successive differences $\Delta_i = d_{(i + 1)} - d_{(i)}$, for $i = 1,\dots,n - 1$.
+These are then ordered to give $d_{(1)},\dots,d_{(n)}$, and we find the largest interval by computing successive differences $\Delta_i = d_{(i+1)} - d_{(i)}$, for $i = 1,\dots,n - 1$.
 Following @lookout2021, we choose $h_* = d_{(i)}$ to be the diameter corresponding to the largest $\Delta_i$.

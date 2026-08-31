@@ -65,7 +65,7 @@ But in multivariate data, there are several different ways of measuring distance
 Perhaps the most obvious way to define the distance between any two points $\bm{y}_i$ and $\bm{y}_j$ is to measure the length of the straight line between the points.
 This is commonly known as Euclidean distance, named after the famous Greek mathematician Euclid, and can be defined as
 $$
-  \|\bm{y}_i - \bm{y}_j\| = \sqrt{\sum_{k = 1}^m (y_{ik} - y_{jk})^2}.
+  \|\bm{y}_i - \bm{y}_j\| = \sqrt{\sum_{k=1}^m (y_{ik} - y_{jk})^2}.
 $$
 This is also known as the $L_2$ distance.
 For $m = 1$ or $m = 2$, it is the physical distance between the points when plotted on a strip plot or a scatterplot (provided there is no jittering used).
@@ -99,8 +99,8 @@ $$
 where $\bm{m}$ is the pointwise median and $\bm{U}^\intercal\bm{U} = \bm{S}_{\text{MCD}}^{-1}$ is the Cholesky decomposition of the inverse of the robust MCD covariance matrix (@sec-robust-cov).
 Then the Euclidean distance between the scaled observations $\bm{z}_i$ and $\bm{z}_j$ is given by
 $$
-  \|\bm{z}_i
-  - \bm{z}_j\| = \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{U}^\intercal\bm{U} (\bm{y}_i - \bm{y}_j)}
+  \|\bm{z}_i - \bm{z}_j\|
+  = \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{U}^\intercal\bm{U} (\bm{y}_i - \bm{y}_j)}
                           = \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{S}_{\text{MCD}}^{-1} (\bm{y}_i - \bm{y}_j)}.
 $$
 This combination of first scaling using a covariance matrix (or its estimate) and then computing a Euclidean distance, is known as the **Mahalanobis distance**, named after the Indian statistician Prasanta Chandra Mahalanobis.
@@ -133,7 +133,7 @@ That is, it is equivalent to the Euclidean distance of the scaled observation $\
 A large $d_i$ means the observation is far from the centre of the data and is potentially anomalous.
 
 If the data were multivariate Normal, then we would expect the squared $d_i$ distances to follow a chi-squared distribution with $m$ degrees of freedom, where $m$ is the number of variables.
-This provides a natural threshold for flagging anomalies: we can flag $\bm{y}_i$ as an anomaly if $d_i > \sqrt{\chi^2_{m,1 - \alpha}}$, where $\chi^2_{m,1 - \alpha}$ is the $(1 - \alpha)$-quantile of the chi-squared distribution with $m$ degrees of freedom.
+This provides a natural threshold for flagging anomalies: we can flag $\bm{y}_i$ as an anomaly if $d_i > \sqrt{\chi^2_{m,1-\alpha}}$, where $\chi^2_{m,1-\alpha}$ is the $(1 - \alpha)$-quantile of the chi-squared distribution with $m$ degrees of freedom.
 
 We apply this to the Dongsi air quality data, using the scaled data `z` already computed in @sec-distances, and setting $\alpha = 0.001$ (so only 1 in 1000 non-anomalous observations would be expected to exceed the threshold).
 
@@ -194,15 +194,16 @@ Because the initial subset is not anchored to the data centre, this can be more 
 **Step 2: Compute discrepancies**.
 For each observation $\bm{y}_i$, compute the Mahalanobis distance from the basic subset:
 $$
-  d_i(\bar{\bm{y}}_B, \bm{S}_B) = \sqrt{(\bm{y}_i - \bar{\bm{y}}_B)^\intercal \bm{S}_B^{-1} (\bm{y}_i - \bar{\bm{y}}_B)}.
+  d_i(\bar{\bm{y}}_B, \bm{S}_B)
+  = \sqrt{(\bm{y}_i - \bar{\bm{y}}_B)^\intercal \bm{S}_B^{-1} (\bm{y}_i - \bar{\bm{y}}_B)}.
 $$
 
 **Step 3: Expand the basic subset**.
 Update $B$ by admitting every observation with
 $$
-  d_i(\bar{\bm{y}}_B, \bm{S}_B) < c_{nmr}\sqrt{\chi^2_{m,1 - \alpha}},
+  d_i(\bar{\bm{y}}_B, \bm{S}_B) < c_{nmr}\sqrt{\chi^2_{m,1-\alpha}},
 $$
-where $\chi^2_{m,1 - \alpha}$ is the $(1 - \alpha)$-quantile of the chi-squared distribution with $m$ degrees of freedom, and $c_{nmr} = c_{nm} + c_{hr}$ is a correction factor, where
+where $\chi^2_{m,1-\alpha}$ is the $(1 - \alpha)$-quantile of the chi-squared distribution with $m$ degrees of freedom, and $c_{nmr} = c_{nm} + c_{hr}$ is a correction factor, where
 \begin{align*}
   c_{nm} & = 1 + \frac{m + 1}{n - m} + \frac{2}{n - 1 - 3m} \\
   c_{hr} & = \max\{0, (h - r)/(h + r)\},
@@ -447,7 +448,8 @@ An observation will have high average reachability if it is far from its neighbo
 
 Then the local outlier factor for observation $\bm{y}_i$ is given by
 $$
-  \ell_{i,k} = \frac{\bar{r}_{i,k}}{k}\sum_{\bm{y}_j \in N_{i,k}} \bar{r}^{-1}_{j,k}.
+  \ell_{i,k}
+  = \frac{\bar{r}_{i,k}}{k}\sum_{\bm{y}_j \in N_{i,k}} \bar{r}^{-1}_{j,k}.
 $$
 Thus, it is the product of $\bar{r}_{i,k}$ and the average value of $\bar{r}^{-1}_{j,k}$ for points within its neighbourhood.
 
@@ -512,7 +514,8 @@ The "global--local" label reflects the fact that each observation is compared to
 The starting point is the core distance $d_{i,k}$ introduced in @sec-knn-scores --- that is, the distance from $\bm{y}_i$ to its $k$-th nearest neighbour.
 The **mutual reachability distance** between observations $\bm{y}_i$ and $\bm{y}_j$ is a smoothed version of the usual distance:
 $$
-  d_\text{mreach}(\bm{y}_i, \bm{y}_j) = \max(d_{i,k},\, d_{j,k},\, \|\bm{y}_i - \bm{y}_j\|).
+  d_\text{mreach}(\bm{y}_i, \bm{y}_j)
+  = \max(d_{i,k},\, d_{j,k},\, \|\bm{y}_i - \bm{y}_j\|).
 $$
 This is always at least as large as the actual distance between the two points, and it can never fall below the larger of the two core distances.
 The effect is that very close pairs sitting inside a tightly packed region cannot drag the inter-point distance arbitrarily low: their mutual reachability is held up by the local core distance.
@@ -627,7 +630,7 @@ The **path length** $h(\bm{y})$ of an observation $\bm{y}$ is the number of spli
 The path length is therefore inversely related to anomalousness.
 The expected path length is approximately
 $$
-  c(n) = 2\left[\log(n - 1) + \gamma - 1 + 1/n\right],
+  c(n) = 2\left[ \log(n - 1) + \gamma - 1 + 1/n \right],
 $$
 where $\gamma \approx 0.5772$ is Euler's constant.
 Because this is a function of $n$, we cannot directly compare path lengths across data sets of different sizes.

@@ -45,11 +45,10 @@ The standard deviation is the square root of the variance.
 
 The simplest continuous distribution is the **Uniform** distribution, which takes two parameters, $a$ and $b$, and has pdf given by
 $$
-  f(y;a,b) =
-\begin{cases}
-  \frac{1}{b - a} & \text{if } a \le y \le b, \\
-  0               & \text{otherwise}.
-\end{cases}
+  f(y;a,b) = \begin{cases}
+               \frac{1}{b - a} & \text{if } a \le y \le b, \\
+               0               & \text{otherwise}.
+             \end{cases}
 $$
 Thus, it can only take values between $a$ and $b$, and every value in that range is equally likely.
 We refer to a Uniform random variable with parameters $a$ and $b$ as $Y \sim \text{U}(a,b)$.
@@ -73,7 +72,8 @@ The most widely used continuous distribution is the **Normal** distribution, als
 It takes two parameters, the mean $\mu$, and the variance, $\sigma^2$.
 The pdf is given by
 $$
-  f(y; \mu, \sigma^2) = \frac{1}{\sigma\sqrt{2\pi}} \exp\left(-\frac{(y - \mu)^2}{2\sigma^2}\right).
+  f(y; \mu, \sigma^2)
+  = \frac{1}{\sigma\sqrt{2\pi}} \exp\left( -\frac{(y - \mu)^2}{2\sigma^2} \right).
 $$
 We refer to a Normal random variable with mean $\mu$ and variance $\sigma^2$ as $Y \sim \text{N}(\mu, \sigma^2)$.
 When $\mu = 0$ and $\sigma^2 = 1$, we call it the **standard Normal** distribution N(0,1), and denote the pdf as $\phi(y)$ and the cdf as $\Phi(y)$.
@@ -95,9 +95,9 @@ dist_normal(c(0, 0, 1), c(1, 2, 1)) |>
 The $\chi^2$ (or **chi-squared**) distribution takes one parameter, the degrees of freedom $k$.
 The pdf is given by
 $$
-  f_k(y) = \frac{y^{k/2 - 1}e^{-y/2}}{2^{k/2}\Gamma(k/2)},
+  f_k(y) = \frac{y^{k/2-1}e^{-y/2}}{2^{k/2}\Gamma(k/2)},
 $$
-where $\Gamma(u) = \int_0^\infty x^{u - 1}e^{-x}dx$ is the gamma function.
+where $\Gamma(u) = \int_0^\infty x^{u-1}e^{-x}dx$ is the gamma function.
 For positive integers $u$, $\Gamma(u) = (u - 1)!$.
 The $\chi^2$ distribution arises naturally as the sum of the squares of $k$ independent standard Normal random variables.
 We refer to a $\chi^2$ random variable with $k$ degrees of freedom as $Y \sim \chi^2_k$.
@@ -131,7 +131,8 @@ It arises naturally as the ratio $Z/\sqrt{S/k}$, where $Z \sim \text{N}(0,1)$ an
 It takes one parameter, the degrees of freedom $k$.
 The pdf is given by
 $$
-  f_k(y) = \frac{\Gamma\left(\frac{k + 1}{2}\right)}{\sqrt{k\pi}\Gamma\left(\frac{k}{2}\right)} \left(1 + \frac{y^2}{k}\right)^{-\frac{k + 1}{2}}.
+  f_k(y)
+  = \frac{\Gamma\left( \frac{k + 1}{2} \right)}{\sqrt{k\pi}\Gamma\left( \frac{k}{2} \right)} \left( 1 + \frac{y^2}{k} \right)^{-\frac{k+1}{2}}.
 $$
 We refer to a t random variable with $k$ degrees of freedom as $Y \sim \text{t}_k$.
 The t distribution is similar in shape to the standard Normal distribution, but has heavier tails.
@@ -169,7 +170,8 @@ There are several parameterisations.
 Here, we use the shape/rate parameterisation which uses the shape $\alpha$ and the rate $\beta$.
 The pdf is given by
 $$
-  f(y; \alpha, \beta) = \frac{\beta^\alpha}{\Gamma(\alpha)} y^{\alpha - 1}e^{-\beta y}.
+  f(y; \alpha, \beta)
+  = \frac{\beta^\alpha}{\Gamma(\alpha)} y^{\alpha-1}e^{-\beta y}.
 $$
 We refer to a $\Gamma$ random variable with shape $\alpha$ and rate $\beta$ as $Y \sim \Gamma(\alpha, \beta)$.
 The mean and variance of a $\Gamma$ random variable are $\alpha/\beta$ and $\alpha/\beta^2$ respectively.
@@ -264,7 +266,7 @@ There are several variations of the theorem; the simplest version states that th
 
 If $Y_1,\dots,Y_n$ are iid random variables with mean $\mu$ and variance $\sigma^2 < \infty$, then
 $$
-  \frac{\sum_{i = 1}^n Y_i - n\mu}{\sigma\sqrt{n}} \longrightarrow \text{N}(0,1).
+  \frac{\sum_{i=1}^n Y_i - n\mu}{\sigma\sqrt{n}} \longrightarrow \text{N}(0,1).
 $$
 where $\longrightarrow$ denotes convergence in distribution.
 :::
@@ -291,7 +293,7 @@ Similarly, a $\Gamma(\alpha,\beta)$ distribution is approximately Normal for lar
 The **order statistics** of a sample $y_1,\dots,y_n$ are the values rearranged in ascending order, denoted $y_{(1)} \le y_{(2)} \le \cdots \le y_{(n)}$.
 The $i$th **spacing** is the gap between consecutive order statistics,
 $$
-  d_i = y_{(i + 1)} - y_{(i)}, \quad i = 1, \ldots, n - 1.
+  d_i = y_{(i+1)} - y_{(i)}, \quad i = 1, \ldots, n - 1.
 $$ {#eq-spacing}
 
 If the sample is iid from a uniform distribution, then for large $n$ the spacings are approximately iid exponential random variables with mean $1/(n + 1)$, i.e., $\text{Exp}(n + 1)$.
@@ -299,7 +301,7 @@ A spacing substantially larger than $1/(n + 1)$ therefore signals an unusually l
 
 For other non-uniform distributions, raw spacings are difficult to compare across the distribution: where the density is high they tend to be small, and where the density is low they tend to be large.
 To put them on a common scale, we can apply the **probability integral transform** (@sec-pit).
-If the observations are iid from a continuous distribution $F$, then $u_i = F(y_{(i)})$ are distributed as uniform order statistics on $[0,1]$, and the above results apply to the transformed spacings $F(y_{(i + 1)}) - F(y_{(i)})$.
+If the observations are iid from a continuous distribution $F$, then $u_i = F(y_{(i)})$ are distributed as uniform order statistics on $[0,1]$, and the above results apply to the transformed spacings $F(y_{(i+1)}) - F(y_{(i)})$.
 
 Methods based on this idea are discussed in @sec-gap-tests.
 
@@ -397,7 +399,7 @@ Let's compare two of the possible variations available in `quantile()`: `type = 
 The sample quantile $\hat{Q}(p)$ is given by linear interpolation between consecutive order statistics.
 That is, if $k^+ = p(n + 1 - 2a) + a$ for some constant $a$, and $k = \lfloor k^+\rfloor$ is the integer part of $k^+$, then
 $$
-  \hat{Q}(p) = (1 - \gamma) y_{(k)} + \gamma y_{(k + 1)},
+  \hat{Q}(p) = (1 - \gamma) y_{(k)} + \gamma y_{(k+1)},
 $$
 where $\gamma = k^+ - k$ is the remainder.
 Most of the different methods for estimating quantiles differ only in the value of $a$.
@@ -519,7 +521,7 @@ Half of all batters average above `r sprintf("%.2f", quantile(batave$Average, pr
 
 With a large sample size $n$, the sample quantile $\hat{Q}(p)$ has an approximate Normal distribution,
 $$
-  \hat{Q}(p) \approx \text{N}\left(Q(p), \frac{p(1 - p)}{n f^2(Q(p))}\right)
+  \hat{Q}(p) \approx \text{N}\left( Q(p), \frac{p(1 - p)}{n f^2(Q(p))} \right)
 $$ {#eq-sample-quantile-distribution}
 where $f(Q(p)) > 0$ and $f(y)$ is the density of the underlying distribution [@van2000asymptotic, p. 308].
 This is an asymptotic result, which assumes $np$ is large, and holds for all types of sample quantiles.
@@ -691,7 +693,7 @@ Kernel density estimation is the most popular method for nonparametric estimatio
 Suppose we have $n$ univariate observations, $\{y_1,\dots,y_n\}$, which are independent draws from a probability distribution, and we want to estimate the underlying probability density function.
 The kernel density estimate [see @WJ1995] is given by
 $$
-  \hat{f}(y) = \frac{1}{n} \sum_{i = 1}^n K_h(y - y_i),
+  \hat{f}(y) = \frac{1}{n} \sum_{i=1}^n K_h(y - y_i),
 $$ {#eq-kde}
 where $K_h$ is a "kernel" function and $h$ is a bandwidth to be determined.
 We will use kernel functions that are themselves probability density functions with mean 0 and standard deviation $h$.
@@ -849,24 +851,24 @@ The statistical properties of the kernel density estimator (@eq-kde) have been e
 
 An important asymptotic result is that the mean square error (MSE) of $\hat{f}(y)$ is
 $$
-  \text{E}\left[(\hat{f}(y) - f(y))^2\right] \approx \frac{1}{4}h^4[f''(y)]^2
-                                                     + \frac{f(y)R(K)}{nh},
+  \text{E}\left[ (\hat{f}(y) - f(y))^2 \right] \approx \frac{1}{4}h^4[f''(y)]^2
+                                                       + \frac{f(y)R(K)}{nh},
 $$ {#eq-mse}
 where $R(K) = \int K^2(u)du$ is the "roughness" of the kernel function.
 An estimator is "consistent" if the MSE goes to zero as the sample size $n$ goes to infinity.
 So @eq-kde gives a consistent estimator of the underlying density $f$ when both terms in @eq-mse go to zero.
 That is,
 $$
-  \lim_{n \rightarrow \infty} h = 0 \qquad\text{and}\qquad \lim_{n \rightarrow \infty} nh
-                                = \infty,
+  \lim_{n \rightarrow \infty} h
+  = 0 \qquad\text{and}\qquad \lim_{n \rightarrow \infty} nh = \infty,
 $$ {#eq-asymptotickde}
 and so $h$ should decrease slowly as $n$ increases.
 Note that these conditions hold for @eq-rnrr.
 
 If we integrate the MSE given by @eq-mse over $y$ (assuming $f$ is sufficiently smooth for the integral to exist), we obtain the mean integrated squared error (MISE) given by
 $$
-  \int \text{E}\left[(\hat{f}(y) - f(y))^2\right] dy \approx \frac{1}{4}h^4R(f'')
-                                                             + \frac{R(K)}{nh},
+  \int \text{E}\left[ (\hat{f}(y) - f(y))^2 \right] dy
+  \approx \frac{1}{4}h^4R(f'') + \frac{R(K)}{nh},
 $$ {#eq-mise}
 where $R(f'') = \int [f''(y)]^2 dy$ is the roughness of the second derivative of the underlying density.
 This gives us the average squared error over the whole range of $y$.
@@ -876,7 +878,7 @@ This gives us the average squared error over the whole range of $y$.
 The optimal overall bandwidth is obtained by minimising the MISE.
 This can be calculated by differentiating @eq-mise with respect to $h$ and setting the derivative to zero, yielding
 $$
-  h = \left(\frac{R(K)}{R(f'')n}\right)^{1/5}.
+  h = \left( \frac{R(K)}{R(f'')n} \right)^{1/5}.
 $$ {#eq-opth}
 So the optimal $h$ is proportional to $n^{-1/5}$, which clearly satisfies the conditions given by @eq-asymptotickde.
 
@@ -884,7 +886,7 @@ However, this value of $h$ depends on the underlying density $f$ which we don't 
 If $f$ is a Normal density with variance $\sigma^2$, then $R(f) = \frac{1}{2\sqrt{\pi}}\sigma^{-1}$ and $R(f'') = \frac{3}{8\sqrt{\pi}}\sigma^{-5}$.
 So if we use a Gaussian kernel, and assume the underlying density has the same roughness as a Normal density, we obtain
 $$
-  h = \sigma \left(\frac{4}{3n}\right)^{1/5}.
+  h = \sigma \left( \frac{4}{3n} \right)^{1/5}.
 $$ {#eq-opth2}
 Replacing $\sigma$ by the sample standard deviation gives us the normal reference rule @eq-nrr.
 When $\sigma$ is replaced the robust estimate $Q_n$, we obtain the robust normal reference rule @eq-rnrr.
@@ -906,7 +908,7 @@ Our goal is to find anomalies in the data, rather than find a good representatio
 
 If we optimized MSE (@eq-mse) rather than MISE (@eq-mise), we would obtain
 $$
-  h = \left(\frac{f(y)R(K)}{n[f''(y)]^2}\right)^{1/5}.
+  h = \left( \frac{f(y)R(K)}{n[f''(y)]^2} \right)^{1/5}.
 $$
 This shows that larger bandwidths are required when $f(y)/[f''(y)]^2$ is relatively large, which often occurs in the extreme tails of a distribution.
 So bandwidths for anomaly detection tend to be larger than bandwidths for other purposes.
@@ -951,7 +953,7 @@ of_density |>
 Extreme Value Theory is used to model rare, extreme events and is useful in anomaly detection.
 Suppose we have $n$ independent and identically distributed random variables $Y_1, \dots, Y_n$ with a cdf $F(y) = \Pr(Y \le y)$.
 Then the maximum of these $n$ random variables is $M_n = \max \{Y_1, \dots, Y_n\}$.
-If $F$ is known, the cdf of $M_n$ is given by $\Pr(M_n \le z) = \Pr(Y_1 \le z, \dots, Y_n \le z) = \left(F(z)\right)^n$.
+If $F$ is known, the cdf of $M_n$ is given by $\Pr(M_n \le z) = \Pr(Y_1 \le z, \dots, Y_n \le z) = \left( F(z) \right)^n$.
 However, $F$ is often not known in practice.
 This gap is filled by Extreme Value Theory, which studies approximate families of models for $F^n$ so that extremes can be modeled and their uncertainty quantified.
 
@@ -997,7 +999,8 @@ If we take the negative of the random variables $Y_1,\dots,Y_n$, it becomes clea
 
 These three families of distributions can be further combined into a single family by using the following cdf known as the Generalised Extreme Value (GEV) distribution,
 $$
-  G(z) = \exp\left\{ - \left[ 1 + \xi\Big(\frac{z - \mu_G}{\sigma_G} \Big)\right]^{-1/\xi} \right\},
+  G(z)
+  = \exp\left\{ -\left[ 1 + \xi\Big(\frac{z - \mu_G}{\sigma_G} \Big) \right]^{-1/\xi} \right\},
 $$ {#eq-EVT4}
 where the domain of the function is $\{z: 1 + \xi (z - \mu_G)/\sigma_G > 0 \}$.
 The location parameter is $\mu_G \in \mathbb{R}$, $\sigma_G > 0$ is the scale parameter, while $\xi \in \mathbb{R}$ is the shape parameter.
@@ -1011,7 +1014,7 @@ $$
 $$
 so the density of the maximum is given by
 $$
-  f(z) = n \left[ \Phi(z) \right]^{n - 1} \phi(z).
+  f(z) = n \left[ \Phi(z) \right]^{n-1} \phi(z).
 $$ {#eq-maxn01}
 
 According to the FTG theorem, the distribution of the maximum can be approximated by a Gumbel distribution.
@@ -1049,7 +1052,7 @@ c(
 The Peaks Over Threshold (POT) approach regards extremes as observations greater than a threshold $u$.
 The probability distribution of *exceedances* above a specified threshold $u$ can be expressed as the conditional distribution
 $$
-  H(y) = \Pr\left \{Y \le u + y \mid Y > u \right \}
+  H(y) = \Pr\left\{ Y \le u + y \mid Y > u \right\}
        = \frac{F(u + y) - F(u)}{1 - F(u)}.
 $$ {#eq-POT3}
 When the distribution $F$ satisfies the FTG theorem, then [@coles2001introduction, p. 75] $H$ is well-approximated by a **Generalised Pareto Distribution** (GPD) defined by
@@ -1099,6 +1102,6 @@ The GEV (blue) estimate is better because it is based on more information (2000 
 
 Another important result from EVT is Weissman's spacing theorem [@Weissman1978], which states that the spacings between the largest observations often behave asymptotically like independent exponential random variables.
 
-Specifically, let $D_k = Y_{(k + 1)} - Y_{(k)}$ denote the spacing between successive order statistics.
-If $F$ is in the domain of attraction of the Gumbel distribution, then, for fixed $r$, the upper spacings $D_{n - 1}, D_{n - 2}, \dots, D_{n - r}$ are asymptotically independent and approximately exponentially distributed, with $D_{k}$ having mean $b_n/(n - k)$.
+Specifically, let $D_k = Y_{(k+1)} - Y_{(k)}$ denote the spacing between successive order statistics.
+If $F$ is in the domain of attraction of the Gumbel distribution, then, for fixed $r$, the upper spacings $D_{n-1}, D_{n-2}, \dots, D_{n-r}$ are asymptotically independent and approximately exponentially distributed, with $D_{k}$ having mean $b_n/(n - k)$.
 (Here $b_n$ is the same scaling constant that was used in the FTG theorem.)

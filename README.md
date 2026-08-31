@@ -4,7 +4,8 @@
 
 ## Building the book
 
-R package dependencies are managed with [uvr](https://github.com/nbafrank/uvr), a fast package manager for R. Install it, then set up the project environment:
+R package dependencies are managed with [uvr](https://github.com/nbafrank/uvr), a fast package manager for R.
+Install it, then set up the project environment:
 
 ```bash
 uvr sync

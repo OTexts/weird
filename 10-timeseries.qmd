@@ -188,12 +188,12 @@ The Hampel identifier is due to a proposal of Frank Hampel [@Davies1993], and is
 Suppose we define neighbourhoods comprising observations within $h$ time periods.
 Then the local median is given by
 $$
-  m_t = \text{median}(y_{t - h}, \dots, y_{t + h}).
+  m_t = \text{median}(y_{t-h}, \dots, y_{t+h}).
 $$
 This is also called a "moving median", a "running median" or a "rolling median".
 Similarly, the local median absolute deviation (MAD) is given by
 $$
-  a_t = \text{median}(|y_{t - h} - m_t|, \dots, |y_{t + h} - m_t|).
+  a_t = \text{median}(|y_{t-h} - m_t|, \dots, |y_{t+h} - m_t|).
 $$
 This measures the variation of the series in the neighbourhood of time $t$.
 The residuals $e_t = (y_t - m_t)/a_t$ provide a measure for how different an observation $y_t$ is from its neighbours.
@@ -697,18 +697,18 @@ Statistical forecasting models provide forecasts in the form of probability dist
 Let $y_t$ denote the observation of a time series at time $t$.
 Then a forecast can be expressed as a conditional distribution
 $$
-  f(y_{t + h} \mid y_1, \dots, y_{t}, \bm{x}_t),
+  f(y_{t+h} \mid y_1, \dots, y_{t}, \bm{x}_t),
 $$
 where $y_1,\dots,y_t$ denotes the observed history of the series, and $\bm{x}_t$ contains any other information available at time $t$ that is used in the model.
 The forecast "horizon" is given by $h$, denoting the number of time periods into the future that we wish to forecast.
 Different forecasting methods use different conditioning information, and result in a different form of the forecast distribution.
 See @fpp3 for a detailed discussion of forecasting methods.
 
-Once we observe the value of $y_{t + h}$, we can calculate the corresponding surprisal probability in the same way as we discussed in @sec-surprisal-probabilities.
-Because we are interested in real-time surveillance, we need only consider the one-step-ahead forecast density, $f(y_{t + 1} \mid y_1, \dots, y_{t})$.
+Once we observe the value of $y_{t+h}$, we can calculate the corresponding surprisal probability in the same way as we discussed in @sec-surprisal-probabilities.
+Because we are interested in real-time surveillance, we need only consider the one-step-ahead forecast density, $f(y_{t+1} \mid y_1, \dots, y_{t})$.
 We can then calculate the surprisal as
 $$
-  s_{t + 1} = -\log f(y_{t + 1} \mid y_1, \dots, y_{t}, \bm{x}_t).
+  s_{t+1} = -\log f(y_{t+1} \mid y_1, \dots, y_{t}, \bm{x}_t).
 $$
 This needs to be done iteratively for each time period, updating the model as new data becomes available.
 Since we need some observations with which to fit a model, we can't begin the process at time $t = 1$.
@@ -722,8 +722,8 @@ Let $y_{i,t}$ denote the observation of the $i$th series at time $t$.
 
 For each $t = I,I + 1,\dots$, and for all series $i = 1,\dots,M$:
 
-- Fit a time series model to the series $y_{i,1},\dots,y_{i,t}$, and estimate the one-step forecast density, $f_{i,t + 1}(y \mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$.
-- Compute the surprisal: $s_{i,t + 1} = -\log f_{i,t + 1}(y_{i,t + 1} \mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$, and the surprisal probabilities: $\Pr(S > s_{i,t + 1})$.
+- Fit a time series model to the series $y_{i,1},\dots,y_{i,t}$, and estimate the one-step forecast density, $f_{i,t+1}(y \mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$.
+- Compute the surprisal: $s_{i,t+1} = -\log f_{i,t+1}(y_{i,t+1} \mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$, and the surprisal probabilities: $\Pr(S > s_{i,t+1})$.
 
 ### A first iteration
 

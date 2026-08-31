@@ -20,14 +20,12 @@ Readers who have not previously studied matrix algebra are recommended to do som
 
 A **vector** is a column of numbers, which we write as
 $$
-  \bm{v} =
-\begin{bmatrix}
-  v_1 \\
-  v_2 \\
-  \vdots \\
-  v_n
-\end{bmatrix}
-  .
+  \bm{v} = \begin{bmatrix}
+             v_1 \\
+             v_2 \\
+             \vdots \\
+             v_n
+           \end{bmatrix} .
 $$
 The number of entries $n$ is its **dimension**.
 Geometrically, we can picture a vector as a point in $n$-dimensional space, or equivalently as an arrow from the origin to that point.
@@ -66,7 +64,7 @@ Two matrices $\bm{A}$ and $\bm{B}$ can be added together if they are of the same
 A matrix can also be multiplied by another matrix if the number of columns of $\bm{A}$ matches the number of rows of $\bm{B}$.
 If $\bm{A}$ is an $m \times p$ matrix and $\bm{B}$ is a $p \times n$ matrix, the product $\bm{A}\bm{B}$ is the $m \times n$ matrix with $(i,j)$th element given by
 $$
-  (\bm{A}\bm{B})_{ij} = \sum_{k = 1}^p a_{ik} b_{kj}.
+  (\bm{A}\bm{B})_{ij} = \sum_{k=1}^p a_{ik} b_{kj}.
 $$
 
 In R, matrix multiplication uses the `%*%` operator; the ordinary `*` operator instead multiplies matrices element by element, which is a different operation.
@@ -250,7 +248,7 @@ $$
 where $a_{ij}$ is the element in row $i$ and column $j$.
 For larger matrices, the formula is usually computed recursively using the Laplace expansion: for any choice of row $i$,
 $$
-  |\bm{A}| = \sum_{j = 1}^n (-1)^{i + j} a_{ij} |\bm{A}_{ij}|,
+  |\bm{A}| = \sum_{j=1}^n (-1)^{i+j} a_{ij} |\bm{A}_{ij}|,
 $$
 where $\bm{A}_{ij}$ is the matrix obtained by deleting the $i$th row and $j$th column of $\bm{A}$.
 
