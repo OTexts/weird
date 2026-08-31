@@ -395,10 +395,9 @@ This agreement across methods, and with the time series analysis of @sec-weird-t
 ## Functional bagplot {#sec-functional-bagplot}
 
 A boxplot summarises a univariate sample using a central box and whiskers, with points beyond the whiskers flagged as outliers.
-Three different ways of extending this idea to functional data are described over the next three sections.
+Several different ways of extending this idea to functional data are described over the sections that follow.
 The functional bagplot and the functional HDR boxplot, covered in this section and the next, were proposed by @HS08 [@rainbow].
 They follow a similar approach: reduce each curve to its first two functional principal component scores (@sec-basis-functions), draw the bivariate bagplot or HDR boxplot of those scores, and then map the boundary of the resulting central region back through the principal component basis to obtain an envelope of curves.
-A third approach, the functional depth boxplot (@sec-functional-depth), instead works directly with the modified band depth of the curves, without going through a low-dimensional projection first.
 
 For the two PCA-based versions, we need a way to turn a point $(\beta_1, \beta_2)$ in principal component score space back into a curve.
 Using the notation of @sec-basis-functions, this is just
@@ -441,9 +440,10 @@ The following code identifies the curves contained in the bag and the loop, and 
 
 reconstruct_curve <- function(s1, s2, pca) {
   p <- length(pca$center)
-  matrix(pca$center, nrow = length(s1), ncol = p, byrow = TRUE) +
+  logm <- matrix(pca$center, nrow = length(s1), ncol = p, byrow = TRUE) +
     outer(s1, pca$rotation[, 1]) +
     outer(s2, pca$rotation[, 2])
+  exp(logm) # Reverse log transform used before PCA
 }
 envelope <- function(hull, age, pca) {
   curves <- reconstruct_curve(hull[, 1], hull[, 2], pca)
@@ -454,11 +454,10 @@ bag_env <- envelope(bag$hull.bag, age, pca)
 loop_env <- envelope(bag$hull.loop, age, pca)
 center_curve <- tibble(
   Age = age,
-  logmx = as.numeric(reconstruct_curve(bag$center[1], bag$center[2], pca))
+  Mortality = as.numeric(reconstruct_curve(bag$center[1], bag$center[2], pca))
 )
 outlier_curves <- fr_male |>
-  filter(Year %in% bagplot_outliers$Year) |>
-  mutate(logmx = log(Mortality))
+  filter(Year %in% bagplot_outliers$Year)
 bag_colors <- weird:::hdr_palette(color = "#00659e", prob = c(0.5, 0.99))
 ggplot() +
   geom_ribbon(
@@ -473,14 +472,18 @@ ggplot() +
   ) +
   geom_line(
     data = center_curve,
-    aes(x = Age, y = logmx),
+    aes(x = Age, y = Mortality),
     colour = bag_colors[1]
   ) +
   geom_line(
     data = outlier_curves,
-    aes(x = Age, y = logmx, group = Year, colour = factor(Year))
+    aes(x = Age, y = Mortality, group = Year, colour = factor(Year))
   ) +
-  labs(y = "Log mortality rate", colour = "Outlier year")
+  scale_y_log10(
+    breaks = 10^(-(0:4)),
+    labels = format(10^(-(0:4)), scientific = FALSE)
+  ) +
+  labs(y = "Mortality rate", colour = "Outlier year")
 ```
 
 @fig-fbagplot flags `r english::words(nrow(bagplot_outliers))` years as functional bagplot outliers: `r format_years(bagplot_outliers$Year)`.
