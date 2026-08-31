@@ -519,7 +519,11 @@ pca_scores <- pca_scores |>
 hdr_outliers <- pca_scores |> filter(hdr_region == "outlier")
 pca_scores |>
   gg_hdrboxplot(PC1, PC2, prob = c(0.5, 0.93), method = "scv") +
-  geom_point(data = hdr_outliers, aes(x = PC1, y = PC2, colour = factor(Year)), size = 2) +
+  geom_point(
+    data = hdr_outliers,
+    aes(x = PC1, y = PC2, colour = factor(Year)),
+    size = 2
+  ) +
   labs(colour = "Outlier year") +
   guides(colour = "legend")
 ```
@@ -532,8 +536,10 @@ All but one of the `r english::words(nrow(hdr_outliers))` years flagged as outli
 #| include: false
 
 stopifnot(
-  "the 'previously identified' claim above no longer matches hdr_outliers -- update the text" =
-    setequal(setdiff(hdr_outliers$Year, union(o3_years, bagplot_outliers$Year)), 1855)
+  "the 'previously identified' claim above no longer matches hdr_outliers -- update the text" = setequal(
+    setdiff(hdr_outliers$Year, union(o3_years, bagplot_outliers$Year)),
+    1855
+  )
 )
 ```
 
@@ -583,8 +589,7 @@ hdr93_env <- piece_envelopes(
   pca
 )
 outlier_curves <- fr_male |>
-  filter(Year %in% hdr_outliers$Year) |>
-  mutate(logmx = log(Mortality))
+  filter(Year %in% hdr_outliers$Year)
 ggplot() +
   geom_ribbon(
     data = hdr93_env,
@@ -598,9 +603,13 @@ ggplot() +
   ) +
   geom_line(
     data = outlier_curves,
-    aes(x = Age, y = logmx, group = Year, colour = factor(Year))
+    aes(x = Age, y = Mortality, group = Year, colour = factor(Year))
   ) +
-  labs(y = "Log mortality rate", colour = "Outlier year")
+  scale_y_log10(
+    breaks = 10^(-(0:4)),
+    labels = format(10^(-(0:4)), scientific = FALSE)
+  ) +
+  labs(y = "Mortality rate", colour = "Outlier year")
 ```
 
 The bulk of the curves fall into two distinct clusters, corresponding to before and after the end of World War II.
