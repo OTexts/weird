@@ -79,7 +79,8 @@ In the following code, we use a smoothing method proposed by @HU07, which takes 
 library(vital)
 fr_smooth <- fr_male |>
   as_vital(index = Year, key = Age, .age = "Age") |>
-  smooth_mortality(Mortality, k = 21)
+  smooth_mortality(Mortality, k = 21) |>
+  as_tibble()
 ```
 
 @fig-fr-smooth shows the resulting smooth curve for one year along with the original data, while @fig-fr-smooth2 shows the smooth curves for all years.
@@ -172,7 +173,6 @@ In the following example, we find the first few principal components (empirical 
 
 # Wide version of smoothed log Mortality with ages on columns
 frmort_wide <- fr_smooth |>
-  as_tibble() |>
   mutate(logmx = log(.smooth)) |>
   select(Year, Age, logmx) |>
   tidyr::pivot_wider(
@@ -452,7 +452,7 @@ envelope <- function(hull, age, pca) {
 age <- as.numeric(gsub("Age", "", rownames(pca$rotation)))
 bag_env <- envelope(bag$hull.bag, age, pca)
 loop_env <- envelope(bag$hull.loop, age, pca)
-center_curve <- tibble(
+centre_curve <- tibble(
   Age = age,
   Mortality = as.numeric(reconstruct_curve(bag$center[1], bag$center[2], pca))
 )
@@ -471,7 +471,7 @@ ggplot() +
     fill = bag_colors[2]
   ) +
   geom_line(
-    data = center_curve,
+    data = centre_curve,
     aes(x = Age, y = Mortality),
     colour = bag_colors[1]
   ) +
@@ -629,6 +629,7 @@ Looking at @fig-fr-mortality, we would expect that some of the most recent years
 
 Because the exact band depth is expensive to compute for anything beyond a handful of curves, in practice it is usually replaced by the more tractable modified band depth (MBD), which instead measures the proportion of the domain $x$ over which $y_i(x)$ lies within each band, averaged over all bands [@LopezPintado2009].
 MBD is available in the `roahd` package.
+This package uses the `fData` class to represent functional data, so first we need to construct an `fData` object from the smoothed French male mortality curves.
 
 ```{r}
 #| label: fdata-build
@@ -660,7 +661,8 @@ stopifnot(identical(shallow_1800s, c(1854L, 1870L, 1871L)))
 ```
 
 Ranking curves by MBD alone identifies the years whose entire trajectory lies furthest from the bulk of the sample: the shallowest curves are `r format_years(shallow_years)`.
-The `r english::words(length(shallow_years) - length(shallow_1800s))` most recent of these have mortality lower at almost every age than in any other year, while the `r english::words(length(shallow_1800s))` from the 1800s are shallow for the opposite reason --- their mortality is distinctly higher than in surrounding years at almost every age, corresponding to the 1854 cholera outbreak, the 1870 Franco-Prussian war and the 1871 Repression of the 'Commune de Paris'.
+The `r english::words(length(shallow_years) - length(shallow_1800s))` most recent of these have mortality lower at almost every age than in any other year, while the `r english::words(length(shallow_1800s))` from the 1800s are shallow for the opposite reason --- their mortality is distinctly higher than in surrounding years at almost every age.
+These earlier shallow years correspond to the 1854 cholera outbreak, the 1870 Franco-Prussian war and the 1871 Repression of the 'Commune de Paris'.
 
 This illustrates an important feature of depth-based ranking: it can fail to distinguish between curves that are unusual due to location and those that are unusual due to shape.
 Because French mortality has fallen more or less steadily across the study period, the most recent curves sit at one edge of the whole 184-year sample and are therefore the least "enveloped" by the rest, even though their shape is not unusual.
@@ -668,8 +670,8 @@ On the other hand, the 1854, 1870 and 1871 curves are unusual in shape, but they
 
 ## Sun--Genton functional boxplot {#sec-sungenton-boxplot}
 
-The Sun--Genton functional boxplot [@Sun2011] works directly with the smoothed curves, using the modified band depth introduced in @sec-functional-depth.
-The central region is formed from the 50% deepest curves (those with MBD at or above the median), and a curve is flagged as an outlier if, at any age, it leaves a fence formed by inflating this region by a multiple of 1.5 of its own range.
+The Sun--Genton functional boxplot [@Sun2011] works directly with the (possibly smoothed) curves, using the modified band depth introduced in @sec-functional-depth.
+The central region is formed from the 50% deepest curves (those with MBD at or above the median), and a curve is flagged as an outlier if, at any age, it leaves a fence formed by inflating this central region by a multiple of 1.5 of its own range.
 @fig-fbplot-sungenton shows the resulting functional boxplot for the French male mortality curves.
 An alternative implementation of the Sun--Genton functional boxplot is available in the `roahd` package, via `roahd::fbplot()`.
 
@@ -679,14 +681,12 @@ An alternative implementation of the Sun--Genton functional boxplot is available
 #| fig-cap: Sun--Genton functional boxplot of the smoothed French male mortality curves.
 #|   The dark band shows the central 50% region, the light band the envelope of the curves not flagged as outliers; the solid curve is the deepest (most central) curve; the raw curves for the flagged outlier years are overlaid.
 
-central_years <- depth_tbl$Year[depth_tbl$MBD >= quantile(depth_tbl$MBD, 0.5)]
-center_year <- depth_tbl$Year[which.max(depth_tbl$MBD)]
-
-fr_smooth_tbl <- fr_smooth |> as_tibble()
+central_years <- depth_tbl$Year[depth_tbl$MBD >= median(depth_tbl$MBD)]
+centre_year <- depth_tbl$Year[which.max(depth_tbl$MBD)]
 
 # The fence is a linear inflation of the central region's width, so it must be
 # computed on the log scale on which MBD itself was computed.
-central_env <- fr_smooth_tbl |>
+central_env <- fr_smooth |>
   filter(Year %in% central_years) |>
   summarise(cmin = min(log(.smooth)), cmax = max(log(.smooth)), .by = Age) |>
   mutate(
@@ -694,7 +694,7 @@ central_env <- fr_smooth_tbl |>
     fupper = cmax + 1.5 * (cmax - cmin)
   )
 
-outlier_years <- fr_smooth_tbl |>
+outlier_years <- fr_smooth |>
   mutate(loglog = log(.smooth)) |>
   left_join(central_env, by = "Age") |>
   filter(loglog < flower | loglog > fupper) |>
@@ -703,7 +703,7 @@ outlier_years <- fr_smooth_tbl |>
 
 # Envelopes are just pointwise min/max, so these can be taken directly on the
 # mortality rate, with the plot itself put on a log scale.
-fb_env <- fr_smooth_tbl |>
+fb_env <- fr_smooth |>
   summarise(
     cmin = min(.smooth[Year %in% central_years]),
     cmax = max(.smooth[Year %in% central_years]),
@@ -724,12 +724,12 @@ ggplot() +
     fill = bag_colors[2]
   ) +
   geom_line(
-    data = fr_smooth_tbl |> filter(Year == center_year),
+    data = fr_smooth |> filter(Year == centre_year),
     aes(x = Age, y = .smooth),
     colour = bag_colors[1]
   ) +
   geom_line(
-    data = fr_smooth_tbl |> filter(Year %in% outlier_years),
+    data = fr_smooth |> filter(Year %in% outlier_years),
     aes(x = Age, y = .smooth, group = Year, colour = factor(Year))
   ) +
   scale_y_log10(
