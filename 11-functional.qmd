@@ -827,3 +827,60 @@ mei_tbl |>
 These were in the middle of World War II, and are the years where the age profile changes shape most --- mortality rises sharply for young men while barely moving for children or the elderly --- rather than merely shifting up or down as a whole.
 The default fence used here is deliberately conservative (the same 1.5 factor used for the whisker length of an ordinary boxplot), so the outliergram flags far fewer years than the bagplot or HDR boxplot; it is best thought of as a strict test for shape, rather than a general-purpose anomaly detector.
 Unlike the depth boxplot fence of @fig-fbplot-sungenton, none of the low-mortality recent years are flagged, because their low MBD is entirely explained by their extreme MEI --- they sit at one end of the rank ordering, but they do not deviate from the shape that curves at that end of the ranking are expected to have.
+
+## Magnitude-shape plot {#sec-ms-plot}
+
+A second way to separate magnitude and shape effects is the magnitude-shape plot of @Dai2018.
+For each curve, and at each point $x$ on the grid, they compute a *directional outlyingness*: a signed measure of how far, and in which direction, the curve departs from the centre of the distribution of values at that $x$.
+Averaging this quantity over the domain gives a magnitude score (MO) for each curve --- large when a curve sits consistently on one side of the bulk of the data.
+The variation of the directional outlyingness over the domain gives a separate shape score (VO) --- large when a curve's departure from the centre changes direction or size as $x$ varies, which happens when a curve crosses others or has an unusual local pattern, even if its overall MO is modest.
+Plotting VO against MO for every curve gives the magnitude-shape plot; @Dai2018 then flag outliers using a robust distance in this two-dimensional (MO, VO) space, with a finite-sample correction due to @Hardin2005.
+
+These calculations are implemented in the `fdaoutlier` package, which we use here.
+
+```{r}
+#| label: fig-ms-plot
+#| dependson: fdata-build
+#| code-fold: true
+#| fig-cap: Magnitude-shape plot of the smoothed French male mortality curves.
+#|   Years flagged as outliers are shown in red.
+
+ms <- fdaoutlier::msplot(as.matrix(frmort_wide[, -1]), seed = 1, plot = FALSE)
+ms_tbl <- tibble(
+  Year = frmort_wide$Year,
+  MO = ms$mean_outlyingness,
+  VO = ms$var_outlyingness
+)
+ms_outliers <- ms_tbl |> slice(ms$outliers)
+
+ms_tbl |>
+  ggplot(aes(x = MO, y = VO)) +
+  geom_point() +
+  geom_point(data = ms_outliers, colour = "red")
+```
+
+```{r}
+#| label: ms-plot-groups
+#| dependson: fig-ms-plot
+#| echo: false
+
+ms_recent <- ms_outliers |> filter(Year >= 1946) |> pull(Year) |> sort()
+ms_early <- ms_outliers |> filter(Year < 1946) |> pull(Year) |> sort()
+```
+
+@fig-ms-plot flags `r english::words(nrow(ms_outliers))` years as outliers, far more than either the outliergram or the depth boxplot.
+Almost all of these, `r format_years(ms_recent)`, are years from `r min(ms_recent)` onwards --- every year after World War II.
+The remainder, `r format_years(ms_early)`, are war and conflict years already familiar from earlier sections.
+So the magnitude-shape plot re-discovers the same problem as the Sun--Genton functional boxplot of @sec-sungenton-boxplot: because mortality has fallen steadily across the study period, every sufficiently recent curve has a large, consistently-signed directional outlyingness relative to the whole sample, driving up its MO score regardless of whether anything unusual happened in that year.
+Two conceptually different methods --- one based on band depth, one on directional outlyingness --- fail here for the same underlying reason: magnitude-based measures cannot cope with trending data, regardless of implementation.
+
+## Summary {#sec-functional-summary}
+
+We have applied six different methods to the same French male mortality data in this chapter, and they do not all agree, because they are not all measuring the same thing.
+Reducing each curve to its first two or three principal component scores, and then applying surprisal probabilities, the O3 plot, the bagplot, or the HDR boxplot, all give a similar answer: the war years and a handful of other historical crises are flagged as anomalies, because these methods retain the specific age-pattern of a curve while discarding most of its whole-of-sample trend.
+Working directly with the curves via band depth or directional outlyingness gives a different answer, because these magnitude-based measures cannot distinguish a curve that is genuinely unusual in shape from one that sits at the end of a long, gradual trend; on this data, that confounding is severe enough that both the Sun--Genton depth boxplot and the magnitude-shape plot flag most of the twentieth century as anomalous.
+The outliergram sits in between, using the same band depth but comparing it against a curve's rank (via MEI) rather than its raw value, which lets it isolate genuine shape anomalies and, on this data, recovers a conservative version of the same war years found by the PCA-based methods.
+
+No single method here is more "correct" than the others.
+Trend is common in real functional data, and whether it should be treated as the expected background against which anomalies are judged, as the PCA- and shape-based methods effectively do here, or as something that can itself produce anomalies, is a modelling choice, not a purely statistical one.
+In practice, applying more than one method, as we have done here, and using the disagreements between them to understand *why* particular curves are flagged is more informative than relying on any single number to decide what counts as anomalous.
