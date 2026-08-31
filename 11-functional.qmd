@@ -763,3 +763,67 @@ The functional bagplot and HDR boxplot do not share the problem of trend, becaus
 
 While the Sun--Genton functional boxplot did not do well in this example, it can still be a useful tool for identifying unusual curves in other contexts, especially where the first two principal component scores do not capture the most interesting variation in the data.
 The next two sections look at ways of separating genuine shape anomalies from the kind of trend-driven magnitude effect that misled the depth boxplot here.
+
+## Outliergram {#sec-outliergram}
+
+The modified band depth used above conflates two different reasons a curve can be unusual: it might have a genuinely atypical *shape*, or it might sit at one extreme of the bulk of the data, and so be poorly enveloped by the rest of the sample.
+The outliergram of @Arribas-Gil2014-ll separates these two effects by comparing MBD against a second measure, the modified epigraph index (MEI) of @LopezPintadoRomo2011.
+
+Whereas MBD measures how often a curve is enveloped by bands formed from pairs of other curves, MEI measures a curve's rank position: it is close to 1 for a curve lying below almost every other curve across almost the whole domain, close to 0 for a curve lying above almost every other curve, and around 0.5 for a curve in the middle of the pack.
+So MEI captures a curve's overall level relative to the rest of the sample, in much the same way that the first principal component score did in @sec-functional-pca, while MBD captures how well-enveloped it is.
+
+For most collections of curves, curves with an extreme MEI (very close to 0 or 1) are, by virtue of sitting near the edge of the sample, poorly enveloped and so also have somewhat low MBD.
+In fact, there is a well-defined upper bound on MBD as a function of MEI, tracing out a parabola.
+A curve with an unusual shape stands out from this pattern: its MBD falls noticeably *below* the parabola for its MEI value, meaning it is even less enveloped than curves with a similar rank would typically be.
+The outliergram plots MEI against MBD along with this parabola, and flags as shape outliers those curves whose vertical distance below the parabola exceeds a boxplot-style fence (the third quartile of these distances, plus 1.5 times their interquartile range, by default).
+
+```{r}
+#| label: fig-outliergram
+#| dependson: fdata-build
+#| code-fold: true
+#| fig-cap: Outliergram of the smoothed French male mortality curves.
+#|   The dashed curve is the theoretical MBD/MEI parabola; the dotted curve is the outlier fence; years beyond the fence are shown in red.
+
+n_years <- nrow(frmort_wide)
+mei_tbl <- tibble(
+  Year = frmort_wide$Year,
+  MEI = MEI(fr_fd),
+  MBD = MBD(fr_fd)
+)
+og <- outliergram(
+  fr_fd,
+  MBD_data = mei_tbl$MBD,
+  MEI_data = mei_tbl$MEI,
+  display = FALSE
+)
+og_outliers <- mei_tbl |> slice(og$ID_outliers)
+
+a0 <- -2 / (n_years * (n_years - 1))
+a1 <- 2 * (n_years + 1) / (n_years - 1)
+a2 <- n_years^2 * a0
+fence <- quantile(og$d, 0.75) + og$Fvalue * IQR(og$d)
+parabola <- tibble(MEI = seq(0, 1, length.out = 100)) |>
+  mutate(MBD = a0 + a1 * MEI + a2 * MEI^2, fence = MBD - fence)
+
+mei_tbl |>
+  ggplot(aes(x = MEI, y = MBD)) +
+  geom_line(data = parabola, linetype = "dashed", colour = "grey50") +
+  geom_line(
+    data = parabola,
+    aes(y = fence),
+    linetype = "dotted",
+    colour = "grey50"
+  ) +
+  geom_point() +
+  geom_point(data = og_outliers, colour = "red") +
+  ggrepel::geom_label_repel(
+    data = og_outliers,
+    aes(label = Year),
+    colour = "red"
+  )
+```
+
+@fig-outliergram flags `r english::words(nrow(og_outliers))` years as shape outliers: `r format_years(sort(og_outliers$Year))`.
+These were in the middle of World War II, and are the years where the age profile changes shape most --- mortality rises sharply for young men while barely moving for children or the elderly --- rather than merely shifting up or down as a whole.
+The default fence used here is deliberately conservative (the same 1.5 factor used for the whisker length of an ordinary boxplot), so the outliergram flags far fewer years than the bagplot or HDR boxplot; it is best thought of as a strict test for shape, rather than a general-purpose anomaly detector.
+Unlike the depth boxplot fence of @fig-fbplot-sungenton, none of the low-mortality recent years are flagged, because their low MBD is entirely explained by their extreme MEI --- they sit at one end of the rank ordering, but they do not deviate from the shape that curves at that end of the ranking are expected to have.
