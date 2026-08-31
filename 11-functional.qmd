@@ -666,37 +666,51 @@ This illustrates an important feature of depth-based ranking: it can fail to dis
 Because French mortality has fallen more or less steadily across the study period, the most recent curves sit at one edge of the whole 184-year sample and are therefore the least "enveloped" by the rest, even though their shape is not unusual.
 On the other hand, the 1854, 1870 and 1871 curves are unusual in shape, but they are not extreme in location relative to the rest of the 19th century curves.
 
-The depth-based functional boxplot of @Sun2011 works directly with the smoothed curves via `roahd::fbplot()`, using the modified band depth introduced above rather than a 2-dimensional score projection.
-The central region is formed from the 50% deepest curves, and the fence is this region inflated by a factor (1.5, by default) of its own range at each age; any curve that leaves the fence at any age is flagged as an outlier.
+## Sun--Genton functional boxplot {#sec-sungenton-boxplot}
+
+The Sun--Genton functional boxplot [@Sun2011] works directly with the smoothed curves, using the modified band depth introduced in @sec-functional-depth.
+The central region is formed from the 50% deepest curves (those with MBD at or above the median), and a curve is flagged as an outlier if, at any age, it leaves a fence formed by inflating this region by a multiple of 1.5 of its own range.
+@fig-fbplot-sungenton shows the resulting functional boxplot for the French male mortality curves.
+An alternative implementation of the Sun--Genton functional boxplot is available in the `roahd` package, via `roahd::fbplot()`.
 
 ```{r}
 #| label: fig-fbplot-sungenton
 #| dependson: [fdata-build, fig-fbagplot]
 #| fig-cap: Sun--Genton functional boxplot of the smoothed French male mortality curves.
-#|   The dark band shows the central 50% region, the light band the fence; the raw curves for the flagged outlier years are overlaid.
+#|   The dark band shows the central 50% region, the light band the envelope of the curves not flagged as outliers; the solid curve is the deepest (most central) curve; the raw curves for the flagged outlier years are overlaid.
 
-fb <- fbplot(fr_fd, display = FALSE)
-fb_outlier_years <- frmort_wide$Year[fb$ID_outliers]
+central_years <- depth_tbl$Year[depth_tbl$MBD >= quantile(depth_tbl$MBD, 0.5)]
+center_year <- depth_tbl$Year[which.max(depth_tbl$MBD)]
 
-central <- fr_fd$values[
-  order(-fb$Depth)[seq_len(round(nrow(fr_fd$values) / 2))],
-  ,
-  drop = FALSE
-]
-central_range <- apply(central, 2, range)
-fence_width <- fb$Fvalue * (central_range[2, ] - central_range[1, ])
-fb_env <- tibble(
-  Age = sort(unique(fr_smooth$Age)),
-  cmin = central_range[1, ],
-  cmax = central_range[2, ],
-  fmin = central_range[1, ] - fence_width,
-  fmax = central_range[2, ] + fence_width
-)
+fr_smooth_tbl <- fr_smooth |> as_tibble()
 
-outlier_curves <- fr_smooth |>
-  as_tibble() |>
-  filter(Year %in% fb_outlier_years) |>
-  mutate(loglog = log(.smooth))
+# The fence is a linear inflation of the central region's width, so it must be
+# computed on the log scale on which MBD itself was computed.
+central_env <- fr_smooth_tbl |>
+  filter(Year %in% central_years) |>
+  summarise(cmin = min(log(.smooth)), cmax = max(log(.smooth)), .by = Age) |>
+  mutate(
+    flower = cmin - 1.5 * (cmax - cmin),
+    fupper = cmax + 1.5 * (cmax - cmin)
+  )
+
+outlier_years <- fr_smooth_tbl |>
+  mutate(loglog = log(.smooth)) |>
+  left_join(central_env, by = "Age") |>
+  filter(loglog < flower | loglog > fupper) |>
+  distinct(Year) |>
+  pull(Year)
+
+# Envelopes are just pointwise min/max, so these can be taken directly on the
+# mortality rate, with the plot itself put on a log scale.
+fb_env <- fr_smooth_tbl |>
+  summarise(
+    cmin = min(.smooth[Year %in% central_years]),
+    cmax = max(.smooth[Year %in% central_years]),
+    fmin = min(.smooth[!Year %in% outlier_years]),
+    fmax = max(.smooth[!Year %in% outlier_years]),
+    .by = Age
+  )
 
 ggplot() +
   geom_ribbon(
@@ -710,14 +724,36 @@ ggplot() +
     fill = bag_colors[2]
   ) +
   geom_line(
-    data = outlier_curves,
-    aes(x = Age, y = loglog, group = Year, colour = factor(Year))
+    data = fr_smooth_tbl |> filter(Year == center_year),
+    aes(x = Age, y = .smooth),
+    colour = bag_colors[1]
   ) +
-  labs(y = "Log mortality rate", colour = "Outlier year")
+  geom_line(
+    data = fr_smooth_tbl |> filter(Year %in% outlier_years),
+    aes(x = Age, y = .smooth, group = Year, colour = factor(Year))
+  ) +
+  scale_y_log10(
+    breaks = 10^(-(0:4)),
+    labels = format(10^(-(0:4)), scientific = FALSE)
+  ) +
+  labs(y = "Mortality rate", colour = "Outlier year")
+```
+
+```{r}
+#| label: sungenton-check
+#| dependson: [fdata-build, fig-fbplot-sungenton]
+#| include: false
+
+stopifnot(
+  "outlier_years no longer matches roahd::fbplot() -- update the code or text" = setequal(
+    outlier_years,
+    frmort_wide$Year[fbplot(fr_fd, display = FALSE)$ID_outliers]
+  )
+)
 ```
 
 @fig-fbplot-sungenton fails to identify the war years or pandemics as outliers, and inflates the size of the central region to include almost all of the curves.
-In fact, it flags `r english::words(length(fb_outlier_years))` years, `r format_years(fb_outlier_years)`, none of which are war years.
+In fact, it flags `r english::words(length(outlier_years))` years, `r format_years(outlier_years)`, none of which are war years.
 These are simply the most recent years in the sample, whose mortality is lower at almost every age than any earlier year.
 
 This may seem inconsistent with 1854, 1870 and 1871 being the shallowest 19th century curves, but a low MBD only means a curve is poorly enveloped by bands of other curves; it does not mean the curve's values are pointwise extreme, which is what the boxplot fence tests.
@@ -725,4 +761,5 @@ The mortality in those three years, though unusual in shape, never falls outside
 
 The functional bagplot and HDR boxplot do not share the problem of trend, because reducing each curve to two principal component scores loses most of the information about the gradual, whole-of-curve trend captured by MBD, while retaining the specific age-pattern (young men versus children) that made the war years unusual.
 
-While the functional depth boxplot did not do well in this example, it can still be a useful tool for identifying unusual curves in other contexts, especially where the first two principal component scores do not capture the most interesting variation in the data.
+While the Sun--Genton functional boxplot did not do well in this example, it can still be a useful tool for identifying unusual curves in other contexts, especially where the first two principal component scores do not capture the most interesting variation in the data.
+The next two sections look at ways of separating genuine shape anomalies from the kind of trend-driven magnitude effect that misled the depth boxplot here.
