@@ -33,18 +33,14 @@ fr_male <- fr_mortality |> filter(Sex == "Male") |> select(-Sex)
 
 fr_male |>
   ggplot() +
-  aes(x = Age, y = log10(Mortality), colour = Year, group = Year) +
+  aes(x = Age, y = Mortality, colour = Year, group = Year) +
   geom_line() +
   scale_colour_gradientn(colours = rainbow(100)[1:80]) +
-  labs(y = "Log (base 10) mortality rate") +
-  scale_y_continuous(
-    sec.axis = sec_axis(
-      ~ 10^(.),
-      breaks = 10^(-(0:4)),
-      labels = format(10^(-(0:4)), scientific = FALSE),
-      name = "Mortality rate"
-    )
-  )
+  scale_y_log10(
+    breaks = 10^(-(0:4)),
+    labels = format(10^(-(0:4)), scientific = FALSE)
+  ) +
+  labs(y = "Mortality rate")
 ```
 
 As we are interested in anomalies, we will mostly focus on the unusual curves.
@@ -115,18 +111,14 @@ fr_male |>
 
 fr_smooth |>
   ggplot() +
-  aes(x = Age, y = log10(.smooth), colour = Year, group = Year) +
+  aes(x = Age, y = .smooth, colour = Year, group = Year) +
   geom_line() +
   scale_colour_gradientn(colours = rainbow(100)[1:80]) +
-  labs(y = "Log mortality rate") +
-  scale_y_continuous(
-    sec.axis = sec_axis(
-      ~ 10^(.),
-      breaks = 10^(-(0:4)),
-      labels = format(10^(-(0:4)), scientific = FALSE),
-      name = "Mortality rate"
-    )
-  )
+  scale_y_log10(
+    breaks = 10^(-(0:4)),
+    labels = format(10^(-(0:4)), scientific = FALSE)
+  ) +
+  labs(y = "Mortality rate")
 ```
 
 Working with the smoothed curves rather than the raw mortality rates has several advantages for anomaly detection.
