@@ -13,7 +13,9 @@ The most commonly occurring examples are where observations are taken of functio
 For example, mortality rates are naturally represented as 1-dimensional functions of age, and surface temperatures are naturally represented as functions over the 2-dimensional plane of latitude and longitude.
 
 @fig-fr-mortality shows French male mortality rates between 1816 and 1999.
-Each line denotes the mortality rates as a function of age for one year, with the colours in rainbow order corresponding to the years of observation.
+In @sec-weird-times, we looked at these as time series, treating each age as a separate series.
+Here, we will treat the same data as functions, with each year represented as a curve of mortality rates over age.
+Each line in @fig-fr-mortality denotes the mortality rates as a function of age for one year, with the colours in rainbow order corresponding to the years of observation.
 Overall, we see a large decrease in mortality rates during early childhood years, then an increase during teenage years.
 After about age 30, the rates increase almost linearly on a log scale.
 Comparing the curves over time, we see that the rates have steadily fallen for all ages, with more than a 40-fold reduction in mortality rates at around age 10.
@@ -124,8 +126,7 @@ fr_smooth |>
 
 Working with the smoothed curves rather than the raw mortality rates has several advantages for anomaly detection.
 Smoothing removes measurement noise that would otherwise be mistaken for genuine functional variation, so isolated noisy observations are not flagged as anomalies, and real anomalies are not masked by noise.
-It also gives us a curve that can be evaluated, and differentiated, at any age, which is needed for the basis function and depth-based methods used later in this chapter.
-Finally, smoothing borrows strength across neighbouring ages, using the fact that mortality varies smoothly with age to produce more stable and reliable estimates than the raw data alone.
+It also gives more stable and reliable estimated rates than the raw data alone, by borrowing strength across neighbouring ages, using the fact that mortality varies smoothly with age.
 
 ## Dimension reduction using basis functions {#sec-basis-functions}
 
@@ -163,6 +164,7 @@ And so on.
 If the functions are discretised on a fine grid over $x$, we can use regular principal component decomposition to get approximately the same results as functional principal components.
 
 In the following example, we find the first few principal components (empirical basis functions) using the French male mortality data.
+(The smoothed data are already on a fine grid of ages, so we don't need to discretise them further.)
 
 ```{r}
 #| echo: true
@@ -180,16 +182,18 @@ frmort_wide <- fr_smooth |>
     values_from = logmx,
     names_prefix = "Age"
   )
-
-# Compute first three principal components
-pca <- frmort_wide |>
+# Matrix containing only the log Mortality values, not the year
+frmort_mat <- frmort_wide |>
   select(-Year) |>
+  as.matrix()
+# Compute first three principal components
+pca <- frmort_mat |>
   prcomp(center = TRUE, scale = FALSE, rank = 3)
 summary(pca)
 ```
 
 The first three principal components explain `r round(100 * sum(pca$sdev[1:3]^2) / sum(pca$sdev^2), 1)`% of the variation in the data.
-Instead of working in the 86 dimensional space containing all ages, we can work in the 3-dimensional space of the first three principal component scores, which is a much simpler problem.
+Instead of working in the `r NCOL(frmort_mat)` dimensional space containing all ages, we can work in the 3-dimensional space of the first three principal component scores, which is a much simpler problem.
 
 ```{r}
 #| echo: true
@@ -202,13 +206,14 @@ Instead of working in the 86 dimensional space containing all ages, we can work 
 pca_bases <- broom::tidy(pca, "loadings") |>
   mutate(
     Age = readr::parse_number(column),
-    PC = as.factor(PC)
+    Basis = paste0("PC", as.factor(PC))
   )
 pca_bases |>
   ggplot() +
-  aes(x = Age, y = value, group = PC, colour = PC) +
+  aes(x = Age, y = value, group = Basis, colour = Basis) +
   geom_line()
 ```
+
 @fig-pca-bases shows the first three empirical basis functions.
 
 1. The first basis function is negative at every age, and largest in magnitude in early childhood, so a high score on this component corresponds to lower mortality at all ages, but especially for children.
@@ -458,7 +463,7 @@ centre_curve <- tibble(
 )
 outlier_curves <- fr_male |>
   filter(Year %in% bagplot_outliers$Year)
-bag_colors <- weird:::hdr_palette(color = "#00659e", prob = c(0.5, 0.99))
+bag_colors <- c("#00659e", "#5397BD", "#A7CADD")
 ggplot() +
   geom_ribbon(
     data = loop_env,
@@ -488,6 +493,8 @@ ggplot() +
 
 @fig-fbagplot flags `r english::words(nrow(bagplot_outliers))` years as functional bagplot outliers: `r format_years(bagplot_outliers$Year)`.
 These are almost exactly the war years already identified in @sec-functional-pca and @sec-weird-times, and the outlying curves are clearly visible bulging above the typical envelope for young men.
+
+Another implementation of the functional bagplot is provided by `rainbow::fboxplot()`.
 
 ## Functional HDR boxplot {#sec-functional-hdr-boxplot}
 
@@ -614,6 +621,8 @@ ggplot() +
 
 The bulk of the curves fall into two distinct clusters, corresponding to before and after the end of World War II.
 
+Another implementation of the functional HDR boxplot is provided by `rainbow::fboxplot()`.
+
 ## Functional depth {#sec-functional-depth}
 
 Rather than reducing each curve to a handful of principal component scores, the remaining approaches in this chapter work directly with the curves themselves, via functional depth or a related measure.
@@ -628,34 +637,31 @@ One of the simplest depths is the band depth: it counts how often a curve $y_i$ 
 Looking at @fig-fr-mortality, we would expect that some of the most recent years, which have low mortality at almost every age, would be shallow; the war years would also be shallow, since they have high mortality at ages 20--40 that is not seen in other years.
 
 Because the exact band depth is expensive to compute for anything beyond a handful of curves, in practice it is usually replaced by the more tractable modified band depth (MBD), which instead measures the proportion of the domain $x$ over which $y_i(x)$ lies within each band, averaged over all bands [@LopezPintado2009].
-MBD is available in the `roahd` package.
-This package uses the `fData` class to represent functional data, so first we need to construct an `fData` object from the smoothed French male mortality curves.
 
 ```{r}
-#| label: fdata-build
+#| label: mbd-build
 #| dependson: [fr_smooth, pca-bases]
 #| code-fold: false
 #| message: false
 
-library(roahd)
-fr_fd <- fData(sort(unique(fr_smooth$Age)), as.matrix(frmort_wide[, -1]))
-
-depth_tbl <- tibble(
-  Year = frmort_wide$Year,
-  MBD = MBD(fr_fd)
-)
+mbd <- function(Y) {
+  n <- NROW(Y)
+  m <- NCOL(Y)
+  r <- apply(Y, 2, rank)
+  # (r-1)(n-r): pairs of curves whose band contains y at this point.
+  # + (n-1): pairs where y is itself one of the two band-forming curves.
+  (rowSums((r - 1) * (n - r)) / m + (n - 1)) / choose(n, 2)
+}
+depth_tbl <- tibble(Year = frmort_wide$Year, MBD = mbd(frmort_mat))
 depth_tbl |> arrange(MBD)
 ```
 
 ```{r}
 #| label: shallowyears
-#| dependson: fdata-build
+#| dependson: mbd-build
 #| echo: false
 
-shallow_years <- depth_tbl |>
-  arrange(MBD) |>
-  slice_head(n = 10) |>
-  pull(Year)
+shallow_years <- depth_tbl |> arrange(MBD) |> head(10) |> pull(Year)
 shallow_1800s <- shallow_years[shallow_years < 1900] |> sort()
 stopifnot(identical(shallow_1800s, c(1854L, 1870L, 1871L)))
 ```
@@ -668,24 +674,24 @@ This illustrates an important feature of depth-based ranking: it can fail to dis
 Because French mortality has fallen more or less steadily across the study period, the most recent curves sit at one edge of the whole 184-year sample and are therefore the least "enveloped" by the rest, even though their shape is not unusual.
 On the other hand, the 1854, 1870 and 1871 curves are unusual in shape, but they are not extreme in location relative to the rest of the 19th century curves.
 
+Other types of functional depth are computed by `rainbow::fdepth()`, and the `fda.usc`, `fdaoutliers` and `mrfDepth` packages.
+
 ## Sun--Genton functional boxplot {#sec-sungenton-boxplot}
 
 The Sun--Genton functional boxplot [@Sun2011] works directly with the (possibly smoothed) curves, using the modified band depth introduced in @sec-functional-depth.
 The central region is formed from the 50% deepest curves (those with MBD at or above the median), and a curve is flagged as an outlier if, at any age, it leaves a fence formed by inflating this central region by a multiple of 1.5 of its own range.
 @fig-fbplot-sungenton shows the resulting functional boxplot for the French male mortality curves.
-An alternative implementation of the Sun--Genton functional boxplot is available in the `roahd` package, via `roahd::fbplot()`.
 
 ```{r}
 #| label: fig-fbplot-sungenton
-#| dependson: [fdata-build, fig-fbagplot]
+#| dependson: [mbd-build, fig-fbagplot]
 #| fig-cap: Sun--Genton functional boxplot of the smoothed French male mortality curves.
 #|   The dark band shows the central 50% region, the light band the envelope of the curves not flagged as outliers; the solid curve is the deepest (most central) curve; the raw curves for the flagged outlier years are overlaid.
 
 central_years <- depth_tbl$Year[depth_tbl$MBD >= median(depth_tbl$MBD)]
 centre_year <- depth_tbl$Year[which.max(depth_tbl$MBD)]
-
 # The fence is a linear inflation of the central region's width, so it must be
-# computed on the log scale on which MBD itself was computed.
+# computed on the log scale in this example
 central_env <- fr_smooth |>
   filter(Year %in% central_years) |>
   summarise(cmin = min(log(.smooth)), cmax = max(log(.smooth)), .by = Age) |>
@@ -693,33 +699,26 @@ central_env <- fr_smooth |>
     flower = cmin - 1.5 * (cmax - cmin),
     fupper = cmax + 1.5 * (cmax - cmin)
   )
-
 outlier_years <- fr_smooth |>
-  mutate(loglog = log(.smooth)) |>
+  mutate(logm = log(.smooth)) |>
   left_join(central_env, by = "Age") |>
-  filter(loglog < flower | loglog > fupper) |>
+  filter(logm < flower | logm > fupper) |>
   distinct(Year) |>
   pull(Year)
-
-# Envelopes are just pointwise min/max, so these can be taken directly on the
-# mortality rate, with the plot itself put on a log scale.
-fb_env <- fr_smooth |>
+fr_smooth |>
   summarise(
     cmin = min(.smooth[Year %in% central_years]),
     cmax = max(.smooth[Year %in% central_years]),
     fmin = min(.smooth[!Year %in% outlier_years]),
     fmax = max(.smooth[!Year %in% outlier_years]),
     .by = Age
-  )
-
-ggplot() +
+  ) |> 
+  ggplot() +
   geom_ribbon(
-    data = fb_env,
     aes(x = Age, ymin = fmin, ymax = fmax),
     fill = bag_colors[3]
   ) +
   geom_ribbon(
-    data = fb_env,
     aes(x = Age, ymin = cmin, ymax = cmax),
     fill = bag_colors[2]
   ) +
@@ -739,19 +738,6 @@ ggplot() +
   labs(y = "Mortality rate", colour = "Outlier year")
 ```
 
-```{r}
-#| label: sungenton-check
-#| dependson: [fdata-build, fig-fbplot-sungenton]
-#| include: false
-
-stopifnot(
-  "outlier_years no longer matches roahd::fbplot() -- update the code or text" = setequal(
-    outlier_years,
-    frmort_wide$Year[fbplot(fr_fd, display = FALSE)$ID_outliers]
-  )
-)
-```
-
 @fig-fbplot-sungenton fails to identify the war years or pandemics as outliers, and inflates the size of the central region to include almost all of the curves.
 In fact, it flags `r english::words(length(outlier_years))` years, `r format_years(outlier_years)`, none of which are war years.
 These are simply the most recent years in the sample, whose mortality is lower at almost every age than any earlier year.
@@ -762,6 +748,9 @@ The mortality in those three years, though unusual in shape, never falls outside
 The functional bagplot and HDR boxplot do not share the problem of trend, because reducing each curve to two principal component scores loses most of the information about the gradual, whole-of-curve trend captured by MBD, while retaining the specific age-pattern (young men versus children) that made the war years unusual.
 
 While the Sun--Genton functional boxplot did not do well in this example, it can still be a useful tool for identifying unusual curves in other contexts, especially where the first two principal component scores do not capture the most interesting variation in the data.
+
+We coded the functional boxplot from scratch here, but versions are available in other packages including `fda::fbplot()`, `GET::fBoxplot()`, `fdaoutlier::functional_boxplot()` and `roahd::fbplot()`.
+
 The next two sections look at ways of separating genuine shape anomalies from the kind of trend-driven magnitude effect that misled the depth boxplot here.
 
 ## Outliergram {#sec-outliergram}
@@ -779,40 +768,41 @@ The outliergram plots MEI against MBD along with this parabola, and flags as sha
 
 ```{r}
 #| label: fig-outliergram
-#| dependson: fdata-build
+#| dependson: mbd-build
 #| code-fold: true
 #| fig-cap: Outliergram of the smoothed French male mortality curves.
-#|   The dashed curve is the theoretical MBD/MEI parabola; the dotted curve is the outlier fence; years beyond the fence are shown in red.
+#|   The shaded region shows the theoretical MBD/MEI parabola down to the outlier fence; years beyond the fence are shown in red.
 
-n_years <- nrow(frmort_wide)
-mei_tbl <- tibble(
-  Year = frmort_wide$Year,
-  MEI = MEI(fr_fd),
-  MBD = MBD(fr_fd)
-)
-og <- outliergram(
-  fr_fd,
-  MBD_data = mei_tbl$MBD,
-  MEI_data = mei_tbl$MEI,
-  display = FALSE
-)
-og_outliers <- mei_tbl |> slice(og$ID_outliers)
+mei <- function(Y) {
+  n <- NROW(Y)
+  m <- NCOL(Y)
+  r <- apply(Y, 2, rank, ties.method = "min")
+  rowSums(n - r + 1) / (n * m)
+}
+mei_tbl <- depth_tbl |> mutate(MEI = mei(frmort_mat))
 
+# Theoretical upper bound of MBD as a function of MEI (Arribas-Gil & Romo 2014)
+n_years <- NROW(frmort_wide)
 a0 <- -2 / (n_years * (n_years - 1))
 a1 <- 2 * (n_years + 1) / (n_years - 1)
 a2 <- n_years^2 * a0
-fence <- quantile(og$d, 0.75) + og$Fvalue * IQR(og$d)
+mbd_bound <- function(mei) a0 + a1 * mei + a2 * mei^2
+mei_tbl <- mei_tbl |>
+  mutate(d = mbd_bound(MEI) - MBD)
+
+# Shape outliers: distance below the parabola exceeds a boxplot-style fence
+fence <- quantile(mei_tbl$d, 0.75) + 1.5 * IQR(mei_tbl$d)
+og_outliers <- mei_tbl |> filter(d >= fence)
 parabola <- tibble(MEI = seq(0, 1, length.out = 100)) |>
-  mutate(MBD = a0 + a1 * MEI + a2 * MEI^2, fence = MBD - fence)
+  mutate(MBD = mbd_bound(MEI), lower = MBD - fence)
 
 mei_tbl |>
   ggplot(aes(x = MEI, y = MBD)) +
-  geom_line(data = parabola, linetype = "dashed", colour = "grey50") +
-  geom_line(
+  geom_ribbon(
     data = parabola,
-    aes(y = fence),
-    linetype = "dotted",
-    colour = "grey50"
+    aes(ymin = lower, ymax = MBD),
+    fill = "#00659e",
+    alpha = 0.2
   ) +
   geom_point() +
   geom_point(data = og_outliers, colour = "red") +
@@ -840,12 +830,12 @@ These calculations are implemented in the `fdaoutlier` package, which we use her
 
 ```{r}
 #| label: fig-ms-plot
-#| dependson: fdata-build
+#| dependson: mbd-build
 #| code-fold: true
 #| fig-cap: Magnitude-shape plot of the smoothed French male mortality curves.
 #|   Years flagged as outliers are shown in red.
 
-ms <- fdaoutlier::msplot(as.matrix(frmort_wide[, -1]), seed = 1, plot = FALSE)
+ms <- fdaoutlier::msplot(frmort_mat, seed = 1, plot = FALSE)
 ms_tbl <- tibble(
   Year = frmort_wide$Year,
   MO = ms$mean_outlyingness,

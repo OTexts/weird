@@ -2773,22 +2773,6 @@ requires = [
 ]
 
 [[package]]
-name = "roahd"
-version = "1.4.3"
-source = "cran"
-raw_version = "1.4.3"
-url = "https://cran.r-project.org/src/contrib/roahd_1.4.3.tar.gz"
-checksum = "md5:3db39f8d70bb16ff2b6356e2711dc33b"
-requires = [
-    "scales",
-    "robustbase",
-    "magrittr",
-    "dplyr",
-    "ggplot2",
-    "plotly",
-]
-
-[[package]]
 name = "robustX"
 version = "1.2.8"
 source = "cran"
