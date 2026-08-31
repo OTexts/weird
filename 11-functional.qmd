@@ -130,7 +130,7 @@ Finally, smoothing borrows strength across neighbouring ages, using the fact tha
 
 We can approximate functional data using a linear combination of basis functions:
 $$
-  \hat{y}_i(x) = b_0(x) + \sum_{j = 1}^J \beta_{ij} b_j(x),
+  \hat{y}_i(x) = b_0(x) + \sum_{j=1}^J \beta_{ij} b_j(x),
 $$
 where $b_0(x)$ is a fixed function common to every observation (analogous to an intercept), $\{b_1(x),\dots,b_J(x)\}$ are a set of basis functions, and $\beta_{ij}$ are the coefficients.
 With enough basis functions, this representation can approximate a wide class of functions.
@@ -145,16 +145,16 @@ Given a set of basis functions, we can estimate the coefficients $\beta_{ij}$ by
 Alternatively, we can use functional principal component analysis to find the empirical basis functions that explain the most variance in the data.
 Then $b_0(x)$ is set to be the mean function,
 $$
-  b_0(x) = \frac{1}{n} \sum_{i = 1}^n y_i(x),
+  b_0(x) = \frac{1}{n} \sum_{i=1}^n y_i(x),
 $$
 and the first principal component, $b_1(x)$, is the function that minimises
 $$
-  \sum_{i = 1}^n \int \big[y_i(x) - b_0(x) - \beta_{i1}b_1(x)\big]^2 dx
+  \sum_{i=1}^n \int \big[y_i(x) - b_0(x) - \beta_{i1}b_1(x)\big]^2 dx
 $$
 subject to the constraint that $\int b_1^2(x)dx = 1$.
 The second principal component, $b_2(x)$, is the function that minimises
 $$
-  \sum_{i = 1}^n \int \big[y_i(x) - b_0(x) - \beta_{i1}b_1(x) - \beta_{i2}b_2(x)\big]^2 dx
+  \sum_{i=1}^n \int \big[y_i(x) - b_0(x) - \beta_{i1}b_1(x) - \beta_{i2}b_2(x)\big]^2 dx
 $$
 subject to the constraints that $\int b_2^2(x)dx = 1$ and $\int b_1(x)b_2(x)dx = 0$.
 And so on.
