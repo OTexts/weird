@@ -505,7 +505,7 @@ Thus, the dark region is the 50% HDR (containing 50% of the years), the light re
 #| dependson: fig-pca-scores
 #| fig-cap: HDR boxplot of the first two principal component scores of the French male mortality curves.
 
-pca_kde <- dist_kde(as.matrix(pca_scores[, c("PC1", "PC2")]), method = "scv")
+pca_kde <- pca_scores[, c("PC1", "PC2")] |> dist_kde(method = "scv")
 hdr_thresholds <- hdr_table(pca_kde, prob = c(0.5, 0.93))
 pca_scores <- pca_scores |>
   mutate(
@@ -543,62 +543,36 @@ stopifnot(
 )
 ```
 
-As with the bagplot, we extract the boundary of each HDR as a contour of the density grid, and map it back to a curve envelope.
+As with the bagplot, the envelope of each HDR is formed directly from the curves whose scores fall inside it, using the `hdr_region` classification already computed above.
+Because the bivariate scores split into two separated clusters (@fig-pca-hdrboxplot), so does each HDR: we split the non-outlying years into two groups by hierarchical clustering on their scores, and build a separate envelope within each group, so the split remains visible wherever the two groups' envelopes do not overlap.
 
 ```{r}
 #| label: fig-fhdrboxplot
 #| dependson: [fig-fbagplot, fig-pca-hdrboxplot, o3-summary]
 #| fig-cap: Functional HDR boxplot of French male mortality.
-#|   The dark band shows the envelope of the 50% HDR, the light band the 93% HDR; the raw curves for years flagged as outliers (falling outside the 93% HDR) are overlaid.
+#|   The dark bands show the envelope of the 50% HDR, the light bands the 93% HDR; the raw curves for years flagged as outliers (falling outside the 93% HDR) are overlaid.
 
-piece_envelopes <- function(contour_lines, age, pca) {
-  pieces <- list()
-  for (i in seq_along(contour_lines)) {
-    piece <- contour_lines[[i]]
-    pieces[[i]] <- envelope(cbind(piece$x, piece$y), age, pca) |>
-      mutate(piece = i)
-  }
-  bind_rows(pieces)
+hdr_scores <- pca_scores |> filter(hdr_region != "outlier")
+hdr_scores$cluster <- cutree(hclust(dist(hdr_scores[, c("PC1", "PC2")])), k = 2)
+cluster_envelope <- function(years) {
+  fr_smooth |>
+    filter(Year %in% years) |>
+    left_join(hdr_scores[, c("Year", "cluster")], by = "Year") |>
+    summarise(ymin = min(.smooth), ymax = max(.smooth), .by = c(Age, cluster))
 }
-density_grid <- density_df(pca_kde) |> arrange(y, x)
-grid_x <- sort(unique(density_grid$x))
-grid_y <- sort(unique(density_grid$y))
-grid_z <- matrix(
-  density_grid$density,
-  nrow = length(grid_x),
-  ncol = length(grid_y)
-)
-hdr50_env <- piece_envelopes(
-  grDevices::contourLines(
-    grid_x,
-    grid_y,
-    grid_z,
-    levels = hdr_thresholds$density[hdr_thresholds$prob == 0.5]
-  ),
-  age,
-  pca
-)
-hdr93_env <- piece_envelopes(
-  grDevices::contourLines(
-    grid_x,
-    grid_y,
-    grid_z,
-    levels = hdr_thresholds$density[hdr_thresholds$prob == 0.93]
-  ),
-  age,
-  pca
-)
+hdr50_env <- cluster_envelope(hdr_scores$Year[hdr_scores$hdr_region == "50%"])
+hdr93_env <- cluster_envelope(hdr_scores$Year)
 outlier_curves <- fr_male |>
   filter(Year %in% hdr_outliers$Year)
 ggplot() +
   geom_ribbon(
     data = hdr93_env,
-    aes(x = Age, ymin = ymin, ymax = ymax, group = piece),
+    aes(x = Age, ymin = ymin, ymax = ymax, group = cluster),
     fill = bag_colors[3]
   ) +
   geom_ribbon(
     data = hdr50_env,
-    aes(x = Age, ymin = ymin, ymax = ymax, group = piece),
+    aes(x = Age, ymin = ymin, ymax = ymax, group = cluster),
     fill = bag_colors[2]
   ) +
   geom_line(
