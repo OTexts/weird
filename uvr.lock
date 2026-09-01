@@ -480,11 +480,11 @@ checksum = "md5:f36540550af63b0db8c78429d7366998"
 
 [[package]]
 name = "bit64"
-version = "4.8.4"
+version = "4.8.6"
 source = "cran"
-raw_version = "4.8.4"
-url = "https://cran.r-project.org/src/contrib/bit64_4.8.4.tar.gz"
-checksum = "md5:a02c94b7ea2637da988127cb12933fbf"
+raw_version = "4.8.6"
+url = "https://cran.r-project.org/src/contrib/bit64_4.8.6.tar.gz"
+checksum = "md5:8c4fb59f92ce6b09ecdc8e0f7a186504"
 requires = ["bit"]
 
 [[package]]
@@ -865,11 +865,10 @@ checksum = "md5:2b7268922b0f86dbc8064ff8e3a1ca1b"
 
 [[package]]
 name = "distributional"
-version = "0.8.1"
-source = "cran"
-raw_version = "0.8.1"
-url = "https://cran.r-project.org/src/contrib/distributional_0.8.1.tar.gz"
-checksum = "md5:a2c3882d360979f6377211d827495488"
+version = "0.9.0"
+source = "github"
+url = "https://api.github.com/repos/mitchelloharawild/distributional/tarball/246787048c04a6645be0c1f38c969055be74ba20"
+checksum = "git:246787048c04a6645be0c1f38c969055be74ba20"
 requires = [
     "vctrs",
     "rlang",
@@ -2257,11 +2256,11 @@ checksum = "md5:2eb717e86562f3b7d41ec74cbe07c6fb"
 
 [[package]]
 name = "nlme"
-version = "3.1.170"
+version = "3.1.171"
 source = "cran"
-raw_version = "3.1-170"
-url = "https://cran.r-project.org/src/contrib/nlme_3.1-170.tar.gz"
-checksum = "md5:1cca4f944fb0f0da191eeaf965bba912"
+raw_version = "3.1-171"
+url = "https://cran.r-project.org/src/contrib/nlme_3.1-171.tar.gz"
+checksum = "md5:f68635ab19fe0acbd0035c5b12e3a6d4"
 requires = ["lattice"]
 
 [[package]]
@@ -2330,11 +2329,11 @@ requires = [
 
 [[package]]
 name = "pbapply"
-version = "1.7.4"
+version = "1.7.5"
 source = "cran"
-raw_version = "1.7-4"
-url = "https://cran.r-project.org/src/contrib/pbapply_1.7-4.tar.gz"
-checksum = "md5:4cba88d695ff0beb228301caef295561"
+raw_version = "1.7-5"
+url = "https://cran.r-project.org/src/contrib/pbapply_1.7-5.tar.gz"
+checksum = "md5:5a7e1d9183bf7dd782d3c96539314717"
 
 [[package]]
 name = "pcaPP"
@@ -3621,8 +3620,8 @@ checksum = "md5:b5603af0a2d1b62511f85f5574c747a8"
 name = "weird"
 version = "3.0.0-4.9000"
 source = "github"
-url = "https://api.github.com/repos/robjhyndman/weird/tarball/6644349bef8903126e1453b807bb8df4f1261d1d"
-checksum = "git:6644349bef8903126e1453b807bb8df4f1261d1d"
+url = "https://api.github.com/repos/robjhyndman/weird/tarball/f3e0cf4baf502e923608b8ff619f01e4e5754ef9"
+checksum = "git:f3e0cf4baf502e923608b8ff619f01e4e5754ef9"
 requires = [
     "aplpack",
     "broom",

@@ -77,7 +77,6 @@ dbscan = "*"
 deldir = "*"
 desc = "*"
 digest = "*"
-distributional = "*"
 dobin = "*"
 dotCall64 = "*"
 downlit = "*"
@@ -290,6 +289,9 @@ xml2 = "*"
 xmlparsedata = "*"
 yaml = "*"
 zoo = "*"
+
+[dependencies.distributional]
+git = "mitchelloharawild/distributional"
 
 [dependencies.weird]
 git = "robjhyndman/weird"
