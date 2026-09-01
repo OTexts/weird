@@ -9,30 +9,24 @@ source("before-each-chapter.R")
 ```
 
 Functional data occur when the natural observational representation is a function.
-The most commonly occurring examples are where observations are taken of functions over one or two dimensions.
+The most commonly occurring examples are where observations are curves (functions over one dimension) or surfaces (functions over two dimensions).
 For example, mortality rates are naturally represented as 1-dimensional functions of age, and surface temperatures are naturally represented as functions over the 2-dimensional plane of latitude and longitude.
 
 @fig-fr-mortality shows French male mortality rates between 1816 and 1999.
 In @sec-weird-times, we looked at these as time series, treating each age as a separate series.
-Here, we will treat the same data as functions, with each year represented as a curve of mortality rates over age.
-Each line in @fig-fr-mortality denotes the mortality rates as a function of age for one year, with the colours in rainbow order corresponding to the years of observation.
+Here, we will treat the same data as curves, with each year represented as a function of mortality rates over age.
+Each line in @fig-fr-mortality denotes the mortality rates for one year as a function of age, with the colours in rainbow order corresponding to the years of observation.
 Overall, we see a large decrease in mortality rates during early childhood years, then an increase during teenage years.
 After about age 30, the rates increase almost linearly on a log scale.
 Comparing the curves over time, we see that the rates have steadily fallen for all ages, with more than a 40-fold reduction in mortality rates at around age 10.
 The noticeable gap between the curves occurred after World War II due to the effective use of antibiotics, and widespread vaccinations for polio, diphtheria, tetanus, whooping cough, measles, mumps and rubella.
 
 ```{r}
-#| label: frmale
-#| code-fold: false
-
-fr_male <- fr_mortality |> filter(Sex == "Male") |> select(-Sex)
-```
-
-```{r}
 #| label: fig-fr-mortality
-#| dependson: frmale
+#| code-fold: false
 #| fig-cap: French male mortality rates between 1816 and 1999.
 
+fr_male <- fr_mortality |> filter(Sex == "Male") |> select(-Sex)
 fr_male |>
   ggplot() +
   aes(x = Age, y = Mortality, colour = Year, group = Year) +
@@ -74,7 +68,7 @@ In the following code, we use a smoothing method proposed by @HU07, which takes 
 
 ```{r}
 #| label: fr_smooth
-#| dependson: frmale
+#| dependson: fig-fr-mortality
 #| message: false
 #| code-fold: false
 
@@ -89,7 +83,7 @@ fr_smooth <- fr_male |>
 
 ```{r}
 #| label: fig-fr-smooth
-#| dependson: [frmale, fr_smooth]
+#| dependson: [fig-fr-mortality, fr_smooth]
 #| fig-cap: Smoothed French male mortality rates for 1999.
 
 fr_male |>
@@ -136,7 +130,7 @@ $$
 $$
 where $b_0(x)$ is a fixed function common to every observation (analogous to an intercept), $\{b_1(x),\dots,b_J(x)\}$ are a set of basis functions, and $\beta_{ij}$ are the coefficients.
 With enough basis functions, this representation can approximate a wide class of functions.
-For example, the Fourier basis functions are a set of sine and cosine functions that can be used to represent any periodic function.
+For example, the Fourier basis functions are a set of sine and cosine functions that can be used to represent any smooth periodic function.
 The B-spline basis functions are a set of piecewise polynomial functions that can be used to represent any smooth function.
 The choice of basis functions depends on the characteristics of the data.
 
@@ -160,10 +154,11 @@ $$
 $$
 subject to the constraints that $\int b_2^2(x)dx = 1$ and $\int b_1(x)b_2(x)dx = 0$.
 And so on.
+The principal components $b_1(x), b_2(x), \dots$, are also called the "loadings", while the coefficients $\beta_{i,1},\beta_{i,2},\dots$ are called the "scores".
 
 If the functions are discretised on a fine grid over $x$, we can use regular principal component decomposition to get approximately the same results as functional principal components.
 
-In the following example, we find the first few principal components (empirical basis functions) using the French male mortality data.
+In the following example, we find the first few principal components using the French male mortality data.
 (The smoothed data are already on a fine grid of ages, so we don't need to discretise them further.)
 
 ```{r}
@@ -193,7 +188,7 @@ summary(pca)
 ```
 
 The first three principal components explain `r round(100 * sum(pca$sdev[1:3]^2) / sum(pca$sdev^2), 1)`% of the variation in the data.
-Instead of working in the `r NCOL(frmort_mat)` dimensional space containing all ages, we can work in the 3-dimensional space of the first three principal component scores, which is a much simpler problem.
+Instead of working in the `r NCOL(frmort_mat)` dimensional space containing all ages, we can work in the 3-dimensional space of the first three principal component scores, which is a much simpler problem, without losing much information.
 
 ```{r}
 #| echo: true
@@ -203,6 +198,7 @@ Instead of working in the `r NCOL(frmort_mat)` dimensional space containing all 
 #| dependson: pca-bases
 #| fig-cap: First three principal components (empirical basis functions) for the French male mortality data.
 
+# Extract PCA basis functions
 pca_bases <- broom::tidy(pca, "loadings") |>
   mutate(
     Age = readr::parse_number(column),
@@ -211,7 +207,8 @@ pca_bases <- broom::tidy(pca, "loadings") |>
 pca_bases |>
   ggplot() +
   aes(x = Age, y = value, group = Basis, colour = Basis) +
-  geom_line()
+  geom_line() +
+  labs(y = latex2exp::TeX("$b_i(x)$"), x = "Age (x)")
 ```
 
 @fig-pca-bases shows the first three empirical basis functions.
@@ -228,7 +225,7 @@ pca_bases |>
 #| dependson: pca-bases
 #| fig-cap: First three principal component scores for the French male mortality data.
 
-# Compute principal component scores
+# Extract PCA scores
 pca_scores <- broom::augment(pca, frmort_wide[, "Year"]) |>
   select(-.rownames) |>
   rename_with(~ gsub("\\.fitted", "", .x))
@@ -240,7 +237,8 @@ pca_scores |>
     values_to = "value"
   ) |>
   ggplot(aes(x = Year, y = value)) +
-  geom_line(aes(colour = PC))
+  geom_line(aes(colour = PC)) +
+  labs(y = latex2exp::TeX("$\\beta_{i,t}$"), x = "Year (t)")
 ```
 
 @fig-pca-scores shows how the two component scores evolve over time.
@@ -395,7 +393,7 @@ same_years <- setequal(outliers$Year, o3_years)
 
 Reassuringly, the O3 plot, using all `r english::words(n_pc_o3)` principal components and `r english::words(n_methods)` quite different outlier-detection methods, flags `r english::words(length(o3_years))` years (`r format_years(o3_years)`) --- `r if (same_years) "exactly the same years" else "largely the same years"` identified by the two-component surprisal approach above.
 Of these, `r english::words(length(o3_red_years))` --- `r format_years(o3_red_years)` --- are flagged by every method and variable combination (shown in red in @fig-o3-pca), while the rest are flagged consistently but not unanimously.
-This agreement across methods, and with the time series analysis of @sec-weird-times, gives us some confidence that these years are genuine anomalies rather than artefacts of any one method.
+This agreement across methods, along with the time series analysis of @sec-weird-times, gives us some confidence that these years are genuine anomalies rather than artefacts of any one method.
 
 ## Functional bagplot {#sec-functional-bagplot}
 
