@@ -400,17 +400,12 @@ This agreement across methods, along with the time series analysis of @sec-weird
 A boxplot summarises a univariate sample using a central box and whiskers, with points beyond the whiskers flagged as outliers.
 Several different ways of extending this idea to functional data are described over the sections that follow.
 The functional bagplot and the functional HDR boxplot, covered in this section and the next, were proposed by @HS08 [@rainbow].
-They follow a similar approach: reduce each curve to its first two functional principal component scores (@sec-basis-functions), draw the bivariate bagplot or HDR boxplot of those scores, and then map the boundary of the resulting central region back through the principal component basis to obtain an envelope of curves.
-
-For the two PCA-based versions, we need a way to turn a point $(\beta_1, \beta_2)$ in principal component score space back into a curve.
-Using the notation of @sec-basis-functions, this is just
-$$
-  \hat y(x) = b_0(x) + \beta_1 b_1(x) + \beta_2 b_2(x),
-$$
-the mean function plus a weighted combination of the first two empirical basis functions.
+They follow a similar approach: reduce each curve to its first two functional principal component scores (@sec-basis-functions), draw the bivariate bagplot or HDR boxplot of those scores, and then map each region back to a functional envelope formed from the curves whose scores fall inside it.
+So the inner region of the functional bagplot is bounded by the curves whose scores lie in the bivariate bag, and the outer region is bounded by the curves whose scores lie in the bivariate loop.
+The bagplot's central point (the Tukey median of the scores) need not coincide with any observed point, so the "median curve" is instead taken to be the observed curve whose scores are closest (in Euclidean distance) to that central point.
 
 @fig-pca-bagplot shows the ordinary bivariate bagplot (@sec-bagplots) of the first two principal component scores.
-Each point is a year; the dark region is the bag, the light region is the loop, and any points beyond the loop are flagged as bivariate outliers, coloured by year to match the corresponding curves in @fig-fbagplot below.
+Each point corresponds to one year's mortality curve; the dark region is the bag, the light region is the loop, and any points beyond the loop are flagged as bivariate outliers, coloured by year to match the corresponding curves in @fig-fbagplot below.
 
 ```{r}
 #| label: fig-pca-bagplot
@@ -428,9 +423,8 @@ pca_scores |>
   labs(colour = "Outlier year")
 ```
 
-Every point in @fig-pca-bagplot corresponds to a whole mortality curve, via the basis reconstruction above.
 The bag and loop shown here trace out regions of "typical" curves, while the flagged points correspond to years whose curves depart from that typical shape.
-Mapping the bag and loop boundary vertices back to the original curves, and taking the pointwise range of each set of boundary curves, gives an envelope for the "typical" region of the functional bagplot at every age.
+Taking the pointwise range of the curves whose scores fall inside the bag, and separately of the curves whose scores fall inside the loop, gives an envelope for the "typical" region of the functional bagplot at every age.
 
 The following code identifies the curves contained in the bag and the loop, and those beyond that loop corresponding to the anomalies in @fig-pca-bagplot.
 
@@ -441,24 +435,25 @@ The following code identifies the curves contained in the bag and the loop, and 
 #| fig-cap: Functional bagplot of French male mortality.
 #|   The dark band shows the envelope of the bag (50% region), the light band shows the envelope of the loop; the solid curve is the curve corresponding to the bagplot's central point; the raw curves for years flagged as bagplot outliers are overlaid.
 
-reconstruct_curve <- function(s1, s2, pca) {
-  p <- length(pca$center)
-  logm <- matrix(pca$center, nrow = length(s1), ncol = p, byrow = TRUE) +
-    outer(s1, pca$rotation[, 1]) +
-    outer(s2, pca$rotation[, 2])
-  exp(logm) # Reverse log transform used before PCA
+# Pointwise envelope of the actual (smoothed) curves for a set of years
+curve_envelope <- function(years) {
+  fr_smooth |>
+    filter(Year %in% years) |>
+    summarise(ymin = min(.smooth), ymax = max(.smooth), .by = Age)
 }
-envelope <- function(hull, age, pca) {
-  curves <- reconstruct_curve(hull[, 1], hull[, 2], pca)
-  tibble(Age = age, ymin = apply(curves, 2, min), ymax = apply(curves, 2, max))
-}
-age <- as.numeric(gsub("Age", "", rownames(pca$rotation)))
-bag_env <- envelope(bag$hull.bag, age, pca)
-loop_env <- envelope(bag$hull.loop, age, pca)
-centre_curve <- tibble(
-  Age = age,
-  Mortality = as.numeric(reconstruct_curve(bag$center[1], bag$center[2], pca))
+bag_years <- as.data.frame(bag$pxy.bag) |>
+  left_join(pca_scores, by = c("PC1", "PC2")) |>
+  pull(Year)
+loop_years <- as.data.frame(bag$pxy.outer) |>
+  left_join(pca_scores, by = c("PC1", "PC2")) |>
+  pull(Year)
+bag_env <- curve_envelope(bag_years)
+loop_env <- curve_envelope(c(bag_years, loop_years))
+# Central curve: the observed curve closest to the bagplot's Tukey median
+centre_point <- which.min(
+  (pca_scores$PC1 - bag$center[1])^2 + (pca_scores$PC2 - bag$center[2])^2
 )
+centre_curve <- fr_smooth |> filter(Year == pca_scores$Year[centre_point])
 outlier_curves <- fr_male |>
   filter(Year %in% bagplot_outliers$Year)
 bag_colors <- c("#00659e", "#5397BD", "#A7CADD")
@@ -475,7 +470,7 @@ ggplot() +
   ) +
   geom_line(
     data = centre_curve,
-    aes(x = Age, y = Mortality),
+    aes(x = Age, y = .smooth),
     colour = bag_colors[1]
   ) +
   geom_line(
