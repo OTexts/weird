@@ -4,9 +4,13 @@ qmd_files   := $(wildcard *.qmd)
 rds_files   := $(wildcard rds/*.rds)
 shared_deps := weird.bib before-each-chapter.R apa-single-spaced.csl otexts.scss _quarto.yml
 
-.PHONY: all preview build launch deploy clean
+.PHONY: all preview build launch deploy clean update
 
 all: build
+
+update:
+	rm -rf .uvr/library/weird
+	source .uvr/activate && uvr update && uvr sync
 
 build: _book/.built
 
