@@ -492,7 +492,6 @@ Another implementation of the functional bagplot is provided by `rainbow::fboxpl
 ## Functional HDR boxplot {#sec-functional-hdr-boxplot}
 
 The functional HDR boxplot follows the same recipe, but uses the highest density regions of a bivariate kernel density estimate of the scores (@sec-mhdr) in place of the bagplot's bag and loop.
-We use `dist_kde()` to estimate the bivariate density of the scores, and `hdr_table()` to find the density threshold corresponding to each requested coverage probability.
 
 @fig-pca-hdrboxplot shows the ordinary bivariate HDR boxplot (@sec-hdr-boxplots) of the first two principal component scores.
 Because of the strange shape that the principal component scores lie on, the resulting kernel density estimate is particularly sensitive to the bandwidth choice, and the resulting HDRs are broken into several disconnected pieces.
@@ -505,16 +504,17 @@ Thus, the dark region is the 50% HDR (containing 50% of the years), the light re
 #| dependson: fig-pca-scores
 #| fig-cap: HDR boxplot of the first two principal component scores of the French male mortality curves.
 
-pca_kde <- pca_scores[, c("PC1", "PC2")] |> dist_kde(method = "scv")
-hdr_thresholds <- hdr_table(pca_kde, prob = c(0.5, 0.93))
+hdr_labels <- pca_scores[, c("PC1", "PC2")] |> 
+  dist_kde(method = "scv") |> 
+  hdr_regions(prob = c(0.5, 0.93))
 pca_scores <- pca_scores |>
   mutate(
-    density = density(pca_kde, at = as.matrix(pick(PC1, PC2)))[[1]],
     hdr_region = case_when(
-      density >= hdr_thresholds$density[hdr_thresholds$prob == 0.5] ~ "50%",
-      density >= hdr_thresholds$density[hdr_thresholds$prob == 0.93] ~ "93%",
+      !is.na(hdr_labels$hdr_50) ~ "50%",
+      !is.na(hdr_labels$hdr_93) ~ "93%",
       TRUE ~ "outlier"
-    )
+    ),
+    hdr_cluster = hdr_labels$hdr_93
   )
 hdr_outliers <- pca_scores |> filter(hdr_region == "outlier")
 pca_scores |>
@@ -527,6 +527,8 @@ pca_scores |>
   labs(colour = "Outlier year") +
   guides(colour = "legend")
 ```
+
+Here, we have used `hdr_regions()` to classify each year's scores as either inside the 50% HDR, inside the 93% HDR but outside the 50% HDR, or outside the 93% HDR (and thus flagged as an outlier).
 
 All but one of the `r english::words(nrow(hdr_outliers))` years flagged as outliers have previously been identified as anomalous above (in @fig-pca-outliers, @fig-o3-pca or @fig-pca-bagplot); the exception, 1855, was not picked out by any of the earlier methods, but corresponds to a year during the Crimean War [@french_mortality].
 
@@ -543,8 +545,8 @@ stopifnot(
 )
 ```
 
-As with the bagplot, the envelope of each HDR is formed directly from the curves whose scores fall inside it, using the `hdr_region` classification already computed above.
-Because the bivariate scores split into two separated clusters (@fig-pca-hdrboxplot), so does each HDR: we split the non-outlying years into two groups by hierarchical clustering on their scores, and build a separate envelope within each group, so the split remains visible wherever the two groups' envelopes do not overlap.
+As with the bagplot, the envelope of each functional HDR is formed directly from the curves whose scores fall inside it, using the `hdr_region` classification already computed above.
+Because the bivariate scores split into two separated clusters (@fig-pca-hdrboxplot), so does each HDR: `hdr_regions()` labels which disconnected piece of the HDR each year's scores fall into, via `hdr_cluster`, and we build a separate envelope for each piece, so the split remains visible wherever the two pieces' envelopes do not overlap.
 
 ```{r}
 #| label: fig-fhdrboxplot
@@ -553,12 +555,11 @@ Because the bivariate scores split into two separated clusters (@fig-pca-hdrboxp
 #|   The dark bands show the envelope of the 50% HDR, the light bands the 93% HDR; the raw curves for years flagged as outliers (falling outside the 93% HDR) are overlaid.
 
 hdr_scores <- pca_scores |> filter(hdr_region != "outlier")
-hdr_scores$cluster <- cutree(hclust(dist(hdr_scores[, c("PC1", "PC2")])), k = 2)
 cluster_envelope <- function(years) {
   fr_smooth |>
     filter(Year %in% years) |>
-    left_join(hdr_scores[, c("Year", "cluster")], by = "Year") |>
-    summarise(ymin = min(.smooth), ymax = max(.smooth), .by = c(Age, cluster))
+    left_join(hdr_scores[, c("Year", "hdr_cluster")], by = "Year") |>
+    summarise(ymin = min(.smooth), ymax = max(.smooth), .by = c(Age, hdr_cluster))
 }
 hdr50_env <- cluster_envelope(hdr_scores$Year[hdr_scores$hdr_region == "50%"])
 hdr93_env <- cluster_envelope(hdr_scores$Year)
@@ -567,12 +568,12 @@ outlier_curves <- fr_male |>
 ggplot() +
   geom_ribbon(
     data = hdr93_env,
-    aes(x = Age, ymin = ymin, ymax = ymax, group = cluster),
+    aes(x = Age, ymin = ymin, ymax = ymax, group = hdr_cluster),
     fill = bag_colors[3]
   ) +
   geom_ribbon(
     data = hdr50_env,
-    aes(x = Age, ymin = ymin, ymax = ymax, group = cluster),
+    aes(x = Age, ymin = ymin, ymax = ymax, group = hdr_cluster),
     fill = bag_colors[2]
   ) +
   geom_line(
