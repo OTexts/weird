@@ -1037,7 +1037,7 @@ gev_fit <- evd::fgev(maximums)$estimate
 x <- seq(0, 8, l = 500)
 # Plot true distribution and GEV distribution
 c(
-  Exact = dist_density(x = x, density = n * pnorm(x)^(n - 1) * dnorm(x)),
+  Exact = dist_density(x = list(x), density = list(n * pnorm(x)^(n - 1) * dnorm(x))),
   `GEV approximation` = dist_gev(
     location = gev_fit["loc"],
     scale = gev_fit["scale"],
