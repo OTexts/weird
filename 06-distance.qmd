@@ -141,7 +141,7 @@ We apply this to the Dongsi air quality data, using the scaled data `z` already 
 #| label: fig-mahal-scores
 #| fig-cap: >-
 #|   Mahalanobis anomaly scores for the Dongsi air quality data.
-#|   Observations flagged as anomalies (using a threshold based on the 0.999 quantile of the chi-squared distribution) are shown in blue.
+#|   Observations flagged as anomalies (using a threshold based on the 0.999 quantile of the chi-squared distribution) are shown in orange.
 #| code-fold: false
 #| dependson: zscores
 
@@ -152,6 +152,7 @@ dongsi |>
   ) |>
   ggplot(aes(x = max_temp, y = o3, colour = anomaly)) +
   geom_point() +
+  scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = "#D55E00")) +
   labs(x = "Maximum temperature", y = "Ozone level")
 ```
 
@@ -338,9 +339,7 @@ dongsi_knn |>
   mutate(anomaly = score > threshold) |>
   ggplot(aes(x = max_temp, y = o3)) +
   geom_point(aes(colour = anomaly)) +
-  scale_colour_manual(
-    values = c("FALSE" = "grey70", "TRUE" = discrete_colours[2])
-  ) +
+  scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = "#D55E00")) +
   labs(x = "Maximum temperature", y = "Ozone level") +
   guides(colour = "none")
 ```
@@ -492,9 +491,7 @@ dongsi_scores |>
   mutate(anomaly = lof > threshold) |>
   ggplot(aes(x = max_temp, y = o3)) +
   geom_point(aes(colour = anomaly)) +
-  scale_colour_manual(
-    values = c("FALSE" = "grey70", "TRUE" = discrete_colours[2])
-  ) +
+  scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = "#D55E00")) +
   labs(x = "Maximum temperature", y = "Ozone level") +
   guides(colour = "none")
 ```
@@ -583,9 +580,7 @@ dongsi_glosh |>
   mutate(anomaly = glosh > threshold) |>
   ggplot(aes(x = max_temp, y = o3)) +
   geom_point(aes(colour = anomaly)) +
-  scale_colour_manual(
-    values = c("FALSE" = "grey70", "TRUE" = discrete_colours[2])
-  ) +
+  scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = "#D55E00")) +
   labs(x = "Maximum temperature", y = "Ozone level") +
   guides(colour = "none")
 ```
@@ -941,7 +936,7 @@ These are highlighted in @fig-iforest-of.
 #| label: fig-iforest-of
 #| fig-cap: >-
 #|   Isolation Forest anomaly scores for the Dongsi air quality data.
-#|   Anomalies are shown as observations with scores above 0.6, which are highlighted in blue.
+#|   Anomalies are shown as observations with scores above 0.6, which are highlighted in orange.
 #| code-fold: true
 #| dependson: iforest-of
 
@@ -962,6 +957,7 @@ dongsi_if |>
     breaks = seq(0.35, 0.85, by = 0.025)
   ) +
   geom_point(aes(colour = score > 0.6)) +
+  scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = "#D55E00")) +
   labs(x = "Maximum temperature", y = "Ozone level")
 ```
 

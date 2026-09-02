@@ -441,19 +441,20 @@ shiraz |>
 ```
 
 @fig-shiraz-surprisal shows the relationship between points and price, with the points coloured according to the surprisal probability.
-The eight blue points are observations with surprisal probabilities less than 0.002 (two are almost overlapping).
+The eight orange points are observations with surprisal probabilities less than 0.002 (two are almost overlapping).
 
 ```{r}
 #| label: fig-shiraz-surprisal
 #| dependson: shiraz-surprisals
 #| fig-cap: Price vs points for Shiraz wines.
 #|   Points are coloured according to the surprisal probability.
-#|   The eight blue points are observations with surprisal probabilities less than 0.002.
+#|   The eight orange points are observations with surprisal probabilities less than 0.002.
 
 shiraz |>
   ggplot(aes(x = points, y = price, colour = prob < 0.002)) +
   geom_jitter(height = 0, width = 0.2) +
-  scale_y_log10()
+  scale_y_log10() +
+  scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = "#D55E00")) 
 ```
 
 ```{r}
@@ -519,7 +520,7 @@ Batters with moderate RPIs (25--40) benefit from neither mechanism, so they have
 #| label: fig-notouts
 #| fig-cap: >-
 #|   Proportion of not outs for each batter as a function of their runs per innings.
-#|   Batters with few innings (no more than 20) are shown in orange and partially transparent, to highlight the pattern from batters with more innings, shown in blue.
+#|   Batters with few innings (no more than 20) are shown in grey, to highlight the pattern from batters with more innings, shown in blue.
 #| message: false
 #| code-fold: true
 
@@ -535,16 +536,16 @@ df_no |>
     aes(
       x = RPI,
       y = prop_no,
-      colour = Innings > 20,
-      alpha = 0.5 * (1 + Innings > 20)
+      colour = Innings > 20
     )
   ) +
   geom_point() +
+  scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = "#0072B2")) +
   labs(y = "Proportion of not-outs", x = "Runs per innings") +
   guides(alpha = "none")
 ```
 
-The unusual horizontal patterns in the orange points are due to the discrete nature of the data --- batters who have played only two innings must have a not-out proportion of either 0, 1/2, or 1, while those who have played only three innings must have a not-out proportion of either 0, 1/3, 2/3, or 1, and so on.
+The unusual horizontal patterns in the grey points are due to the discrete nature of the data --- batters who have played only two innings must have a not-out proportion of either 0, 1/2, or 1, while those who have played only three innings must have a not-out proportion of either 0, 1/3, 2/3, or 1, and so on.
 As the number of innings played goes up, more possible not-out proportions are possible.
 
 We also expect that the pattern of not outs has changed over time.

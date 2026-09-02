@@ -279,7 +279,7 @@ We restrict attention to the first two components here so the results can be sho
 #| code-fold: false
 #| label: fig-pca-outliers
 #| dependson: fig-pca-scores
-#| fig-cap: French principal component scores, with anomalous years (surprisal probability below 0.05) shown in red.
+#| fig-cap: French principal component scores, with anomalous years (surprisal probability below 0.05) shown in orange.
 
 # Find outliers in the PCs
 outliers <- pca_scores |>
@@ -288,8 +288,8 @@ outliers <- pca_scores |>
 
 pca_scores |>
   ggplot(aes(x = PC1, y = PC2)) +
-  geom_point() +
-  geom_point(data = outliers, colour = "red") +
+  geom_point(colour = "#0072b2") +
+  geom_point(data = outliers, colour = "#D55e00") +
   ggrepel::geom_label_repel(data = outliers, aes(label = Year))
 ```
 
@@ -356,6 +356,7 @@ o3_plots <- OutliersO3::O3plotM(
 #| label: fig-o3-pca
 #| fig-width: 14
 #| fig-asp: 0.2
+#| fig-cap: O3 plot of the first three principal component scores for the French male mortality data.
 #| dependson: pca_o3prep
 #| code-fold: false
 
@@ -750,7 +751,7 @@ The outliergram plots MEI against MBD along with this parabola, and flags as sha
 #| dependson: mbd-build
 #| code-fold: true
 #| fig-cap: Outliergram of the smoothed French male mortality curves.
-#|   The shaded region shows the theoretical MBD/MEI parabola down to the outlier fence; years beyond the fence are shown in red.
+#|   The shaded region shows the theoretical MBD/MEI parabola down to the outlier fence; years beyond the fence are shown in orange.
 
 mei <- function(Y) {
   n <- NROW(Y)
@@ -784,7 +785,7 @@ mei_tbl |>
     alpha = 0.2
   ) +
   geom_line(data = parabola, aes(y = MBD), colour = "#00659e") +
-  geom_point() +
+  geom_point(colour = "#555555") +
   geom_point(data = og_outliers, colour = "#D55E00") +
   ggrepel::geom_label_repel(
     data = og_outliers,
@@ -815,7 +816,7 @@ These calculations are implemented in the `fdaoutlier` package, which we use her
 #| dependson: mbd-build
 #| code-fold: true
 #| fig-cap: Magnitude-shape plot of the smoothed French male mortality curves.
-#|   Years flagged as outliers are shown in red.
+#|   Years flagged as outliers are shown in orange.
 
 ms <- fdaoutlier::msplot(frmort_mat, seed = 1, plot = FALSE)
 ms_tbl <- tibble(
@@ -827,8 +828,8 @@ ms_outliers <- ms_tbl |> slice(ms$outliers)
 
 ms_tbl |>
   ggplot(aes(x = MO, y = VO)) +
-  geom_point() +
-  geom_point(data = ms_outliers, colour = "red")
+  geom_point(colour = "#0072B2") +
+  geom_point(data = ms_outliers, colour = "#D55E00")
 ```
 
 ```{r}

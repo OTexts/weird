@@ -49,7 +49,7 @@ pbs_plot <- function(pbs, anomalies, series) {
     dplyr::filter(ATC2 == series) |>
     ggplot2::ggplot(ggplot2::aes(x = Month, y = Scripts)) +
     tsibble::scale_x_yearmonth(date_breaks = "2 years", date_labels = "%Y") +
-    ggplot2::geom_vline(xintercept = dates, colour = "red", alpha = 0.4) +
+    ggplot2::geom_vline(xintercept = dates, colour = "#D55E00") +
     ggplot2::geom_line() +
     ggplot2::labs(title = paste("Scripts for ATC group", series))
 }
@@ -532,7 +532,7 @@ pcs |>
   ggplot(aes(x = Week, y = .fittedPC1)) +
   geom_line() +
   labs(y = "First principal component scores") +
-  geom_point(data = pc_anomalies, colour = "red")
+  geom_point(data = pc_anomalies, colour = "#D55E00")
 ```
 
 As expected, many of the same weeks identified earlier in an analysis of individual series have been returned.
@@ -737,6 +737,7 @@ The process can be illustrated as in @fig-tscvplots.
 #| label: fig-tscvplots
 #| fig-cap: Rolling origin forecasts, with the training sets expanding by one observation at each iteration, and one-step forecasts computed for each training set.
 #| echo: false
+#| dependson: setup10
 
 tscv_plot(.init = 8, .step = 1, h = 1) +
   annotate(
@@ -910,7 +911,7 @@ Now let's look at the A12 series that we started with, and consider the times wh
 ```{r}
 #| label: fig-pbs-a12-anomalies
 #| code-fold: false
-#| dependson: pbs_scores3
+#| dependson: [setup10, pbs_scores3]
 #| fig-cap: Surveillance anomalies identified over time for ATC group A12 (Mineral supplements).
 
 pbs_plot(pbs, pbs_anomalies, "A12")
@@ -925,7 +926,7 @@ After that, the model has learned to allow for large jumps in the series, so the
 ```{r}
 #| label: fig-pbs-n07-anomalies
 #| code-fold: false
-#| dependson: pbs_scores3
+#| dependson: [setup10, pbs_scores3]
 #| fig-cap: Surveillance anomalies identified over time for ATC group N07.
 
 pbs_plot(pbs, pbs_anomalies, "N07")
@@ -935,7 +936,7 @@ The next example, shown in @fig-pbs-r05-anomalies, shows less dramatic anomalies
 
 ```{r}
 #| label: fig-pbs-r05-anomalies
-#| dependson: pbs_scores3
+#| dependson: [setup10, pbs_scores3]
 #| code-fold: false
 #| fig-cap: Surveillance anomalies identified over time for ATC group R05.
 

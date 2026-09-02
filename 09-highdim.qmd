@@ -387,7 +387,7 @@ These correspond to the cluster of five observations near the bottom of @fig-pro
 az_aq_proj |>
   ggplot(aes(x = a1, y = a2, colour = surprisal_anomaly)) +
   geom_point(alpha = 0.2 + 0.8 * az_aq_proj$surprisal_anomaly) +
-  scale_colour_manual(values = c("FALSE" = "#0072B2", "TRUE" = "black"))
+  scale_colour_manual(values = c("FALSE" = "#0072B2", "TRUE" = "#D55E00")) 
 ```
 
 Further inspection shows that this was a period of high particulate matter (`pm2_5` and `pm10`), `co` and `dew_point`, and moderately high `so2`.
@@ -423,7 +423,7 @@ az_aq_proj |> gg_hdrboxplot(od)
 
 @fig-proj-residuals1 shows an HDR boxplot of the orthogonal distances, with the most extreme observations marked as anomalies.
 We can highlight these residual anomalies in the projection space, as shown in @fig-proj-residuals2.
-The points with the largest orthogonal distances are highlighted in black.
+The points with the largest orthogonal distances are highlighted in orange.
 
 ```{r}
 #| label: fig-proj-residuals2
@@ -434,7 +434,7 @@ threshold <- quantile(az_aq_proj$od, 0.99, type = 8)
 az_aq_proj |>
   ggplot(aes(x = a1, y = a2, colour = od >= threshold)) +
   geom_point(alpha = 0.2 + 0.8 * (az_aq_proj$od >= threshold)) +
-  scale_colour_manual(values = c("FALSE" = "#0072B2", "TRUE" = "black")) +
+  scale_colour_manual(values = c("FALSE" = "#0072B2", "TRUE" = "#D55E00")) +
   guides(colour = "none")
 ```
 
