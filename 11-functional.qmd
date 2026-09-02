@@ -846,5 +846,4 @@ Working directly with the curves via band depth or directional outlyingness give
 The outliergram sits in between, using the same band depth but comparing it against a curve's rank (via MEI) rather than its raw value, which lets it isolate genuine shape anomalies and, on this data, recovers a conservative version of the same war years found by the PCA-based methods.
 
 No single method here is more "correct" than the others.
-Trend is common in real functional data, and whether it should be treated as the expected background against which anomalies are judged, as the PCA- and shape-based methods effectively do here, or as something that can itself produce anomalies, is a modelling choice, not a purely statistical one.
-In practice, applying more than one method, as we have done here, and using the disagreements between them to understand *why* particular curves are flagged is more informative than relying on any single number to decide what counts as anomalous.
+In practice, applying more than one method, as we have done here, and using the disagreements between them to understand *why* particular curves are flagged is more informative than relying on any single method to decide what counts as anomalous.
