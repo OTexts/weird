@@ -43,6 +43,7 @@ Also update this skill to take account of any new issues you find when reviewing
 - Equation labels should either be referenced elsewhere or be removed. Watch for typo'd labels (e.g. `eq-lookkde` for what should be `eq-loo-kde`).
 - Figures should be cross-referenced from the prose, not just placed near the relevant text. Check every `fig-` label is referenced by at least one `@fig-...`; if a figure is never referenced, add a natural reference (often the lead-in sentence implicitly points to it — make the link explicit).
 - Check `#| fig-cap:` values for balanced quotes — a stray trailing `"` with no opening quote (or vice versa) is a common YAML error. Either wrap the whole caption in `"..."` or leave it fully unquoted.
+- Every chunk with a `fig-` label must have a `#| fig-cap:` — don't just eyeball this, run `grep -A5 '^#| label: fig-' file.qmd` (or compare `grep -c '^#| label: fig-'` against `grep -c '^#| fig-cap:'`) for every chapter reviewed and confirm each `fig-` labelled chunk has a matching caption line; a missing caption is easy to miss by reading prose alone since the figure still renders fine without one.
 - Captions should not introduce mathematical notation (e.g. $c_{\text{SD}}$) that is never defined in the surrounding text; use words instead, or define the symbol in the text.
 
 **Accuracy**
