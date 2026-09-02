@@ -504,8 +504,8 @@ Thus, the dark region is the 50% HDR (containing 50% of the years), the light re
 #| dependson: fig-pca-scores
 #| fig-cap: HDR boxplot of the first two principal component scores of the French male mortality curves.
 
-hdr_labels <- pca_scores[, c("PC1", "PC2")] |> 
-  dist_kde(method = "scv") |> 
+hdr_labels <- pca_scores[, c("PC1", "PC2")] |>
+  dist_kde(method = "scv") |>
   hdr_regions(prob = c(0.5, 0.93))
 pca_scores <- pca_scores |>
   mutate(
@@ -559,7 +559,11 @@ cluster_envelope <- function(years) {
   fr_smooth |>
     filter(Year %in% years) |>
     left_join(hdr_scores[, c("Year", "hdr_cluster")], by = "Year") |>
-    summarise(ymin = min(.smooth), ymax = max(.smooth), .by = c(Age, hdr_cluster))
+    summarise(
+      ymin = min(.smooth),
+      ymax = max(.smooth),
+      .by = c(Age, hdr_cluster)
+    )
 }
 hdr50_env <- cluster_envelope(hdr_scores$Year[hdr_scores$hdr_region == "50%"])
 hdr93_env <- cluster_envelope(hdr_scores$Year)
@@ -680,7 +684,7 @@ fr_smooth |>
     fmin = min(.smooth[!Year %in% outlier_years]),
     fmax = max(.smooth[!Year %in% outlier_years]),
     .by = Age
-  ) |> 
+  ) |>
   ggplot() +
   geom_ribbon(
     aes(x = Age, ymin = fmin, ymax = fmax),
@@ -772,18 +776,21 @@ mei_tbl |>
     fill = "#00659e",
     alpha = 0.2
   ) +
+  geom_line(data = parabola, aes(y = MBD), colour = "#00659e") +
   geom_point() +
-  geom_point(data = og_outliers, colour = "red") +
+  geom_point(data = og_outliers, colour = "#D55E00") +
   ggrepel::geom_label_repel(
     data = og_outliers,
     aes(label = Year),
-    colour = "red"
+    colour = "#D55E00",
+    nudge_y = -0.05,
+    direction = "y"
   )
 ```
 
 @fig-outliergram flags `r english::words(nrow(og_outliers))` years as shape outliers: `r format_years(sort(og_outliers$Year))`.
-These were in the middle of World War II, and are the years where the age profile changes shape most --- mortality rises sharply for young men while barely moving for children or the elderly --- rather than merely shifting up or down as a whole.
-The default fence used here is deliberately conservative (the same 1.5 factor used for the whisker length of an ordinary boxplot), so the outliergram flags far fewer years than the bagplot or HDR boxplot; it is best thought of as a strict test for shape, rather than a general-purpose anomaly detector.
+These were in the middle of World War II, and are the years where the age profile changes shape most, with mortality rising sharply for young men while barely moving for children or the elderly.
+More shape anomalies would be identified if we reduced the fence multiplier from 1.5.
 Unlike the depth boxplot fence of @fig-fbplot-sungenton, none of the low-mortality recent years are flagged, because their low MBD is entirely explained by their extreme MEI --- they sit at one end of the rank ordering, but they do not deviate from the shape that curves at that end of the ranking are expected to have.
 
 ## Magnitude-shape plot {#sec-ms-plot}
