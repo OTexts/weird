@@ -539,7 +539,10 @@ All but one of the `r english::words(nrow(hdr_outliers))` years flagged as outli
 
 stopifnot(
   "the 'previously identified' claim above no longer matches hdr_outliers -- update the text" = setequal(
-    setdiff(hdr_outliers$Year, union(o3_years, bagplot_outliers$Year)),
+    setdiff(
+      hdr_outliers$Year,
+      Reduce(union, list(outliers$Year, o3_years, bagplot_outliers$Year))
+    ),
     1855
   )
 )
