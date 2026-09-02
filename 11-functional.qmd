@@ -402,7 +402,7 @@ Several different ways of extending this idea to functional data are described o
 The functional bagplot and the functional HDR boxplot, covered in this section and the next, were proposed by @HS08 [@rainbow].
 They follow a similar approach: reduce each curve to its first two functional principal component scores (@sec-basis-functions), draw the bivariate bagplot or HDR boxplot of those scores, and then map each region back to a functional envelope formed from the curves whose scores fall inside it.
 So the inner region of the functional bagplot is bounded by the curves whose scores lie in the bivariate bag, and the outer region is bounded by the curves whose scores lie in the bivariate loop.
-The bagplot's central point (the Tukey median of the scores) need not coincide with any observed point, so the "median curve" is instead taken to be the observed curve whose scores are closest (in Euclidean distance) to that central point.
+The bagplot's central point (the depth median of the scores) need not coincide with any observed point, so the "median curve" is instead taken to be the observed curve whose scores are closest (in Euclidean distance) to that central point.
 
 @fig-pca-bagplot shows the ordinary bivariate bagplot (@sec-bagplots) of the first two principal component scores.
 Each point corresponds to one year's mortality curve; the dark region is the bag, the light region is the loop, and any points beyond the loop are flagged as bivariate outliers, coloured by year to match the corresponding curves in @fig-fbagplot below.
@@ -449,7 +449,7 @@ loop_years <- as.data.frame(bag$pxy.outer) |>
   pull(Year)
 bag_env <- curve_envelope(bag_years)
 loop_env <- curve_envelope(c(bag_years, loop_years))
-# Central curve: the observed curve closest to the bagplot's Tukey median
+# Central curve: the observed curve closest to the bagplot's depth median
 centre_point <- which.min(
   (pca_scores$PC1 - bag$center[1])^2 + (pca_scores$PC2 - bag$center[2])^2
 )
@@ -495,7 +495,7 @@ The functional HDR boxplot follows the same recipe, but uses the highest density
 
 @fig-pca-hdrboxplot shows the ordinary bivariate HDR boxplot (@sec-hdr-boxplots) of the first two principal component scores.
 Because of the strange shape that the principal component scores lie on, the resulting kernel density estimate is particularly sensitive to the bandwidth choice, and the resulting HDRs are broken into several disconnected pieces.
-After some experimentation, the "scv" bandwidth method was chosen.
+After some experimentation, we chose the "scv" (smoothed cross-validation) bandwidth method.
 To roughly match the number of years flagged by the bagplot, we use a 93% coverage probability for the larger HDR.
 Thus, the dark region is the 50% HDR (containing 50% of the years), the light region is the 93% HDR (containing 93% of the years), and the points outside the 93% HDR are flagged as outliers, coloured by year to match the corresponding curves in @fig-fhdrboxplot below.
 
