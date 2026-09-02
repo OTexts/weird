@@ -797,8 +797,8 @@ Unlike the depth boxplot fence of @fig-fbplot-sungenton, none of the low-mortali
 
 A second way to separate magnitude and shape effects is the magnitude-shape plot of @Dai2018.
 For each curve, and at each point $x$ on the grid, they compute a *directional outlyingness*: a signed measure of how far, and in which direction, the curve departs from the centre of the distribution of values at that $x$.
-Averaging this quantity over the domain gives a magnitude score (MO) for each curve --- large when a curve sits consistently on one side of the bulk of the data.
-The variation of the directional outlyingness over the domain gives a separate shape score (VO) --- large when a curve's departure from the centre changes direction or size as $x$ varies, which happens when a curve crosses others or has an unusual local pattern, even if its overall MO is modest.
+Averaging this quantity over the domain gives a magnitude score (MO) for each curve, taking a large value when a curve sits consistently on one side of the bulk of the data.
+The variation of the directional outlyingness over the domain gives a separate shape score (VO), which is large when a curve's departure from the centre changes direction or size as $x$ varies, which happens when a curve crosses others or has an unusual local pattern, even if its overall MO is modest.
 Plotting VO against MO for every curve gives the magnitude-shape plot; @Dai2018 then flag outliers using a robust distance in this two-dimensional (MO, VO) space, with a finite-sample correction due to @Hardin2005.
 
 These calculations are implemented in the `fdaoutlier` package, which we use here.
@@ -834,10 +834,9 @@ ms_early <- ms_outliers |> filter(Year < 1946) |> pull(Year) |> sort()
 ```
 
 @fig-ms-plot flags `r english::words(nrow(ms_outliers))` years as outliers, far more than either the outliergram or the depth boxplot.
-Almost all of these, `r format_years(ms_recent)`, are years from `r min(ms_recent)` onwards --- every year after World War II.
+Almost all of these are on the left of the plot and cover every year after World War II.
 The remainder, `r format_years(ms_early)`, are war and conflict years already familiar from earlier sections.
 So the magnitude-shape plot re-discovers the same problem as the Sun--Genton functional boxplot of @sec-sungenton-boxplot: because mortality has fallen steadily across the study period, every sufficiently recent curve has a large, consistently-signed directional outlyingness relative to the whole sample, driving up its MO score regardless of whether anything unusual happened in that year.
-Two conceptually different methods --- one based on band depth, one on directional outlyingness --- fail here for the same underlying reason: magnitude-based measures cannot cope with trending data, regardless of implementation.
 
 ## Summary {#sec-functional-summary}
 
