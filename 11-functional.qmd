@@ -16,7 +16,7 @@ For example, mortality rates are naturally represented as 1-dimensional function
 In @sec-weird-times, we looked at these as time series, treating each age as a separate series.
 Here, we will treat the same data as curves, with each year represented as a function of mortality rates over age.
 Each line in @fig-fr-mortality denotes the mortality rates for one year as a function of age, with the colours in rainbow order corresponding to the years of observation.
-Overall, we see a large decrease in mortality rates during early childhood years, then an increase during teenage years.
+We see a large decrease in mortality rates during early childhood years, then an increase during teenage years.
 After about age 30, the rates increase almost linearly on a log scale.
 Comparing the curves over time, we see that the rates have steadily fallen for all ages, with more than a 40-fold reduction in mortality rates at around age 10.
 The noticeable gap between the curves occurred after World War II due to the effective use of antibiotics, and widespread vaccinations for polio, diphtheria, tetanus, whooping cough, measles, mumps and rubella.
@@ -485,7 +485,7 @@ ggplot() +
 ```
 
 @fig-fbagplot flags `r english::words(nrow(bagplot_outliers))` years as functional bagplot outliers: `r format_years(bagplot_outliers$Year)`.
-These are almost exactly the war years already identified in @sec-functional-pca and @sec-weird-times, and the outlying curves are clearly visible bulging above the typical envelope for young men.
+These are almost exactly the war years already identified in @sec-functional-pca and @sec-weird-times, and the outlying curves are visibly bulging above the typical envelope for young men.
 
 Another implementation of the functional bagplot is provided by `rainbow::fboxplot()`.
 
