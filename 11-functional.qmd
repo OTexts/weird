@@ -11,6 +11,7 @@ source("before-each-chapter.R")
 Functional data occur when the natural observational representation is a function.
 The most commonly occurring examples are where observations are curves (functions over one dimension) or surfaces (functions over two dimensions).
 For example, mortality rates are naturally represented as 1-dimensional functions of age, and surface temperatures are naturally represented as functions over the 2-dimensional plane of latitude and longitude.
+For an introduction to functional data analysis, with many worked examples, see @RamsaySilverman2002.
 
 @fig-fr-mortality shows French male mortality rates between 1816 and 1999.
 In @sec-weird-times, we looked at these as time series, treating each age as a separate series.
@@ -50,6 +51,9 @@ For the mortality data, $y_{i}(x)$ represent the mortality rate for age $x$ in y
 
 It is possible to have multiple indexes (e.g., mortality rates for males and females, or for different countries, or both), and the function may be defined over more than one variable (e.g., mortality rates over age and BMI).
 It is also possible to have multivariate observations (e.g., mortality and fertility rates).
+
+The methods in this chapter all assume that the curves are already aligned on a common domain, so that $x$ means the same thing for every observation, as is naturally true here since age is measured on the same scale in every year.
+When curves instead exhibit phase variation (e.g., the same underlying pattern occurring earlier or later, or faster or slower, for different observations), that misalignment can itself masquerade as a shape anomaly, and the curves should first be "registered" to a common scale before comparison [@RamsaySilverman2005].
 
 ## Interpolation and smoothing {#sec-interpolation}
 
