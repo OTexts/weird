@@ -73,7 +73,7 @@ c(t3 = dist_student_t(3), X4 = dist_chisq(4), N01 = dist_normal()) |>
 Data for the last two examples are generated below.
 
 ```{r}
-#| label: fig-testdist-data
+#| label: testdist-data
 #| code-fold: false
 
 set.seed(1)
@@ -90,7 +90,7 @@ They should identify no anomalies in the remaining examples.
 ```{r}
 #| label: check_numbers
 #| include: false
-#| depends: ["fig-n01b", "fig-testdist-data"]
+#| depends: ["fig-n01b", "testdist-data"]
 
 nanomalies <- tibble(
   Example = c(

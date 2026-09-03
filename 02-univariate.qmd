@@ -1024,7 +1024,7 @@ The resulting Gumbel distribution is shown in @fig-evdexample (in orange), along
 The approximation is so good, that it is hard to distinguish the two distributions.
 
 ```{r}
-#| label: "fig-evdexample"
+#| label: fig-evdexample
 #| fig-cap: >-
 #|   Distribution of the maximum of 1000 N(0,1) draws.
 #|   Here we have simulated 2000 such maximums and shown the estimated GEV distribution (in orange), along with the true distribution (in blue).

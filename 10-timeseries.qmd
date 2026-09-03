@@ -818,10 +818,11 @@ if (s01 != "S01") {
 ```
 
 The lowest probabilities indicate possible anomalies.
-Let's look at the most likely anomaly (or least likely observation), from series `r s01`.
+Let's look at the most likely anomaly (or least likely observation), from series `r s01`, shown in @fig-s01-forecast.
 
 ```{r}
-#| label: s01plot0
+#| label: fig-s01-forecast
+#| fig-cap: Forecast distribution for series S01 for February 2006, with the observed value shown as a point.
 
 s01 <- pbs |> filter(ATC2 == "S01", t <= 37)
 pbs_fc |>
