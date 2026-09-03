@@ -734,7 +734,7 @@ ggplot() +
   geom_line(
     data = of2021kde,
     aes(x = x, y = y, group = eruption),
-    col = "gray"
+    col = "grey"
   ) +
   geom_rug(
     data = of2021,
@@ -761,7 +761,7 @@ ggplot() +
   geom_line(
     data = of2021kde,
     aes(x = x, y = y, group = eruption),
-    col = "gray"
+    col = "grey"
   ) +
   geom_rug(
     data = of2021,
@@ -906,7 +906,7 @@ For most data sets, this will give a smaller value than @eq-nrr.
 Bandwidths obtained in this way are designed to give a good overall estimate of the underlying density, but may not be optimal for any particular point of the density.
 Our goal is to find anomalies in the data, rather than find a good representation for the rest of the data, and so we are interested in the regions of low density.
 
-If we optimized MSE (@eq-mse) rather than MISE (@eq-mise), we would obtain
+If we optimised MSE (@eq-mse) rather than MISE (@eq-mise), we would obtain
 $$
   h = \left( \frac{f(y)R(K)}{n[f''(y)]^2} \right)^{1/5}.
 $$

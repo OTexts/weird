@@ -110,7 +110,7 @@ ozone |>
   filter(Instrument %in% c("Halley", "TOMS")) |>
   ggplot(aes(x = Year, y = Ozone, colour = Instrument)) +
   geom_point() +
-  geom_hline(aes(yintercept = 180), col = "gray") +
+  geom_hline(aes(yintercept = 180), col = "grey") +
   labs(y = "Total Ozone (DU)") +
   scale_y_continuous(sec.axis = dup_axis(breaks = 180, name = ""))
 ```

@@ -864,7 +864,7 @@ ggplot() +
     data = of2021kde,
     aes(x = x, y = y, group = eruption, z = z),
     bins = 4,
-    col = "gray"
+    col = "grey"
   ) +
   geom_point(data = of2021, mapping = aes(x = duration, y = waiting)) +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
@@ -974,7 +974,7 @@ A fundamental concept in statistics is a **conditional probability distribution*
 Almost all statistical modelling involves the estimation of conditional distributions.
 For example, a regression is a model for the conditional distribution of a response variable given the values of a set of predictor variables.
 In its simplest form, we assume the conditional distribution is normal, with constant variance, and mean equal to a linear function of the predictor values.
-Generalized linear models allow for non-normal conditional distributions, while generalised additive models allow for non-linear relationships between the response and the predictors.
+Generalised linear models allow for non-normal conditional distributions, while generalised additive models allow for non-linear relationships between the response and the predictors.
 
 The conditional cdf of $Y$ given $X_1,\dots,X_p$ is defined by the conditional cdf
 $$

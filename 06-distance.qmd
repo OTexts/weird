@@ -51,7 +51,7 @@ hottest_day <- which.max(dongsi$max_temp)
 coldest_day <- which.min(dongsi$max_temp)
 ```
 
-As temperatures increase above 20 degrees Celsius, ozone levels tend to increase, although the hottest day over this period (`r dongsi$max_temp[hottest_day]` degrees on `r format(dongsi$date[hottest_day], "%d %B %Y")`) had a relatively moderate average ozone level of `r sprintf("%.1f", dongsi$o3[hottest_day])` $\mu g m^{-3}$ (micrograms per cubic meter).
+As temperatures increase above 20 degrees Celsius, ozone levels tend to increase, although the hottest day over this period (`r dongsi$max_temp[hottest_day]` degrees on `r format(dongsi$date[hottest_day], "%d %B %Y")`) had a relatively moderate average ozone level of `r sprintf("%.1f", dongsi$o3[hottest_day])` $\mu g m^{-3}$ (micrograms per cubic metre).
 There are two clear anomalies in the ozone variable, with levels above 250 $\mu g m^{-3}$, which are much higher than the other observations (and perhaps recording errors).
 There was also an unusually cold day on `r format(dongsi$date[coldest_day], "%d %B %Y")`, which had a maximum temperature of only `r dongsi$max_temp[coldest_day]` degrees.
 This is also a potential anomaly.

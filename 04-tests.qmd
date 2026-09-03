@@ -541,7 +541,7 @@ pzscoredf <- df |>
   cache("pzscoredf")
 pzscoredf |>
   ggplot(aes(x = n, y = pmax, group = test, col = test)) +
-  geom_hline(aes(yintercept = 0.05), col = "gray") +
+  geom_hline(aes(yintercept = 0.05), col = "grey") +
   geom_line() +
   labs(
     x = "n (sample size)",
@@ -607,7 +607,7 @@ pgrubbsdf |>
     group = Distribution,
     col = Distribution
   )) +
-  geom_hline(aes(yintercept = 0.05), col = "gray") +
+  geom_hline(aes(yintercept = 0.05), col = "grey") +
   geom_line() +
   labs(
     x = "n (sample size)",
@@ -756,7 +756,7 @@ dixondf |>
     group = Distribution,
     col = Distribution
   )) +
-  geom_hline(aes(yintercept = 0.05), col = "gray") +
+  geom_hline(aes(yintercept = 0.05), col = "grey") +
   geom_line() +
   scale_y_continuous(
     breaks = c(0.05, seq(0.1, 0.8, by = 0.1)),
