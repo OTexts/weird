@@ -1,1 +1,574 @@
 # Network and graph data {#sec-network}
+
+```{r}
+#| label: setup12
+#| include: false
+#| cache: false
+
+source("before-each-chapter.R")
+```
+
+A network, or graph, consists of a set of nodes (also called vertices) and a set of edges connecting pairs of nodes.
+Networks arise whenever we record relationships between things: friendships on social media, citations between academic papers, co-voting patterns in parliaments, or messages exchanged within an organisation.
+Almost all real networks change over time, as new nodes and edges appear, old ones disappear, and the overall structure evolves.
+An anomaly in this setting might be a fault in an infrastructure network, a fraudulent transaction, a sudden burst of activity around a real-world event, or an unusual realignment in a voting network.
+
+Several kinds of anomaly can be of interest in a dynamic network: anomalous individual nodes, anomalous edges, anomalous subgraphs, or an anomalous network as a whole [@Akoglu2015].
+Following the definition of an anomaly used throughout this book, in each case we are looking for something with very low probability of occurring relative to an appropriate reference group: a node compared to the rest of its network, or a whole network compared to the rest of a sequence.
+This chapter covers two of these problems.
+We start with the simplest, anomalous nodes within a single network, which needs only the high-dimensional anomaly detection methods of @sec-highdim.
+Later, from @sec-network-sequence onwards, we turn to anomalous networks within a longer sequence, which additionally requires the time series tools of @sec-timeseries.
+
+Statistical methods have a long history of success in modelling temporal dependence, but they have been underused for network anomaly detection compared to purely graph-theoretic approaches [@Ranshous2015-kf].
+For the whole-network problem, we describe *oddnet*, a method due to @oddnet that fuses network analysis with time series modelling; the R package `oddnet` implements the algorithm.
+We start, though, with the simpler problem of anomalous nodes.
+
+Before we begin, let's load the packages we will need and define a few functions that we will use.
+
+```{r}
+#| label: ch12_libraries
+#| message: false
+
+library(igraph)
+library(ggraph)
+library(oddnet)
+library(tsibble)
+library(fable)
+library(lubridate)
+
+# Colours for the party-coloured network plots, matching the conventional
+# US media scheme (Democrat = blue, Republican = red) rather than the book's
+# default alphabetical discrete palette assignment.
+party_palette <- c(
+  Democrat = "#0072B2",
+  Republican = "#B2182B",
+  common = "#009E73"
+)
+
+# Plot a network using a Fruchterman-Reingold layout, optionally coloured by
+# a vertex grouping (e.g. political party).
+network_plot <- function(
+  gr,
+  group = NULL,
+  palette = NULL,
+  title = NULL,
+  seed = 1967
+) {
+  set.seed(seed)
+  if (!is.null(group)) {
+    gr <- set_vertex_attr(gr, "group", value = group)
+    p <- ggraph(gr, layout = "fr") +
+      geom_edge_link(edge_colour = "grey70", edge_width = 0.2) +
+      geom_node_point(aes(colour = group), size = 1.3)
+    if (!is.null(palette)) {
+      p <- p + scale_colour_manual(values = palette)
+    }
+  } else {
+    p <- ggraph(gr, layout = "fr") +
+      geom_edge_link(edge_colour = "grey70", edge_width = 0.2) +
+      geom_node_point(colour = "#0072B2", size = 1.3)
+  }
+  p +
+    theme_void() +
+    theme(legend.position = "none", plot.title = element_text(size = 11)) +
+    labs(title = title)
+}
+
+# Plot the oddnet conditional probability of each network over time, with
+# the alpha threshold shown as a dashed line.
+prob_plot <- function(x, prob, alpha = 0.05, xlab = "") {
+  tibble(x = x, prob = prob) |>
+    ggplot(aes(x = x, y = prob)) +
+    geom_line() +
+    geom_point() +
+    geom_hline(yintercept = alpha, linetype = "dashed", colour = "#D55E00") +
+    labs(x = xlab, y = "Conditional probability")
+}
+```
+
+## Anomalous nodes within a network {#sec-network-nodes}
+
+Given a single network, which of its nodes behave unusually compared to the rest?
+Each node becomes an observation, and measures of its centrality and its role in the network's community structure become its features --- the same idea used throughout this book for other kinds of data, and no different in principle to the projections of @sec-highdim.
+Because there is no time ordering among the nodes of a single network, we can go straight to dimension reduction and anomaly detection, without the time series modelling step used later in this chapter for sequences of networks.
+
+The US Senate co-voting network, described by @Lee2020, provides a natural setting to try this.
+Each node is a senator, and an edge connects two senators if they vote the same way (both yea or both nay) on at least 75% of the bills for which they were both present, across the 40th to 113th Congress (1867 to 2015).
+We use a processed copy of this data, saved as `data/senate_votes_edgelist.csv` (the co-voting edges for each Congress) and `data/senate_party.csv` (each senator's party).
+
+```{r}
+#| label: senate-data
+#| code-fold: false
+
+senate_edges <- readr::read_csv(
+  here::here("data/senate_votes_edgelist.csv"),
+  col_names = c("congress", "from", "to"),
+  show_col_types = FALSE
+)
+senate_party_df <- readr::read_csv(
+  here::here("data/senate_party.csv"),
+  show_col_types = FALSE
+)
+senate_congress <- sort(unique(senate_party_df$congress))
+senate_party <- lapply(senate_congress, \(cg) {
+  senate_party_df |>
+    dplyr::filter(congress == cg) |>
+    dplyr::arrange(node) |>
+    dplyr::pull(party)
+})
+senate_networks <- lapply(seq_along(senate_congress), \(i) {
+  edges <- senate_edges |>
+    dplyr::filter(congress == senate_congress[i]) |>
+    dplyr::select(from, to)
+  gr <- graph_from_data_frame(
+    edges,
+    directed = FALSE,
+    vertices = data.frame(name = seq_along(senate_party[[i]]))
+  )
+  as.matrix(as_adjacency_matrix(gr))
+})
+congress100 <- which(senate_congress == 100)
+```
+
+As an illustration, we consider the 100th Congress (1987--1989).
+@fig-senate-100 shows this network, coloured by party.
+
+```{r}
+#| label: fig-senate-100
+#| dependson: [senate-data, ch12_libraries]
+#| fig-cap: "US Senate co-voting network for the 100th Congress (1987--1989), coloured by party (blue = Democrat, red = Republican)."
+#| fig-asp: 0.5
+
+network_plot(
+  graph_from_adjacency_matrix(
+    senate_networks[[congress100]],
+    mode = "undirected"
+  ),
+  group = senate_party[[congress100]],
+  palette = party_palette
+)
+```
+
+For each senator, we compute six `igraph` features that describe their position in the co-voting network.
+
+**Degree** is simply the number of edges attached to a node --- here, the number of other senators a given senator co-votes with sufficiently often to share an edge.
+It is the most basic measure of how connected a node is, but it says nothing about *where* those connections lead.
+
+**Betweenness centrality** counts, for a given node, how many of the shortest paths between all *other* pairs of nodes pass through it.
+A senator with high betweenness lies on many of the shortest routes connecting pairs of colleagues, so removing them from the network would make those colleague pairs much more distant from one another; such senators act as bridges between groups that would otherwise vote quite separately.
+
+**Closeness centrality** is the inverse of the average shortest-path distance from a node to every other node in the network.
+A senator with high closeness can reach any other senator's voting bloc in relatively few steps, whereas a senator with low closeness is, on average, many steps removed from the rest of the chamber.
+
+**PageRank**, originally developed by Google to rank web pages by importance, assigns each node a score based on the scores of the nodes linking to it, so a node is considered important if it is connected to other important nodes, not merely to many nodes.
+Applied here, a senator has high PageRank if they co-vote with other senators who are themselves well-connected, rather than simply co-voting with a large number of colleagues.
+
+**Coreness** describes how deeply a node sits within the network's most densely connected part.
+A node has coreness $k$ if it belongs to a subgraph in which every node has at least $k$ connections *within that subgraph*, found by repeatedly stripping away the least-connected remaining nodes.
+Senators with high coreness sit within a tightly interconnected core of colleagues who mostly co-vote with each other.
+
+**Transitivity**, also called the local clustering coefficient, measures what proportion of a senator's co-voting partners also co-vote with each other.
+If a senator co-votes with both senator B and senator C, high transitivity means B and C are also likely to co-vote with one another, indicating that the senator sits within a tightly knit voting clique rather than bridging otherwise unconnected colleagues.
+
+```{r}
+#| label: senate-node-features
+#| code-fold: false
+#| dependson: senate-data
+
+senate100_gr <- graph_from_adjacency_matrix(
+  senate_networks[[congress100]],
+  mode = "undirected"
+)
+senate_node_features <- tibble(
+  party = senate_party[[congress100]],
+  degree = degree(senate100_gr),
+  betweenness = betweenness(senate100_gr),
+  closeness = closeness(senate100_gr),
+  pagerank = page_rank(senate100_gr)$vector,
+  transitivity = transitivity(senate100_gr, type = "local", isolates = "zero"),
+  coreness = coreness(senate100_gr)
+) |>
+  mutate(closeness = if_else(is.nan(closeness), 0, closeness))
+```
+
+Closeness is undefined for senators with no co-voting partners at all, so we set it to zero for those `r sum(senate_node_features$degree == 0)` isolated senators.
+As elsewhere in this book, we reduce these six features to two dimensions with robust PCA (@sec-robpca), then apply the lookout algorithm (@sec-loo-surprisals) via the `surprisals_prob()` function already used in @sec-oldfaithful-density.
+
+```{r}
+#| label: senate-node-anomaly
+#| code-fold: false
+#| dependson: senate-node-features
+
+senate_node_pca <- pcaPP::PCAproj(
+  senate_node_features |> select(-party),
+  k = 2,
+  scale = NULL,
+  center = NULL
+)
+senate_node_features <- senate_node_features |>
+  mutate(
+    prob = surprisals_prob(
+      as_tibble(senate_node_pca$scores),
+      loo = TRUE,
+      approximation = "gpd",
+      method = "lookout"
+    )
+  )
+senate_node_features |> arrange(prob) |> head(3)
+```
+
+```{r}
+#| label: senate-node-check
+#| include: false
+#| dependson: senate-node-anomaly
+
+n_flagged <- sum(senate_node_features$prob < 0.05)
+stopifnot(n_flagged >= 2)
+stopifnot(all(
+  head(senate_node_features |> dplyr::arrange(prob), 2)$betweenness > 500
+))
+```
+
+`r n_flagged` senators fall below the $\alpha = 0.05$ threshold used throughout this chapter, but two are unambiguous, with a conditional probability of essentially zero and a betweenness centrality several times higher than anyone else in the chamber: one Republican and one Democrat, each sitting on far more shortest paths between their colleagues than is typical for their party.
+A senator with high betweenness is one whose voting pattern regularly links senators who otherwise vote in separate blocs.
+
+@fig-senate-nodes shows the two-dimensional projection used for detection, with the flagged senators highlighted.
+They sit well apart from the bulk of the chamber.
+
+```{r}
+#| label: fig-senate-nodes
+#| dependson: senate-node-anomaly
+#| fig-cap: >-
+#|   Two-dimensional robust PCA projection of the node-level features for the 100th Congress.
+#|   The two senators with the lowest conditional probability are shown in orange.
+
+as_tibble(senate_node_pca$scores) |>
+  mutate(flagged = rank(senate_node_features$prob) <= 2) |>
+  ggplot(aes(x = Comp.1, y = Comp.2, colour = flagged)) +
+  geom_point() +
+  scale_colour_manual(values = c(`FALSE` = "#0072B2", `TRUE` = "#D55E00")) +
+  guides(colour = "none") +
+  labs(x = "Component 1", y = "Component 2")
+```
+
+We picked the 100th Congress somewhat arbitrarily here, just to illustrate the method.
+But later in the chapter, in @sec-senate-network, we look for anomalies across the whole 74-Congress sequence rather than within a single one, and find that the 100th Congress is flagged there too, as the single most unusual network in the entire sequence.
+That is independent evidence that these two bridging senators were not a fluke: the unusual collaboration visible at the level of individual senators here also shows up as an anomaly at the level of the whole network.
+
+The same recipe --- compute node features with `igraph`, reduce their dimension, and apply lookout --- works for any single network, not just this one.
+We now turn to a different question: instead of looking for unusual nodes within one network, can we find an unusual network within a longer sequence?
+
+## Anomalous networks within a sequence {#sec-network-sequence}
+
+We now turn to the second problem introduced at the start of the chapter: given a sequence of networks $\mathcal{G}_1, \mathcal{G}_2, \dots$ observed over time, is any one of them anomalous compared to the rest?
+Unlike the node-level problem, this requires modelling the temporal dependence between networks, which `oddnet` builds up in three steps: mapping each network to a feature vector, modelling each feature series over time, and finally reducing dimension and detecting anomalies in the resulting residuals.
+
+### From networks to features {#sec-network-features}
+
+The obvious way to compare two networks is to look at them.
+But networks resist direct comparison much more than numerical data does: two networks with a very different number of edges can look superficially similar when drawn, while two networks that look very different might have almost identical numbers of nodes, edges, and connected components.
+So instead, we compute a vector of numerical summary features from each network, and compare networks via their features.
+
+Let $f$ be a function mapping a network $\mathcal{G}$ to a vector of $m$ features, $\bm{x} = f(\mathcal{G}) \in \mathbb{R}^m$.
+For this to be useful for anomaly detection, $f$ needs to be rich enough that an anomalous network also produces an anomalous feature vector.
+A single feature, such as the number of edges, will catch some anomalies (a sudden change in overall connectivity) while missing others (a network in which the same number of edges is rewired to run through a single hub node).
+So `oddnet` computes $m = 20$ features from each network, covering size, density, centrality and community structure, using the `igraph` package [@csardi2006].
+These are whole-network analogues of the node-level features used in @sec-network-nodes.
+
+To illustrate, we compute these features for the same 100th Congress network used in @sec-network-nodes.
+
+```{r}
+#| label: senate-whole-features
+#| code-fold: false
+#| dependson: senate-data
+
+features_100 <- compute_features(
+  graph_from_adjacency_matrix(senate_networks[[congress100]], mode = "undirected")
+)
+tibble(
+  feature = names(features_100)[1:20],
+  value = as.numeric(features_100[1:20])
+)
+```
+
+These features fall into three broad groups.
+
+Some are simple size and density measures: the number of nodes and edges, the **density** (the proportion of all possible edges that are actually present, out of $\binom{n}{2}$ pairs of nodes for a network of $n$ nodes), and the proportion of isolated nodes with no edges at all.
+
+Others are centrality measures, several of which we already defined at the node level in @sec-network-nodes: degree, betweenness, closeness, PageRank and coreness.
+Two further centrality measures appear only here.
+A node's **hub score** is high if it links to many good "authorities", and a node's **authority score** is high if it is linked to by many good hubs; the two scores are defined jointly, each reinforcing the other, in the same iterative spirit as PageRank.
+They were originally developed to distinguish web pages that provide a good list of links (hubs) from pages that are themselves worth linking to (authorities).
+Degree, triangles, betweenness, PageRank and coreness each produce a whole distribution of values across the nodes of a network, so `oddnet` summarises each of them with a single number, the 99th percentile of that distribution, focusing on the most extreme node for each measure since anomaly detection is more concerned with unusual tails than with typical values.
+Closeness is summarised differently, since it always lies between 0 and 1 and its 99th percentile is close to 1 for almost any network, making it uninformative; instead `oddnet` records the proportion of nodes with closeness of at least 0.8.
+The hub and authority scores are summarised differently again, using the single largest eigenvalue associated with each measure, a property of the network as a whole rather than of any individual node.
+
+The remaining features describe the overall structure of the network, rather than any individual node within it.
+The **triangle** count for a node is the number of pairs of its neighbours that are themselves connected, closely related to the transitivity defined in @sec-network-nodes but expressed as a count rather than a proportion; `oddnet` again uses the 99th percentile of this count across nodes, alongside the network-wide **clustering coefficient** (the overall transitivity of the whole network).
+**Assortativity** measures whether nodes tend to connect to other nodes with a similar degree to their own: a network is assortative if well-connected nodes mostly link to other well-connected nodes, and disassortative if well-connected nodes tend to link to poorly connected ones.
+The **diameter** is the length of the longest shortest path between any two nodes in the network, and the **mean distance** is the average shortest-path length over all pairs of nodes; both describe how spread out the network is, in the same spirit as closeness centrality, but summarised across the whole network rather than computed for a single node.
+A network's nodes need not all be reachable from one another: the **number of connected components** counts how many separate pieces the network breaks into, and `oddnet` also records the size of the largest such component.
+Finally, **vertex connectivity** counts the minimum number of nodes that would need to be removed to disconnect the network, and **global efficiency** averages the inverse of the shortest-path length over all pairs of nodes, so that networks with many short paths between nodes are more efficient than those relying on a few long ones.
+
+Computing the total number of edges for every Congress in the sequence, and plotting it over time in @fig-senate-edges, does not make the 100th Congress obviously anomalous: it sits within a noisy, generally increasing trend in the number of co-voting edges across the whole 74-Congress sequence.
+
+```{r}
+#| label: senate-edges
+#| code-fold: false
+#| dependson: senate-data
+
+senate_edges_n <- sapply(senate_networks, \(m) {
+  gsize(graph_from_adjacency_matrix(m, mode = "undirected"))
+})
+```
+
+```{r}
+#| label: fig-senate-edges
+#| dependson: [senate-data, senate-edges]
+#| fig-cap: >-
+#|   Number of edges in the US Senate co-voting network, from the 40th to the 113th Congress.
+#|   The 100th Congress, highlighted in orange, does not stand out from the general upward trend.
+
+tibble(congress = senate_congress, edges = senate_edges_n) |>
+  ggplot(aes(x = congress, y = edges)) +
+  geom_line() +
+  geom_point(
+    data = ~ dplyr::filter(.x, congress == 100),
+    colour = "#D55E00",
+    size = 2
+  ) +
+  labs(x = "Congress", y = "Number of edges")
+```
+
+The 100th Congress's raw edge count ranks only `r scales::ordinal(rank(-senate_edges_n)[congress100])` out of `r length(senate_congress)` Congresses --- not remotely the most extreme value in the sequence.
+Not every anomaly will show up as an obvious spike in a raw feature, especially once we allow for trend and seasonality in how a feature evolves over time.
+For that, we need to bring in the time series tools from @sec-timeseries.
+
+### Modelling temporal dependence {#sec-network-timeseries}
+
+Because the networks $\mathcal{G}_1, \mathcal{G}_2, \dots$ arrive in a sequence, so does each feature: $x_{t,1}, x_{t,2}, \dots, x_{t,m}$ traces out $m$ separate univariate time series, one per feature.
+This means we can bring the full machinery of time series anomaly detection to bear, rather than comparing raw feature values directly.
+In particular, we can fit an ARIMA model [Ch 9, @fpp3] to each feature series in turn, and work with the residuals $e_{t,i} = x_{t,i} - \hat{x}_{t,i}$, where $\hat{x}_{t,i}$ is the value forecast from the history of that feature alone.
+If the ARIMA model has captured the trend and any seasonal pattern in the feature, the residuals should show no remaining temporal structure, so that an anomalous network shows up as an unusually large residual, regardless of whatever trend or seasonality it sits on top of.
+
+To see why this matters, we fit an ARIMA model to the Senate edge-count series shown in @fig-senate-edges.
+
+```{r}
+#| label: senate-edges-arima
+#| code-fold: false
+#| dependson: [senate-data, senate-edges]
+
+senate_edges_ts <- tsibble(
+  congress = senate_congress,
+  edges = senate_edges_n,
+  index = congress
+)
+senate_edges_fit <- senate_edges_ts |> model(arima = ARIMA(edges))
+senate_edges_resid <- senate_edges_fit |> augment()
+```
+
+```{r}
+#| label: senate-edges-check
+#| include: false
+#| dependson: [senate-data, senate-edges-arima]
+
+stopifnot(rank(-abs(senate_edges_resid$.innov))[congress100] == 1)
+```
+
+@fig-senate-edges-resid shows the residuals from this model.
+The 100th Congress is now the single most extreme residual in the whole sequence, ranked `r scales::ordinal(rank(-abs(senate_edges_resid$.innov))[congress100])` out of `r length(senate_congress)`, compared to `r scales::ordinal(rank(-senate_edges_n)[congress100])` for the raw edge count in @fig-senate-edges.
+The ARIMA model has removed the general upward trend common to every Congress, leaving behind only what is unusual about each one.
+
+```{r}
+#| label: fig-senate-edges-resid
+#| dependson: senate-edges-arima
+#| fig-cap: >-
+#|   ARIMA residuals for the Senate edge-count series in @fig-senate-edges.
+#|   The 100th Congress, highlighted in orange, is now the most extreme value in the series.
+
+senate_edges_resid |>
+  ggplot(aes(x = congress, y = .innov)) +
+  geom_line() +
+  geom_point(
+    data = ~ dplyr::filter(.x, congress == 100),
+    colour = "#D55E00",
+    size = 2
+  ) +
+  labs(x = "Congress", y = "Residual")
+```
+
+Applying this same idea to each of the $m = 20$ network features gives a residual vector $\bm{e}_t = (e_{t,1}, \dots, e_{t,m})^\intercal$ for every network in the sequence, with the temporal dependence in each feature removed.
+An anomalous network should now correspond to an unusually large $\bm{e}_t$.
+
+### From residuals to anomalies {#sec-network-anomaly}
+
+We now have a sequence of $m$-dimensional residual vectors, and need to decide which are anomalous.
+As discussed in @sec-highdim, anomaly detection in high dimensions is hard: points are far apart, and errors in different features can be correlated with one another.
+`oddnet` addresses this in two steps.
+
+First, the residuals are projected onto a two-dimensional subspace using a robust form of PCA.
+We already met the idea of robustifying PCA in @sec-robpca: rather than finding the directions of maximum variance using every observation (which lets anomalies pull the projection towards themselves), a robust method down-weights unusual observations when estimating the projection directions.
+`oddnet` uses a different robust PCA method to the ROBPCA algorithm of @sec-robpca, namely projection pursuit [implemented in `pcaPP::PCAproj()`, @pcaPP], but the underlying principle is the same --- the same function we used to reduce the node-level features in @sec-network-nodes.
+
+Second, the two-dimensional projection is searched for anomalies using the lookout algorithm from @sec-loo-surprisals, which computes leave-one-out kernel density surprisal probabilities.
+A network is flagged as anomalous if its conditional probability, as estimated by lookout, falls below a threshold $\alpha$ (we use $\alpha = 0.05$ throughout this chapter, following @oddnet).
+
+### The oddnet algorithm
+
+Putting these pieces together, `oddnet` proceeds as follows.
+
+**Step 1: Compute features.** Map each network $\mathcal{G}_t$ to its feature vector $\bm{x}_t = f(\mathcal{G}_t) \in \mathbb{R}^{m}$, as described in @sec-network-features.
+
+**Step 2: Model each feature series.** Fit an ARIMA model to each of the 20 feature series in turn, and compute the residuals $\bm{e}_t$, as described in @sec-network-timeseries.
+
+**Step 3: Reduce dimension.** Project the residual vectors onto two dimensions using robust PCA.
+
+**Step 4: Detect anomalies.** Apply the lookout algorithm to the two-dimensional projection, giving a conditional probability for each network.
+
+This is implemented in the `anomalous_networks()` function, which takes a list of adjacency matrices and returns the estimated conditional probabilities.
+We now apply it to the full sequence of Senate co-voting networks already introduced in @sec-network-nodes, extending the single-Congress analysis there to look for anomalies across the whole sequence.
+
+## Example: US Senate co-voting networks {#sec-senate-network}
+
+We already used one Congress from this data set, the 100th, to find anomalous individual senators in @sec-network-nodes.
+Now we ask a different question of the full `r length(senate_networks)`-Congress sequence: is any single Congress, as a whole network, unusual compared to the rest?
+
+@fig-senate-networks shows the co-voting network for four Congresses, coloured by party.
+The parties become increasingly separated over time, from an almost undifferentiated network in the 40th Congress to two entirely disconnected clusters in the 113th.
+
+```{r}
+#| label: fig-senate-networks
+#| dependson: [senate-data, ch12_libraries]
+#| fig-cap: "US Senate co-voting networks for the 40th, 64th, 89th and 113th Congresses, coloured by party (blue = Democrat, red = Republican)."
+#| fig-asp: 0.3
+
+senate_gr <- function(i) {
+  gr <- graph_from_adjacency_matrix(senate_networks[[i]], mode = "undirected")
+  network_plot(
+    gr,
+    group = senate_party[[i]],
+    palette = party_palette,
+    title = paste(scales::ordinal(senate_congress[i]), "Congress")
+  )
+}
+patchwork::wrap_plots(
+  senate_gr(1),
+  senate_gr(25),
+  senate_gr(50),
+  senate_gr(74),
+  nrow = 1
+)
+```
+
+Applying `anomalous_networks()` to the full sequence:
+
+```{r}
+#| label: senate-oddnet
+#| code-fold: false
+#| dependson: senate-data
+
+senate_result <- anomalous_networks(senate_networks)
+senate_probs <- tibble(
+  congress = senate_congress,
+  prob = senate_result$outlier_probability
+)
+senate_probs |> dplyr::arrange(prob) |> head()
+```
+
+@fig-senate-prob shows the conditional probability of every Congress.
+
+```{r}
+#| label: fig-senate-prob
+#| dependson: [senate-data, senate-oddnet, ch12_libraries]
+#| fig-cap: "Conditional probability of each US Senate co-voting network, from the 40th to the 113th Congress."
+
+prob_plot(senate_congress, senate_result$outlier_probability, xlab = "Congress")
+```
+
+```{r}
+#| label: senate-check
+#| include: false
+#| dependson: senate-oddnet
+
+most_anomalous <- senate_probs$congress[which.min(senate_probs$prob)]
+stopifnot(most_anomalous == 100)
+```
+
+As anticipated in @sec-network-nodes, the `r scales::ordinal(most_anomalous)` Congress (1987--1989) stands out as by far the most anomalous, with a conditional probability of `r sprintf("%.4f", min(senate_probs$prob))`.
+This Congress had an unusually high level of bipartisan collaboration compared to its neighbours, consistent with the findings of @Huang2020, who also flag it as the most anomalous Congress in this data set using an unrelated Laplacian-based method, and with the two exceptionally high-betweenness senators found there at the node level.
+The 43rd Congress (1873--1875) is also flagged, with a conditional probability of `r sprintf("%.4f", senate_probs$prob[senate_probs$congress == 43])`.
+This Congress sat during the Panic of 1873, a severe economic depression that was known as "the Great Depression" until the 1929 crash claimed the name --- a period of considerable political instability that plausibly disrupted the usual voting coalitions.
+
+## Example: UCI message network {#sec-uci-network}
+
+Our second example is a directed network, at a much finer time granularity, from an entirely different domain.
+@Panzarasa2009 recorded private messages sent between students on an online platform at the University of California, Irvine, from March to October 2004.
+A directed edge runs from sender to receiver each time a message is sent, and the data are available in the `tnet` package [@tnet].
+
+```{r}
+#| label: uci-data
+#| code-fold: false
+#| warning: false
+
+uci_messages <- tnet::OnlineSocialNetwork.n1899.lnet |>
+  mutate(date = as_date(as_datetime(t)))
+uci_dates <- unique(uci_messages$date)
+uci_networks <- lapply(uci_dates, \(d) {
+  edges <- uci_messages |> dplyr::filter(date == d) |> dplyr::select(i, j)
+  as.matrix(as_adjacency_matrix(graph_from_data_frame(edges)))
+})
+```
+
+This gives `r length(uci_networks)` daily networks, ranging in size from a handful of active students early in the data to several hundred later on.
+@fig-uci-networks shows three of these daily networks, illustrating how sparse activity on an ordinary day (day 6) contrasts with a much busier day (day 45).
+
+```{r}
+#| label: fig-uci-networks
+#| dependson: [uci-data, ch12_libraries]
+#| fig-cap: "UCI message networks for three days, showing how activity varies from sparse (day 6) to unusually busy (day 45)."
+#| fig-asp: 0.36
+
+uci_gr <- function(i) {
+  network_plot(
+    graph_from_adjacency_matrix(uci_networks[[i]]),
+    title = paste("Day", i)
+  )
+}
+patchwork::wrap_plots(uci_gr(6), uci_gr(25), uci_gr(45), nrow = 1)
+```
+
+Because the daily networks vary hugely in size, some features (such as the mean distance between nodes) are undefined on the smallest, sparsest days.
+We set these missing features to zero before running `oddnet`.
+
+```{r}
+#| label: uci-oddnet
+#| code-fold: false
+#| dependson: uci-data
+
+uci_result <- anomalous_networks(uci_networks, na_action = "zero")
+uci_flagged <- uci_dates[uci_result$outliers$Outliers]
+uci_flagged
+```
+
+@fig-uci-prob shows the conditional probability of every day.
+
+```{r}
+#| label: fig-uci-prob
+#| dependson: [uci-data, uci-oddnet, ch12_libraries]
+#| fig-cap: "Conditional probability of each UCI daily message network, from March to October 2004."
+
+prob_plot(uci_dates, uci_result$outlier_probability, xlab = "Date")
+```
+
+```{r}
+#| label: uci-check
+#| include: false
+#| dependson: uci-oddnet
+
+key_dates <- as_date(c("2004-05-22", "2004-05-28", "2004-06-15", "2004-09-24"))
+stopifnot(all(key_dates %in% uci_flagged))
+```
+
+Unlike the Senate network, which drifts slowly over decades, this network is driven by the rhythm of the academic calendar.
+Several of the flagged dates cluster around 28 May, close to the end of the platform's initial rapid growth phase identified by @Panzarasa2009, and around 15 June and 24 September, close to the end of the Spring term (19 June) and the start of the Fall term (20 September) respectively.
+The two examples in this section illustrate quite different anomaly patterns: a slow structural realignment measured in decades, against short bursts of activity tied to a fixed calendar.

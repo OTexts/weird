@@ -342,6 +342,15 @@ url = "https://cran.r-project.org/src/contrib/RcppProgress_0.4.2.tar.gz"
 checksum = "md5:29ecb32d5c739805ced912e4bedf26f2"
 
 [[package]]
+name = "Rdpack"
+version = "2.6.6"
+source = "cran"
+raw_version = "2.6.6"
+url = "https://cran.r-project.org/src/contrib/Rdpack_2.6.6.tar.gz"
+checksum = "md5:3259eb847df896eff1d6f9aed7cf7497"
+requires = ["rbibutils"]
+
+[[package]]
 name = "RhpcBLASctl"
 version = "0.23.42"
 source = "cran"
@@ -436,6 +445,22 @@ source = "cran"
 raw_version = "1.3.5"
 url = "https://cran.r-project.org/src/contrib/aplpack_1.3.5.tar.gz"
 checksum = "md5:b21426d7246139da14f3d6280b53ac72"
+
+[[package]]
+name = "arm"
+version = "1.15.3"
+source = "cran"
+raw_version = "1.15-3"
+url = "https://cran.r-project.org/src/contrib/arm_1.15-3.tar.gz"
+checksum = "md5:e19995aa961514215ba8c26e3d0eac39"
+requires = [
+    "MASS",
+    "Matrix",
+    "lme4",
+    "abind",
+    "coda",
+    "nlme",
+]
 
 [[package]]
 name = "ash"
@@ -682,6 +707,15 @@ requires = [
 ]
 
 [[package]]
+name = "coda"
+version = "0.19.4-4.1"
+source = "cran"
+raw_version = "0.19-4.1"
+url = "https://cran.r-project.org/src/contrib/coda_0.19-4.1.tar.gz"
+checksum = "md5:ad15d9b971ee8593ddfeb74430775c81"
+requires = ["lattice"]
+
+[[package]]
 name = "codetools"
 version = "0.2.20"
 source = "cran"
@@ -879,6 +913,22 @@ requires = [
 ]
 
 [[package]]
+name = "dnr"
+version = "0.3.6"
+source = "cran"
+raw_version = "0.3.6"
+url = "https://cran.r-project.org/src/contrib/dnr_0.3.6.tar.gz"
+checksum = "md5:bd56c89506b9cf59c15f9ddefe9dd394"
+requires = [
+    "network",
+    "ergm",
+    "sna",
+    "igraph",
+    "arm",
+    "glmnet",
+]
+
+[[package]]
 name = "dobin"
 version = "1.0.5"
 source = "cran"
@@ -980,6 +1030,35 @@ source = "cran"
 raw_version = "1.2-6"
 url = "https://cran.r-project.org/src/contrib/english_1.2-6.tar.gz"
 checksum = "md5:1215268b9fabf76a6e2c7c150af7e6d8"
+
+[[package]]
+name = "ergm"
+version = "4.12.0"
+source = "cran"
+raw_version = "4.12.0"
+url = "https://cran.r-project.org/src/contrib/ergm_4.12.0.tar.gz"
+checksum = "md5:298a78a7a567b526d05fd7fdcdfc4f3f"
+requires = [
+    "network",
+    "robustbase",
+    "coda",
+    "trust",
+    "lpSolveAPI",
+    "statnet.common",
+    "rle",
+    "purrr",
+    "rlang",
+    "memoise",
+    "tibble",
+    "magrittr",
+    "Rdpack",
+    "knitr",
+    "stringr",
+    "cli",
+    "MASS",
+    "Matrix",
+    "cli",
+]
 
 [[package]]
 name = "evaluate"
@@ -1146,6 +1225,18 @@ requires = [
     "magrittr",
     "rlang",
     "tibble",
+]
+
+[[package]]
+name = "foreach"
+version = "1.5.2"
+source = "cran"
+raw_version = "1.5.2"
+url = "https://cran.r-project.org/src/contrib/foreach_1.5.2.tar.gz"
+checksum = "md5:726beb5a50a3cec75261b4405158386c"
+requires = [
+    "codetools",
+    "iterators",
 ]
 
 [[package]]
@@ -1375,11 +1466,11 @@ requires = [
 
 [[package]]
 name = "ggstats"
-version = "0.13.0"
+version = "0.14.0"
 source = "cran"
-raw_version = "0.13.0"
-url = "https://cran.r-project.org/src/contrib/ggstats_0.13.0.tar.gz"
-checksum = "md5:101f253bc1614f538e270a36ff0eec38"
+raw_version = "0.14.0"
+url = "https://cran.r-project.org/src/contrib/ggstats_0.14.0.tar.gz"
+checksum = "md5:100b331e3f2c7b4a3d8bd4a490d0db5e"
 requires = [
     "cli",
     "dplyr",
@@ -1396,11 +1487,11 @@ requires = [
 
 [[package]]
 name = "ggtime"
-version = "0.2.0"
+version = "1.0.0"
 source = "cran"
-raw_version = "0.2.0"
-url = "https://cran.r-project.org/src/contrib/ggtime_0.2.0.tar.gz"
-checksum = "md5:1f0ad7ad7243dcfb1828603dd059fa17"
+raw_version = "1.0.0"
+url = "https://cran.r-project.org/src/contrib/ggtime_1.0.0.tar.gz"
+checksum = "md5:58cd495855c4c7df8292a27ddd169ae4"
 requires = [
     "ggplot2",
     "gtable",
@@ -1414,6 +1505,9 @@ requires = [
     "tidyr",
     "vctrs",
     "cli",
+    "vecvec",
+    "mixtime",
+    "S7",
 ]
 
 [[package]]
@@ -1449,6 +1543,23 @@ source = "cran"
 raw_version = "0.1.2"
 url = "https://cran.r-project.org/src/contrib/gitcreds_0.1.2.tar.gz"
 checksum = "md5:b79f9a70433189507d3eb0bdc07fae6e"
+
+[[package]]
+name = "glmnet"
+version = "5.0.0"
+source = "cran"
+raw_version = "5.0"
+url = "https://cran.r-project.org/src/contrib/glmnet_5.0.tar.gz"
+checksum = "md5:094cffb05ba0a8685aae3e1bb8cf2c9d"
+requires = [
+    "Matrix",
+    "foreach",
+    "shape",
+    "survival",
+    "Rcpp",
+    "RcppEigen",
+    "Rcpp",
+]
 
 [[package]]
 name = "glue"
@@ -1683,11 +1794,11 @@ requires = [
 
 [[package]]
 name = "httr"
-version = "1.4.8"
+version = "1.4.9"
 source = "cran"
-raw_version = "1.4.8"
-url = "https://cran.r-project.org/src/contrib/httr_1.4.8.tar.gz"
-checksum = "md5:8756015b94a9cff6f410ca4de8557f12"
+raw_version = "1.4.9"
+url = "https://cran.r-project.org/src/contrib/httr_1.4.9.tar.gz"
+checksum = "md5:22833540ae6b924a3de576cf6c9c8e50"
 requires = [
     "curl",
     "jsonlite",
@@ -1794,6 +1905,14 @@ requires = [
     "RhpcBLASctl",
     "Rcpp",
 ]
+
+[[package]]
+name = "iterators"
+version = "1.0.14"
+source = "cran"
+raw_version = "1.0.14"
+url = "https://cran.r-project.org/src/contrib/iterators_1.0.14.tar.gz"
+checksum = "md5:e1d875f0ddec6834dd33e56c4f04a706"
 
 [[package]]
 name = "janitor"
@@ -2013,6 +2132,28 @@ requires = [
 ]
 
 [[package]]
+name = "lme4"
+version = "2.0.6"
+source = "cran"
+raw_version = "2.0-6"
+url = "https://cran.r-project.org/src/contrib/lme4_2.0-6.tar.gz"
+checksum = "md5:cf60da58c196ac7f2ac8094b6a13b6ce"
+requires = [
+    "Matrix",
+    "MASS",
+    "Rdpack",
+    "boot",
+    "lattice",
+    "minqa",
+    "nlme",
+    "nloptr",
+    "reformulas",
+    "Matrix",
+    "Rcpp",
+    "RcppEigen",
+]
+
+[[package]]
 name = "lmtest"
 version = "0.9.40"
 source = "cran"
@@ -2044,6 +2185,14 @@ source = "cran"
 raw_version = "5.6.23"
 url = "https://cran.r-project.org/src/contrib/lpSolve_5.6.23.tar.gz"
 checksum = "md5:163acadfcb3c04eb0889bc6e13484ca4"
+
+[[package]]
+name = "lpSolveAPI"
+version = "5.5.2-4.0.17.15"
+source = "cran"
+raw_version = "5.5.2.0-17.15"
+url = "https://cran.r-project.org/src/contrib/lpSolveAPI_5.5.2.0-17.15.tar.gz"
+checksum = "md5:70ff8cb98049cc5cffcf99a2691fd26d"
 
 [[package]]
 name = "lubridate"
@@ -2172,6 +2321,18 @@ requires = [
 ]
 
 [[package]]
+name = "minqa"
+version = "1.2.8"
+source = "cran"
+raw_version = "1.2.8"
+url = "https://cran.r-project.org/src/contrib/minqa_1.2.8.tar.gz"
+checksum = "md5:220bfece6840be5600cce3cb24850cdf"
+requires = [
+    "Rcpp",
+    "Rcpp",
+]
+
+[[package]]
 name = "mirai"
 version = "2.7.2"
 source = "cran"
@@ -2179,6 +2340,25 @@ raw_version = "2.7.2"
 url = "https://cran.r-project.org/src/contrib/mirai_2.7.2.tar.gz"
 checksum = "md5:102c286631f6580ce76016a5620b601a"
 requires = ["nanonext"]
+
+[[package]]
+name = "mixtime"
+version = "0.3.0"
+source = "cran"
+raw_version = "0.3.0"
+url = "https://cran.r-project.org/src/contrib/mixtime_0.3.0.tar.gz"
+checksum = "md5:4bb553cc6134ee15feaf0ed0c5a717fc"
+requires = [
+    "lifecycle",
+    "vctrs",
+    "rlang",
+    "cli",
+    "S7",
+    "vecvec",
+    "tzdb",
+    "cpp11",
+    "tzdb",
+]
 
 [[package]]
 name = "mlpack"
@@ -2255,6 +2435,19 @@ url = "https://cran.r-project.org/src/contrib/nanonext_1.10.2.tar.gz"
 checksum = "md5:2eb717e86562f3b7d41ec74cbe07c6fb"
 
 [[package]]
+name = "network"
+version = "1.20.0"
+source = "cran"
+raw_version = "1.20.0"
+url = "https://cran.r-project.org/src/contrib/network_1.20.0.tar.gz"
+checksum = "md5:536d5dc7a49ca562f4731bf88e947b78"
+requires = [
+    "tibble",
+    "magrittr",
+    "statnet.common",
+]
+
+[[package]]
 name = "nlme"
 version = "3.1.171"
 source = "cran"
@@ -2262,6 +2455,14 @@ raw_version = "3.1-171"
 url = "https://cran.r-project.org/src/contrib/nlme_3.1-171.tar.gz"
 checksum = "md5:f68635ab19fe0acbd0035c5b12e3a6d4"
 requires = ["lattice"]
+
+[[package]]
+name = "nloptr"
+version = "2.2.1"
+source = "cran"
+raw_version = "2.2.1"
+url = "https://cran.r-project.org/src/contrib/nloptr_2.2.1.tar.gz"
+checksum = "md5:8c5a33535268e9ede837d070b86160eb"
 
 [[package]]
 name = "nnet"
@@ -2294,6 +2495,27 @@ source = "cran"
 raw_version = "2016.8-1.1"
 url = "https://cran.r-project.org/src/contrib/numDeriv_2016.8-1.1.tar.gz"
 checksum = "md5:f894081f6d73822a362f156e849c9657"
+
+[[package]]
+name = "oddnet"
+version = "0.1.2"
+source = "cran"
+raw_version = "0.1.2"
+url = "https://cran.r-project.org/src/contrib/oddnet_0.1.2.tar.gz"
+checksum = "md5:0b5b7ef56cd248cc3ee2be8bde4d0015"
+requires = [
+    "dplyr",
+    "fable",
+    "fabletools",
+    "feasts",
+    "igraph",
+    "lookout",
+    "pcaPP",
+    "rlang",
+    "tibble",
+    "tidyr",
+    "tsibble",
+]
 
 [[package]]
 name = "openssl"
@@ -2598,6 +2820,14 @@ url = "https://cran.r-project.org/src/contrib/rappdirs_0.3.4.tar.gz"
 checksum = "md5:a990a3ddcfa9eb422cd406f78084fbd8"
 
 [[package]]
+name = "rbibutils"
+version = "2.4.1"
+source = "cran"
+raw_version = "2.4.1"
+url = "https://cran.r-project.org/src/contrib/rbibutils_2.4.1.tar.gz"
+checksum = "md5:dad8207e52a80a5a4a11b22339aae112"
+
+[[package]]
 name = "rdtools"
 version = "0.1.0"
 source = "cran"
@@ -2640,6 +2870,18 @@ requires = [
     "tibble",
     "cpp11",
     "progress",
+]
+
+[[package]]
+name = "reformulas"
+version = "0.4.4"
+source = "cran"
+raw_version = "0.4.4"
+url = "https://cran.r-project.org/src/contrib/reformulas_0.4.4.tar.gz"
+checksum = "md5:280fedda4433e3ec798cb36103f75b92"
+requires = [
+    "Matrix",
+    "Rdpack",
 ]
 
 [[package]]
@@ -2738,6 +2980,14 @@ url = "https://cran.r-project.org/src/contrib/rlang_1.3.0.tar.gz"
 checksum = "md5:b52c165e43f4d7fe5cfa15c5c9467ff4"
 
 [[package]]
+name = "rle"
+version = "0.10.0"
+source = "cran"
+raw_version = "0.10.0"
+url = "https://cran.r-project.org/src/contrib/rle_0.10.0.tar.gz"
+checksum = "md5:738640893af3f49a19096baf6ad11342"
+
+[[package]]
 name = "rlist"
 version = "0.4.6-4.2"
 source = "cran"
@@ -2753,11 +3003,11 @@ requires = [
 
 [[package]]
 name = "rmarkdown"
-version = "2.31.0"
+version = "2.32.0"
 source = "cran"
-raw_version = "2.31"
-url = "https://cran.r-project.org/src/contrib/rmarkdown_2.31.tar.gz"
-checksum = "md5:8f7a4eef6b62e7f2284550c3134f28c8"
+raw_version = "2.32"
+url = "https://cran.r-project.org/src/contrib/rmarkdown_2.32.tar.gz"
+checksum = "md5:01b497e82b287a2269a965119ed59271"
 requires = [
     "bslib",
     "evaluate",
@@ -2952,6 +3202,18 @@ url = "https://cran.r-project.org/src/contrib/sm_2.2-6.0.tar.gz"
 checksum = "md5:c09c5d6260479b702349067c2bd3588c"
 
 [[package]]
+name = "sna"
+version = "2.8.0"
+source = "cran"
+raw_version = "2.8"
+url = "https://cran.r-project.org/src/contrib/sna_2.8.tar.gz"
+checksum = "md5:ac06a1e8abda230d21894e5385161c6d"
+requires = [
+    "statnet.common",
+    "network",
+]
+
+[[package]]
 name = "snakecase"
 version = "0.11.1"
 source = "cran"
@@ -3075,6 +3337,18 @@ source = "cran"
 raw_version = "1.5.2"
 url = "https://cran.r-project.org/src/contrib/statmod_1.5.2.tar.gz"
 checksum = "md5:7cb72ca8992c058178756d623139eb80"
+
+[[package]]
+name = "statnet.common"
+version = "4.13.0"
+source = "cran"
+raw_version = "4.13.0"
+url = "https://cran.r-project.org/src/contrib/statnet.common_4.13.0.tar.gz"
+checksum = "md5:28f6f15ec100a34f9e2b3cc94986b4d7"
+requires = [
+    "coda",
+    "Matrix",
+]
 
 [[package]]
 name = "stbl"
@@ -3395,6 +3669,18 @@ checksum = "md5:c680dc21cfd948a22a4f72427967e3e0"
 requires = ["xfun"]
 
 [[package]]
+name = "tnet"
+version = "3.0.16"
+source = "cran"
+raw_version = "3.0.16"
+url = "https://cran.r-project.org/src/contrib/tnet_3.0.16.tar.gz"
+checksum = "md5:3d6bf7a901c21e534e01d524f386a473"
+requires = [
+    "igraph",
+    "survival",
+]
+
+[[package]]
 name = "tourr"
 version = "1.2.8"
 source = "cran"
@@ -3412,6 +3698,14 @@ requires = [
     "cassowaryr",
     "minerva",
 ]
+
+[[package]]
+name = "trust"
+version = "0.1.9"
+source = "cran"
+raw_version = "0.1-9"
+url = "https://cran.r-project.org/src/contrib/trust_0.1-9.tar.gz"
+checksum = "md5:86d07fa891b3c291b358cfc48f5c84ce"
 
 [[package]]
 name = "tsibble"
@@ -3518,6 +3812,20 @@ requires = [
     "glue",
     "lifecycle",
     "rlang",
+]
+
+[[package]]
+name = "vecvec"
+version = "1.3.0"
+source = "cran"
+raw_version = "1.3.0"
+url = "https://cran.r-project.org/src/contrib/vecvec_1.3.0.tar.gz"
+checksum = "md5:83f391e8e8c91397e0bd8214756af05e"
+requires = [
+    "cli",
+    "rlang",
+    "S7",
+    "vctrs",
 ]
 
 [[package]]
