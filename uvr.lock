@@ -1984,11 +1984,11 @@ checksum = "md5:551766c2c79a6d722593fffaeed4ea17"
 
 [[package]]
 name = "knitr"
-version = "1.51.0"
+version = "1.52.0"
 source = "cran"
-raw_version = "1.51"
-url = "https://cran.r-project.org/src/contrib/knitr_1.51.tar.gz"
-checksum = "md5:79f32f24b572fe198baca8882d6aa87f"
+raw_version = "1.52"
+url = "https://cran.r-project.org/src/contrib/knitr_1.52.tar.gz"
+checksum = "md5:0fc9f044e50fd86269f05b6067159bc6"
 requires = [
     "evaluate",
     "highr",
@@ -3926,10 +3926,10 @@ checksum = "md5:b5603af0a2d1b62511f85f5574c747a8"
 
 [[package]]
 name = "weird"
-version = "3.0.0-4.9000"
+version = "3.1.0-4.9000"
 source = "github"
-url = "https://api.github.com/repos/robjhyndman/weird/tarball/f3e0cf4baf502e923608b8ff619f01e4e5754ef9"
-checksum = "git:f3e0cf4baf502e923608b8ff619f01e4e5754ef9"
+url = "https://api.github.com/repos/robjhyndman/weird/tarball/e7b5772b422f9651bb125cef5b03fc96b067b341"
+checksum = "git:e7b5772b422f9651bb125cef5b03fc96b067b341"
 requires = [
     "aplpack",
     "broom",
