@@ -15,12 +15,12 @@ update:
 build: _book/.built
 
 _book/.built: $(qmd_files) $(rds_files) $(shared_deps)
-	source .uvr/activate && quarto render --to html
+	source .uvr/activate && QUARTO_R=$$(dirname $$(command -v R)) quarto render --to html
 	perl -i htmlreplace.pl _book/*.html
 	touch $@
 
 preview: build
-	source .uvr/activate && quarto preview --to html
+	source .uvr/activate && QUARTO_R=$$(dirname $$(command -v R)) quarto preview --to html
 
 deploy: build
 	cp .htaccess _book
