@@ -298,11 +298,11 @@ checksum = "md5:353d35176db9c570705a0a324c06fdca"
 
 [[package]]
 name = "RcppArmadillo"
-version = "15.4.2-4.1"
+version = "15.6.0-4.1"
 source = "cran"
-raw_version = "15.4.2-1"
-url = "https://cran.r-project.org/src/contrib/RcppArmadillo_15.4.2-1.tar.gz"
-checksum = "md5:b446a94020b100db656ff06e30d2f52f"
+raw_version = "15.6.0-1"
+url = "https://cran.r-project.org/src/contrib/RcppArmadillo_15.6.0-1.tar.gz"
+checksum = "md5:d5d06c2aead5474086d2b12b145efd70"
 requires = [
     "Rcpp",
     "Rcpp",
@@ -900,9 +900,10 @@ checksum = "md5:2b7268922b0f86dbc8064ff8e3a1ca1b"
 [[package]]
 name = "distributional"
 version = "0.9.0"
-source = "github"
-url = "https://api.github.com/repos/mitchelloharawild/distributional/tarball/246787048c04a6645be0c1f38c969055be74ba20"
-checksum = "git:246787048c04a6645be0c1f38c969055be74ba20"
+source = "cran"
+raw_version = "0.9.0"
+url = "https://cran.r-project.org/src/contrib/distributional_0.9.0.tar.gz"
+checksum = "md5:54ea7ce16298072e59f356be71ba31bf"
 requires = [
     "vctrs",
     "rlang",
@@ -3315,11 +3316,11 @@ requires = ["spatstat.utils"]
 
 [[package]]
 name = "spatstat.utils"
-version = "3.2.4"
+version = "3.2.5"
 source = "cran"
-raw_version = "3.2-4"
-url = "https://cran.r-project.org/src/contrib/spatstat.utils_3.2-4.tar.gz"
-checksum = "md5:15fde549788ec9f714b61cbe6c34e534"
+raw_version = "3.2-5"
+url = "https://cran.r-project.org/src/contrib/spatstat.utils_3.2-5.tar.gz"
+checksum = "md5:cce3c418041d68834e27b52a838a9088"
 
 [[package]]
 name = "splancs"
@@ -3424,11 +3425,11 @@ requires = [
 
 [[package]]
 name = "survival"
-version = "3.8.11"
+version = "3.8.12"
 source = "cran"
-raw_version = "3.8-11"
-url = "https://cran.r-project.org/src/contrib/survival_3.8-11.tar.gz"
-checksum = "md5:0041deb72e0b4c87c033a64a4b76285f"
+raw_version = "3.8-12"
+url = "https://cran.r-project.org/src/contrib/survival_3.8-12.tar.gz"
+checksum = "md5:3c59ccd42546b7d04d2e9804998ea7e8"
 requires = ["Matrix"]
 
 [[package]]
@@ -3928,8 +3929,8 @@ checksum = "md5:b5603af0a2d1b62511f85f5574c747a8"
 name = "weird"
 version = "3.1.0-4.9000"
 source = "github"
-url = "https://api.github.com/repos/robjhyndman/weird/tarball/e7b5772b422f9651bb125cef5b03fc96b067b341"
-checksum = "git:e7b5772b422f9651bb125cef5b03fc96b067b341"
+url = "https://api.github.com/repos/robjhyndman/weird/tarball/888e08b47cab9a4783d98def59d43620843614de"
+checksum = "git:888e08b47cab9a4783d98def59d43620843614de"
 requires = [
     "aplpack",
     "broom",
