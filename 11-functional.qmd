@@ -326,7 +326,7 @@ The following historical events are relevant:
 - 1871: Repression of the 'Commune de Paris'
 - 1914--1918: World War I
 - 1919: Spanish flu pandemic
-- 1940--1944: World War II
+- 1940--1945: World War II
 
 To take another perspective, we can apply the O3 plot (@sec-o3) to the first three principal component scores.
 

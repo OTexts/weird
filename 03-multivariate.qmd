@@ -938,7 +938,7 @@ First, we compute robust multivariate z-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \b
 Then we find the merge distances of the clusters obtained from the z-scores: $\{d_1,\dots,d_{n-1}\}$.
 Finally, we can set
 $$
-  \bm{H} = d_\gamma\bm{S}_{\text{MCD}}
+  \bm{H} = d_\gamma^2\bm{S}_{\text{MCD}}
 $$ {#eq-lookoutH}
 where $d_\gamma$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_{n-1}\}$ for a large value of $\gamma$.
 @lookout2 showed that this leads to a consistent density estimate, with good properties for anomaly detection, when $\gamma = 0.98$.

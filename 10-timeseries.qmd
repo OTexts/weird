@@ -610,7 +610,9 @@ PBS_prcomp <- PBS_prcomp |>
 PBS_prcomp
 ```
 
-Now, let's plot the two most anomalous series in @fig-weirdseries_anomalies, to see if we can spot what is so unusual about them.
+This shows both have zero surprisal probability, along with a third series along the same line of points.
+
+Now, let's plot these most anomalous series in @fig-weirdseries_anomalies, to see if we can spot what is so unusual about them.
 
 ```{r}
 #| label: fig-weirdseries_anomalies
@@ -628,7 +630,8 @@ PBS |>
   labs(title = "Outlying time series in PC space")
 ```
 
-These series both contain almost all zeros, with just a few non-zero values.
+Two of these series contain almost all zeros, with just a few non-zero values.
+The other contains almost all zeros or ones, with only two larger values.
 The three series we omitted may also be unusual, so let's plot them as well in @fig-pbs_missing.
 
 ```{r}
