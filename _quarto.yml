@@ -71,7 +71,7 @@ format:
     code-fold: true
     embed-resources: false
     include-in-header:
-      - file: google_analytics.html
+      - file: goatcounter.html
     include-after-body:
       - text: |
           <script>
