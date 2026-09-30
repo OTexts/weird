@@ -1091,7 +1091,8 @@ gpd_fit <- evd::fpot(df$y, 3)$estimate
 c(
   `GPD_from_GEV` = dist_gpd(
     location = 3,
-    scale = gev_fit["scale"],
+    # sigma_u = sigma_G + xi * (u - mu_G), with u = 3
+    scale = gev_fit["scale"] + gev_fit["shape"] * (3 - gev_fit["loc"]),
     shape = gev_fit["shape"]
   ),
   `GPD_estimate` = dist_gpd(
@@ -1104,7 +1105,7 @@ c(
   geom_rug(data = df, aes(x = y))
 ```
 
-The GEV (blue) estimate is better because it is based on more information (2000 maximums rather than `r NROW(df)` exceedances).
+The GEV (blue) estimate should be more accurate because it is based on much more data (2000 maximums, computed from 2 million draws, rather than `r NROW(df)` exceedances from 100,000 draws).
 
 ### Weissman's spacing theorem
 
