@@ -74,7 +74,7 @@ network_plot <- function(
     labs(title = title)
 }
 
-# Plot the oddnet conditional probability of each network over time, with
+# Plot the oddnet surprisal probability of each network over time, with
 # the alpha threshold shown as a dashed line.
 prob_plot <- function(x, prob, alpha = 0.05, xlab = "") {
   tibble(x = x, prob = prob) |>
@@ -82,7 +82,7 @@ prob_plot <- function(x, prob, alpha = 0.05, xlab = "") {
     geom_line() +
     geom_point() +
     geom_hline(yintercept = alpha, linetype = "dashed", colour = "#D55E00") +
-    labs(x = xlab, y = "Conditional probability")
+    labs(x = xlab, y = "Surprisal probability")
 }
 ```
 
@@ -192,7 +192,9 @@ senate_node_features <- tibble(
 ```
 
 Closeness is undefined for senators with no co-voting partners at all, so we set it to zero for those `r sum(senate_node_features$degree == 0)` isolated senators.
-As elsewhere in this book, we reduce these six features to two dimensions with robust PCA (@sec-robpca), then apply the lookout algorithm (@sec-loo-surprisals) via the `surprisals_prob()` function already used in @sec-oldfaithful-density.
+The features are measured on very different scales (betweenness runs into the thousands, while closeness is of the order of 0.001), so we first standardise each feature to have mean zero and unit variance, as in @sec-highdim.
+Otherwise the principal components would be dominated by whichever features happen to have the largest variance.
+As elsewhere in this book, we then reduce these six features to two dimensions with robust PCA (@sec-robpca), and apply the lookout algorithm (@sec-loo-surprisals) via the `surprisals_prob()` function already used in @sec-oldfaithful-density.
 
 ```{r}
 #| label: senate-node-anomaly
@@ -200,7 +202,9 @@ As elsewhere in this book, we reduce these six features to two dimensions with r
 #| dependson: senate-node-features
 
 senate_node_pca <- pcaPP::PCAproj(
-  senate_node_features |> select(-party),
+  senate_node_features |>
+    select(-party) |>
+    mvscale(center = mean, scale = sd, cov = NULL),
   k = 2,
   scale = NULL,
   center = NULL
@@ -222,28 +226,41 @@ senate_node_features |> arrange(prob) |> head(3)
 #| include: false
 #| dependson: senate-node-anomaly
 
-n_flagged <- sum(senate_node_features$prob < 0.05)
-stopifnot(n_flagged >= 2)
-stopifnot(all(
-  head(senate_node_features |> dplyr::arrange(prob), 2)$betweenness > 500
-))
+flagged <- senate_node_features |> filter(prob < 0.05)
+n_flagged <- NROW(flagged)
+n_isolated <- sum(senate_node_features$degree == 0)
+top2_betweenness <- sort(senate_node_features$betweenness, decreasing = TRUE)[1:2]
+# The prose describes the flagged senators as the two with the highest
+# betweenness plus all the isolated senators, with the most anomalous
+# senator having the highest betweenness
+stopifnot(
+  all(top2_betweenness %in% flagged$betweenness),
+  all(flagged$degree == 0 | flagged$betweenness %in% top2_betweenness),
+  sum(flagged$degree == 0) == n_isolated,
+  n_isolated > 0,
+  which.min(senate_node_features$prob) == which.max(senate_node_features$betweenness)
+)
 ```
 
-`r n_flagged` senators fall below the $\alpha = 0.05$ threshold used throughout this chapter, but two are unambiguous, with surprisal probabilities close to zero and the two highest betweenness centralities in the chamber: one Republican and one Democrat, each sitting on far more shortest paths between their colleagues than is typical for their party.
+`r n_flagged` senators fall below the $\alpha = 0.05$ threshold used throughout this chapter, and they are of two kinds.
+By far the most anomalous, with a surprisal probability of `r sprintf("%.5f", min(senate_node_features$prob))`, is a Democrat with the highest betweenness centrality in the chamber, sitting on far more shortest paths between colleagues than anyone else.
+The Republican with the second-highest betweenness is also flagged.
 A senator with high betweenness is one whose voting pattern regularly links senators who otherwise vote in separate blocs.
+The remaining `r english::words(n_isolated)` flagged senators are the isolated senators, who have no co-voting partners at all, so all their features except PageRank are zero.
 
 @fig-senate-nodes shows the two-dimensional projection used for detection, with the flagged senators highlighted.
-They sit well apart from the bulk of the chamber.
+They lie on the edges of the point cloud, although some unflagged senators are also far from the bulk of the chamber; lookout flags points in low-density regions, not simply those far from the centre.
 
 ```{r}
 #| label: fig-senate-nodes
 #| dependson: senate-node-anomaly
 #| fig-cap: >-
 #|   Two-dimensional robust PCA projection of the node-level features for the 100th Congress.
-#|   The two senators with the lowest surprisal probability are shown in orange.
+#|   Senators with a surprisal probability below 0.05 are shown in orange.
+#|   The isolated senators have identical features, so they are plotted as a single point.
 
 as_tibble(senate_node_pca$scores) |>
-  mutate(flagged = rank(senate_node_features$prob) <= 2) |>
+  mutate(flagged = senate_node_features$prob < 0.05) |>
   ggplot(aes(x = Comp.1, y = Comp.2, colour = flagged)) +
   geom_point() +
   scale_colour_manual(values = c(`FALSE` = "#0072B2", `TRUE` = "#D55E00")) +
@@ -253,7 +270,7 @@ as_tibble(senate_node_pca$scores) |>
 
 We picked the 100th Congress somewhat arbitrarily here, just to illustrate the method.
 But later in the chapter, in @sec-senate-network, we look for anomalies across the whole `r length(senate_congress)`-Congress sequence rather than within a single one, and find that the 100th Congress is flagged there too, as the single most unusual network in the entire sequence.
-That is independent evidence that these two bridging senators were not a fluke: the unusual collaboration visible at the level of individual senators here also shows up as an anomaly at the level of the whole network.
+That is consistent with these two bridging senators not being a fluke: the unusual collaboration visible at the level of individual senators here also shows up as an anomaly at the level of the whole network.
 
 The same recipe --- compute node features with `igraph`, reduce their dimension, and apply lookout --- works for any single network, not just this one.
 We now turn to a different question: instead of looking for unusual nodes within one network, can we find an unusual network within a longer sequence?
@@ -413,7 +430,7 @@ We already met the idea of robustifying PCA in @sec-robpca: rather than finding 
 This is the same function we used to reduce the node-level features in @sec-network-nodes.
 
 Second, the two-dimensional projection is searched for anomalies using the lookout algorithm from @sec-loo-surprisals, which computes leave-one-out kernel density surprisal probabilities.
-A network is flagged as anomalous if its conditional probability, as estimated by lookout, falls below a threshold $\alpha$ (we use $\alpha = 0.05$ throughout this chapter, following @oddnet).
+A network is flagged as anomalous if its surprisal probability, as estimated by lookout, falls below a threshold $\alpha$ (we use $\alpha = 0.05$ throughout this chapter, following @oddnet).
 
 ### The oddnet algorithm
 
@@ -425,9 +442,10 @@ Putting these pieces together, `oddnet` proceeds as follows.
 
 **Step 3: Reduce dimension.** Project the residual vectors onto two dimensions using robust PCA.
 
-**Step 4: Detect anomalies.** Apply the lookout algorithm to the two-dimensional projection, giving a conditional probability for each network.
+**Step 4: Detect anomalies.** Apply the lookout algorithm to the two-dimensional projection, giving a surprisal probability for each network.
 
-This is implemented in the `anomalous_networks()` function, which takes a list of adjacency matrices and returns the estimated conditional probabilities.
+This is implemented in the `anomalous_networks()` function, which takes a list of adjacency matrices and returns the estimated surprisal probabilities.
+Because these are computed from the residuals of the time series models, they are conditional on the history of each feature: a network is flagged when it is surprising given the networks that preceded it, which is why @oddnet call them conditional probabilities.
 We now apply it to the full sequence of Senate co-voting networks already introduced in @sec-network-nodes, extending the single-Congress analysis there to look for anomalies across the whole sequence.
 
 ## Example: US Senate co-voting networks {#sec-senate-network}
@@ -477,12 +495,12 @@ senate_probs <- tibble(
 senate_probs |> dplyr::arrange(prob) |> head()
 ```
 
-@fig-senate-prob shows the conditional probability of every Congress.
+@fig-senate-prob shows the surprisal probability of every Congress.
 
 ```{r}
 #| label: fig-senate-prob
 #| dependson: [senate-data, senate-oddnet, ch12_libraries]
-#| fig-cap: "Conditional probability of each US Senate co-voting network, from the 40th to the 113th Congress."
+#| fig-cap: "Surprisal probability of each US Senate co-voting network, from the 40th to the 113th Congress."
 
 prob_plot(senate_congress, senate_result$outlier_probability, xlab = "Congress")
 ```
@@ -496,9 +514,9 @@ most_anomalous <- senate_probs$congress[which.min(senate_probs$prob)]
 stopifnot(most_anomalous == 100)
 ```
 
-As anticipated in @sec-network-nodes, the `r scales::ordinal(most_anomalous)` Congress (1987--1989) stands out as by far the most anomalous, with a conditional probability of `r sprintf("%.4f", min(senate_probs$prob))`.
-This Congress had an unusually high level of bipartisan collaboration compared to its neighbours, consistent with the findings of @Huang2020, who also flag it as the most anomalous Congress in this data set using an unrelated Laplacian-based method, and with the two exceptionally high-betweenness senators found there at the node level.
-The 43rd Congress (1873--1875) is also flagged, with a conditional probability of `r sprintf("%.4f", senate_probs$prob[senate_probs$congress == 43])`.
+As anticipated in @sec-network-nodes, the `r scales::ordinal(most_anomalous)` Congress (1987--1989) stands out as by far the most anomalous, with a surprisal probability of `r sprintf("%.4f", min(senate_probs$prob))`.
+This Congress had an unusually high level of bipartisan collaboration compared to its neighbours, consistent with the findings of @Huang2020, who also flag it as the most anomalous Congress in this data set using an unrelated Laplacian-based method, and with the high-betweenness senators found there at the node level.
+The 43rd Congress (1873--1875) is also flagged, with a surprisal probability of `r sprintf("%.4f", senate_probs$prob[senate_probs$congress == 43])`.
 This Congress sat during the Panic of 1873, a severe economic depression that was known as "the Great Depression" until the 1929 crash claimed the name --- a period of considerable political instability that plausibly disrupted the usual voting coalitions.
 
 ## Example: UCI message network {#sec-uci-network}
@@ -552,12 +570,12 @@ uci_flagged <- uci_dates[uci_result$outliers$Outliers]
 uci_flagged
 ```
 
-@fig-uci-prob shows the conditional probability of every day.
+@fig-uci-prob shows the surprisal probability of every day.
 
 ```{r}
 #| label: fig-uci-prob
 #| dependson: [uci-data, uci-oddnet, ch12_libraries]
-#| fig-cap: "Conditional probability of each UCI daily message network, from March to October 2004."
+#| fig-cap: "Surprisal probability of each UCI daily message network, from March to October 2004."
 
 prob_plot(uci_dates, uci_result$outlier_probability, xlab = "Date")
 ```
