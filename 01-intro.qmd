@@ -8,7 +8,7 @@
 source("before-each-chapter.R")
 ```
 
-Data analysis is about finding the stories hidden in the mass of information that make up a data set.
+Data analysis is about finding the stories hidden in the mass of information that makes up a data set.
 Usually we are interested in understanding the major patterns --- the relationships that hold true for most of the data.
 But sometimes we need to look at the weird observations --- those that don't follow the crowd and behave differently.
 We call these weird observations "anomalies".
@@ -72,7 +72,7 @@ There is a widespread myth that NASA did not discover the hole in the ozone laye
 This is not true, but the real story is also instructive [@Pukelsheim1990;@Christie2001;@christie2004data].
 
 The "ozone hole" refers to low levels of ozone in the atmosphere above Antarctica and surrounding areas.
-NASA have been collecting satellite data on Antarctic ozone levels using a Total Ozone Mapping Spectrometer (TOMS) since 1979, while British scientists have collected ozone data using ground sensors at the Halley Research Station, on the edge of the Brunt Ice Shelf in Antarctica, since 1957.
+NASA has been collecting satellite data on Antarctic ozone levels using a Total Ozone Mapping Spectrometer (TOMS) since 1979, while British scientists have collected ozone data using ground sensors at the Halley Research Station, on the edge of the Brunt Ice Shelf in Antarctica, since 1957.
 @fig-halley shows average daily values from the NASA measurements in blue, and from the British observations in orange.
 There is a clear downward trend in the British data, especially from the late 1970s, which is confirmed with the NASA data.
 So why wasn't the "ozone hole" discovered until 1985?
@@ -152,7 +152,7 @@ Consequently, we will need to introduce (or revise) some material on probability
 
 The early days of anomaly detection involved methods based on statistical tests.
 Typically, the data were assumed to come from some underlying probability distribution, and then observations were declared outliers if they appeared to be inconsistent with this assumption.
-By far the most popular of these methods are based on the Normal distribution and use z-scores.
+By far the most popular of these methods are based on the Normal distribution and use $z$-scores.
 Even today, such methods are extremely widely used.
 These are discussed in @sec-tests.
 
@@ -162,7 +162,7 @@ The second half of the 20th century witnessed the advent of computing, which all
 Most readers will be familiar with boxplots, which provide a simple and effective way to visualise the distribution of a variable, and are often also used for anomaly detection.
 Such methods are discussed in @sec-boxplots.
 
-### Distance and density-based methods {-}
+### Distance- and density-based methods {-}
 
 Modern tools for anomaly detection can be roughly divided into two groups: those based on densities and those based on distances.
 Distance-based tools usually compute the pairwise distances between observations and identify anomalies as those points that are far from other points.
@@ -209,17 +209,17 @@ That is, we have no idea *a priori* what observations are anomalous, and there i
 
 ### Testing anomaly detection algorithms {-}
 
-That makes it difficult to measure how good an anomaly detection algorithm performs.
+That makes it difficult to measure how well an anomaly detection algorithm performs.
 If we don't know the right answer, we can't know if an algorithm has found the true anomalies.
 There are three solutions to this problem that are often employed when testing anomaly detection algorithms.
 
-1. **Synthetic data**: We can use synthetic data that has been deliberately contaminated with a few known anomalies.
+1. **Synthetic data**: We can use synthetic data that have been deliberately contaminated with a few known anomalies.
    This approach allows us to study the sensitivity of an algorithm to anomalies --- how anomalous does an observation have to be before it is detected?
-   A drawback to this approach is that synthetic data is often simpler and neater than real data, making the anomaly detection task easier than it is in reality.
+   A drawback to this approach is that synthetic data are often simpler and neater than real data, making the anomaly detection task easier than it is in reality.
 2. **Human labelled**: We can use real data where a human has labelled some of the observations as anomalous.
    As noted above, this only works when the human has correctly and completely labelled the anomalies.
    It also requires that what a human considers an anomaly is also anomalous in a statistical sense.
-3. **Downsampled category**: We can use real data that contains a categorical variable taking two label values.
+3. **Downsampled category**: We can use real data that contain a categorical variable taking two label values.
    One of the labelled categories is downsampled and the corresponding observations form the anomalous subset.
    This approach is useful in obtaining large sets of realistic data, as it takes little time to create the data set.
    However, it requires that the observations labelled anomalies are different in some way from the other observations (apart from their label).
@@ -229,7 +229,7 @@ In this book, we will use data sets of each type when testing different anomaly 
 
 ## Spurious anomalies and undetected anomalies {#sec-spurious}
 
-**Spurious anomalies** occur when a true observation is identified as anomalous, while **undetected anomalies** occur when an anomalous observation is not detected.
+**Spurious anomalies** occur when a non-anomalous observation is identified as anomalous, while **undetected anomalies** occur when an anomalous observation is not detected.
 Thus, when our purpose is anomaly detection, an undetected anomaly is a "false negative" while a spurious anomaly is a "false positive".
 We can only really be sure about which observations are spurious or undetected anomalies when the data are synthetic.
 However, in some real data examples, there are such extreme anomalies that we will proceed under the assumption that we know that these are true anomalies.
@@ -247,7 +247,7 @@ So we will often be talking about anomaly scores, even when we are really intere
 ### Test cricket batting data
 
 Cricket is a popular sport in England, India, Australia, and other countries which had strong ties to England during the 19th and 20th centuries.
-The `cricket_batting` data contains summary statistics for all `r NROW(cricket_batting)` men and women who have played test cricket (the traditional and long form of the game), up to 6 October 2025.
+The `cricket_batting` data set contains summary statistics for all `r NROW(cricket_batting)` men and women who have played test cricket (the traditional and long form of the game), up to 6 October 2025.
 Each row contains data on one player, and we will be looking for anomalies in their playing statistics.
 
 ```{r}
@@ -260,7 +260,7 @@ cricket_batting
 ### Old Faithful Geyser eruptions {-}
 
 Data on the eruptions of the Old Faithful Geyser in Yellowstone National Park, Wyoming, USA, have been collected for about 150 years.
-It was named "Old Faithful" due to the relatively predictable timing and length of its eruptions.
+The geyser was named "Old Faithful" due to the relatively predictable timing and length of its eruptions.
 The `oldfaithful` data set contains data on all `r NROW(oldfaithful)` eruptions recorded between 14 January 2017 and 29 December 2023.
 
 ```{r}
@@ -330,7 +330,7 @@ wine_reviews <- fetch_wine_reviews()
 wine_reviews
 ```
 
-### Synthetic standard normal data
+### Synthetic standard Normal data
 
 The `n01` data set contains synthetic data on 10 variables, each generated independently from a Normal distribution with mean zero and variance one.
 So by definition, this data set contains no anomalies.
@@ -363,7 +363,7 @@ donave <- max(batting$Average)
 
 Don Bradman was an Australian cricketer in the first half of the 20th century, and is renowned as the best batter to ever play the game.
 The most common measure of a batter's ability is their career average --- the total number of runs made divided by the number of times they were dismissed.
-@fig-cricket1 shows a strip plot of the career averages for all `r NROW(batting)` men and women who have played test cricket and batted at least 20 times.
+@fig-cricket1 shows a strip plot of the career averages for all `r NROW(filter(cricket_batting, Innings >= 20))` men and women who have played test cricket and batted at least 20 times.
 
 ```{r}
 #| label: fig-cricket1
@@ -438,7 +438,7 @@ oldfaithful |>
 In @fig-oldfaithful3, we have plotted the duration of each eruption and the waiting time to the next eruption.
 This shows some anomalies that occur due to the *combination* of the two variables, although they do not appear anomalous within the data on any one of the variables.
 For example, there are two eruptions of 110--120 seconds, followed by waiting times of over 6000 seconds.
-Neither the waiting time nor the duration are unusual on their own, but the combination is anomalous.
+Neither the waiting time nor the duration is unusual on its own, but the combination is anomalous.
 Similarly, there is one eruption of about 240 seconds, followed by a waiting time of about 3000 seconds.
 The waiting time is the second-smallest overall, but appears even more extraordinary given the long duration of the previous eruption.
 All other eruptions of similar duration had waiting times about twice as long.
@@ -467,7 +467,7 @@ The price is shown on a log scale to allow all the points to be seen more clearl
 
 Here the most interesting observations are the ones that have an unusual price given their points value.
 For example, the lowest priced wine above 95 points is a 2007 Syrah from the Rulo vineyard in the Columbia Valley, Washington.
-It is an anomaly given its high points value and low price, although neither the price nor the points value are particularly unusual.
+It is an anomaly given its high points value and low price, although neither the price nor the points value is particularly unusual.
 There are also two very expensive wines that do not have a rating to match, with points values in the low 90s.
 These can also be considered anomalies.
 
@@ -492,7 +492,7 @@ While strip plots and scatterplots are useful for finding anomalies in small- to
 
 We will consider the problem of high dimensions in @sec-highdim, while various types of non-numerical data are considered in the later chapters of the book.
 
-### Example: Synthetic standard normal data
+### Example: Synthetic standard Normal data
 
 When we have many variables, showing the pairwise scatterplots in a matrix is a useful way to see a lot of information quickly.
 This is called a scatterplot matrix, and can be produced using the `GGally` package.

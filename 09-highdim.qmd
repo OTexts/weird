@@ -123,7 +123,7 @@ The variance of the scores is a measure of how much of the joint variation is ca
 $$
   \text{Var}(w) = \bm{a}^\intercal \bm{\Sigma} \bm{a},
 $$
-where $\bm{\Sigma}$ is the $2 \times 2$ covariance matrix of the data $\bm{Y}$.
+where $\bm{\Sigma}$ is the $2 \times 2$ covariance matrix of the two standardised variables.
 The variance is maximised when $\bm{a}$ is the leading eigenvector of $\bm{\Sigma}$; then the leading eigenvalue is the maximum variance.
 This is the basis of principal component analysis, which we will discuss in @sec-pca.
 
@@ -165,14 +165,14 @@ Interactive 3D scatterplot of the carbon monoxide, nitrogen dioxide and particul
 :::
 
 A pairwise scatterplot matrix, such as that shown in @fig-proj-pairs3, shows three different 2D projections of the 3D data.
-Each panel is the projection you would see if you were facing the above cube perpendicular to the face not shown in the plot.
+Each panel is the projection you would see if you looked at the 3D plot above along the axis of the variable omitted from that panel.
 
 ```{r}
 #| label: fig-proj-pairs3
 #| code-fold: false
 #| fig-cap: >-
 #|   Pairwise scatterplots and correlations for standardised carbon monoxide, nitrogen dioxide and particulate matter at Aotizhongxin.
-#|   All three pairs are strongly correlated, so the joint variation is nearly confined to a two-dimensional subspace.
+#|   All three pairs are positively correlated, so the data cloud is elongated along one main direction.
 #| dependson: aotizhongxin
 #| message: false
 #| warning: false
@@ -407,7 +407,7 @@ Observations with the largest orthogonal distances may not be visible as anomali
 
 ```{r}
 #| label: fig-proj-residuals1
-#| dependson: fig-proj-11dto2d
+#| dependson: proj-kde
 #| code-fold: false
 #| fig-asp: 0.2
 #| fig-cap: HDR boxplot of the orthogonal distances of the observations from the projection subspace.
@@ -456,7 +456,7 @@ Observations with the largest score distances will be visible as potential anoma
 ```{r}
 #| label: score-distances
 #| code-fold: false
-#| dependson: fig-proj-11dto2d
+#| dependson: fig-proj-residuals1
 
 az_aq_proj <- az_aq_proj |>
   mutate(sd = sqrt(diag(W %*% solve(t(A) %*% cov(Y) %*% A) %*% t(W))))
@@ -486,12 +486,12 @@ Anomalies that lie in low-density regions of the residual space, but which have 
 
 ## Stahel--Donoho outlyingness {#sec-stahel-donoho}
 
-Stahel--Donoho outlyingness is a robust projection-based measure of how far each observation is from the main body of the data [@Stahel81;@Donoho81] in at least one projection.
+Stahel--Donoho outlyingness is a robust projection-based measure of how far each observation is from the main body of the data in at least one projection [@Stahel81;@Donoho81].
 
-For any unit vector $\bm{a}$, project the data to one dimension via $\bm{a}^\intercal\bm{y}_i$, then scale the result using a robust z-score (@sec-scaling), adjusted for skewness [@Brys2005-pc].
-The "outlyingness" of $\bm{y}_i$ is the largest absolute z-score over all possible directions $\bm{a}$, so an observation is flagged when it looks extreme in at least one projection.
+For any unit vector $\bm{a}$, project the data to one dimension via $\bm{a}^\intercal\bm{y}_i$, then scale the result using a robust $z$-score (@sec-scaling), adjusted for skewness [@Brys2005-pc].
+The "outlyingness" of $\bm{y}_i$ is the largest absolute $z$-score over all possible directions $\bm{a}$, so an observation is flagged when it looks extreme in at least one projection.
 
-Stahel--Donoho outlyingness is a guided tour index: it searches over one-dimensional projections: for each candidate direction $\bm{a}$, compute the robust z-scores of the projected data, and keep track of the largest value seen so far.
+Stahel--Donoho outlyingness is a guided tour index: it searches over one-dimensional projections. For each candidate direction $\bm{a}$, compute the robust $z$-scores of the projected data, and keep track of the largest value seen so far.
 
 In practice, the optimisation over all directions is approximated using many candidate projections.
 In R, `robustbase::adjOutlyingness()` provides an efficient implementation for computing these scores.
@@ -502,7 +502,7 @@ Because the outlyingness is maximised over all directions, it does not require u
 ```{r}
 #| label: stahel-donoho
 #| code-fold: false
-#| dependson: fig-proj-11dto2d
+#| dependson: score-distances
 
 set.seed(1)
 ao <- robustbase::adjOutlyingness(Y)
@@ -512,7 +512,7 @@ az_aq_proj |>
 ```
 
 The top 10 most anomalous observations by this measure are shown above.
-Without our having to choose a projection in advance, it recovers the residual-space anomalies of @fig-proj-residuals2 --- including the run of hours early on 11 May --- because an observation that is extreme in any single direction is found by maximising over all directions.
+Without our having to choose a projection in advance, it recovers most of the residual-space anomalies of @fig-proj-residuals2 --- including the run of hours early on 11 May --- because an observation that is extreme in any single direction is found by maximising over all directions.
 The price is the opposite blind spot: because the measure relies on one-dimensional projections, it can miss anomalies that only appear unusual when several variables are considered jointly.
 
 ## Principal component analysis {#sec-pca}
@@ -625,7 +625,7 @@ To distinguish these two situations, @Hubert2005-qa introduced a useful framewor
 This "leverage" vocabulary is borrowed directly from regression (@sec-ols).
 There, the leverage $h_i = \bm{x}_i^\intercal(\bm{X}^\intercal\bm{X})^{-1}\bm{x}_i$ measures how far an observation lies from the centre of the predictor space, exactly as the score distance does here within the projection subspace; both are Mahalanobis-type distances that flag observations which are extreme *within* the subspace but not necessarily anomalous in their residuals.
 The regression residual then plays the role of the orthogonal distance.
-The good/bad distinction is identical too: a high-leverage point in regression is *good* if it falls close to the fitted line (small residual) and *bad* if it pulls the line towards itself (large residual), causing the masking described in @sec-ols.
+The good/bad distinction is identical too: a high-leverage point in regression is *good* if it falls close to the line fitted to the rest of the data (small residual) and *bad* if it lies far from that line (large residual), so that it pulls the line towards itself, causing the masking described in @sec-ols.
 In the same way, a high-score-distance point here is a good leverage point if its orthogonal distance is small, and a bad leverage point if its orthogonal distance is also large, so that it can pull the principal component directions towards itself and mask its own anomaly.
 
 If the data were from a multivariate Normal distribution, then the squared score distances would approximately follow a chi-squared distribution with $k$ degrees of freedom.
@@ -633,7 +633,7 @@ While we almost never believe that real data come from a multivariate Normal dis
 We flag an observation as a high leverage point if $\text{SD}_i$ is larger than the square root of the 97.5% quantile of the chi-squared distribution with $k$ degrees of freedom.
 So under a Normal model, we would expect about 2.5% of the observations to have large score distances and be flagged as leverage points.
 
-The distribution of orthogonal distances is more complicated, but a common approach is to flag an observation as having a large orthogonal distance if $\text{OD}_i$ is greater than the 97.5% quantile of an appropriate Normal distribution.
+The distribution of orthogonal distances is more complicated, but $\text{OD}_i^{2/3}$ is approximately Normal [@Hubert2005-qa], so a common approach is to flag an observation as having a large orthogonal distance if $\text{OD}_i^{2/3}$ is greater than the 97.5% quantile of a Normal distribution whose mean and standard deviation are estimated robustly (using the median and MAD of the $\text{OD}_i^{2/3}$ values).
 So again, about 2.5% of the observations would be expected to have large orthogonal distances under a Normal model.
 
 When combined with the outlier map shown above, these cutoffs partition the observations into the four types described in the table.
@@ -645,7 +645,7 @@ When combined with the outlier map shown above, these cutoffs partition the obse
 #| code-fold: false
 #| fig-cap: >-
 #|   Outlier map for the Aotizhongxin data, using the first two principal components in the projection.
-#|   The vertical and horizontal dashed lines show the cutoffs for large orthogonal and score distances, respectively.
+#|   The vertical and horizontal dashed lines show the cutoffs for large score and orthogonal distances, respectively.
 #|   The points are coloured according to their classification based on these cutoffs.
 
 outlier_map(PcaClassic(Y, k = 2))
@@ -698,7 +698,7 @@ patchwork::wrap_plots(
 This can be seen in the second-largest score distance in the $k = 4$ plot.
 The corresponding observation was an orthogonal outlier in the other plots, but is now a good leverage point, because it is now well represented in the projection.
 
-Notice that we now also have some bad leverage values in $k = 3$ and $k = 4$.
+Notice that we now also have some bad leverage points in $k = 3$ and $k = 4$.
 So the third and subsequent principal components are being pulled towards some anomalies, making them harder to identify in the lower dimensional space.
 This could be masking some of the anomalies.
 
@@ -797,7 +797,7 @@ For example, we can use an Isolation Forest to find the top 10 most anomalous ob
 ```{r}
 #| label: robpca-iso
 #| code-fold: false
-#| dependson: robpca
+#| dependson: [robpca, score-distances]
 
 W_od <- pca_robpca$scores |>
   as_tibble() |>
@@ -824,8 +824,8 @@ The aim is that, because the basis is built to expose anomalies, fewer component
 ### How DOBIN works
 
 DOBIN is built on a simple way of rewriting squared distances.
-Recall from @sec-distances that the squared Euclidean distance between two observations $\bm{y}_i$ and $\bm{y}_j$ is the sum of the squared differences in each variable, $\|\bm{y}_i - \bm{y}_j\|^2 = \sum_\ell (y_{i,\ell} - y_{j,\ell})^2$.
-Collecting these per-variable terms into a vector $\bm{z}_{ij}$, whose $\ell$th entry is $(y_{i,\ell} - y_{j,\ell})^2$, the distance becomes the sum of the entries of $\bm{z}_{ij}$, that is $\|\bm{y}_i - \bm{y}_j\|^2 = \bm{1}^\intercal\bm{z}_{ij}$.
+Recall from @sec-distances that the squared Euclidean distance between two observations $\bm{y}_i$ and $\bm{y}_j$ is the sum of the squared differences in each variable, $\|\bm{y}_i - \bm{y}_j\|^2 = \sum_{q=1}^m (y_{i,q} - y_{j,q})^2$.
+Collecting these per-variable terms into a vector $\bm{z}_{ij}$, whose $q$th entry is $(y_{i,q} - y_{j,q})^2$, the distance becomes the sum of the entries of $\bm{z}_{ij}$, that is $\|\bm{y}_i - \bm{y}_j\|^2 = \bm{1}^\intercal\bm{z}_{ij}$.
 Replacing the equal weights $\bm{1}$ by non-negative weights $\bm{a}$ gives a weighted squared distance $\bm{a}^\intercal\bm{z}_{ij}$.
 Distance has become a *linear* function of the weights, which turns the search for a direction that stretches distances into an easy problem.
 
@@ -840,7 +840,7 @@ Because the objective is linear in $\bm{a}$, the solution is immediate --- the b
 $$
   \bm{a}_1 = \frac{\sum_\ell \bm{z}_\ell}{\big\|\sum_\ell \bm{z}_\ell\big\|}.
 $$
-Subsequent directions follow the same recipe applied to what is left over: after removing the part of each $\bm{z}_\ell$ lying along $\bm{a}_1$, the second direction $\bm{a}_2$ is the normalised sum of the residual vectors, and so on.
+Subsequent directions follow the same recipe applied to what is left over: the data are projected onto the subspace orthogonal to $\bm{a}_1$, the Y space is recomputed from these projected data, and the second direction $\bm{a}_2$ is the normalised sum of the new Y-space vectors, and so on.
 This is much like the orthogonalisation behind PCA (@sec-pca), except that at each step DOBIN maximises a sum of neighbour distances rather than a variance.
 The result is an orthonormal basis $\bm{A} = [\bm{a}_1\ \bm{a}_2\ \cdots]$ whose leading columns point in the directions where neighbours are most stretched apart.
 Projecting the data onto these columns, $\bm{W} = \bm{Y}\bm{A}$, gives the DOBIN coordinates, exactly as for any other projection in @sec-projections.
@@ -868,7 +868,7 @@ Two cautions are worth noting.
 First, because the Y space is built from element-wise squared differences, DOBIN is not invariant to rotations of the input space: starting from a rotated set of variables would give a different basis.
 This is the price of working one variable at a time, and it is also what keeps the loadings interpretable.
 (If rotation invariance matters more than interpretability, one can run PCA first and apply DOBIN to the principal component scores.)
-Second, like every projection method in this chapter, DOBIN only reduces the dimension; the anomalies must still be found by applying a distance- or density-based method to the resulting coordinates, as we did in @sec-projections.
+Second, like every projection method in this chapter, DOBIN only reduces the dimension; the anomalies must still be found by applying a distance- or density-based method to the resulting coordinates, as we did in @sec-projection-anomalies.
 
 So far we have used only the two leading DOBIN directions, because @sec-projections needed a basis we could plot.
 DOBIN is not limited to two dimensions, though, and giving it more components lets it expose anomalies that a 2D view cannot.
@@ -877,7 +877,7 @@ Following the recipe we used for ROBPCA (@sec-robpca), we take the first four DO
 ```{r}
 #| label: dobin-detect
 #| code-fold: false
-#| dependson: aotizhongxin
+#| dependson: score-distances
 
 A4 <- dobin::dobin(Y)$rotation[, 1:4]
 colnames(A4) <- paste0("a", 1:4)
@@ -1044,7 +1044,7 @@ This distance is the FastPCS outlyingness index, and corresponds to the PCA scor
 ```{r}
 #| label: fastpcs-scores
 #| code-fold: false
-#| dependson: fastpcs
+#| dependson: [fastpcs, score-distances]
 
 az_aq_proj <- az_aq_proj |>
   mutate(fpcs = fpcs_fit$distance)
@@ -1087,7 +1087,7 @@ An implementation of the HDoutliers algorithm was previously available in the [H
 The **stray** algorithm of @Talagala2019-zv ("Search and TRace AnomalY") is a modification of the HDoutliers algorithm, but omitting the clustering step, and replacing nearest-neighbour distances with $k$-nearest-neighbour distances.
 
 The leader algorithm is both the slowest part of HDoutliers on large high-dimensional data and the source of its main weakness.
-Two anomalous clusters lying near each other become each other's nearest neighbours and so hide one another (a form of the masking seen in @sec-knn-scores), while a dense cluster of typical points may collapse to a single leader that is then wrongly flagged as isolated.
+Two anomalous clusters lying near each other become each other's nearest neighbours and so hide one another (a form of masking), while a dense cluster of typical points may collapse to a single leader that is then wrongly flagged as isolated.
 Stray avoids clustering altogether, but deals with clusters of anomalies by using $k$-nearest-neighbour distances rather than just the single nearest neighbour.
 
 Recall from @sec-knn-scores that $d_{i,k}$ denotes the distance from observation $\bm{y}_i$ to its $k$th nearest neighbour, so that $d_{i,1} \le d_{i,2} \le \cdots \le d_{i,k}$ are its neighbour distances ranked from closest to furthest.
@@ -1110,7 +1110,7 @@ Applying it to the same standardised air quality and meteorological variables fr
 ```{r}
 #| label: stray
 #| code-fold: false
-#| dependson: fig-proj-11dto2d
+#| dependson: fastpcs-scores
 
 az_aq_proj |>
   mutate(
@@ -1189,7 +1189,7 @@ o3_plots$gO3
 ```
 
 Reading along any row of @fig-o3plot shows how many of the five methods agree for one combination of variables; reading down a column shows how consistently one observation is flagged, across both combinations and methods.
-Most flagged cells are light or mid blue, meaning no method, or only one method, identified the observation as an anomaly for that combination.
+Most flagged cells are light or mid blue, meaning only one or two methods identified the observation as an anomaly for that combination.
 Full agreement is rare: there is a single red cell in the whole plot, for the combination of `so2`, `dew_point` and `temperature`, marking the one observation that all five methods flag as an anomaly.
 
 To identify which observations are most consistently flagged, we can find the columns of the O3 plot with the most flags.
@@ -1197,7 +1197,7 @@ To identify which observations are most consistently flagged, we can find the co
 ```{r}
 #| label: o3-top
 #| code-fold: false
-#| dependson: ["o3prep", "fig-proj-11dto2d"]
+#| dependson: ["o3prep", "fastpcs-scores"]
 
 red_case <- o3_plots$outsTable |>
   distinct(Case, Combination, Method) |>
@@ -1214,7 +1214,7 @@ az_aq_proj |>
   arrange(year, month, day, hour)
 ```
 
-The most consistently flagged hours are all from the daytime build-up of 31 May already identified by FastPCS in @sec-fastpcs, together with the morning of 22 May picked out by the KDE surprisals of @fig-proj-kde.
+The most consistently flagged hours are mostly from the daytime build-up of 31 May already identified by FastPCS in @sec-fastpcs, together with the morning of 22 May picked out by the KDE surprisals of @fig-proj-kde, and the morning of 30 May.
 The single red cell in @fig-o3plot belongs to noon on 31 May, the one hour where all five methods agree, for the combination of `so2`, `dew_point` and `temperature`, flagged in `r out_table$n_flagged[out_table$red]` of the `r o3$nw * 5` combination/method pairs checked.
 The hour flagged most often overall is an hour earlier, 11am on 31 May, flagged in `r out_table$n_flagged[1]` of the pairs checked --- more than half of them --- even though no single combination of variables gets all five methods to agree on it.
 

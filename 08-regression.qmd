@@ -13,7 +13,7 @@ That is, we are interested in finding observations whose responses are anomalous
 For example, we might want to find wines that are unusually expensive given their points score, or find houses that are unusually cheap given their size and location.
 We can use regression methods to identify such anomalies.
 
-We will denote the response by $y_i$ and its predictor vector as $\bm{x}_i$.
+We will denote the response by $y_i$ and its predictor vector by $\bm{x}_i$.
 
 ## Linear regression {#sec-ols}
 
@@ -146,7 +146,7 @@ $$
 $$
 where $e_{(1)}^2 \le e_{(2)}^2 \le \cdots \le e_{(n)}^2$ are the squared residuals in increasing order, and $h = \lfloor n/2 \rfloor + \lfloor (p + 1)/2 \rfloor$.
 Observations with squared residuals beyond the $h$th smallest are effectively discarded.^[The OLS estimate given in @eq-ols is equivalent to setting $h = n$.]
-This choice of $h$ gives a "breakdown point" of approximately 50%, meaning the estimated $\bm{\beta}$ remains consistent even when nearly half the observations are anomalous.
+This choice of $h$ gives a "breakdown point" of approximately 50%, meaning the estimated $\bm{\beta}$ cannot be pulled arbitrarily far from its true value even when nearly half the observations are anomalous.
 Residuals from the LTS fit can then be used to identify anomalies, since the fit is not drawn toward them.
 
 In R, `robustbase::ltsReg()` fits the LTS model using an efficient numerical algorithm [@robustbase].
@@ -179,11 +179,11 @@ However, if there are anomalies, they can distort the estimated model, making an
 
 ### LOO residuals
 
-The leave-one-out residual for the $i$th observation is defined as the difference between $y_i$ and the predicted value obtained using a model fitted to all observations except the $i$th observation.
+The leave-one-out (LOO) residual for the $i$th observation is defined as the difference between $y_i$ and the predicted value obtained using a model fitted to all observations except the $i$th observation.
 In this context, LOO residuals are often called PRESS (prediction error sum of squares) residuals.
 At first, it appears that calculating LOO residuals involves a lot of computation --- estimating $n$ separate models.
 However, the leave-one-out residuals are easily obtained without actually having to re-estimate the model many times.
-It can be shown [@Montgomery2012, Appendix C.7] that the leave-one-out (LOO) residuals are given by
+It can be shown [@Montgomery2012, Appendix C.7] that the LOO residuals are given by
 $$
   e_{-i} = e_{i}/(1 - h_{i}),
 $$
@@ -207,7 +207,7 @@ $$
 $$
 where $\hat\sigma^2$ is given by @eq-residual-variance.
 
-These are computed by `broom::augment()` and are returned in the column `.sigma`.
+The corresponding standard deviations $\hat\sigma_{-i}$ are computed by `broom::augment()` and are returned in the column `.sigma`.
 Thus, the standardised LOO residuals (also known as "externally studentised residuals") are given by
 $$
   r_{-i} = \frac{e_i}{\hat\sigma_{-i} \sqrt{1 - h_i}}.
@@ -227,7 +227,7 @@ $$
   D_i = \frac{r_i^2h_i}{p(1 - h_i)},
 $$ {#eq-cooks-distance}
 where $r_i$ is the standardised residual and $h_i$ is the leverage.
-From @eq-cooks-distance, an observation has a large Cook's distance if it has a large residual (anomalous response given its predictors), or high leverage (extreme position in predictor space), or both.
+From @eq-cooks-distance, an observation has a large Cook's distance when it combines a large residual (anomalous response given its predictors) with high leverage (extreme position in predictor space); a large value of one is not enough if the other is close to zero.
 Cook's distance therefore measures *influence* on the model rather than response anomaly alone.
 
 The `broom::augment()` function returns Cook's distances in the `.cooksd` column.
@@ -247,7 +247,7 @@ wine_aug <- wine_aug |>
 wine_aug
 ```
 
-In this example, the standardised residuals and the standardised LOO residuals are very similar, as none of the leverage values were particularly large.
+In this example, the standardised residuals and the standardised LOO residuals are very similar, as the sample size is large, so leaving out one observation has little effect on the estimated residual standard deviation.
 
 The standardised LOO residuals from this model are shown in @fig-shiraz-residuals.
 
@@ -326,7 +326,7 @@ wine_aug |>
   scale_colour_manual(values = c("#0072B2", "#D55E00", "#AAAAAA"))
 ```
 
-The LOO surprisals obtained from this model are shown in @fig-shiraz-regression-scores, using the same colours as @fig-shiraz-regression-density to indicate whether the observation is below, within, or above, the 95% prediction interval.
+The LOO surprisals obtained from this model are shown in @fig-shiraz-regression-scores, using the same colours as @fig-shiraz-regression-density to indicate whether the observation is below, within, or above the 95% prediction interval.
 
 ```{r}
 #| label: fig-shiraz-regression-scores
@@ -410,7 +410,7 @@ This corresponds to the only orange point in @fig-shiraz-regression-density that
 
 ### Surprisal probabilities
 
-We will compute the surprisal probabilities using the rank approximation.
+We will compute the surprisal probabilities using the rank approximation (@sec-approximate-surprisal-prob).
 
 ```{r}
 #| label: shiraz-surprisal-prob-manual
@@ -470,7 +470,7 @@ if (NROW(shiraz_surprise) != 8L) {
 
 This shows the value of computing surprisal probabilities on the conditional distribution.
 The eight observations are not simply those with the highest prices, but those whose price is anomalous given their points values.
-There are three wines with prices above $300 that are not identified as anomalous, because they have corresponding high points values.
+There are three wines with prices above \$300 that are not identified as anomalous, because they have corresponding high points values.
 
 ## GAM surprisals {#sec-gam-surprisals}
 
@@ -496,7 +496,7 @@ df_no <- cricket_batting |>
 p <- sum(df_no$NotOuts) / sum(df_no$Innings)
 ```
 
-Consider the number of "not outs" for each male batter in the `cricket_batting` data set who has been dismissed at least once.
+Consider the number of "not outs" for each male batter in the `cricket_batting` data set who has batted at least once.
 A "not out" occurs when a batter has not been dismissed at the end of the team's innings.
 This can occur when the other ten batters have been dismissed (as the last batter cannot continue alone), or when the innings ends for some other reason (e.g., the captain declares the innings ended, or the team reaches its target and wins).
 
@@ -546,7 +546,7 @@ df_no |>
 ```
 
 The unusual horizontal patterns in the grey points are due to the discrete nature of the data --- batters who have played only two innings must have a not-out proportion of either 0, 1/2, or 1, while those who have played only three innings must have a not-out proportion of either 0, 1/3, 2/3, or 1, and so on.
-As the number of innings played goes up, more possible not-out proportions are possible.
+As the number of innings played goes up, more not-out proportions become possible.
 
 We also expect that the pattern of not outs has changed over time.
 Test cricket has been played for almost 150 years, and the style of play and the nature of playing conditions have changed considerably over that time.
@@ -595,8 +595,8 @@ This is likely due to the introduction of limited overs cricket in the 1970s, wh
 
 Now we can use the fitted model to compute the surprisals from the Binomial distribution, and find the most anomalous batters.
 Unfortunately, there is not a convenient way to compute LOO surprisals for GAM models, so we will only consider regular surprisals in this example.
-While the Binomial distribution is probably a good first approximation, it does assume that the probability of a batter being dismissed does not change over their career, which is an unlikely assumption as it does not allow for the development of skill, the value of experience, or the effect of ageing.
-So we will use the GPD approximation to compute the surprisal probabilities, which allows for some mis-specification in the distribution of not-outs.
+While the Binomial distribution is probably a good first approximation, it does assume that the probability of a batter being dismissed does not change over their career, which is an unrealistic assumption as it does not allow for the development of skill, the value of experience, or the effect of ageing.
+So we will use the GPD approximation (@sec-approximate-surprisal-prob) to compute the surprisal probabilities, which allows for some mis-specification in the distribution of not-outs.
 
 ```{r}
 #| code-fold: false
@@ -617,7 +617,7 @@ The `.fitted` value is the expected proportion of not outs for each player under
 The largest surprisal is for South African Shaun Pollock, who had `r notouts_aug$NotOuts[1]` not outs in `r notouts_aug$Innings[1]` innings, which is much higher than the expected number of not outs of $`r notouts_aug[["Innings"]][1]` \times `r sprintf("%.3f", notouts_aug[[".fitted"]][1])` = `r sprintf("%.1f", notouts_aug[[".fitted"]][1]*notouts_aug[["Innings"]][1])`$.
 Shaun Pollock was a bowling all-rounder and a capable batter in the lower order, playing a crucial role in building partnerships with the weakest batters.
 
-The next most anomalous result is for New Zealander Trent Boult, a specialist bowler who batted last, who was for a while was Test cricket's leading run-scorer in that position, showing an unusual flair for entertaining batting.
+The next most anomalous result is for New Zealander Trent Boult, a specialist bowler who batted last, who for a while was Test cricket's leading run-scorer in that position, showing an unusual flair for entertaining batting.
 He had `r notouts_aug$NotOuts[2]` not outs in `r notouts_aug$Innings[2]` innings, compared to the expected number of not outs of $`r notouts_aug[["Innings"]][2]` \times `r sprintf("%.3f", notouts_aug[[".fitted"]][2])` = `r sprintf("%.1f", notouts_aug[[".fitted"]][2]*notouts_aug[["Innings"]][2])`$.
 
 Neither of these anomalies is particularly unusual in their proportion of not-outs, but they become anomalous once their RPI and year of debut are taken into account.
@@ -676,7 +676,7 @@ $$
 where $\text{t}_{r-p,\,1-\alpha/(2(r+1))}$ is the $(1 - \alpha/(2(r + 1)))$ quantile of a t-distribution with $r - p$ degrees of freedom.
 Equivalently, this is the upper $(\alpha/(2(r + 1)))$ tail quantile, as computed in R by `qt(alpha / (2 * (r + 1)), r - p, lower.tail = FALSE)`.
 
-**Step 5: Iterate** Steps 2--4 until the size of $B$ no longer changes.
+**Step 5: Iterate.** Repeat Steps 2--4 until the size of $B$ no longer changes.
 
 **Step 6: Nominate outliers.** Observations excluded from the final basic subset are nominated as regression outliers.
 
@@ -696,7 +696,7 @@ shiraz_points <- shiraz |> count(points) |> arrange(desc(n))
 
 We now apply regression BACON to the same `shiraz` data set containing wine reviews that was used in @sec-ols, with `points` as the predictor and `log(price)` as the response.
 Multivariate BACON is first applied to the predictor variable, and then the regression version of the algorithm uses scaled prediction errors.
-Because the predictor has many repeated values (taking only integer values between 80 and 100), we need to specify the initial set to be larger than the most common points score, which is `r shiraz_points$points[1]` with `r shiraz_points$n[1]` observations.
+Because the predictor has many repeated values (taking only integer values between 80 and 100), we need to specify the initial set to be larger than the number of observations with the most common points score, which is `r shiraz_points$points[1]` with `r shiraz_points$n[1]` observations.
 So we set the initial size to $s = 600$ observations to ensure the initial basic subset does not contain only observations with a single points score.
 The BACON algorithm then identifies outliers as those with large scaled prediction errors from the fitted regression line based on the final basic subset.
 This initial size $s$ is set using the `m` argument of `robustX::BACON()` below.
@@ -777,7 +777,7 @@ fit_bacon_wine <- lm(
 #| label: fig-shiraz-bacon
 #| fig-cap: >-
 #|   Regression BACON applied to Shiraz wine reviews.
-#|   Points in red are nominated regression outliers.
+#|   Points in orange are nominated regression outliers.
 #|   The dashed line is the ordinary least-squares fit using all observations, while the solid line is the least-squares fit after omitting BACON-nominated outliers.
 #| warning: false
 #| dependson: shiraz-bacon-fit

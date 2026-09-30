@@ -19,7 +19,7 @@ But for the first half of the book, we will only deal with numerical data.
 
 ## Common distributions {#sec-common}
 
-Let $Y$ denote a continuous random variable taking values in $\mathbb{R}$ (the real numbers), with its cumulative probability distribution (cdf) given by
+Let $Y$ denote a continuous random variable taking values in $\mathbb{R}$ (the real numbers), with its cumulative distribution function (cdf) given by
 $$
   F(y) = \Pr(Y \le y).
 $$ {#eq-cdf}
@@ -266,17 +266,17 @@ There are several variations of the theorem; the simplest version states that th
 
 If $Y_1,\dots,Y_n$ are iid random variables with mean $\mu$ and variance $\sigma^2 < \infty$, then
 $$
-  \frac{\sum_{i=1}^n Y_i - n\mu}{\sigma\sqrt{n}} \longrightarrow \text{N}(0,1).
+  \frac{\sum_{i=1}^n Y_i - n\mu}{\sigma\sqrt{n}} \longrightarrow \text{N}(0,1),
 $$
-where $\longrightarrow$ denotes convergence in distribution.
+where $\longrightarrow$ denotes convergence in distribution as $n \rightarrow \infty$.
 :::
 
 This is a remarkable result as it does not require any assumptions about the underlying distribution of the random variables $Y_1,\dots,Y_n$, other than that they have finite mean and variance.
 It is also a useful result, as it allows us to use the Normal distribution to approximate the distribution of many statistics.
 
-For example, the sample mean (or average), is simply the sum of the observations divided by the sample size.
-So by the CLT, for a large sample size, the sample mean will have a Normal distribution.
-That is, if the observations come from *any* distribution with finite mean $\mu$ and variance $\sigma^2$, then the sample mean will have distribution $\text{N}(\mu, \sigma^2/n)$ when $n$ is large.
+For example, the sample mean (or average) is simply the sum of the observations divided by the sample size.
+So by the CLT, for a large sample size, the sample mean will have an approximately Normal distribution.
+That is, if the observations come from *any* distribution with finite mean $\mu$ and variance $\sigma^2$, then the sample mean will have approximately a $\text{N}(\mu, \sigma^2/n)$ distribution when $n$ is large.
 
 Variations on the theorem allow the variables $Y_1,\dots,Y_n$ to be independent but not necessarily identically distributed, or to be weakly dependent.
 
@@ -296,7 +296,7 @@ $$
   d_i = y_{(i+1)} - y_{(i)}, \quad i = 1, \ldots, n - 1.
 $$ {#eq-spacing}
 
-If the sample is iid from a uniform distribution, then for large $n$ the spacings are approximately iid exponential random variables with mean $1/(n + 1)$, i.e., $\text{Exp}(n + 1)$.
+If the sample is iid from a U(0,1) distribution, then for large $n$ the spacings are approximately iid exponential random variables with mean $1/(n + 1)$, i.e., $\text{Exp}(n + 1)$.
 A spacing substantially larger than $1/(n + 1)$ therefore signals an unusually large gap at that location, which may indicate an anomalous observation.
 
 For other non-uniform distributions, raw spacings are difficult to compare across the distribution: where the density is high they tend to be small, and where the density is low they tend to be large.
@@ -309,6 +309,7 @@ Methods based on this idea are discussed in @sec-gap-tests.
 
 A quantile of a continuous univariate distribution is a point that divides the sample space into two regions, based on the probability of observations falling below or above the quantile value.
 If $Q(p)$ denotes the quantile corresponding to probability $p$, then $\Pr(Y \le Q(p)) = p$ and $\Pr(Y > Q(p)) = 1 - p$.
+An example is shown in @fig-quantile.
 
 ```{r}
 #| label: fig-quantile
@@ -470,7 +471,7 @@ Consequently, we will always use `type = 8` when computing sample quantiles in t
 
 ### Example: Test cricket batting averages {-}
 
-We can calculate some of the sample quantiles for Test cricket batting averages, considering only those batters who have played at least 20 innings.
+We can calculate some of the sample quantiles for Test cricket batting averages, considering only those batters who have played more than 20 innings.
 These values are easily computed using the `quantile()` function with argument `type = 8`.
 
 ```{r}
@@ -488,7 +489,7 @@ cricket_batting |>
 #| fig-asp: 0.2
 #| warning: false
 #| message: false
-#| fig-cap: "Some sample quantiles of career batting averages for all men and women to have played test cricket and batted more than 20 times."
+#| fig-cap: "Some sample quantiles of career batting averages for all men and women to have played Test cricket and batted more than 20 times."
 
 batave <- cricket_batting |>
   filter(Innings > 20)
@@ -515,6 +516,7 @@ batave |>
   labs(y = "", x = "Career batting average")
 ```
 
+These sample quantiles are shown in @fig-cricket-quantiles.
 Half of all batters average above `r sprintf("%.2f", quantile(batave$Average, prob=0.5, type=8))`, while only 1 in 100 batters have an average above `r sprintf("%.2f", quantile(batave$Average, prob=0.99, type=8))`.
 
 ### Sample quantile distribution
@@ -524,11 +526,11 @@ $$
   \hat{Q}(p) \approx \text{N}\left( Q(p), \frac{p(1 - p)}{n f^2(Q(p))} \right)
 $$ {#eq-sample-quantile-distribution}
 where $f(Q(p)) > 0$ and $f(y)$ is the density of the underlying distribution [@van2000asymptotic, p. 308].
-This is an asymptotic result, which assumes $np$ is large, and holds for all types of sample quantiles.
+This is an asymptotic result, which assumes both $np$ and $n(1 - p)$ are large, and holds for all types of sample quantiles.
 
 ## Highest density regions {#sec-hdr}
 
-A **highest density region** is defined as the region of the sample space where the density is higher than a given threshold [@HDR96].
+A **highest density region** (HDR) is defined as the region of the sample space where the density is higher than a given threshold [@HDR96].
 It is commonly specified using the probability mass that the HDR contains.
 For example, a 95% HDR is the region of the sample space that contains 95% of the probability mass, and where every point inside the region has higher density than any point outside the region.
 
@@ -540,7 +542,7 @@ where $\Pr(Y \in R_\alpha) = 1 - \alpha$.
 
 A useful property of the HDR is that it is the smallest region containing $1 - \alpha$ of the probability mass.
 
-For a symmetric unimodal distribution such as the Normal or t distributions, the HDR is an interval centred on the mean (which is equal to the median), with the ends given by the $\alpha/2$ and $1 - \alpha/2$ quantiles.
+For a symmetric unimodal distribution such as the Normal or t distributions, the HDR is an interval centred on the median (which is equal to the mean when the mean exists), with the ends given by the $\alpha/2$ and $1 - \alpha/2$ quantiles.
 For a skewed unimodal distribution such as the $\chi^2$ or Gamma distributions, the HDR is also an interval, but it is not centred on the mean (or median), and the ends are not given by symmetric quantiles.
 An example is shown in @fig-hdr, with two 90% regions for a $\chi^2_5$ distribution.
 The one shown in blue is based on the 0.05 and 0.95 quantiles, while the orange region is the 90% HDR.
@@ -665,12 +667,12 @@ Another commonly used robust estimator of spread is the median absolute deviatio
 $$
   \text{MAD} = \text{median}(|y_i - \text{median}(y)|).
 $$ {#eq-mad}
-If our data come from a Normal distribution, then the standard deviation is given by $s = 0.7413 \times \text{IQR} = 1.4826 \times \text{MAD}$.
+If our data come from a Normal distribution, then the standard deviation can be estimated by $0.7413 \times \text{IQR}$ or by $1.4826 \times \text{MAD}$.
 
 A third robust estimator of the spread is the $Q_n$ estimator [@Rousseeuw1993-tq], based on pairwise differences between observations.
 Let $\Delta_{ij} = |y_i - y_j|$ denote the absolute difference between the $i$th and $j$th observations, for $1 \le i < j \le n$.
 There are $n(n - 1)/2$ such differences.
-Let $\Delta_{(k)}$ be the $k$th largest of these differences, where $k = {\lfloor n/2\rfloor + 1 \choose 2}$ and $\lfloor n/2\rfloor$ is the integer part of $n/2$.
+Let $\Delta_{(k)}$ be the $k$th smallest of these differences, where $k = {\lfloor n/2\rfloor + 1 \choose 2}$ and $\lfloor n/2\rfloor$ is the integer part of $n/2$.
 Thus, $\Delta_{(k)}$ is approximately equal to the first quartile of the absolute pairwise differences.
 Then
 $$
@@ -715,12 +717,12 @@ Now we will apply @eq-kde to the first ten Old Faithful eruption durations from 
 The kernel density estimate can be visualised as a sum of kernel functions centred over each observation with width determined by $h$, and height given by $K_h(0)/n$.
 
 Let's suppose $K_h$ is a Gaussian kernel and let $h = `r round(h, 1)`$ (I will explain this choice below).
-Then we get the following set of kernel functions.
+Then we get the set of kernel functions shown in @fig-kde1.
 
 ```{r}
 #| label: fig-kde1
 #| fig-asp: 0.2
-#| depends: of2021
+#| dependson: of2021
 #| echo: false
 #| fig-cap: Kernel functions centred over the observations.
 
@@ -748,12 +750,12 @@ ggplot() +
 
 The vertical ticks show the location of the ten observations, while the grey lines show $\frac{1}{n}K_h(y - y_i)$ for $i = 1,\dots,n$.
 
-These functions are then added together, as in @eq-kde, to give the density estimate.
+These functions are then added together, as in @eq-kde, to give the density estimate shown in @fig-kde2.
 
 ```{r}
 #| label: fig-kde2
 #| fig-asp: 0.5
-#| dependson: kde1
+#| dependson: fig-kde1
 #| echo: false
 #| fig-cap: Density estimate formed by summing the kernel functions centred on the observations.
 
@@ -778,7 +780,7 @@ If either was replaced with a different choice, the estimate would be different.
 For large data sets, it does not make much difference which kernel function is used.
 
 The choice of $h$ is more difficult and will change the shape of the density estimate substantially.
-Here are three versions of the density estimate with bandwidths given by $h = 5$, $h = 15$ and $h = 40$.
+@fig-kde3 shows three versions of the density estimate with bandwidths given by $h = 5$, $h = 15$ and $h = 40$.
 
 ```{r}
 #| label: fig-kde3
@@ -817,7 +819,7 @@ We will call this the "robust normal reference rule"; it is implemented in the f
 For the 10 observations in the example above, it gives $h = `r round(h, 1)`$, which is the value we used.
 
 This example using only 10 observations was purely to illustrate the method.
-Let's now estimate a kernel density estimate for the full data set.
+Let's now compute a kernel density estimate for the full data set, shown in @fig-oldfaithful4.
 We will use the `dist_kde()` function, which uses the Gaussian kernel, and by default sets the bandwidth using the robust normal reference rule (@eq-rnrr) via the `kde_bandwidth()` function.
 
 ```{r}
@@ -854,7 +856,7 @@ $$
   \text{E}\left[ (\hat{f}(y) - f(y))^2 \right] \approx \frac{1}{4}h^4[f''(y)]^2
                                                        + \frac{f(y)R(K)}{nh},
 $$ {#eq-mse}
-where $R(K) = \int K^2(u)du$ is the "roughness" of the kernel function.
+where $K = K_1$ is the kernel with $h = 1$ (so that $K_h(u) = K(u/h)/h$), and $R(K) = \int K^2(u)du$ is the "roughness" of the kernel function.
 An estimator is "consistent" if the MSE goes to zero as the sample size $n$ goes to infinity.
 So @eq-kde gives a consistent estimator of the underlying density $f$ when both terms in @eq-mse go to zero.
 That is,
@@ -888,11 +890,11 @@ So if we use a Gaussian kernel, and assume the underlying density has the same r
 $$
   h = \sigma \left( \frac{4}{3n} \right)^{1/5}.
 $$ {#eq-opth2}
-Replacing $\sigma$ by the sample standard deviation gives us the normal reference rule @eq-nrr.
-When $\sigma$ is replaced the robust estimate $Q_n$, we obtain the robust normal reference rule @eq-rnrr.
+Replacing $\sigma$ in @eq-opth2 by the sample standard deviation $s$ gives us the normal reference rule @eq-nrr.
+When $\sigma$ is replaced by the robust estimate $Q_n$, we obtain the robust normal reference rule @eq-rnrr.
 
 Several other related bandwidth selection methods are widely used.
-For example, instead of using $Q_n$ to estimate $s$, we might use the minimum of the sample standard deviation and the robust estimate based on the IQR, giving
+For example, instead of using $Q_n$ to estimate $\sigma$, we might use the minimum of the sample standard deviation and the robust estimate based on the IQR, giving
 $$
   h = 1.06 \min(s, 0.7413 \times \text{IQR}) n^{-1/5}.
 $$ {#eq-nrd}
@@ -919,10 +921,12 @@ We will defer a description of that method until @sec-mvkde.
 ### Highest kernel density regions
 
 The kernel density estimate can be used to identify regions of highest density in the data.
-We can apply the `hdr()` function to the estimated distribution to find the HDR regions with specified probability coverage.
+We can apply the `hdr()` function to the estimated distribution to find the HDRs with specified probability coverage.
 For example, we can compute the 90% HDR for the `oldfaithful` data set as follows:
 
 ```{r}
+#| label: of-hdr90
+#| dependson: fig-oldfaithful4
 #| code-fold: false
 
 hdr <- hdr(of_density, size = 90)
@@ -935,6 +939,7 @@ The resulting estimate is shown in @fig-of-hdr, along with the 10% of observatio
 
 ```{r}
 #| label: fig-of-hdr
+#| dependson: fig-oldfaithful4
 #| fig-cap: 90% highest density region for the `oldfaithful` data set.
 
 of_density |>
@@ -950,25 +955,25 @@ of_density |>
 
 ## Extreme value theory {#sec-evt}
 
-Extreme Value Theory is used to model rare, extreme events and is useful in anomaly detection.
+Extreme Value Theory (EVT) is used to model rare, extreme events and is useful in anomaly detection.
 Suppose we have $n$ independent and identically distributed random variables $Y_1, \dots, Y_n$ with a cdf $F(y) = \Pr(Y \le y)$.
 Then the maximum of these $n$ random variables is $M_n = \max \{Y_1, \dots, Y_n\}$.
 If $F$ is known, the cdf of $M_n$ is given by $\Pr(M_n \le z) = \Pr(Y_1 \le z, \dots, Y_n \le z) = \left( F(z) \right)^n$.
 However, $F$ is often not known in practice.
-This gap is filled by Extreme Value Theory, which studies approximate families of models for $F^n$ so that extremes can be modeled and their uncertainty quantified.
+This gap is filled by Extreme Value Theory, which studies approximate families of models for $F^n$ so that extremes can be modelled and their uncertainty quantified.
 
-It is well known, due to the [central limit theorem](02-tools.html#sec-clt), that the average of a set of iid random variables will converge to the Normal distribution if the mean and variance both exist and are finite.
-The Fisher-Tippett-Gnedenko (FTG) Theorem provides an analogous result for the maximum.
+It is well known, due to the central limit theorem (@sec-clt), that the suitably standardised average of a set of iid random variables will converge to the Normal distribution if the mean and variance both exist and are finite.
+The Fisher--Tippett--Gnedenko (FTG) theorem provides an analogous result for the maximum.
 It was developed in a series of papers by @Frechet1927, @Fisher1928, and @Gnedenko1943.
 Independently, @Mises1936 proposed a similar result.
-The FTG Theorem states that if the maximum can be scaled so that it converges, then the scaled maximum will converge to either a Gumbel, Fréchet or Weibull distribution [@coles2001introduction, p. 46]; no other limits are possible.
+The FTG theorem states that if the maximum can be scaled so that it converges, then the scaled maximum will converge to either a Gumbel, Fréchet or Weibull distribution [@coles2001introduction, p. 46]; no other limits are possible.
 
 ::: {.callout-tip}
-## Fisher-Tippett-Gnedenko Theorem {-}
+## Fisher--Tippett--Gnedenko Theorem {-}
 
-If there exist sequences $\{a_n\}$ and $\{b_n\}$ such that
+If there exist sequences of constants $\{a_n > 0\}$ and $\{b_n\}$ such that
 $$
-  \Pr\left\{ \frac{(M_n - a_n)}{b_n} \le z \right\} \rightarrow G(z) \quad \text{as} \quad n
+  \Pr\left\{ \frac{(M_n - b_n)}{a_n} \le z \right\} \rightarrow G(z) \quad \text{as} \quad n
                                                     \to \infty,
 $$
 where $G$ is a non-degenerate cumulative distribution function, then $G$ belongs to one of the following families:
@@ -990,7 +995,7 @@ The three types of limits correspond to different forms of the tail behaviour of
 - When $F$ has a finite upper bound, such as with a uniform distribution, then $G$ is a Weibull distribution.
 - When $F$ has light tails (exponentially decaying or faster), such as with a Normal distribution or a Gamma distribution, then $G$ is a Gumbel distribution.
 - When $F$ has heavy tails (such as polynomial decay), then $G$ is a Fréchet distribution.
-  One example is when $F$ itself is a Fréchet distribution, for example.
+  One example is when $F$ itself is a Fréchet distribution.
 
 We refer to $F$ as being in the "domain of attraction" of the corresponding limit distribution.
 For example, the Normal distribution is in the domain of attraction of the Gumbel distribution.
@@ -1004,7 +1009,7 @@ $$
 $$ {#eq-EVT4}
 where the domain of the function is $\{z: 1 + \xi (z - \mu_G)/\sigma_G > 0 \}$.
 The location parameter is $\mu_G \in \mathbb{R}$, $\sigma_G > 0$ is the scale parameter, while $\xi \in \mathbb{R}$ is the shape parameter.
-When $\xi = 0$ we obtain a Gumbel distribution with exponentially decaying tails.
+When $\xi = 0$ (interpreted as the limit as $\xi \rightarrow 0$) we obtain a Gumbel distribution with exponentially decaying tails.
 When $\xi < 0$ we get a Weibull distribution with a finite upper end, and when $\xi > 0$ we get a Fréchet family of distributions with heavy tails including polynomial tails.
 
 To illustrate, suppose $F$ is a standard Normal distribution N(0,1) and we have $n = 1000$ observations, $Y_1,\dots,Y_n$.
@@ -1018,17 +1023,17 @@ $$
 $$ {#eq-maxn01}
 
 According to the FTG theorem, the distribution of the maximum can be approximated by a Gumbel distribution.
-We can find the parameters of the Gumbel distribution by estimating them from simulated maximums.
-We simulate 2000 maximums (each from 1000 N(0,1) draws), and fit a Gumbel distribution to the resulting data.
-The resulting Gumbel distribution is shown in @fig-evdexample (in orange), along with the true distribution of the maximum given by @eq-maxn01 (in blue).
-The approximation is so good, that it is hard to distinguish the two distributions.
+We can estimate the parameters of the limiting distribution from simulated maximums, by fitting a GEV distribution (@eq-EVT4), which includes the Gumbel distribution as a special case.
+We simulate 2000 maximums (each from 1000 N(0,1) draws), and fit a GEV distribution to the resulting data.
+The resulting GEV distribution is shown in @fig-evdexample (in orange), along with the true distribution of the maximum given by @eq-maxn01 (in blue).
+The approximation is so good that it is hard to distinguish the two distributions.
 
 ```{r}
 #| label: fig-evdexample
 #| fig-cap: >-
 #|   Distribution of the maximum of 1000 N(0,1) draws.
 #|   Here we have simulated 2000 such maximums and shown the estimated GEV distribution (in orange), along with the true distribution (in blue).
-#|   The approximation is so good, that it is hard to distinguish the two distributions.
+#|   The approximation is so good that it is hard to distinguish the two distributions.
 
 n <- 1000
 maximums <- replicate(2000, max(rnorm(n)))
@@ -1058,7 +1063,7 @@ $$
   H(y) = \Pr\left\{ Y \le u + y \mid Y > u \right\}
        = \frac{F(u + y) - F(u)}{1 - F(u)}.
 $$ {#eq-POT3}
-When the distribution $F$ satisfies the FTG theorem, then [@coles2001introduction, p. 75] $H$ is well-approximated by a **Generalised Pareto Distribution** (GPD) defined by
+When $F$ is in the domain of attraction of a GEV distribution, then for large $u$, $H$ is well approximated by a **Generalised Pareto Distribution** (GPD) [@coles2001introduction, p. 75] defined by
 $$
   H(y) \approx 1 - \Big( 1 + \frac{\xi y}{\sigma_u} \Big)^{-1/\xi} ,
 $$ {#eq-POT}
@@ -1068,12 +1073,12 @@ In particular, the shape parameter $\xi$ is the same in both distributions.
 
 Continuing the previous example, we now look at the probability distribution of exceedances above 3 from a N(0,1) distribution.
 We simulate 100,000 N(0,1) values and only keep those above 3.
-Then two GPD estimates are drawn.
+Then two GPD estimates are drawn in @fig-pot.
 The blue GPD uses the parameters obtained previously from the GEV estimate, while the orange GPD estimates the parameters from the exceedances.
 
 ```{r}
 #| label: fig-pot
-#| dependson: evdexample
+#| dependson: fig-evdexample
 #| fig-cap: >-
 #|   Conditional distribution of exceedances above 3 from N(0,1) draws.
 #|   Here we have simulated 100,000 values and only kept those above 3.
@@ -1106,5 +1111,5 @@ The GEV (blue) estimate is better because it is based on more information (2000 
 Another important result from EVT is Weissman's spacing theorem [@Weissman1978], which states that the spacings between the largest observations often behave asymptotically like independent exponential random variables.
 
 Specifically, let $D_k = Y_{(k+1)} - Y_{(k)}$ denote the spacing between successive order statistics.
-If $F$ is in the domain of attraction of the Gumbel distribution, then, for fixed $r$, the upper spacings $D_{n-1}, D_{n-2}, \dots, D_{n-r}$ are asymptotically independent and approximately exponentially distributed, with $D_{k}$ having mean $b_n/(n - k)$.
-(Here $b_n$ is the same scaling constant that was used in the FTG theorem.)
+If $F$ is in the domain of attraction of the Gumbel distribution, then, for fixed $r$, the upper spacings $D_{n-1}, D_{n-2}, \dots, D_{n-r}$ are asymptotically independent and approximately exponentially distributed, with $D_{k}$ having mean $a_n/(n - k)$.
+(Here $a_n$ is the same scaling constant that was used in the FTG theorem.)

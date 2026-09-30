@@ -46,6 +46,7 @@ dongsi |>
 ```{r}
 #| label: hottest-day
 #| include: false
+#| dependson: fig-dongsi
 
 hottest_day <- which.max(dongsi$max_temp)
 coldest_day <- which.min(dongsi$max_temp)
@@ -77,6 +78,7 @@ Because the distances are symmetric, only the lower triangle of the matrix is co
 ```{r}
 #| label: dist-example
 #| code-fold: false
+#| dependson: fig-dongsi
 
 head(dongsi, 5)
 head(dongsi, 5) |>
@@ -92,7 +94,7 @@ For example, in the Dongsi air quality data, ozone levels range from 0 to over 5
 So the distance between two observations will be dominated by the difference in ozone levels, and the difference in temperatures will have a smaller influence on the distance.
 Consequently, it is often preferable to scale the variables before computing distances, as discussed in @sec-scaling.
 
-We define the scaled observations as the robust multivariate z-scores, given by
+We define the scaled observations as the robust multivariate $z$-scores, given by
 $$
   \bm{z}_i = \bm{U}(\bm{y}_i - \bm{m}),
 $$
@@ -103,7 +105,7 @@ $$
   = \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{U}^\intercal\bm{U} (\bm{y}_i - \bm{y}_j)}
                           = \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{S}_{\text{MCD}}^{-1} (\bm{y}_i - \bm{y}_j)}.
 $$
-This combination of first scaling using a covariance matrix (or its estimate) and then computing a Euclidean distance, is known as the **Mahalanobis distance**, named after the Indian statistician Prasanta Chandra Mahalanobis.
+This combination of first scaling using a covariance matrix (or its estimate) and then computing a Euclidean distance is known as the **Mahalanobis distance**, named after the Indian statistician Prasanta Chandra Mahalanobis.
 It is a multivariate generalisation of the number of standard deviations separating two observations, and accounts for both the different scales of the variables and the correlations between them.
 
 We compute the scaled Dongsi air quality data using `mvscale()`, and then the Euclidean distances using `dist()` in order to obtain the Mahalanobis distances between the original observations.
@@ -112,6 +114,7 @@ The first five rows of the scaled data are shown, and the resulting distance mat
 ```{r}
 #| label: zscores
 #| code-fold: false
+#| dependson: fig-dongsi
 
 z <- dongsi |>
   select(-date) |>
@@ -132,8 +135,8 @@ $$
 That is, it is equivalent to the Euclidean distance of the scaled observation $\bm{z}_i$ from the origin.
 A large $d_i$ means the observation is far from the centre of the data and is potentially anomalous.
 
-If the data were multivariate Normal, then we would expect the squared $d_i$ distances to follow a chi-squared distribution with $m$ degrees of freedom, where $m$ is the number of variables.
-This provides a natural threshold for flagging anomalies: we can flag $\bm{y}_i$ as an anomaly if $d_i > \sqrt{\chi^2_{m,1-\alpha}}$, where $\chi^2_{m,1-\alpha}$ is the $(1 - \alpha)$-quantile of the chi-squared distribution with $m$ degrees of freedom.
+If the data were multivariate Normal, then we would expect the squared distances $d_i^2$ to approximately follow a chi-squared distribution with $m$ degrees of freedom, where $m$ is the number of variables.
+This provides a natural threshold for flagging anomalies: we can flag $\bm{y}_i$ as an anomaly if $d_i > \sqrt{\chi^2_{m,1-\alpha}}$, where $\chi^2_{m,1-\alpha}$ is the $(1 - \alpha)$ quantile of the chi-squared distribution with $m$ degrees of freedom.
 
 We apply this to the Dongsi air quality data, using the scaled data `z` already computed in @sec-distances, and setting $\alpha = 0.001$ (so only 1 in 1000 non-anomalous observations would be expected to exceed the threshold).
 
@@ -202,9 +205,9 @@ $$
 **Step 3: Expand the basic subset**.
 Update $B$ by admitting every observation with
 $$
-  d_i(\bar{\bm{y}}_B, \bm{S}_B) < c_{nmr}\sqrt{\chi^2_{m,1-\alpha}},
+  d_i(\bar{\bm{y}}_B, \bm{S}_B) < c_{nmr}\sqrt{\chi^2_{m,1-\alpha/n}},
 $$
-where $\chi^2_{m,1-\alpha}$ is the $(1 - \alpha)$-quantile of the chi-squared distribution with $m$ degrees of freedom, and $c_{nmr} = c_{nm} + c_{hr}$ is a correction factor, where
+where $\chi^2_{m,1-\alpha/n}$ is the $(1 - \alpha/n)$ quantile of the chi-squared distribution with $m$ degrees of freedom (dividing $\alpha$ by $n$ is a Bonferroni-type adjustment for testing all $n$ observations; `BACON()` uses $\alpha = 0.05$ by default), and $c_{nmr} = c_{nm} + c_{hr}$ is a correction factor, where
 \begin{align*}
   c_{nm} & = 1 + \frac{m + 1}{n - m} + \frac{2}{n - 1 - 3m} \\
   c_{hr} & = \max\{0, (h - r)/(h + r)\},
@@ -212,7 +215,7 @@ where $\chi^2_{m,1-\alpha}$ is the $(1 - \alpha)$-quantile of the chi-squared di
 $h = \lfloor(n + m + 1)/2\rfloor$, and $r$ is the number of observations in the current basic subset $B$.
 The correction factor $c_{nmr}$ inflates the threshold when the current basic subset of size $r$ is small relative to the target size $h$.
 This is because a small basic subset selected for being close to the data centre will have artificially compressed spread, so the Mahalanobis distances computed from it need to be inflated to something closer to what they would be from a full clean sample.
-As $r$ grows toward $h$, $c_{hr} \to 0$.
+As $r$ grows towards $h$, $c_{hr} \to 0$.
 
 **Step 4: Iterate**.
 Repeat Steps 2 and 3 until the size of $B$ no longer changes.
@@ -233,6 +236,7 @@ The default initialisation strategy is used, which selects the $s = cm = 4 \time
 ```{r}
 #| label: bacon-of
 #| code-fold: false
+#| dependson: fig-dongsi
 
 bacon <- dongsi |>
   select(-date) |>
@@ -248,6 +252,7 @@ We attach these to the data and examine the nominated outliers.
 ```{r}
 #| label: bacon-results
 #| code-fold: false
+#| dependson: bacon-of
 
 aq_bacon <- dongsi |>
   mutate(
@@ -347,6 +352,7 @@ dongsi_knn |>
 ```{r}
 #| label: knn-scores-check
 #| include: false
+#| dependson: fig-knn-scores
 
 stopifnot(sum(dongsi_knn$score > threshold) == 7)
 ```
@@ -364,7 +370,7 @@ The local outlier factor, introduced in the next section, is designed to address
 A popular way of using $k$-nearest neighbours for anomaly detection is via local outlier factors [@lof].
 This is designed to find observations that are unusual relative to their local neighbourhood, rather than anomalous relative to the global structure of the data.
 
-Suppose we write the distance between observations $\bm{y}_i$ and $\bm{y}_j$ as $\|\bm{y}_i - \bm{y}_j\|$, and let $d_{i,k}$ be the distance between observation $\bm{y}_i$ and its $k$th nearest neighbour (as defined in @sec-knn-scores).
+Suppose we write the distance between observations $\bm{y}_i$ and $\bm{y}_j$ as $\|\bm{y}_i - \bm{y}_j\|$, and let $d_{i,k}$ be the distance between observation $\bm{y}_i$ and its $k$-th nearest neighbour (as defined in @sec-knn-scores).
 
 Let $N_{i,k}$ be the set of $k$ nearest neighbours within $d_{i,k}$ of $\bm{y}_i$.
 (If there are multiple observations all exactly $d_{i,k}$ from $\bm{y}_i$, then $N_{i,k}$ may contain more than $k$ observations, but we will ignore that issue here.)
@@ -440,7 +446,7 @@ The reachability is a truncated variant of the usual Euclidean distance $\|\bm{y
 
 The average reachability of $\bm{y}_i$ *from* its nearest neighbours is given by
 $$
-  \bar{r}_{i,k} = k^{-1} \sum_{\bm{y}_j \in N_{i,k}} r_k(i,j)
+  \bar{r}_{i,k} = k^{-1} \sum_{\bm{y}_j \in N_{i,k}} r_k(i,j).
 $$
 This is not the same as the average reachability of the neighbours *from* $\bm{y}_i$ which, by definition, would be $d_{i,k}$.
 An observation will have high average reachability if it is far from its neighbours, whereas it will have low average reachability if it has many close neighbours.
@@ -458,7 +464,7 @@ A value of $\ell_{i,k}$ much greater than 1 shows that the observation has much 
 
 One problem with this definition is that $\ell_{i,k}$ can be infinite.
 If the data set contains at least $k + 1$ identical observations, then the average reachability $\bar{r}_{j,k}$ will be 0 if $\bm{y}_j$ is one of the group of identical observations.
-Consequently, $\ell_{i,k} = \infty$ if $\bm{y}_i$ is a neighbour to one of the group of identical observations.
+Consequently, $\ell_{i,k} = \infty$ if one of the group of identical observations is among the $k$ nearest neighbours of $\bm{y}_i$.
 In this book we use a slightly different definition from that used elsewhere and replace these infinite values with 1s (indicating they have similar reachability to their identical neighbours).
 
 Another problem is that it can be difficult to determine an appropriate value for $k$.
@@ -508,7 +514,7 @@ The "global--local" label reflects the fact that each observation is compared to
 
 ### Mutual reachability distances
 
-The starting point is the core distance $d_{i,k}$ introduced in @sec-knn-scores --- that is, the distance from $\bm{y}_i$ to its $k$-th nearest neighbour.
+The starting point is the distance $d_{i,k}$ introduced in @sec-knn-scores --- that is, the distance from $\bm{y}_i$ to its $k$-th nearest neighbour, known here as the **core distance**.
 The **mutual reachability distance** between observations $\bm{y}_i$ and $\bm{y}_j$ is a smoothed version of the usual distance:
 $$
   d_\text{mreach}(\bm{y}_i, \bm{y}_j)
@@ -520,7 +526,7 @@ This stabilises the hierarchy that is built next.
 
 ### The HDBSCAN hierarchy
 
-GLOSH is computed from the cluster hierarchy produced by HDBSCAN [@glosh], which can be thought of as single-linkage hierarchical clustering (@sec-clustering) applied to the mutual reachability distances, together with one extra rule: at any distance threshold $\varepsilon$, an observation $\bm{y}_i$ is treated as **noise** unless it has at least $k$ observations within distance $\varepsilon$, that is, unless $\varepsilon \ge d_{i,k}$.
+GLOSH is computed from the cluster hierarchy produced by HDBSCAN [@glosh], which can be thought of as single-linkage hierarchical clustering (@sec-clustering) applied to the mutual reachability distances, together with one extra rule: at any distance threshold $\varepsilon$, an observation $\bm{y}_i$ is treated as **noise** unless it is a **core point**, meaning that it has at least $k$ observations within distance $\varepsilon$, that is, unless $\varepsilon \ge d_{i,k}$.
 
 As distance threshold $\varepsilon$ increases from very small to very large, the picture changes as follows:
 
@@ -545,7 +551,7 @@ By construction $\varepsilon_i^{\text{min}} \le \varepsilon_i$.
 The GLOSH score is then
 $$
   g_i = 1 - \frac{\varepsilon_i^{\text{min}}}{\varepsilon_i} \in [0, 1).
-$$ {#eq-glosh}
+$$
 An observation that stays a cluster member almost all the way down to the smallest threshold reached inside its cluster has $\varepsilon_i \approx \varepsilon_i^{\text{min}}$, giving a score close to 0.
 An observation that drops out of its cluster early --- while more tightly packed sub-clusters inside $C_i$ continue to exist at much smaller thresholds --- has $\varepsilon_i^{\text{min}} \ll \varepsilon_i$, giving a score close to 1.
 
@@ -636,6 +642,7 @@ The resulting tree is shown in @fig-iso-tree.
 ```{r}
 #| label: iso-tree
 #| code-fold: false
+#| dependson: fig-dongsi
 
 library(isotree)
 # Fit one tree with low max depth
@@ -735,10 +742,10 @@ The path length for an observation is the number of splits required to isolate i
 ```{r}
 #| label: fig-iforest-tree
 #| fig-cap: >-
-#|   First four random splits from a single isolation tree fitted to the Dongsi air quality data.
+#|   The four random splits in a single isolation tree (with maximum depth 3) fitted to the Dongsi air quality data.
 #|   After the third split, one observation (at the bottom left) has been isolated, while the rest of the data are still in groups containing multiple observations.
 #| echo: false
-#| dependson: iso-tree
+#| dependson: [iso-tree, fig-iso-tree]
 
 # ---- 1. Plot bounds (pad by 4% on each side) ----
 xr <- range(dongsi$max_temp)
@@ -882,10 +889,10 @@ As no pairwise distances are computed, iForest scales naturally to large, high-d
 The **anomaly score** for observation $\bm{y}$ is then computed by averaging the path lengths across the ensemble of iTrees, and normalising by the expected path length for a sample of size $\psi$:
 $$
   s(\bm{y}, \psi) = 2^{-\bar{h}(\bm{y})/c(\psi)},
-$$ {#eq-ifscore}
+$$
 where $\bar{h}(\bm{y})$ is the average path length over all trees in the ensemble.
 The score lies in $(0, 1]$.
-Observations with $s$ closer to 1 are more likely to be anomalies; those with $s$ well below 0.5 are unlikely to be anomalies; if all scores cluster around 0.5, the data probably contains no clear anomalies.
+Observations with $s$ closer to 1 are more likely to be anomalies; those with $s$ well below 0.5 are unlikely to be anomalies; if all scores cluster around 0.5, the data probably contain no clear anomalies.
 
 ### Extended Isolation Forest
 
@@ -905,7 +912,7 @@ The main interface is `isolation.forest()`, which returns a fitted model, and `p
 The three most important parameters of `isolation.forest()` are:
 
 - `ntrees`: the number of trees $T$ (default 500).
-- `sample_size`: the subsample size $\psi$ (default uses the minimum of the full training set and 10000).
+- `sample_size`: the subsample size $\psi$ (default uses the minimum of the full training set and 10,000).
 - `ndim`: the number of columns combined at each split.
   Setting `ndim = 1` (the default) gives the original iForest with axis-parallel splits; `ndim = m` (the number of variables) gives the extended model with hyperplane splits.
 
@@ -917,6 +924,7 @@ The resulting anomaly scores are shown in @fig-iforest-of.
 ```{r}
 #| label: iforest-of
 #| code-fold: false
+#| dependson: [fig-dongsi, iso-tree]
 
 model_if <- dongsi |>
   select(max_temp, o3) |>
@@ -974,14 +982,14 @@ But sometimes many rows (observations) each have a few contaminated cell values,
 In that case, it may be possible to identify the anomalous cells instead of the anomalous rows.
 This is the idea behind the "detect deviating cells" (DDC) algorithm of @Rousseeuw2016-wm.
 
-Suppose a fraction $\varepsilon$ of cells are contaminated, and that the contaminated cells are randomly distributed across the data matrix.
-Then, on average, each row will have $\varepsilon m$ contaminated cells.
-The expected fraction of contaminated rows is $1 - (1 - \varepsilon)^m$, which is close to 1 when $m\varepsilon$ is large.
+Suppose a fraction $\delta$ of cells are contaminated, and that the contaminated cells are randomly distributed across the data matrix.
+Then, on average, each row will have $\delta m$ contaminated cells.
+The expected fraction of contaminated rows is $1 - (1 - \delta)^m$, which is close to 1 when $m\delta$ is large.
 
 Rather than treating each row as a point, the DDC algorithm treats each cell in the data matrix as a point, and detects anomalous cells.
 It does this by checking whether each cell value is consistent with what would be predicted from the other variables in the same row (observation), following these steps.
 
-1. Non-numerical columns, and discrete columns taking a few distinct values, are omitted.
+1. Non-numerical columns, and discrete columns taking only a few distinct values, are omitted.
 2. Optionally, numerical columns can be transformed to be closer to normality, for example by applying a log transformation to positive-valued columns.
 3. All numerical columns are standardised using robust location and scale estimates.
 4. Cell values that are outliers in their column are flagged.
@@ -1029,6 +1037,7 @@ The matrix has been rotated anticlockwise in the plot, so that the years are on 
 #|   DDC algorithm applied to the French male mortality data.
 #|   The standardised residuals from the DDC algorithm are plotted as a heatmap, with red indicating large positive residuals (higher than expected mortality), and blue indicating large negative residuals (lower than expected mortality).
 #| message: false
+#| dependson: ddc-mx
 
 ggplot(mx_ddc) +
   geom_tile(aes(x = Year, y = Age, fill = anomaly)) +
@@ -1039,8 +1048,8 @@ ggplot(mx_ddc) +
 
 The DDC algorithm identifies many anomalous cells in the data, particularly during years in which France was involved in war:
 
-- 1853--1856: Crimean war
-- 1870: Franco-Prussian war
+- 1853--1856: Crimean War
+- 1870: Franco-Prussian War
 - 1871: Repression of the 'Commune de Paris'
 - 1914--1918: World War I
 - 1940--1944: World War II

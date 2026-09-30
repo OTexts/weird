@@ -41,10 +41,11 @@ df[1000, ] <- tibble(V1 = 1.2, V2 = -1.8, V3 = 1.1)
 df$anomaly <- c(rep(FALSE, 998), TRUE, TRUE)
 ```
 
-First, we can do a strip plot of each variable to visualise the data from a univariate perspective.
+First, we can do a strip plot of each variable to visualise the data from a univariate perspective (@fig-demo_strip).
 
 ```{r}
 #| label: fig-demo_strip
+#| dependson: demo_data
 #| code-fold: false
 #| fig-asp: 0.3
 #| fig-cap: Strip plots of each of the three variables, with anomalies shown in orange.
@@ -63,10 +64,11 @@ The only obvious feature of these graphs is that the variance increases in succe
 This is because the variance of the sum of independent random variables is the sum of their variances.
 The two anomalies are plotted in each panel, but they are not obviously different from the other observations.
 
-Now we will plot pairwise scatterplots of the three variables, giving the bivariate perspective.
+Now we will plot pairwise scatterplots of the three variables, giving the bivariate perspective (@fig-demo-pairs).
 
 ```{r}
 #| label: fig-demo-pairs
+#| dependson: demo_data
 #| fig-cap: Pairwise scatterplots of the three variables, with anomalies shown in orange.
 #| code-fold: false
 #| warning: false
@@ -89,7 +91,7 @@ Similarly, the value of `V2` is 3.4, which is also not particularly unusual.
 But because of their positive correlation, the combination of these two values is unusual, so it shows up in the 2-dimensional scatterplot.
 The other anomaly does not look particularly unusual in any of the plots.
 
-To visualise trivariate relationships, we need to use a 3D scatterplot.
+To visualise trivariate relationships, we need to use a 3D scatterplot, as in @fig-rgl.
 It is easiest to see this if it can spin.
 Try dragging the plot around with your mouse to view it from different angles.
 See if you can find a viewpoint where the second anomaly is clearly separated from the other observations.
@@ -97,6 +99,7 @@ See if you can find a viewpoint where the second anomaly is clearly separated fr
 ::: {#fig-rgl}
 ::::: {.figure-content}
 ```{r}
+#| label: demo-rgl
 #| webgl: true
 #| code-fold: false
 #| cache: false
@@ -109,7 +112,7 @@ rgl::plot3d(
 ```
 :::::
 
-3d scatterplot of the three variables, with anomalies shown in orange.
+3D scatterplot of the three variables, with anomalies shown in orange.
 :::
 
 This second anomaly is not particularly unusual in any combination of two variables, but it is unusual in the combination of all three variables.
@@ -150,12 +153,13 @@ tibble(
 
 The proportion of points lying outside the circle in the corners of the space (shown in orange) is $`r sprintf("%.1f", 100*(1-pi/4))`$%.
 
-The equivalent plot in 3-dimensions is shown in @fig-curse3d.
+The equivalent plot in 3 dimensions is shown in @fig-curse3d.
 The unit sphere is now a ball of radius 1 sitting within a box, and $`r sprintf("%.1f", 100*(1-pi/6))`$% of points lie outside the ball.
 
 ::: {#fig-curse3d}
 ::::: {.figure-content}
 ```{r}
+#| label: curse3d-plot
 #| webgl: true
 #| cache: false
 
@@ -241,7 +245,7 @@ tibble(m = seq(20)) |>
   ylim(1, 2)
 ```
 
-The side lengths of these hypercubes increasingly approaches the maximum of 2 as the number of dimensions increases.
+The side lengths of these hypercubes approach the maximum of 2 as the number of dimensions increases.
 So the size of the neighbourhood containing 50% of the observations becomes almost as large as the whole space.
 Therefore, we cannot use methods that rely on local neighbourhoods in high dimensions, as these neighbourhoods must become so large as to no longer be "local".
 
@@ -251,7 +255,7 @@ Now we have a sense of what it means to have data in many dimensions, let's cons
 
 ### Statistical definitions
 
-Suppose $\bm{Y} = [Y_1,\dots,Y_m]^\intercal$ is a random variable taking values in $\mathbb{R}^m$, the $m$-dimensional real numbers.
+Suppose $\bm{Y} = [Y_1,\dots,Y_m]^\intercal$ is a random vector taking values in $\mathbb{R}^m$, the set of $m$-dimensional real vectors.
 Then the joint distribution of $\bm{Y}$ is defined by the joint cdf
 $$
   F(\bm{y}) = \Pr(\bm{Y} \le \bm{y}),
@@ -335,7 +339,7 @@ distributional::dist_multivariate_normal(list(mu), list(Sigma)) |>
 
 Similarly, we can obtain HDRs for a mixture distribution.
 Suppose we had two bivariate Normal distributions with means $(0,0)$ and $(3,1)$, and covariance matrices equal to $\bm{\Sigma} = \begin{bmatrix} 1   & 0.5 \\ 0.5 & 1 \end{bmatrix}$ and the identity matrix $\bm{I}_2$ respectively.
-Then the HDRs for an equal mixture of these two distributions is shown in @fig-bivariate-mixture.
+Then the HDRs for an equal mixture of these two distributions are shown in @fig-bivariate-mixture.
 
 ```{r}
 #| label: fig-bivariate-mixture
@@ -377,7 +381,7 @@ We will discuss this approach in @sec-depth.
 The sample covariance matrix is a useful measure of the spread of a multivariate distribution, given by
 $$
   \bm{S}
-  = \frac{1}{n - 1} \sum_{i=1}^n (\bm{y}_i - \bar{\bm{y}})(\bm{y}_i - \bar{\bm{y}})^\intercal,
+  = \frac{1}{n - 1} \sum_{i=1}^n (\bm{y}_i - \bar{\bm{y}})(\bm{y}_i - \bar{\bm{y}})^\intercal.
 $$ {#eq-cov}
 However, it is sensitive to anomalies, and so is not suitable for our purposes.
 
@@ -388,10 +392,10 @@ The idea is that the subset of observations with the smallest covariance determi
 Specifically,
 $$
   \bm{S}_{\text{MCD}}
-  = \frac{1}{n_\alpha} \sum_{i \in H} (\bm{y}_i - \bar{\bm{y}})(\bm{y}_i - \bar{\bm{y}})^\intercal,
+  = \frac{1}{n_\alpha} \sum_{i \in H} (\bm{y}_i - \bar{\bm{y}}_H)(\bm{y}_i - \bar{\bm{y}}_H)^\intercal,
 $$ {#eq-mcd}
-where $H$ is the subset of $n_\alpha$ observations that has the smallest covariance determinant.
-The value of $n_\alpha$ is approximately $\alpha n$, where $\alpha$ is the targetted proportion of observations to use in the subset.
+where $H$ is the subset of $n_\alpha$ observations that has the smallest covariance determinant, and $\bar{\bm{y}}_H$ is the mean of the observations in $H$.
+The value of $n_\alpha$ is approximately $\alpha n$, where $\alpha$ is the targeted proportion of observations to use in the subset.
 We will use $\alpha = 0.9$ (allowing up to 10% anomalies).
 
 The `covMcd()` function will return this covariance matrix, along with some other information, using a default value of $\alpha = 0.5$.
@@ -405,7 +409,7 @@ Some anomaly detection methods will require the data to have been scaled first, 
 One common approach is to apply univariate scaling on each variable, by subtracting its mean and dividing by its standard deviation.
 This gives $z$-scores.
 
-If our data are given by $y_1,\dots,y_n$, then their $z$ scores are given by
+If our data are given by $y_1,\dots,y_n$, then their $z$-scores are given by
 $$
   z_i = (y_i - \bar{y})/s_y
 $$
@@ -414,12 +418,12 @@ These are easily computed using the `scale()` function.
 
 However, the mean and standard deviation may be affected by anomalies, and it would be better to use an approach that was robust to anomalies.
 
-### Robust z-scores
+### Robust $z$-scores
 
-The simplest way to make the scaling robust to anomalies is to use the median instead of the mean, and to use a robust estimate of the standard deviation such as $s_{\text{Qn}}$ (@sec-robust-univariate).
-Robust z-scores computed in this way can be obtained using the `mvscale()` function with the argument `cov = NULL`.
+The simplest way to make the scaling robust to anomalies is to use the median instead of the mean, and to use a robust estimate of the standard deviation such as $Q_n$ (@sec-robust-univariate).
+Robust $z$-scores computed in this way can be obtained using the `mvscale()` function with the argument `cov = NULL`.
 
-### Multivariate z-scores
+### Multivariate $z$-scores
 
 It is sometimes useful to scale a set of multivariate data, so that the scaled variables are uncorrelated with each other, and have mean zero and unit variance.
 
@@ -427,15 +431,15 @@ Suppose each observation is a vector $\bm{y}_i$, coming from a distribution with
 Let $\bm{\Sigma}^{-1} = \bm{U}^\intercal \bm{U}$ be the Cholesky decomposition (see @sec-cholesky) of $\bm{\Sigma}^{-1}$.
 Then the data can be scaled by $\bm{U}$, giving $\bm{z}_i = \bm{U} (\bm{y}_i - \bm{\mu})$, so that the covariance matrix of the scaled data is the identity matrix.
 This can be thought of as both scaling and rotating the data, so that the variables are uncorrelated with mean zero and unit variance.
-It is the multivariate equivalent of calculating z-scores.
+It is the multivariate equivalent of calculating $z$-scores.
 They can be computed using the `mvscale()` function with the arguments `center = mean` and `cov = stats::cov`.
 
-### Robust multivariate z-scores
+### Robust multivariate $z$-scores
 
 When there may be anomalies in the data set, we can replace the mean by the pointwise median (i.e., the vector of medians for each variable), and estimate $\bm{\Sigma}$ using the robust covariance matrix $\bm{S}_{\text{MCD}}$ (@eq-mcd).
 The `mvscale()` function in the `weird` package will do this for us, by default.
 
-Let's consider the `oldfaithful` data again, where durations are much longer than waiting times.
+Let's consider the `oldfaithful` data again, where waiting times are much longer than durations.
 @fig-scaling shows the data before and after scaling.
 The scaling has rotated the data a little, and the variables are now less correlated, and centred on zero.
 The right plot still appears to show some positive relationship between the variables, because the covariance matrix used for scaling was computed robustly, and so was largely based on the upper cluster of points.
@@ -509,7 +513,7 @@ The leader algorithm can also be useful for anomaly detection, because isolated 
 However, this should not be interpreted as full robustness: an early anomaly can become a leader, and the resulting clusters depend on the ordering of the observations.
 
 To compare K-means and the leader algorithm, we will apply them to the Old Faithful data set in @fig-clustering-off.
-First, the data are scaled (@sec-scaling) to prevent the duration variable from dominating the clustering.
+First, the data are scaled (@sec-scaling) to prevent the waiting time variable from dominating the clustering.
 Then K-means clustering is applied with $K = 2$, and the leader algorithm is applied with $\delta = 3.3$ (chosen after some experimentation).
 
 ```{r}
@@ -580,6 +584,7 @@ The DBSCAN algorithm is implemented in the `dbscan()` function in the `dbscan` p
 
 ```{r}
 #| label: fig-clustering-dbscan
+#| dependson: fig-clustering-off
 #| fig-cap: "DBSCAN clustering of the Old Faithful data set using robustly scaled variables, with noise observations shown in black."
 
 dbscan_clusters <- dbscan::dbscan(of_scaled, eps = 0.61, minPts = 20)
@@ -744,6 +749,7 @@ The single-linkage dendrogram for the point cloud in @fig-graph is shown in @fig
 ```{r}
 #| label: fig-dendrogram
 #| echo: false
+#| dependson: fig-graph
 #| fig-asp: 0.5
 #| fig-cap: >-
 #|   Dendrogram of the point cloud in @fig-graph.
@@ -781,7 +787,7 @@ So we get $n - 1$ merge distances.
 #| fig-asp: 0.2
 #| out-width: "100%"
 #| warning: false
-#| dependson: fig-graph
+#| dependson: [fig-graph, fig-dendrogram]
 
 data.frame(
   row = seq_along(hc$height),
@@ -816,12 +822,12 @@ For a general introduction to TDA, see @carlsson2021topological.
 Suppose our observations are $m$-dimensional vectors, $\bm{y}_1,\dots,\bm{y}_n$.
 Then the multivariate version of @eq-kde is given by [@Scott2015]
 $$
-  \hat{f}(\bm{y}) = \frac{1}{n} \sum_{i=1}^n K_H(\bm{y} - \bm{y}_i),
+  \hat{f}(\bm{y}) = \frac{1}{n} \sum_{i=1}^n K_{\bm{H}}(\bm{y} - \bm{y}_i),
 $$ {#eq-mkde}
-where $K_H$ is a multivariate probability density with covariance matrix $\bm{H}$.
+where $K_{\bm{H}}$ is a multivariate probability density with covariance matrix $\bm{H}$.
 In this book, we will use a multivariate Gaussian kernel given by
 $$
-  K_H(\bm{u})
+  K_{\bm{H}}(\bm{u})
   = (2\pi)^{-m/2} |\bm{H}|^{-1/2} \exp \{-\textstyle\frac12 \bm{u}^\intercal\bm{H}^{-1}\bm{u} \}.
 $$
 
@@ -840,7 +846,7 @@ H <- kde_bandwidth(of2021[, 1:2])
 ```
 
 To illustrate the idea, consider a simple bivariate example of 10 observations: the first 10 eruption durations from 2021 that are in the `oldfaithful` data set, along with the corresponding waiting times until the following eruption.
-These are shown in the figure below along with the contours of bivariate kernels placed over each observation.
+These are shown in @fig-ofdw along with the contours of bivariate kernels placed over each observation.
 Here we have used a bivariate Gaussian kernel with bandwidth matrix given by $\bm{H} = \left[\begin{array}{rr}`r sprintf("%.f", H[1,1])` & `r sprintf("%.f", H[1,2])` \\ `r sprintf("%.f", H[2,1])` & `r sprintf("%.f", H[2,2])`\end{array}\right]$.
 
 ```{r}
@@ -870,7 +876,7 @@ ggplot() +
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 
-If we add the bivariate kernel functions as in @eq-mkde, we obtain the bivariate kernel density estimate shown below.
+If we add the bivariate kernel functions as in @eq-mkde, we obtain the bivariate kernel density estimate shown in @fig-ofbivariate1.
 The contours shown correspond to the 10%, 20%, $\dots$, 90% highest density regions (HDRs) of the density estimate.
 
 ```{r}
@@ -901,9 +907,9 @@ oldfaithful |>
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 
-Here we see that the short durations tended to be followed by a short waiting time until the next duration, while the long durations tend to be followed by a long waiting time until the next duration.
-There are several anomalous eruptions including the one with the 1 second duration, and the one where a short duration was followed by a short waiting time.
-The unusual durations between 150 and 180 seconds can be followed by either short or long durations.
+Here we see that the short durations tend to be followed by a short waiting time until the next eruption, while the long durations tend to be followed by a long waiting time until the next eruption.
+There are several anomalous eruptions including the one with the 1 second duration, and the one where a long duration was followed by a short waiting time.
+The unusual durations between 150 and 180 seconds can be followed by either short or long waiting times.
 
 ### Bandwidth matrix selection
 
@@ -916,35 +922,35 @@ However, this approach leads to bandwidths that are too small, as it ignores the
 Additionally, any diagonal bandwidth matrix implicitly assumes that the variables are uncorrelated, and leads to more biased estimators.
 
 The optimal bandwidth matrix (minimising the mean integrated squared error between the true density and its estimate) is of the order $n^{-2/(m+4)}$.
-If such a bandwidth matrix is used, then the estimator converges at rate $n^{-4/(m+4)}$, implying that kernel density estimation becomes increasingly difficult as the dimension $m$ increases.
+If such a bandwidth matrix is used, then the mean integrated squared error of the estimator converges to zero at rate $n^{-4/(m+4)}$, implying that kernel density estimation becomes increasingly difficult as the dimension $m$ increases.
 This is to be expected given the curse of dimensionality (@sec-curse), as the number of observations required to obtain a good estimate increases exponentially with the dimension.
 In practice, we rarely attempt to estimate a density in more than $m = 3$ dimensions.
 
-If the underlying density is Normal with mean $\bm{\mu}$ and variance $\bm{\Sigma}$, then the optimal bandwidth matrix is given by
+If the underlying density is Normal with mean $\bm{\mu}$ and covariance matrix $\bm{\Sigma}$, then the optimal bandwidth matrix is given by
 $$
   \bm{H} = \left( \frac{4}{m + 2} \right)^{2/(m+4)} n^{-2/(m+4)} \bm{\Sigma}.
 $$ {#eq-gaussianH}
 Notice that in the univariate case, when $m = 1$, this rule gives the same bandwidth as the rule of thumb given by @eq-nrr (where $h = \sqrt{H}$).
-This is what is calculated by `kde_bandwidth()` when `method = "normal"`, where $\bm{\Sigma}$ is estimated using the sample covariance matrix @eq-cov.
+This is what is calculated by `kde_bandwidth()` when `method = "normal"`, where $\bm{\Sigma}$ is estimated using the sample covariance matrix (@eq-cov).
 
-Replacing $\bm{\Sigma}$ by the robust covariance matrix $\bm{S}_{\text{MCD}}$ (@eq-mcd), we obtain a robust normal reference rule, calculated by `kde_bandwidth()` when `method = "robust"` (the default setting).
+Replacing $\bm{\Sigma}$ in @eq-gaussianH by the robust covariance matrix $\bm{S}_{\text{MCD}}$ (@eq-mcd), we obtain a robust normal reference rule, calculated by `kde_bandwidth()` when `method = "robust"` (the default setting).
 @fig-ofbivariate2 shows a bivariate kernel density estimate computed using this approach.
 
-A generalisation of the univariate plug-in bandwidth [@sec-kde] is the "plug-in" estimator of @chacon2018multivariate, calculated by `kde_bandwidth()` when `method = "plugin"`.
+A generalisation of the univariate plug-in bandwidth (@sec-kde) is the "plug-in" estimator of @chacon2018multivariate, calculated by `kde_bandwidth()` when `method = "plugin"`.
 While this typically leads to better estimates of the density as a whole, it can lead to worse estimates in the tails of the distribution where anomalies tend to lie.
 
 An alternative approach to finding the bandwidth matrix uses ideas from clustering (@sec-clustering).
-First, we compute robust multivariate z-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \bm{m})$, $i = 1,\dots,n$, where $\bm{m}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}$ is the Cholesky decomposition of $\bm{S}_{\text{MCD}}^{-1}$.
-Then we find the merge distances of the clusters obtained from the z-scores: $\{d_1,\dots,d_{n-1}\}$.
+First, we compute robust multivariate $z$-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \bm{m})$, $i = 1,\dots,n$, where $\bm{m}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}$ is the Cholesky decomposition of $\bm{S}_{\text{MCD}}^{-1}$.
+Then we find the merge distances of the clusters obtained from the $z$-scores: $\{d_1,\dots,d_{n-1}\}$.
 Finally, we can set
 $$
   \bm{H} = d_\gamma^2\bm{S}_{\text{MCD}}
 $$ {#eq-lookoutH}
 where $d_\gamma$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_{n-1}\}$ for a large value of $\gamma$.
 @lookout2 showed that this leads to a consistent density estimate, with good properties for anomaly detection, when $\gamma = 0.98$.
-We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-kdesurprisals.
+We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-loo-surprisals.
 The `kde_bandwidth()` function will return this bandwidth when `method = "lookout"`.
-For univariate data, $h = d_\gamma s_{\text{Qn}}$.
+For univariate data, $h = d_\gamma Q_n$.
 
 ```{r}
 #| label: fig-ofbivariate3
@@ -958,7 +964,7 @@ oldfaithful |>
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 
-Notice that the contours are larger and smoother than in @fig-ofbivariate2.
+Notice that the contours in @fig-ofbivariate3 are larger and smoother than in @fig-ofbivariate2.
 In general, multivariate lookout bandwidths will be larger than bandwidths chosen using normal reference rules, making them particularly suitable for anomaly detection.
 
 ### Further reading
@@ -973,10 +979,10 @@ A fundamental concept in statistics is a **conditional probability distribution*
 
 Almost all statistical modelling involves the estimation of conditional distributions.
 For example, a regression is a model for the conditional distribution of a response variable given the values of a set of predictor variables.
-In its simplest form, we assume the conditional distribution is normal, with constant variance, and mean equal to a linear function of the predictor values.
-Generalised linear models allow for non-normal conditional distributions, while generalised additive models allow for non-linear relationships between the response and the predictors.
+In its simplest form, we assume the conditional distribution is Normal, with constant variance, and mean equal to a linear function of the predictor values.
+Generalised linear models allow for non-Normal conditional distributions, while generalised additive models allow for non-linear relationships between the response and the predictors.
 
-The conditional cdf of $Y$ given $X_1,\dots,X_p$ is defined by the conditional cdf
+The conditional cdf of $Y$ given $X_1,\dots,X_p$ is defined by
 $$
   F(y \mid x_1, \dots, x_p) = \Pr(Y \le y \mid X_1 = x_1, \dots, X_p = x_p).
 $$
@@ -985,7 +991,7 @@ $$
   f(y \mid x_1, \dots, x_p) = \frac{f(y, x_1, \dots, x_p)}{f(x_1, \dots, x_p)}.
 $$
 The conditional pdf can be thought of as slices of the joint pdf, with the values of $x_1,\dots,x_p$ fixed, rescaled to ensure the conditional pdfs integrate to 1.
-For example, $f(y_1 | y_2)$ is equal to a scaled slice of the joint pdf $f(y_1,y_2)$ at $y_2$.
+For example, $f(y_1 \mid y_2)$ is equal to a scaled slice of the joint pdf $f(y_1,y_2)$ at $y_2$.
 @fig-conditional shows some examples for the distribution shown in @fig-bivariate-mixture at several values of $y_2$.
 The left plot shows the joint density, with horizontal lines indicating where conditioning (or slicing) occurs at different values of $y_2$.
 The right plot shows the resulting conditional density functions.
@@ -993,8 +999,8 @@ The right plot shows the resulting conditional density functions.
 ```{r}
 #| label: fig-conditional
 #| message: false
-#| depends: fig-bivariate-mixture
-#| fig-cap: Conditional distribution of $Y_1|Y_2$, where $(Y_1,Y_2)$ has the joint distribution plotted in @fig-bivariate-mixture.
+#| dependson: fig-bivariate-mixture
+#| fig-cap: Conditional distribution of $Y_1 \mid Y_2$, where $(Y_1,Y_2)$ has the joint distribution plotted in @fig-bivariate-mixture.
 #|   The left plot shows the joint density with the values of $y_2$ where we will condition, while the right plot shows conditional density functions at different values of $y_2$.
 
 # Conditioning points
@@ -1046,5 +1052,5 @@ patchwork::wrap_plots(plot1, plot2, nrow = 1)
 ```
 
 Another neat property of Normal distributions is that the conditional distribution of a subset of variables is also Normal.
-For example, suppose $\bm{Y} = (Y_1,Y_2,Y_3)$ is a multivariate Normal random variable.
+For example, suppose $\bm{Y} = (Y_1,Y_2,Y_3)^\intercal$ is a multivariate Normal random vector.
 Then the conditional distribution of $Y_1$ given $Y_2$ and $Y_3$ is also Normally distributed.

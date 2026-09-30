@@ -27,7 +27,7 @@ We will test the methods using six examples: two involving real data, and four i
 3. The first 18 rows of the second variable in the `n01` data, along with the values 4.0 and 4.5.
    The latter two are anomalies as they are unlikely to arise from the N(0,1) distribution.
    We save this data set as `n01b`.
-   The plot below shows the data for this example.
+   @fig-n01b shows the data for this example.
 
 ```{r}
 #| label: fig-n01b
@@ -90,7 +90,7 @@ They should identify no anomalies in the remaining examples.
 ```{r}
 #| label: check_numbers
 #| include: false
-#| depends: ["fig-n01b", "testdist-data"]
+#| dependson: ["fig-n01b", "testdist-data"]
 
 nanomalies <- tibble(
   Example = c(
@@ -120,7 +120,7 @@ nanomalies <- tibble(
 )
 ```
 
-## Z scores {#sec-zscores}
+## Z-scores {#sec-zscores}
 
 Many parametric methods are based on $z$-scores (@sec-scaling) and assume that the data come from a Normal distribution.
 Recall that if our data are given by $y_1,\dots,y_n$, then their $z$-scores are given by
@@ -132,7 +132,7 @@ where $\bar{y}$ is the mean and $s_y$ is the standard deviation of the observati
 Some books recommend that observations be identified as anomalies when the absolute value of the corresponding $z$ is above some threshold (usually 3).
 This is a bad idea for several reasons.
 
-1. If the data really do come from a Normal distribution that has been contaminated with anomalies, then the estimated mean ($\bar{y}$) and standard deviation $s_y$ will also be affected by those anomalies.
+1. If the data really do come from a Normal distribution that has been contaminated with anomalies, then the estimated mean ($\bar{y}$) and standard deviation ($s_y$) will also be affected by those anomalies.
    Any anomaly detection method should be relatively robust to the anomalies in the data.
 2. Having a fixed threshold regardless of sample size means that the probability of a spurious anomaly increases with the sample size.
 3. The assumption of normality is unlikely to be satisfied with most real data.
@@ -144,6 +144,7 @@ We now examine what happens when we apply this test to the six examples.
 ```{r}
 #| label: zscore1
 #| code-fold: false
+#| dependson: ["fig-n01b", "testdist-data"]
 
 cricket_batting |>
   filter(Innings > 20) |>
@@ -178,6 +179,7 @@ chisq4 |>
 ```{r}
 #| label: check2
 #| include: false
+#| dependson: check_numbers
 
 nanomalies <- nanomalies |>
   mutate(
@@ -217,11 +219,11 @@ stopifnot(nanomalies$Zscore == c(1, 3, 0, 1, 18, 15))
 Even if the data did come from a Normal distribution, the probability of an observation being more than 3 standard deviations from the mean is $`r round(2 * pnorm(-3),4)`$, so we would expect to see approximately 1 in every $1 / `r round(2 * pnorm(-3),4)` = `r round(.5/pnorm(-3))`$ regular observations being identified as an anomaly using this approach.
 
 In fact, we can be more accurate than this.
-If our $n$ observations come from a Normal distribution, then the z-scores follow (approximately) a $\text{t}_{n-1}$ distribution.
+If our $n$ observations come from a Normal distribution, then the $z$-scores follow (approximately) a $\text{t}_{n-1}$ distribution.
 (The approximation arises because we replace the mean and standard deviation by their sample estimates.)
 When we identify anomalies as those points with $|z| > c$, then the probability of finding at least one spurious anomaly is the probability of the maximum being above $c$ or the minimum being below $-c$.
 Since the distribution is symmetric, these probabilities are the same.
-Let $M_n$ be the maximum of $n$ z-scores computed from the data; then $\Pr(M_n \le c) = (F_{t}(c; n - 1))^n$ where $F_{t}(y; n - 1)$ is the cumulative distribution function of a $t$ distribution with $n - 1$ degrees of freedom.
+Let $M_n$ be the maximum of $n$ $z$-scores computed from the data; then $\Pr(M_n \le c) \approx (F_{t}(c; n - 1))^n$ where $F_{t}(y; n - 1)$ is the cumulative distribution function of a t distribution with $n - 1$ degrees of freedom.
 So the probability of at least one spurious anomaly is
 $$
   1 - (F_{t}(c; n - 1))^{2n}.
@@ -259,7 +261,7 @@ breaks <- sort(c(2:6, 8, 10^(1:4), 2.5 * 10^(1:3), 5 * 10^(1:3)))
 #| label: fig-zspurious
 #| echo: false
 #| dependson: pspurious
-#| fig-cap: The probability of at least one spurious anomaly using z-scores and with a threshold $c$ for normally distributed data.
+#| fig-cap: The probability of at least one spurious anomaly using $z$-scores and with a threshold $c$ for normally distributed data.
 
 zspuriousdf <- tidyr::expand_grid(n = n, c = seq(2, 3.5, by = 0.5)) |>
   mutate(pmax = pspurious(n, rnorm, c = c)) |>
@@ -291,12 +293,13 @@ zspuriousdf |>
 ```
 
 Let's also compute the probability of spurious anomalies for different data distributions --- the $\text{t}_3$ and $\chi^2_4$ distributions shown in @fig-testdist.
+The results are shown in @fig-zspurious2.
 
 ```{r}
 #| label: fig-zspurious2
 #| echo: false
-#| dependson: ["pspurious", "zspurious"]
-#| fig-cap: The probability of at least one spurious anomaly using z-scores for different data distributions and with a threshold of $c=3$.
+#| dependson: pspurious
+#| fig-cap: The probability of at least one spurious anomaly using $z$-scores for different data distributions and with a threshold of $c=3$.
 
 zspurious2df <- tibble(n = n, c = 3) |>
   mutate(
@@ -347,7 +350,7 @@ zspurious2df |>
   coord_cartesian(xlim = c(6, 7500))
 ```
 
-Notice how the departures from normality, either via skewness (for the $\chi^2$ distribution) or with heavier tails (for the $t$ distribution), lead to much greater probabilities for spurious anomalies.
+Notice how the departures from normality, either via skewness (for the $\chi^2$ distribution) or with heavier tails (for the t distribution), lead to much greater probabilities for spurious anomalies.
 Any tests for anomaly detection that assume an underlying data distribution will be sensitive to the shape of that distribution.
 
 Even if we were prepared to believe that the data come from a Normal distribution, we need to adjust the threshold to allow for the sample size.
@@ -357,7 +360,7 @@ This is the idea behind the next methods we will consider.
 
 ### Peirce's criterion {-}
 
-Benjamin Peirce was a Harvard mathematician in the mid 1800s who worked with astronomical data that were prone to anomalous observations.
+Benjamin Peirce was a Harvard mathematician in the mid-1800s who worked with astronomical data that were prone to anomalous observations.
 He proposed the first known test based on what are now called $z$-scores [@Peirce1852].
 His criterion was that any observations with $|z| > c$ should be "rejected", where $c$ is a complicated function depending on the sample size $n$ and the number of suspected anomalies.
 
@@ -367,7 +370,7 @@ His criterion was that any observations with $|z| > c$ should be "rejected", whe
 #| label: fig-zscorecriteria
 #| warning: false
 #| echo: false
-#| fig-cap: "Criteria for anomalies based on z-scores."
+#| fig-cap: "Criteria for anomalies based on $z$-scores."
 #| dependson: pspurious
 
 threshold <- numeric(length(n))
@@ -401,6 +404,7 @@ Let's apply it to the six examples.
 ```{r}
 #| label: peirce_examples
 #| code-fold: false
+#| dependson: ["fig-n01b", "testdist-data"]
 
 cricket_batting |> filter(peirce_anomalies(Average))
 oldfaithful |> filter(peirce_anomalies(duration))
@@ -415,6 +419,7 @@ chisq4 |> filter(peirce_anomalies(y))
 ```{r}
 #| label: checkpeirce
 #| include: false
+#| dependson: check2
 
 nanomalies <- nanomalies |>
   mutate(
@@ -441,18 +446,19 @@ stopifnot(nanomalies$Peirce == c(0, 2, 2, 1, 10, 6))
 ### Chauvenet's criterion {-}
 
 Peirce's proposal was largely superseded by an alternative proposed by the astrophysicist William Chauvenet, which was much simpler to describe.
-He suggested [@Chauvenet1863] replacing the threshold $c$ by the $1 - 0.25/n$ quantile from the standard Normal distribution.
+He suggested [@Chauvenet1863] replacing the threshold $c$ by the $(1 - 0.25/n)$ quantile from the standard Normal distribution.
 This threshold is also shown in @fig-zscorecriteria.
 A consequence of this choice is that Chauvenet's criterion will reject, on average, half an observation of genuine data from a Normal distribution regardless of the value of $n$.
-However, for non-normal data, there is no such guarantee that genuine observations will not be detected as anomalies.
+However, for non-Normal data, there is no such guarantee that genuine observations will not be detected as anomalies.
 Despite its flaws, the method is still widely used in some disciplines, especially engineering.
 
 The `chauvenet_anomalies()` function can be used to implement this test.
-For our six examples, it gives similar results to those above for `peirce_anomalies()` (with two additional spurious anomalies for the $\text{t}_3$ example, and one additional spurious anomaly for the $\chi^2_4$ example.)
+For our six examples, it gives similar results to those above for `peirce_anomalies()` (with two additional spurious anomalies for the $\text{t}_3$ example, and one additional spurious anomaly for the $\chi^2_4$ example).
 
 ```{r}
 #| label: checkchauvenet
 #| include: false
+#| dependson: checkpeirce
 
 nanomalies <- nanomalies |>
   mutate(
@@ -470,7 +476,7 @@ stopifnot(nanomalies$Chauvenet == nanomalies$Peirce + c(0, 0, 0, 0, 2, 1))
 
 ## Grubbs' test {#sec-grubbs}
 
-By the 20th century, the concept of hypothesis testing had been developed, and the $t$-distribution had been discovered, and both were applied to the identification of anomalies using $z$-scores.
+By the 1930s, the concept of hypothesis testing had been developed, and the t distribution had been discovered, and both were applied to the identification of anomalies using $z$-scores.
 Many tests were developed under different assumptions about the underlying distribution and what was assumed to be known [@Hawkins1980].
 We will mention just two of them here, as they are the most widely used.
 
@@ -478,7 +484,7 @@ Egon Pearson and Chandra Sekar proposed [@Pearson1936] that an observation be co
 $$
   c_\alpha = t_{\alpha/n, n-2} \sqrt{\frac{n - 1}{n - 2 + t^2_{\alpha/n, n-2}}}
 $$
-and $t_{p, k}$ is the $1 - p$ quantile of the t distribution with $k$ degrees of freedom.
+and $t_{p, k}$ is the $(1 - p)$ quantile of the t distribution with $k$ degrees of freedom.
 Later, this was extended by Frank Grubbs [@Grubbs1950] who proposed using
 $$
   c_\alpha
@@ -527,13 +533,13 @@ df |>
   coord_cartesian(xlim = c(4, 60000))
 ```
 
-From these, we can compute the probability of a spurious anomaly in a Normal distribution, using @eq-spuriousz.
+From these, we can compute the probability of a spurious anomaly in a Normal distribution, using simulation rather than the approximation in @eq-spuriousz.
 This probability should be equal to $\alpha = 0.05$.
 
 ```{r}
 #| label: fig-pzscoretests
 #| echo: false
-#| dependson: ["pspurious", "zscoretests"]
+#| dependson: ["pspurious", "fig-zscoretests"]
 #| fig-cap: True size of the tests (i.e., the probability of a spurious anomaly) for normally distributed data with $\alpha=0.05$.
 
 pzscoredf <- df |>
@@ -576,13 +582,13 @@ pzscoredf |>
 
 @fig-pzscoretests shows that only Grubbs' test gives reasonable results, with the others finding too many anomalies except in small samples.
 
-However, when we allow for different data distributions, Grubbs' test also gives poor results, showing it is sensitive to the assumed data distribution.
+However, when we allow for different data distributions, Grubbs' test also gives poor results (@fig-pgrubbs), showing it is sensitive to the assumed data distribution.
 
 ```{r}
 #| label: fig-pgrubbs
 #| echo: false
-#| dependson: ["pspurious", "zscoretests"]
-#| fig-cap: True size of Grubbs' tests (i.e., the probability of a false positive) for different data distributions with $\alpha=0.05$.
+#| dependson: ["pspurious", "fig-pzscoretests"]
+#| fig-cap: True size of Grubbs' test (i.e., the probability of a false positive) for different data distributions with $\alpha=0.05$.
 
 pgrubbsdf <- pzscoredf |>
   filter(test == "grubbs") |>
@@ -644,6 +650,7 @@ We can apply the test using the `grubbs_anomalies()` function to our six example
 ```{r}
 #| label: grubbs-anomalies
 #| code-fold: false
+#| dependson: ["fig-n01b", "testdist-data"]
 
 cricket_batting |>
   filter(Innings > 20) |>
@@ -664,6 +671,7 @@ chisq4 |>
 ```{r}
 #| label: checkgrubbs
 #| include: false
+#| dependson: checkchauvenet
 
 nanomalies <- nanomalies |>
   mutate(
@@ -688,9 +696,9 @@ A spurious anomaly is also detected in the $\chi^2_4$ example, and real anomalie
 
 ## Dixon's Q test {#sec-dixon}
 
-The z-score tests above all measure the distance of an observation from the centre of the distribution.
+The $z$-score tests above all measure the distance of an observation from the centre of the distribution.
 A different approach looks instead at the **gaps** between consecutive order statistics (see @sec-gaps): if a value is anomalous, we expect a noticeably large gap between it and its nearest neighbour in the sorted data.
-@Dixon1950 introduced the first widely-used test of this type.
+@Dixon1950 introduced the first widely used test of this type.
 
 If $y_{(1)},\dots,y_{(n)}$ denote the ordered values of our sample, then Dixon's Q statistic is given by
 $$
@@ -710,7 +718,7 @@ As with the other tests considered here, the test assumes that the underlying da
 
 Simulation can be used to compute the critical values for this test, assuming that the data come from a Normal distribution.
 We can also use simulation to compute the probability of false positives, giving the results shown in @fig-spuriousdixon.
-As with the other tests we have considered, Dixon's test is sensitive to the assumed data distribution making it largely useless for real data analysis.
+As with the other tests we have considered, Dixon's test is sensitive to the assumed data distribution, making it largely useless for real data analysis.
 
 ```{r}
 #| label: fig-spuriousdixon
@@ -786,6 +794,7 @@ We can apply the test using the `dixon_anomalies()` function, which does a two-s
 ```{r}
 #| label: dixon-anomalies
 #| code-fold: false
+#| dependson: ["fig-n01b", "testdist-data"]
 
 cricket_batting |>
   filter(Innings > 20) |>
@@ -806,6 +815,7 @@ chisq4 |>
 ```{r}
 #| label: checkdixon
 #| include: false
+#| dependson: checkgrubbs
 
 nanomalies <- nanomalies |>
   mutate(
@@ -846,10 +856,10 @@ Raw spacings are not directly comparable across the sorted sample.
 Even for data from a single unimodal distribution, spacings tend to be small near the centre of the distribution, where observations are dense, and larger in the tails, where observations are sparse.
 
 Tukey's *gapping* scheme addresses this by weighting each gap according to its position in the ordered data.
-Specifically, the gap between $y{(i)}$ and $y{(i + 1)}$ is assigned weight
+Specifically, the gap between $y_{(i)}$ and $y_{(i + 1)}$ is assigned weight
 $$
   a_i = i(n - i), \qquad i = 1, \ldots, n - 1,
-$$ {#eq-ws-weight}
+$$
 which is largest near the middle of the sample and smallest at the extremes.
 This emphasises unusually large gaps in the centre, where observations are normally close together, and downweights gaps in the tails, where larger spacings are expected.
 
@@ -861,13 +871,13 @@ $$
 which makes their distribution more symmetric, and then comparing each $h_i$ with a robust estimate of typical gap size, namely the 25% trimmed mean of the $h_i$ values:
 $$
   z^*_i = \frac{h_i}{\bar h_{T25}}.
-$$ {#eq-ws-score}
+$$
 Large values of $z^*_i$ identify gaps that are large relative to other gaps after allowing for their position in the sorted data.
-Tukey suggested $z^*_i > 2.25$ as an exploratory cut-off; @Wainer1978 showed by simulation that, under a Gaussian distribution, this corresponds to a per-gap false positive rate of about 3%.
+Tukey suggested $z^*_i > 2.25$ as an exploratory cut-off; @Wainer1978 showed by simulation that, under a Normal distribution, this corresponds to a per-gap false positive rate of about 3%.
 Because there are $n - 1$ gaps, this is not a 5% test for the whole data set.
 If many gaps are inspected, the chance of at least one crossing the threshold can be much larger than the per-gap rate.
 
-The code below constructs a data frame of **gaps** between batter averages.
+The code below constructs a data frame of **gaps** between batter averages, and plots their scores in @fig-ws-gaps.
 
 ```{r}
 #| label: fig-ws-gaps
@@ -904,7 +914,9 @@ batting_gaps |>
 Restricting attention to scores above the exploratory threshold of 2.25, we show the five largest gaps below.
 
 ```{r}
+#| label: ws-top-gaps
 #| code-fold: false
+#| dependson: fig-ws-gaps
 
 batting_gaps |>
   filter(ws > 2.25) |>
@@ -928,7 +940,7 @@ $$
 This gives the approximate upper-tail probability
 $$
   p \approx 1 - \exp(-e^{-t}).
-$$ {#eq-gap-pvalue}
+$$
 
 In practice, $F$ is unknown.
 The example below uses a robustly fitted Normal distribution, with the median and MAD as estimates of location and scale.
@@ -937,6 +949,7 @@ This makes the fit less sensitive to the possible outlier, but the resulting tes
 ```{r}
 #| label: gap-bt-test
 #| code-fold: false
+#| dependson: fig-ws-gaps
 
 mu_hat <- median(batters$Average)
 sigma_hat <- robustbase::s_mad(batters$Average)
@@ -962,11 +975,12 @@ batting_gaps |>
 The $p$-value is very small, confirming that the gap below Bradman's average is far too large to be consistent with all batters coming from a single fitted Normal distribution.
 
 Finally, we apply the same approach to the other five examples considered in this chapter.
-Here we associate the p-value with the larger observation in each gap pair.
+Here we associate the $p$-value with the larger observation in each gap pair.
 
 ```{r}
 #| label: gap-tests
 #| code-fold: false
+#| dependson: ["fig-n01b", "testdist-data"]
 
 gap_test_pvalue <- function(x) {
   mu_hat <- median(x)
@@ -1004,6 +1018,7 @@ chisq4 |>
 ```{r}
 #| label: checkgap
 #| include: false
+#| dependson: ["checkdixon", "gap-tests"]
 
 nanomalies$Gap <- c(
   cricket_batting |>
@@ -1023,11 +1038,11 @@ nof <- nanomalies$Gap[2]
 While the method worked well for the cricket batting averages, it identified `r nof` "anomalies" in the Old Faithful data, and it failed to identify either of the two clear anomalies in `n01b`.
 
 Like all methods in this chapter, both the normalised gap score and the transformed-gap test depend on an assumed null distribution, and so the results depend on the adequacy of the model.
-Related extreme-spacing ideas underlie the HDoutliers and stray algorithms discussed in @sec-distance-methods, where gaps in nearest-neighbour distances are used rather than gaps in the raw univariate data.
+Related extreme-spacing ideas underlie the HDoutliers and stray algorithms discussed in @sec-hdoutliers and @sec-stray, where gaps in nearest-neighbour distances are used rather than gaps in the raw univariate data.
 
 ## Summary {#sec-tests-summary}
 
-We can summarise the results of the various tests used here in the following table.
+We can summarise the results of the various tests used here in @tbl-nanomalies.
 
 ```{r}
 #| label: tbl-nanomalies
@@ -1035,7 +1050,7 @@ We can summarise the results of the various tests used here in the following tab
 #| tbl-cap: >-
 #|   Number of anomalies detected by each test.
 #|   Cells in red indicate that the test has failed to identify all known anomalies (i.e., it has some false negatives), or it has identified some spurious anomalies (i.e., it has some false positives).
-#| dependson: check_numbers
+#| dependson: checkgap
 #| cache: false
 
 library(kableExtra)
@@ -1064,8 +1079,8 @@ purrr::reduce2(
 )
 ```
 
-Only Z scores found the three (and only the three) clear anomalies in the Old Faithful data, and most failed to find either of the artificial anomalies in `n01b`.
-All tests found at least one spurious anomaly in the large simulated data sets with no real anomalies.
+Only the $z$-score method found the three (and only the three) clear anomalies in the Old Faithful data, and most failed to find either of the artificial anomalies in `n01b`.
+All tests except the gap test found at least one spurious anomaly in the large simulated data sets with no real anomalies.
 
 As noted at the start of this chapter, anomaly detection methods based on assumed data distributions are unreliable.
 Until about 1975, they were the only viable methods given the lack of computing facilities available, because they could be implemented using tables and hand calculations.

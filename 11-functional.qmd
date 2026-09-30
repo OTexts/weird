@@ -1,7 +1,7 @@
 # Functional data {#sec-functional}
 
 ```{r}
-#| label: setup12
+#| label: setup11
 #| include: false
 #| cache: false
 
@@ -47,7 +47,7 @@ Any anomaly detection method for functional data should identify these years as 
 
 We will denote the functional data as $y_i(x)$.
 Here, $i$ is a discrete index over all observations, and $x$ is the continuous variable over which each function is defined.
-For the mortality data, $y_{i}(x)$ represent the mortality rate for age $x$ in year $i$.
+For the mortality data, $y_{i}(x)$ represents the mortality rate for age $x$ in year $i$.
 
 It is possible to have multiple indexes (e.g., mortality rates for males and females, or for different countries, or both), and the function may be defined over more than one variable (e.g., mortality rates over age and BMI).
 It is also possible to have multivariate observations (e.g., mortality and fertility rates).
@@ -59,7 +59,7 @@ When curves instead exhibit phase variation (e.g., the same underlying pattern o
 
 The distinguishing feature of functional data is that we think of the data as smooth and continuous functions.
 In practice, our observations are usually at discrete values, even though the underlying functions are continuous.
-In @fig-fr-mortality, for example, we observe the mortality rate for discrete ages 0, 1, 2, \dots, while we think of the rate as defined for any age $x \in [0,\infty)$.
+In @fig-fr-mortality, for example, we observe the mortality rate for discrete ages $0, 1, 2, \dots$, while we think of the rate as defined for any age $x \in [0,\infty)$.
 
 It is common to form continuous functions using some kind of interpolation or smoothing of the raw data.
 Smoothing is used if the underlying curve has been observed with measurement error.
@@ -134,11 +134,11 @@ $$
 $$
 where $b_0(x)$ is a fixed function common to every observation (analogous to an intercept), $\{b_1(x),\dots,b_J(x)\}$ are a set of basis functions, and $\beta_{ij}$ are the coefficients.
 With enough basis functions, this representation can approximate a wide class of functions.
-For example, the Fourier basis functions are a set of sine and cosine functions that can be used to represent any smooth periodic function.
-The B-spline basis functions are a set of piecewise polynomial functions that can be used to represent any smooth function.
+For example, the Fourier basis functions are a set of sine and cosine functions that can be used to approximate any smooth periodic function.
+The B-spline basis functions are a set of piecewise polynomial functions that can be used to approximate any smooth function.
 The choice of basis functions depends on the characteristics of the data.
 
-The number of basis functions $J$ is usually much smaller than the number of observations, with larger $J$ corresponding to a more flexible approximation.
+The number of basis functions $J$ is usually much smaller than the number of points at which each curve is observed, with larger $J$ corresponding to a more flexible approximation.
 
 Given a set of basis functions, we can estimate the coefficients $\beta_{ij}$ by minimising the sum of squared errors between the observed data $y_i(x)$ and the approximated data $\hat{y}_i(x)$.
 
@@ -158,7 +158,7 @@ $$
 $$
 subject to the constraints that $\int b_2^2(x)dx = 1$ and $\int b_1(x)b_2(x)dx = 0$.
 And so on.
-The principal components $b_1(x), b_2(x), \dots$, are also called the "loadings", while the coefficients $\beta_{i,1},\beta_{i,2},\dots$ are called the "scores".
+The principal components $b_1(x), b_2(x), \dots$, are also called the "loadings", while the coefficients $\beta_{i1},\beta_{i2},\dots$ are called the "scores".
 
 If the functions are discretised on a fine grid over $x$, we can use regular principal component decomposition to get approximately the same results as functional principal components.
 
@@ -192,7 +192,7 @@ summary(pca)
 ```
 
 The first three principal components explain `r round(100 * sum(pca$sdev[1:3]^2) / sum(pca$sdev^2), 1)`% of the variation in the data.
-Instead of working in the `r NCOL(frmort_mat)` dimensional space containing all ages, we can work in the 3-dimensional space of the first three principal component scores, which is a much simpler problem, without losing much information.
+Instead of working in the `r NCOL(frmort_mat)`-dimensional space containing all ages, we can work in the 3-dimensional space of the first three principal component scores, which is a much simpler problem, without losing much information.
 
 ```{r}
 #| echo: true
@@ -245,7 +245,7 @@ pca_scores |>
   labs(y = latex2exp::TeX("$\\beta_{i,t}$"), x = "Year (t)")
 ```
 
-@fig-pca-scores shows how the two component scores evolve over time.
+@fig-pca-scores shows how the three component scores evolve over time.
 Other than during the two world wars, the first component score increases steadily and fairly smoothly across the study period, reflecting the long-run, near-continuous decline in mortality at all ages.
 The second component score sits close to zero for most years but spikes sharply during 1914--1918 and 1940--1945, capturing the additional mortality among young French men during the two world wars.
 The third component is more subtle, and reflects slow changes in mortality patterns over time, rather than the sharp spikes seen in the second component.
@@ -279,7 +279,7 @@ We restrict attention to the first two components here so the results can be sho
 #| code-fold: false
 #| label: fig-pca-outliers
 #| dependson: fig-pca-scores
-#| fig-cap: French principal component scores, with anomalous years (surprisal probability below 0.05) shown in orange.
+#| fig-cap: First two principal component scores for the French male mortality data, with anomalous years (surprisal probability below 0.05) shown in orange.
 
 # Find outliers in the PCs
 outliers <- pca_scores |>
@@ -397,7 +397,7 @@ same_years <- setequal(outliers$Year, o3_years)
 ```
 
 Reassuringly, the O3 plot, using all `r english::words(n_pc_o3)` principal components and `r english::words(n_methods)` quite different outlier-detection methods, flags `r english::words(length(o3_years))` years (`r format_years(o3_years)`) --- `r if (same_years) "exactly the same years" else "largely the same years"` identified by the two-component surprisal approach above.
-Of these, `r english::words(length(o3_red_years))` --- `r format_years(o3_red_years)` --- are flagged by every method and variable combination (shown in red in @fig-o3-pca), while the rest are flagged consistently but not unanimously.
+Of these, `r english::words(length(o3_red_years))` --- `r format_years(o3_red_years)` --- are flagged by all `r english::words(n_methods)` methods for at least one variable combination (shown in red in @fig-o3-pca), while the rest are flagged consistently but not unanimously.
 This agreement across methods, along with the time series analysis of @sec-weird-times, gives us some confidence that these years are genuine anomalies rather than artefacts of any one method.
 
 ## Functional bagplot {#sec-functional-bagplot}
@@ -647,26 +647,26 @@ stopifnot(identical(shallow_1800s, c(1854L, 1870L, 1871L)))
 ```
 
 Ranking curves by MBD alone identifies the years whose entire trajectory lies furthest from the bulk of the sample: the shallowest curves are `r format_years(shallow_years)`.
-The `r english::words(length(shallow_years) - length(shallow_1800s))` most recent of these have mortality lower at almost every age than in any other year, while the `r english::words(length(shallow_1800s))` from the 1800s are shallow for the opposite reason --- their mortality is distinctly higher than in surrounding years at almost every age.
-These earlier shallow years correspond to the 1854 cholera outbreak, the 1870 Franco-Prussian war and the 1871 Repression of the 'Commune de Paris'.
+The `r english::words(length(shallow_years) - length(shallow_1800s))` most recent of these have the lowest mortality in the sample at most ages, while the `r english::words(length(shallow_1800s))` from the 1800s are shallow for the opposite reason --- their mortality is distinctly higher than in surrounding years at most ages.
+These earlier shallow years correspond to the 1854 cholera outbreak, the 1870 Franco-Prussian War and the 1871 Repression of the 'Commune de Paris'.
 
 This illustrates an important feature of depth-based ranking: it can fail to distinguish between curves that are unusual due to location and those that are unusual due to shape.
 Because French mortality has fallen more or less steadily across the study period, the most recent curves sit at one edge of the whole 184-year sample and are therefore the least "enveloped" by the rest, even though their shape is not unusual.
-On the other hand, the 1854, 1870 and 1871 curves are unusual in shape, but they are not extreme in location relative to the rest of the 19th century curves.
+On the other hand, the 1854, 1870 and 1871 curves are unusual relative to the years around them, although only 1871 lies at the upper edge of the whole sample at most ages.
 
-Other types of functional depth are computed by `rainbow::fdepth()`, and the `fda.usc`, `fdaoutliers` and `mrfDepth` packages.
+Other types of functional depth are computed by `rainbow::fdepth()`, and the `fda.usc`, `fdaoutlier` and `mrfDepth` packages.
 
 ## Sun--Genton functional boxplot {#sec-sungenton-boxplot}
 
 The Sun--Genton functional boxplot [@Sun2011] works directly with the (possibly smoothed) curves, using the modified band depth introduced in @sec-functional-depth.
-The central region is formed from the 50% deepest curves (those with MBD at or above the median), and a curve is flagged as an outlier if, at any age, it leaves a fence formed by inflating this central region by a multiple of 1.5 of its own range.
+The central region is formed from the 50% deepest curves (those with MBD at or above the median), and a curve is flagged as an outlier if, at any age, it leaves a fence formed by inflating this central region by 1.5 times its own (pointwise) range.
 @fig-fbplot-sungenton shows the resulting functional boxplot for the French male mortality curves.
 
 ```{r}
 #| label: fig-fbplot-sungenton
 #| dependson: [mbd-build, fig-fbagplot]
 #| fig-cap: Sun--Genton functional boxplot of the smoothed French male mortality curves.
-#|   The dark band shows the central 50% region, the light band the envelope of the curves not flagged as outliers; the solid curve is the deepest (most central) curve; the raw curves for the flagged outlier years are overlaid.
+#|   The dark band shows the central 50% region, the light band the envelope of the curves not flagged as outliers; the solid curve is the deepest (most central) curve; the smoothed curves for the flagged outlier years are overlaid.
 
 central_years <- depth_tbl$Year[depth_tbl$MBD >= median(depth_tbl$MBD)]
 centre_year <- depth_tbl$Year[which.max(depth_tbl$MBD)]
@@ -718,12 +718,12 @@ fr_smooth |>
   labs(y = "Mortality rate", colour = "Outlier year")
 ```
 
-@fig-fbplot-sungenton fails to identify the war years or pandemics as outliers, and inflates the size of the central region to include almost all of the curves.
+@fig-fbplot-sungenton fails to identify the war years or pandemics as outliers, and its fences are so wide that they include almost all of the curves.
 In fact, it flags `r english::words(length(outlier_years))` years, `r format_years(outlier_years)`, none of which are war years.
-These are simply the most recent years in the sample, whose mortality is lower at almost every age than any earlier year.
+These are simply the most recent years in the sample, which have the lowest mortality at most ages.
 
 This may seem inconsistent with 1854, 1870 and 1871 being the shallowest 19th century curves, but a low MBD only means a curve is poorly enveloped by bands of other curves; it does not mean the curve's values are pointwise extreme, which is what the boxplot fence tests.
-The mortality in those three years, though unusual in shape, never falls outside the range spanned by other 19th century curves, so they never cross the fence, unlike the six most recent years.
+The mortality in those three years, though above the central region at many ages, stays well inside the upper fence, which is wide because the central region spans more than a century of declining mortality; only the `r english::words(length(outlier_years))` most recent years cross the (lower) fence.
 
 The functional bagplot and HDR boxplot do not share the problem of trend, because reducing each curve to two principal component scores loses most of the information about the gradual, whole-of-curve trend captured by MBD, while retaining the specific age-pattern (young men versus children) that made the war years unusual.
 
@@ -739,7 +739,7 @@ The modified band depth used above conflates two different reasons a curve can b
 The outliergram of @Arribas-Gil2014-ll separates these two effects by comparing MBD against a second measure, the modified epigraph index (MEI) of @LopezPintadoRomo2011.
 
 Whereas MBD measures how often a curve is enveloped by bands formed from pairs of other curves, MEI measures a curve's rank position: it is close to 1 for a curve lying below almost every other curve across almost the whole domain, close to 0 for a curve lying above almost every other curve, and around 0.5 for a curve in the middle of the pack.
-So MEI captures a curve's overall level relative to the rest of the sample, in much the same way that the first principal component score did in @sec-functional-pca, while MBD captures how well-enveloped it is.
+So MEI captures a curve's overall level relative to the rest of the sample, in much the same way that the first principal component score did in @sec-basis-functions, while MBD captures how well-enveloped it is.
 
 For most collections of curves, curves with an extreme MEI (very close to 0 or 1) are, by virtue of sitting near the edge of the sample, poorly enveloped and so also have somewhat low MBD.
 In fact, there is a well-defined upper bound on MBD as a function of MEI, tracing out a parabola.
@@ -805,7 +805,7 @@ Unlike the depth boxplot fence of @fig-fbplot-sungenton, none of the low-mortali
 
 A second way to separate magnitude and shape effects is the magnitude-shape plot of @Dai2018.
 For each curve, and at each point $x$ on the grid, they compute a *directional outlyingness*: a signed measure of how far, and in which direction, the curve departs from the centre of the distribution of values at that $x$.
-Averaging this quantity over the domain gives a magnitude score (MO) for each curve, taking a large value when a curve sits consistently on one side of the bulk of the data.
+Averaging this quantity over the domain gives a magnitude score (MO) for each curve, taking a value far from zero when a curve sits consistently on one side of the bulk of the data.
 The variation of the directional outlyingness over the domain gives a separate shape score (VO), which is large when a curve's departure from the centre changes direction or size as $x$ varies, which happens when a curve crosses others or has an unusual local pattern, even if its overall MO is modest.
 Plotting VO against MO for every curve gives the magnitude-shape plot; @Dai2018 then flag outliers using a robust distance in this two-dimensional (MO, VO) space, with a finite-sample correction due to @Hardin2005.
 
@@ -844,14 +844,14 @@ ms_early <- ms_outliers |> filter(Year < 1946) |> pull(Year) |> sort()
 @fig-ms-plot flags `r english::words(nrow(ms_outliers))` years as outliers, far more than either the outliergram or the depth boxplot.
 Almost all of these are on the left of the plot and cover every year after World War II.
 The remainder, `r format_years(ms_early)`, are war and conflict years already familiar from earlier sections.
-So the magnitude-shape plot re-discovers the same problem as the Sun--Genton functional boxplot of @sec-sungenton-boxplot: because mortality has fallen steadily across the study period, every sufficiently recent curve has a large, consistently-signed directional outlyingness relative to the whole sample, driving up its MO score regardless of whether anything unusual happened in that year.
+So the magnitude-shape plot re-discovers the same problem as the Sun--Genton functional boxplot of @sec-sungenton-boxplot: because mortality has fallen steadily across the study period, every sufficiently recent curve has a large, consistently signed directional outlyingness relative to the whole sample, driving up its MO score regardless of whether anything unusual happened in that year.
 
 ## Summary {#sec-functional-summary}
 
-We have applied six different methods to the same French male mortality data in this chapter, and they do not all agree, because they are not all measuring the same thing.
+We have applied several different methods to the same French male mortality data in this chapter, and they do not all agree, because they are not all measuring the same thing.
 Reducing each curve to its first two or three principal component scores, and then applying surprisal probabilities, the O3 plot, the bagplot, or the HDR boxplot, all give a similar answer: the war years and a handful of other historical crises are flagged as anomalies, because these methods retain the specific age-pattern of a curve while discarding most of its whole-of-sample trend.
-Working directly with the curves via band depth or directional outlyingness gives a different answer, because these magnitude-based measures cannot distinguish a curve that is genuinely unusual in shape from one that sits at the end of a long, gradual trend; on this data, that confounding is severe enough that both the Sun--Genton depth boxplot and the magnitude-shape plot flag most of the twentieth century as anomalous.
-The outliergram sits in between, using the same band depth but comparing it against a curve's rank (via MEI) rather than its raw value, which lets it isolate genuine shape anomalies and, on this data, recovers a conservative version of the same war years found by the PCA-based methods.
+Working directly with the curves via band depth or directional outlyingness gives a different answer, because these magnitude-based measures cannot distinguish a curve that is genuinely unusual in shape from one that sits at the end of a long, gradual trend; on these data, that confounding is severe enough that both the Sun--Genton depth boxplot and the magnitude-shape plot flag the most recent low-mortality years as anomalous, with the magnitude-shape plot flagging every year after World War II.
+The outliergram sits in between, using the same band depth but comparing it against a curve's rank (via MEI) rather than its raw value, which lets it isolate genuine shape anomalies and, on these data, recovers a conservative version of the same war years found by the PCA-based methods.
 
 No single method here is more "correct" than the others.
 In practice, applying more than one method, as we have done here, and using the disagreements between them to understand *why* particular curves are flagged is more informative than relying on any single method to decide what counts as anomalous.

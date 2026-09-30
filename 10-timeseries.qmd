@@ -138,7 +138,7 @@ patchwork::wrap_plots(p1, p2, p3, ncol = 1)
 **Weird times**: In the top plot, we are looking for historical anomalies within time series data.
 This is common in quality control, or in data cleaning.
 The aim is to find time periods where the observations are different from the rest of the data.
-Again, it can easily be extended to multivariate time series, where we look for time periods when one or more of the series may display unusual observations.
+This can easily be extended to multivariate time series, where we look for time periods when one or more of the series may display unusual observations.
 
 **Weird series**: In the middle plot, we are looking for an anomalous time series within a collection of time series.
 The observations within each series may all be consistent, but the series as a whole may be unusual.
@@ -147,7 +147,7 @@ It is common in finance, where we look for unusual behaviour of a stock within a
 
 **Surveillance**: In the bottom plot, we are looking for an anomaly in the next observation in the time series.
 This is commonly done in surveillance, when a time series is monitored in real time to identify an unusual observation, and appropriate action taken.
-An anomaly in this context, is an observation that is very different from what was forecast.
+An anomaly in this context is an observation that is very different from what was forecast.
 Although only a single time series is shown in this plot, the idea easily extends to multivariate time series, where we look for something unusual occurring in the next time period across a set of time series.
 
 We will discuss each of these paradigms in turn.
@@ -170,7 +170,7 @@ fr_mortality
 The mortality rates have improved over time for all ages, especially since 1950.
 Infant mortality (age 0) is much higher than the rest of childhood, with mortality rates at a minimum at about age 10 in all years.
 The highest mortality rates are for the oldest age groups.
-The effect of the two wars are particularly evident in the male mortality rates.
+The effects of the two wars are particularly evident in the male mortality rates.
 
 ```{r}
 #| label: fig-fr_mortality_time_plots
@@ -213,7 +213,7 @@ A related idea is the Hampel filter, where each anomaly is replaced by the local
 The threshold is often set under the assumption of a Normal distribution, for which the MAD is equal to 0.6745 times the standard deviation.
 So it is common to set $\tau = k/0.6745$ where $k$ is the number of standard deviations permitted before an observation is considered an outlier.
 Because we apply the rule repeatedly over the length of a time series, we need to be careful of the problem of multiple comparisons, where the probability of a false positive overall is much larger than the probability of a false positive for each individual test.
-However, it is not straightforward to adjust the probabilities because the tests are not independent, and the dependency between them depends on the window size $h$, and the characteristics of the time series.
+However, it is not straightforward to adjust the probabilities because the tests are not independent, and the dependency between them depends on the window half-width $h$, and the characteristics of the time series.
 The `hampel_anomalies()` function implements this algorithm.
 
 The implied statistical model is
@@ -224,10 +224,10 @@ where $\mu_t$ is estimated as $m_t$, and $\sigma_t$ is estimated as $a_t/0.6745$
 Using this model, we can apply the surprisal probability approach to identify anomalies, as discussed in @sec-density-methods.
 A threshold of $k = 3$, for example, is equivalent to a surprisal probability threshold of $\alpha = `r sprintf("%.4f", 2 * pnorm(-3))`$.
 Rather than using the Normal distribution, we can use a GPD approximation to the tail of the distribution, as discussed in @sec-approximate-surprisal-prob.
-That is, the normal distribution is used to compute the surprisals, but the GPD is used to compute their probabilities.
+That is, the Normal distribution is used to compute the surprisals, but the GPD is used to compute their probabilities.
 Then we would specify the threshold as a probability $\alpha$ rather than a number of standard deviations $k$.
 
-The code below applies the algorithm to all 172 time series in `fr_mortality`.
+The code below applies the algorithm to all `r fr_mortality |> select(Age, Sex) |> distinct() |> NROW()` time series in `fr_mortality`.
 The `bandwidth` argument corresponds to $h$, and we set $\alpha = 0.01$.
 
 ```{r}
@@ -260,7 +260,7 @@ In @fig-hampel_fr, we only show anomalies if there are at least three anomalies 
 #| code-fold: true
 #| warning: false
 #| fig-cap: French mortality observations identified as anomalies using the Hampel identifier.
-#| dependson: hampel_anomalies
+#| dependson: hampel-anomalies
 
 # Find years containing anomalies
 yrs <- fr_anomalies |>
@@ -335,7 +335,7 @@ I was unable to find any information about these events, but it is possible that
 
 The Hampel identifier worked well for the annual mortality series, but the local median approach will break down when there is seasonality or other systematic patterns in the data.
 However, the same idea can be adapted by replacing the local median with a more sophisticated way of modelling the signal in the data.
-One such method is STL (Seasonal Trend decomposition using Loess) due to @Cleveland1990, and extended by @mstl to handle multiple seasonal periods or series with no seasonality.
+One such method is STL (Seasonal and Trend decomposition using Loess) due to @Cleveland1990, and extended by @mstl to handle multiple seasonal periods or series with no seasonality.
 
 We will apply this idea to find unusual observations in US weekly mortality data between 2015 and 2024, obtained from the @HMD.
 The following code reads the data, and wrangles it into a `tsibble` object (a special type of tibble designed for time series data).
@@ -380,7 +380,7 @@ us_stmf |>
 ```
 
 Next, we apply an STL model to the mortality rates in each age group.
-This helps separate out the regular seasonality, from any unusual fluctuations.
+This helps separate out the regular seasonality from any unusual fluctuations.
 
 ```{r}
 #| label: stl-stmf
@@ -451,6 +451,7 @@ us_stmf |>
 ```{r}
 #| label: check_stmf_scores
 #| include: false
+#| dependson: stmf_scores2
 
 low_mortality <- stmf_scores |> filter(e < 0)
 n_low_mortality <- NROW(low_mortality)
@@ -461,7 +462,7 @@ if (n_low_mortality != 1L) {
 
 @fig-stl_anomalies shows the identified anomalies.
 A total of `r NROW(stmf_scores)` observations have surprisal probabilities less than 0.02, with the most extreme being in weeks 15--16 of 2020, in the elderly age groups.
-Although the test can pick up unusually low or unusually high mortality rates, only `r n_low_mortality` of the `r NROW(stmf_scores)` identified anomalies is for low mortality, and that is for 85+ year olds in Week 3 of 2020.
+Although the test can pick up unusually low or unusually high mortality rates, only `r n_low_mortality` of the `r NROW(stmf_scores)` identified anomalies is for low mortality, and that is for 85+ year olds in week 3 of 2020.
 It is possible that the elderly were taking precautions against COVID-19, resulting in restricted movements, and therefore lower mortality rates.
 
 There are four anomalous peaks in the plot, centred on the following dates:
@@ -485,6 +486,7 @@ Finally, we compute the first principal component of the resulting matrix.
 ```{r}
 #| label: us_stmf_pcs
 #| code-fold: false
+#| dependson: stmf
 
 # Convert to wide form
 us_wide <- us_stmf |>
@@ -509,6 +511,7 @@ There is no need to scale the residuals because there is only one series.
 ```{r}
 #| label: us_stmf_pc_anomalies
 #| code-fold: false
+#| dependson: us_stmf_pcs
 #| message: false
 
 pc_anomalies <- pcs |>
@@ -530,6 +533,7 @@ pc_anomalies
 ```{r}
 #| label: fig-us_stmf_pcs
 #| code-fold: false
+#| dependson: [us_stmf_pcs, us_stmf_pc_anomalies]
 #| fig-cap: The first principal component scores calculated from the weekly US mortality rates, along with the identified anomalies.
 #|   Compare the individual series shown in @fig-stmf.
 
@@ -542,12 +546,12 @@ pcs |>
 ```
 
 As expected, many of the same weeks identified earlier in an analysis of individual series have been returned.
-The probability of false positives increases with both the length of each series, and the number of each series.
+The probability of false positives increases with both the length of each series and the number of series.
 So we have used a larger probability threshold here than in the analysis of individual series.
 Conversely, some anomalies might appear to be marginal in the individual series, but when the series are combined like this, the anomalous periods may be clearer.
 This appears to be the case in weeks 3 and 4 of 2020, where unusually low mortality rates are seen, probably because of restricted movements due to growing uncertainty associated with the spread of COVID-19.
 (The earlier analysis only showed an anomaly in this period for 85+ year olds in 2020 W3.)
-Unusually low mortality rates have also been identified in Weeks 13 and 15 of 2021, probably also due to restricted movements, especially of older people.
+Unusually low mortality rates have also been identified in weeks 13 and 15 of 2021, probably also due to restricted movements, especially of older people.
 
 ## Weird series {#sec-weird-series}
 
@@ -590,12 +594,13 @@ PBS_prcomp |>
   labs(x = "Principal component 1", y = "Principal component 2")
 ```
 
-In @fig-weirdseries_pca, there are two series which are clearly separated from the rest, with principal component 2 less than -15.
+In @fig-weirdseries_pca, there are two series which are clearly separated from the rest, with principal component 2 less than $-15$.
 Although it is not necessary here, because these two anomalies are so obvious, we can confirm them using KDE surprisal probabilities.
 
 ```{r}
 #| label: weirdseries_kde
 #| code-fold: false
+#| dependson: weirdseries
 
 PBS_prcomp <- PBS_prcomp |>
   mutate(
@@ -616,7 +621,7 @@ Now, let's plot these most anomalous series in @fig-weirdseries_anomalies, to se
 
 ```{r}
 #| label: fig-weirdseries_anomalies
-#| dependson: weirdseries
+#| dependson: weirdseries_kde
 #| code-fold: false
 #| fig-cap: The most unusual series, as determined by the principal component scores.
 
@@ -637,6 +642,7 @@ The three series we omitted may also be unusual, so let's plot them as well in @
 ```{r}
 #| label: fig-pbs_missing
 #| message: false
+#| dependson: weirdseries
 #| code-fold: false
 #| fig-cap: The series for which some features were missing.
 
@@ -678,7 +684,7 @@ pbs
 ```
 
 Let's first look at the time series for just one ATC group: A12 (Mineral supplements).
-In fact, this is the same series as was shown in the top panel of @fig-tsparadigms.
+In fact, this is the same series as was shown in the bottom panel of @fig-tsparadigms.
 
 ```{r}
 #| label: fig-a12
@@ -693,7 +699,7 @@ pbs |>
   labs(title = "Scripts for ATC group A12 (Mineral supplements)")
 ```
 
-In @fig-a12, there has been a sudden drop in sales at the end of 2005, most likely because of some products no longer being eligible for subsidy.
+In @fig-a12, there has been a sudden drop in sales at the start of 2006, most likely because of some products no longer being eligible for subsidy.
 There can also be sudden jumps in sales when a new product becomes available, or a new class of drugs is added to the scheme.
 
 ### The surveillance algorithm
@@ -714,12 +720,12 @@ Different forecasting methods use different conditioning information, and result
 See @fpp3 for a detailed discussion of forecasting methods.
 
 Once we observe the value of $y_{t+h}$, we can calculate the corresponding surprisal probability in the same way as we discussed in @sec-surprisal-probabilities.
-Because we are interested in real-time surveillance, we need only consider the one-step-ahead forecast density, $f(y_{t+1} \mid y_1, \dots, y_{t})$.
+Because we are interested in real-time surveillance, we need only consider the one-step-ahead forecast density, $f(y_{t+1} \mid y_1, \dots, y_{t}, \bm{x}_t)$.
 We can then calculate the surprisal as
 $$
   s_{t+1} = -\log f(y_{t+1} \mid y_1, \dots, y_{t}, \bm{x}_t).
 $$
-This needs to be done iteratively for each time period, updating the model as new data becomes available.
+This needs to be done iteratively for each time period, updating the model as new data become available.
 Since we need some observations with which to fit a model, we can't begin the process at time $t = 1$.
 Instead, we'll begin at time $t = I$, where $I$ is the smallest number of observations with which we can reasonably estimate the time series model.
 The value of $I$ will depend on the complexity of the model being used.
@@ -732,14 +738,14 @@ Let $y_{i,t}$ denote the observation of the $i$th series at time $t$.
 For each $t = I,I + 1,\dots$, and for all series $i = 1,\dots,M$:
 
 - Fit a time series model to the series $y_{i,1},\dots,y_{i,t}$, and estimate the one-step forecast density, $f_{i,t+1}(y \mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$.
-- Compute the surprisal: $s_{i,t+1} = -\log f_{i,t+1}(y_{i,t+1} \mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$, and the surprisal probabilities: $\Pr(S > s_{i,t+1})$.
+- Compute the surprisal: $s_{i,t+1} = -\log f_{i,t+1}(y_{i,t+1} \mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$, and the surprisal probability $\Pr(S > s_{i,t+1})$.
 
 ### A first iteration
 
 To illustrate, let's apply this to the `pbs` data.
 Starting with $I = 36$ (3 years of data), we will fit ETS models to all available series [Ch 8, @fpp3], and forecast one step ahead in each case.
 Then we repeat the exercise using 37 observations, then 38 observations, and so on.
-This is known as a "rolling origin forecast" because the forecast rolls forward by one period each iteration.
+This is known as a "rolling origin forecast" because the forecast origin rolls forward by one period each iteration.
 The process can be illustrated as in @fig-tscvplots.
 
 ```{r}
@@ -786,7 +792,7 @@ pbs_fc
 ```
 
 The forecasts are in the `Scripts` column.
-Note that each of them is a Normal distribution where the mean and variance has been estimated using the ETS model.
+Note that each of them is a Normal distribution where the mean and variance have been estimated using the ETS model.
 The mean of the forecast distribution is given as `.mean`.
 
 We can combine these forecasts with the observed values from time $t = 37$.
@@ -819,6 +825,7 @@ pbs_compare
 ```{r}
 #| label: check_s01
 #| include: false
+#| dependson: pbs_scores2
 
 s01 <- pbs_compare |> pull(ATC2) |> head(1)
 if (s01 != "S01") {
@@ -831,7 +838,8 @@ Let's look at the most likely anomaly (or least likely observation), from series
 
 ```{r}
 #| label: fig-s01-forecast
-#| fig-cap: Forecast distribution for series S01 for February 2006, with the observed value shown as a point.
+#| dependson: [pbs, pbsfc]
+#| fig-cap: Forecast distribution for series S01 for July 1994, with the observed value shown as a point.
 
 s01 <- pbs |> filter(ATC2 == "S01", t <= 37)
 pbs_fc |>
@@ -840,7 +848,7 @@ pbs_fc |>
   geom_point(data = s01 |> filter(t == 37), aes(x = Month, y = Scripts)) +
   labs(
     y = "Scripts (thousands)",
-    title = "Forecast of S01 scripts: Feb 2006"
+    title = "Forecast of S01 scripts: Jul 1994"
   ) +
   theme(legend.position = "none")
 ```
@@ -899,6 +907,7 @@ pbs_scores <- compute_pbs_scores(pbs)
 ```{r}
 #| label: realpbsloop
 #| include: false
+#| dependson: [pbs, pbsloop]
 #| eval: true
 #| code-fold: false
 
@@ -911,6 +920,7 @@ We will identify as anomalies any observations with a surprisal probability less
 ```{r}
 #| label: pbs_scores3
 #| code-fold: false
+#| dependson: realpbsloop
 
 pbs_anomalies <- pbs_scores |> filter(prob < 0.001)
 pbs_anomalies
@@ -921,7 +931,7 @@ Now let's look at the A12 series that we started with, and consider the times wh
 ```{r}
 #| label: fig-pbs-a12-anomalies
 #| code-fold: false
-#| dependson: [ch11_functions, pbs_scores3]
+#| dependson: [ch11_functions, pbs, pbs_scores3]
 #| fig-cap: Surveillance anomalies identified over time for ATC group A12 (Mineral supplements).
 
 pbs_plot(pbs, pbs_anomalies, "A12")
@@ -936,7 +946,7 @@ After that, the model has learned to allow for large jumps in the series, so the
 ```{r}
 #| label: fig-pbs-n07-anomalies
 #| code-fold: false
-#| dependson: [ch11_functions, pbs_scores3]
+#| dependson: [ch11_functions, pbs, pbs_scores3]
 #| fig-cap: Surveillance anomalies identified over time for ATC group N07.
 
 pbs_plot(pbs, pbs_anomalies, "N07")
@@ -946,11 +956,11 @@ The next example, shown in @fig-pbs-r05-anomalies, shows less dramatic anomalies
 
 ```{r}
 #| label: fig-pbs-r05-anomalies
-#| dependson: [ch11_functions, pbs_scores3]
+#| dependson: [ch11_functions, pbs, pbs_scores3]
 #| code-fold: false
 #| fig-cap: Surveillance anomalies identified over time for ATC group R05.
 
 pbs_plot(pbs, pbs_anomalies, "R05")
 ```
 
-The first anomaly in 1994 has an unusually large peak compared to the preceding years; the next two in 1997 precede an unusually low trough compared to the previous years; and the final two in 2004 coincide with a disruption to the seasonal pattern in that year.
+The first anomaly in 1994 has an unusually large peak compared to the preceding years; the next two, in December 1997 and January 1998, precede an unusually low trough compared to the previous years; and the final two in 2004 coincide with a disruption to the seasonal pattern in that year.

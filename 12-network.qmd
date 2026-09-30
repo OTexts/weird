@@ -157,17 +157,17 @@ It is the most basic measure of how connected a node is, but it says nothing abo
 **Betweenness centrality** counts, for a given node, how many of the shortest paths between all *other* pairs of nodes pass through it.
 A senator with high betweenness lies on many of the shortest routes connecting pairs of colleagues, so removing them from the network would make those colleague pairs much more distant from one another; such senators act as bridges between groups that would otherwise vote quite separately.
 
-**Closeness centrality** is the inverse of the average shortest-path distance from a node to every other node in the network.
+**Closeness centrality** is the inverse of the sum of the shortest-path distances from a node to every other node it can reach in the network.
 A senator with high closeness can reach any other senator's voting bloc in relatively few steps, whereas a senator with low closeness is, on average, many steps removed from the rest of the chamber.
 
 **PageRank**, originally developed by Google to rank web pages by importance, assigns each node a score based on the scores of the nodes linking to it, so a node is considered important if it is connected to other important nodes, not merely to many nodes.
 Applied here, a senator has high PageRank if they co-vote with other senators who are themselves well-connected, rather than simply co-voting with a large number of colleagues.
 
 **Coreness** describes how deeply a node sits within the network's most densely connected part.
-A node has coreness $k$ if it belongs to a subgraph in which every node has at least $k$ connections *within that subgraph*, found by repeatedly stripping away the least-connected remaining nodes.
+A node has coreness $k$ if $k$ is the largest value for which it belongs to a subgraph in which every node has at least $k$ connections *within that subgraph*, found by repeatedly stripping away the least-connected remaining nodes.
 Senators with high coreness sit within a tightly interconnected core of colleagues who mostly co-vote with each other.
 
-**Transitivity**, also called the local clustering coefficient, measures what proportion of a senator's co-voting partners also co-vote with each other.
+**Transitivity**, also called the local clustering coefficient, measures what proportion of the pairs of a senator's co-voting partners also co-vote with each other.
 If a senator co-votes with both senator B and senator C, high transitivity means B and C are also likely to co-vote with one another, indicating that the senator sits within a tightly knit voting clique rather than bridging otherwise unconnected colleagues.
 
 ```{r}
@@ -229,7 +229,7 @@ stopifnot(all(
 ))
 ```
 
-`r n_flagged` senators fall below the $\alpha = 0.05$ threshold used throughout this chapter, but two are unambiguous, with a conditional probability of essentially zero and a betweenness centrality several times higher than anyone else in the chamber: one Republican and one Democrat, each sitting on far more shortest paths between their colleagues than is typical for their party.
+`r n_flagged` senators fall below the $\alpha = 0.05$ threshold used throughout this chapter, but two are unambiguous, with surprisal probabilities close to zero and the two highest betweenness centralities in the chamber: one Republican and one Democrat, each sitting on far more shortest paths between their colleagues than is typical for their party.
 A senator with high betweenness is one whose voting pattern regularly links senators who otherwise vote in separate blocs.
 
 @fig-senate-nodes shows the two-dimensional projection used for detection, with the flagged senators highlighted.
@@ -240,7 +240,7 @@ They sit well apart from the bulk of the chamber.
 #| dependson: senate-node-anomaly
 #| fig-cap: >-
 #|   Two-dimensional robust PCA projection of the node-level features for the 100th Congress.
-#|   The two senators with the lowest conditional probability are shown in orange.
+#|   The two senators with the lowest surprisal probability are shown in orange.
 
 as_tibble(senate_node_pca$scores) |>
   mutate(flagged = rank(senate_node_features$prob) <= 2) |>
@@ -252,7 +252,7 @@ as_tibble(senate_node_pca$scores) |>
 ```
 
 We picked the 100th Congress somewhat arbitrarily here, just to illustrate the method.
-But later in the chapter, in @sec-senate-network, we look for anomalies across the whole 74-Congress sequence rather than within a single one, and find that the 100th Congress is flagged there too, as the single most unusual network in the entire sequence.
+But later in the chapter, in @sec-senate-network, we look for anomalies across the whole `r length(senate_congress)`-Congress sequence rather than within a single one, and find that the 100th Congress is flagged there too, as the single most unusual network in the entire sequence.
 That is independent evidence that these two bridging senators were not a fluke: the unusual collaboration visible at the level of individual senators here also shows up as an anomaly at the level of the whole network.
 
 The same recipe --- compute node features with `igraph`, reduce their dimension, and apply lookout --- works for any single network, not just this one.
@@ -293,24 +293,25 @@ tibble(
 
 These features fall into three broad groups.
 
-Some are simple size and density measures: the number of nodes and edges, the **density** (the proportion of all possible edges that are actually present, out of $\binom{n}{2}$ pairs of nodes for a network of $n$ nodes), and the proportion of isolated nodes with no edges at all.
+Some are simple size and density measures: the number of nodes and edges, the **density** (the proportion of all possible edges that are actually present, out of $\binom{n}{2}$ pairs of nodes for an undirected network of $n$ nodes, or $n(n-1)$ ordered pairs for a directed network), and the proportion of isolated nodes with no edges at all.
 
 Others are centrality measures, several of which we already defined at the node level in @sec-network-nodes: degree, betweenness, closeness, PageRank and coreness.
 Two further centrality measures appear only here.
 A node's **hub score** is high if it links to many good "authorities", and a node's **authority score** is high if it is linked to by many good hubs; the two scores are defined jointly, each reinforcing the other, in the same iterative spirit as PageRank.
 They were originally developed to distinguish web pages that provide a good list of links (hubs) from pages that are themselves worth linking to (authorities).
 Degree, triangles, betweenness, PageRank and coreness each produce a whole distribution of values across the nodes of a network, so `oddnet` summarises each of them with a single number, the 99th percentile of that distribution, focusing on the most extreme node for each measure since anomaly detection is more concerned with unusual tails than with typical values.
-Closeness is summarised differently, since it always lies between 0 and 1 and its 99th percentile is close to 1 for almost any network, making it uninformative; instead `oddnet` records the proportion of nodes with closeness of at least 0.8.
+Closeness is summarised differently: `oddnet` records the proportion of nodes with closeness of at least 0.8.
+Since closeness is the inverse of a *sum* of distances, this can only happen when a node can reach exactly one other node (such as either node of an isolated pair), so this feature is usually zero for a well-connected network.
 The hub and authority scores are summarised differently again, using the single largest eigenvalue associated with each measure, a property of the network as a whole rather than of any individual node.
 
 The remaining features describe the overall structure of the network, rather than any individual node within it.
 The **triangle** count for a node is the number of pairs of its neighbours that are themselves connected, closely related to the transitivity defined in @sec-network-nodes but expressed as a count rather than a proportion; `oddnet` again uses the 99th percentile of this count across nodes, alongside the network-wide **clustering coefficient** (the overall transitivity of the whole network).
 **Assortativity** measures whether nodes tend to connect to other nodes with a similar degree to their own: a network is assortative if well-connected nodes mostly link to other well-connected nodes, and disassortative if well-connected nodes tend to link to poorly connected ones.
-The **diameter** is the length of the longest shortest path between any two nodes in the network, and the **mean distance** is the average shortest-path length over all pairs of nodes; both describe how spread out the network is, in the same spirit as closeness centrality, but summarised across the whole network rather than computed for a single node.
+The **diameter** is the length of the longest shortest path between any two nodes in the network, and the **mean distance** is the average shortest-path length over all pairs of nodes (in both cases ignoring pairs with no path between them); both describe how spread out the network is, in the same spirit as closeness centrality, but summarised across the whole network rather than computed for a single node.
 A network's nodes need not all be reachable from one another: the **number of connected components** counts how many separate pieces the network breaks into, and `oddnet` also records the size of the largest such component.
 Finally, **vertex connectivity** counts the minimum number of nodes that would need to be removed to disconnect the network, and **global efficiency** averages the inverse of the shortest-path length over all pairs of nodes, so that networks with many short paths between nodes are more efficient than those relying on a few long ones.
 
-Computing the total number of edges for every Congress in the sequence, and plotting it over time in @fig-senate-edges, does not make the 100th Congress obviously anomalous: it sits within a noisy, generally increasing trend in the number of co-voting edges across the whole 74-Congress sequence.
+Computing the total number of edges for every Congress in the sequence, and plotting it over time in @fig-senate-edges, does not make the 100th Congress obviously anomalous: it sits within a noisy, generally increasing trend in the number of co-voting edges across the whole `r length(senate_congress)`-Congress sequence.
 
 ```{r}
 #| label: senate-edges
@@ -400,7 +401,7 @@ senate_edges_resid |>
 Applying this same idea to each of the $m = 20$ network features gives a residual vector $\bm{e}_t = (e_{t,1}, \dots, e_{t,m})^\intercal$ for every network in the sequence, with the temporal dependence in each feature removed.
 An anomalous network should now correspond to an unusually large $\bm{e}_t$.
 
-### From residuals to anomalies {#sec-network-anomaly}
+### From residuals to anomalies
 
 We now have a sequence of $m$-dimensional residual vectors, and need to decide which are anomalous.
 As discussed in @sec-highdim, anomaly detection in high dimensions is hard: points are far apart, and errors in different features can be correlated with one another.
@@ -408,7 +409,8 @@ As discussed in @sec-highdim, anomaly detection in high dimensions is hard: poin
 
 First, the residuals are projected onto a two-dimensional subspace using a robust form of PCA.
 We already met the idea of robustifying PCA in @sec-robpca: rather than finding the directions of maximum variance using every observation (which lets anomalies pull the projection towards themselves), a robust method down-weights unusual observations when estimating the projection directions.
-`oddnet` uses a different robust PCA method to the ROBPCA algorithm of @sec-robpca, namely projection pursuit [implemented in `pcaPP::PCAproj()`, @pcaPP], but the underlying principle is the same --- the same function we used to reduce the node-level features in @sec-network-nodes.
+`oddnet` uses a different robust PCA method to the ROBPCA algorithm of @sec-robpca, namely projection pursuit [implemented in `pcaPP::PCAproj()`, @pcaPP], but the underlying principle is the same.
+This is the same function we used to reduce the node-level features in @sec-network-nodes.
 
 Second, the two-dimensional projection is searched for anomalies using the lookout algorithm from @sec-loo-surprisals, which computes leave-one-out kernel density surprisal probabilities.
 A network is flagged as anomalous if its conditional probability, as estimated by lookout, falls below a threshold $\alpha$ (we use $\alpha = 0.05$ throughout this chapter, following @oddnet).
@@ -434,7 +436,7 @@ We already used one Congress from this data set, the 100th, to find anomalous in
 Now we ask a different question of the full `r length(senate_networks)`-Congress sequence: is any single Congress, as a whole network, unusual compared to the rest?
 
 @fig-senate-networks shows the co-voting network for four Congresses, coloured by party.
-The parties become increasingly separated over time, from an almost undifferentiated network in the 40th Congress to two entirely disconnected clusters in the 113th.
+After the earliest Congresses, the parties become clearly separated, from an almost undifferentiated network in the 40th Congress to two party blocs joined by few or no edges in the later ones (none at all in the 64th, and only a handful in the 113th).
 
 ```{r}
 #| label: fig-senate-networks
@@ -520,12 +522,12 @@ uci_networks <- lapply(uci_dates, \(d) {
 ```
 
 This gives `r length(uci_networks)` daily networks, ranging in size from a handful of active students early in the data to several hundred later on.
-@fig-uci-networks shows three of these daily networks, illustrating how sparse activity on an ordinary day (day 6) contrasts with a much busier day (day 45).
+@fig-uci-networks shows three of these daily networks, illustrating how sparse activity on an ordinary day (day 6) contrasts with much busier days (days 25 and 45).
 
 ```{r}
 #| label: fig-uci-networks
 #| dependson: [uci-data, ch12_libraries]
-#| fig-cap: "UCI message networks for three days, showing how activity varies from sparse (day 6) to unusually busy (day 45)."
+#| fig-cap: "UCI message networks for three days, showing how activity varies from sparse (day 6) to much busier (days 25 and 45)."
 #| fig-asp: 0.36
 
 uci_gr <- function(i) {
@@ -571,4 +573,4 @@ stopifnot(all(key_dates %in% uci_flagged))
 
 Unlike the Senate network, which drifts slowly over decades, this network is driven by the rhythm of the academic calendar.
 Several of the flagged dates cluster around 28 May, close to the end of the platform's initial rapid growth phase identified by @Panzarasa2009, and around 15 June and 24 September, close to the end of the Spring term (19 June) and the start of the Fall term (20 September) respectively.
-The two examples in this section illustrate quite different anomaly patterns: a slow structural realignment measured in decades, against short bursts of activity tied to a fixed calendar.
+The Senate and UCI examples illustrate quite different anomaly patterns: a slow structural realignment measured in decades, against short bursts of activity tied to a fixed calendar.
