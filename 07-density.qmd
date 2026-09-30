@@ -466,9 +466,9 @@ A Gaussian mixture model (GMM) is a flexible parametric model for the joint dist
 It comprises a weighted sum of multivariate Normal distributions, each with its own mean vector and covariance matrix.
 That is,
 $$
-  f(\bm{y}) = \sum_{k=1}^K w_k \phi(\bm{y}; \bm{\mu}_k, \bm{\Sigma}_k),
+  f(\bm{y}) = \sum_{k=1}^K \pi_k \phi(\bm{y}; \bm{\mu}_k, \bm{\Sigma}_k),
 $$
-where $K$ is the number of components, the weights $w_k \ge 0$ sum to 1, and $\phi(\bm{y}; \bm{\mu}_k, \bm{\Sigma}_k)$ is the multivariate Normal density with mean $\bm{\mu}_k$ and covariance matrix $\bm{\Sigma}_k$.
+where $K$ is the number of components, the weights $\pi_k \ge 0$ sum to 1, and $\phi(\bm{y}; \bm{\mu}_k, \bm{\Sigma}_k)$ is the multivariate Normal density with mean $\bm{\mu}_k$ and covariance matrix $\bm{\Sigma}_k$.
 In fact, a KDE with a Gaussian kernel can be considered a Gaussian mixture model with a large number of equally-weighted components, each centred at an observation and with a common covariance matrix given by the bandwidth matrix.
 However, we can also fit a GMM with a smaller number of components, which may provide a more parsimonious model for the data.
 The `mclust` package provides a convenient way to fit GMMs to data.

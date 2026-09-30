@@ -620,9 +620,9 @@ Thus, the number of splits required to isolate an observation can be used as a m
 
 To build an **isolation tree** (iTree), we recursively partition the data as follows:
 
-1. Select a variable $q$ uniformly at random from all variables.
-2. Select a split value $p$ uniformly at random from the range of $q$ in the current sample.
-3. Assign observations with $q < p$ to the left child node and the rest to the right child node.
+1. Select a variable $v$ uniformly at random from all variables.
+2. Select a split value $\tau$ uniformly at random from the range of $v$ in the current sample.
+3. Assign observations with $v < \tau$ to the left child node and the rest to the right child node.
 4. Recursively apply Steps 1--3 on each child until either the node contains a single observation or a maximum tree height is reached.
    By default, the maximum tree height is set to $\lceil\log_2(n)\rceil$.
 
@@ -888,11 +888,11 @@ As no pairwise distances are computed, iForest scales naturally to large, high-d
 
 The **anomaly score** for observation $\bm{y}$ is then computed by averaging the path lengths across the ensemble of iTrees, and normalising by the expected path length for a sample of size $\psi$:
 $$
-  s(\bm{y}, \psi) = 2^{-\bar{h}(\bm{y})/c(\psi)},
+  a(\bm{y}, \psi) = 2^{-\bar{h}(\bm{y})/c(\psi)},
 $$
 where $\bar{h}(\bm{y})$ is the average path length over all trees in the ensemble.
 The score lies in $(0, 1]$.
-Observations with $s$ closer to 1 are more likely to be anomalies; those with $s$ well below 0.5 are unlikely to be anomalies; if all scores cluster around 0.5, the data probably contain no clear anomalies.
+Observations with $a(\bm{y}, \psi)$ closer to 1 are more likely to be anomalies; those with $a(\bm{y}, \psi)$ well below 0.5 are unlikely to be anomalies; if all scores cluster around 0.5, the data probably contain no clear anomalies.
 
 ### Extended Isolation Forest
 

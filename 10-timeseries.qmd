@@ -191,15 +191,15 @@ To illustrate, we will consider two such approaches, but many more are possible 
 ### Hampel identifier
 
 The Hampel identifier is due to a proposal of Frank Hampel [@Davies1993], and is designed to identify anomalies in a time series based on whether an observation is very different from the neighbouring observations.
-Suppose we define neighbourhoods comprising observations within $h$ time periods.
+Suppose we define neighbourhoods comprising observations within $w$ time periods.
 Then the local median is given by
 $$
-  m_t = \text{median}(y_{t-h}, \dots, y_{t+h}).
+  m_t = \text{median}(y_{t-w}, \dots, y_{t+w}).
 $$
 This is also called a "moving median", a "running median" or a "rolling median".
 Similarly, the local median absolute deviation (MAD) is given by
 $$
-  a_t = \text{median}(|y_{t-h} - m_t|, \dots, |y_{t+h} - m_t|).
+  a_t = \text{median}(|y_{t-w} - m_t|, \dots, |y_{t+w} - m_t|).
 $$
 This measures the variation of the series in the neighbourhood of time $t$.
 The residuals $e_t = (y_t - m_t)/a_t$ provide a measure for how different an observation $y_t$ is from its neighbours.
@@ -213,7 +213,7 @@ A related idea is the Hampel filter, where each anomaly is replaced by the local
 The threshold is often set under the assumption of a Normal distribution, for which the MAD is equal to 0.6745 times the standard deviation.
 So it is common to set $\tau = k/0.6745$ where $k$ is the number of standard deviations permitted before an observation is considered an outlier.
 Because we apply the rule repeatedly over the length of a time series, we need to be careful of the problem of multiple comparisons, where the probability of a false positive overall is much larger than the probability of a false positive for each individual test.
-However, it is not straightforward to adjust the probabilities because the tests are not independent, and the dependency between them depends on the window half-width $h$, and the characteristics of the time series.
+However, it is not straightforward to adjust the probabilities because the tests are not independent, and the dependency between them depends on the window half-width $w$, and the characteristics of the time series.
 The `hampel_anomalies()` function implements this algorithm.
 
 The implied statistical model is
@@ -228,7 +228,7 @@ That is, the Normal distribution is used to compute the surprisals, but the GPD 
 Then we would specify the threshold as a probability $\alpha$ rather than a number of standard deviations $k$.
 
 The code below applies the algorithm to all `r fr_mortality |> select(Age, Sex) |> distinct() |> NROW()` time series in `fr_mortality`.
-The `bandwidth` argument corresponds to $h$, and we set $\alpha = 0.01$.
+The `bandwidth` argument corresponds to $w$, and we set $\alpha = 0.01$.
 
 ```{r}
 #| label: hampel-anomalies
