@@ -19,11 +19,11 @@ checksum = "md5:ce5e3153cc7395a2aac452db1099d003"
 
 [[package]]
 name = "DEoptimR"
-version = "1.2.1"
+version = "1.2.2"
 source = "cran"
-raw_version = "1.2-1"
-url = "https://cran.r-project.org/src/contrib/DEoptimR_1.2-1.tar.gz"
-checksum = "md5:5d16e94ad9e17e836a3155305594951e"
+raw_version = "1.2-2"
+url = "https://cran.r-project.org/src/contrib/DEoptimR_1.2-2.tar.gz"
+checksum = "md5:0af4b88f4bdcbb6cee8aaf944e96f3b5"
 
 [[package]]
 name = "DepthProc"
@@ -394,11 +394,11 @@ requires = [
 
 [[package]]
 name = "XML"
-version = "3.99.0-4.24"
+version = "3.99.0-4.25"
 source = "cran"
-raw_version = "3.99-0.24"
-url = "https://cran.r-project.org/src/contrib/XML_3.99-0.24.tar.gz"
-checksum = "md5:446719b5291e40c5df512f34d1588444"
+raw_version = "3.99-0.25"
+url = "https://cran.r-project.org/src/contrib/XML_3.99-0.25.tar.gz"
+checksum = "md5:fc6edff6c7f88b8a865b51363d48c60a"
 
 [[package]]
 name = "abind"
@@ -1547,11 +1547,11 @@ checksum = "md5:b79f9a70433189507d3eb0bdc07fae6e"
 
 [[package]]
 name = "glmnet"
-version = "5.0.0"
+version = "5.1.0"
 source = "cran"
-raw_version = "5.0"
-url = "https://cran.r-project.org/src/contrib/glmnet_5.0.tar.gz"
-checksum = "md5:094cffb05ba0a8685aae3e1bb8cf2c9d"
+raw_version = "5.1"
+url = "https://cran.r-project.org/src/contrib/glmnet_5.1.tar.gz"
+checksum = "md5:9ff5a9e4f2a2ceded081005bea78cbd3"
 requires = [
     "Matrix",
     "foreach",
@@ -2026,11 +2026,11 @@ checksum = "md5:915e6c823c1d8243641ce97253389f14"
 
 [[package]]
 name = "languageserver"
-version = "0.3.18"
+version = "0.3.20"
 source = "cran"
-raw_version = "0.3.18"
-url = "https://cran.r-project.org/src/contrib/languageserver_0.3.18.tar.gz"
-checksum = "md5:3283b759b82dbc59a2f884b3f1d6aab2"
+raw_version = "0.3.20"
+url = "https://cran.r-project.org/src/contrib/languageserver_0.3.20.tar.gz"
+checksum = "md5:059cd3f1b895c40d32e61a0a7fcb36c0"
 requires = [
     "callr",
     "collections",
@@ -2133,6 +2133,18 @@ requires = [
 ]
 
 [[package]]
+name = "litedown"
+version = "0.11.0"
+source = "cran"
+raw_version = "0.11"
+url = "https://cran.r-project.org/src/contrib/litedown_0.11.tar.gz"
+checksum = "md5:f1faa1676570c7c4a4dad09b4d0986e9"
+requires = [
+    "commonmark",
+    "xfun",
+]
+
+[[package]]
 name = "lme4"
 version = "2.0.6"
 source = "cran"
@@ -2222,11 +2234,11 @@ requires = [
 
 [[package]]
 name = "magic"
-version = "1.6.1"
+version = "1.6.1-4.1"
 source = "cran"
-raw_version = "1.6-1"
-url = "https://cran.r-project.org/src/contrib/magic_1.6-1.tar.gz"
-checksum = "md5:8b5ae0549795f46eba07cbc71c04b4a7"
+raw_version = "1.6-1-1"
+url = "https://cran.r-project.org/src/contrib/magic_1.6-1-1.tar.gz"
+checksum = "md5:65c20718e6a32e9fbb863a30b81bad58"
 requires = ["abind"]
 
 [[package]]
@@ -2244,6 +2256,18 @@ source = "cran"
 raw_version = "3.4.3"
 url = "https://cran.r-project.org/src/contrib/maps_3.4.3.tar.gz"
 checksum = "md5:63f7c0fdc3489726d253cdc09aaebda4"
+
+[[package]]
+name = "markdown"
+version = "2.0.0"
+source = "cran"
+raw_version = "2.0"
+url = "https://cran.r-project.org/src/contrib/markdown_2.0.tar.gz"
+checksum = "md5:c282c06e61ae9df4fe66d484792fe2b7"
+requires = [
+    "xfun",
+    "litedown",
+]
 
 [[package]]
 name = "matrixStats"
@@ -2335,11 +2359,11 @@ requires = [
 
 [[package]]
 name = "mirai"
-version = "2.7.2"
+version = "2.7.3"
 source = "cran"
-raw_version = "2.7.2"
-url = "https://cran.r-project.org/src/contrib/mirai_2.7.2.tar.gz"
-checksum = "md5:102c286631f6580ce76016a5620b601a"
+raw_version = "2.7.3"
+url = "https://cran.r-project.org/src/contrib/mirai_2.7.3.tar.gz"
+checksum = "md5:84bfa1981bf129efeecfd973c264e146"
 requires = ["nanonext"]
 
 [[package]]
@@ -2429,11 +2453,11 @@ checksum = "md5:41dff32c7de1b000c61e59595ac6752d"
 
 [[package]]
 name = "nanonext"
-version = "1.10.2"
+version = "1.10.3"
 source = "cran"
-raw_version = "1.10.2"
-url = "https://cran.r-project.org/src/contrib/nanonext_1.10.2.tar.gz"
-checksum = "md5:2eb717e86562f3b7d41ec74cbe07c6fb"
+raw_version = "1.10.3"
+url = "https://cran.r-project.org/src/contrib/nanonext_1.10.3.tar.gz"
+checksum = "md5:6ca73a4aa9b0debccee90ec360097d50"
 
 [[package]]
 name = "network"
@@ -2861,11 +2885,11 @@ requires = [
 
 [[package]]
 name = "readxl"
-version = "1.5.0"
+version = "1.5.0-4.1"
 source = "cran"
-raw_version = "1.5.0"
-url = "https://cran.r-project.org/src/contrib/readxl_1.5.0.tar.gz"
-checksum = "md5:bd4cffa51566929514856062c026ffb6"
+raw_version = "1.5.0.1"
+url = "https://cran.r-project.org/src/contrib/readxl_1.5.0.1.tar.gz"
+checksum = "md5:c29e07dbcae56f627b3db7ce48a5577b"
 requires = [
     "cellranger",
     "tibble",
@@ -3156,12 +3180,11 @@ requires = [
 
 [[package]]
 name = "selectr"
-version = "0.6.0"
+version = "0.8.0"
 source = "cran"
-raw_version = "0.6-0"
-url = "https://cran.r-project.org/src/contrib/selectr_0.6-0.tar.gz"
-checksum = "md5:7d86872fb9fa73c7c81aa6682134d712"
-requires = ["R6"]
+raw_version = "0.8-0"
+url = "https://cran.r-project.org/src/contrib/selectr_0.8-0.tar.gz"
+checksum = "md5:06a8ec7b306aec30a99f3654c60d5f59"
 
 [[package]]
 name = "sgeostat"
@@ -3262,11 +3285,11 @@ requires = [
 
 [[package]]
 name = "spatstat.geom"
-version = "3.8.2"
+version = "3.8.3"
 source = "cran"
-raw_version = "3.8-2"
-url = "https://cran.r-project.org/src/contrib/spatstat.geom_3.8-2.tar.gz"
-checksum = "md5:905d968e1d3e5feecf8bb09e6b9d19b8"
+raw_version = "3.8-3"
+url = "https://cran.r-project.org/src/contrib/spatstat.geom_3.8-3.tar.gz"
+checksum = "md5:538edf1d437505fe12288cc59b7f1716"
 requires = [
     "spatstat.data",
     "spatstat.univar",
@@ -3277,11 +3300,11 @@ requires = [
 
 [[package]]
 name = "spatstat.random"
-version = "3.5.1"
+version = "3.5.2"
 source = "cran"
-raw_version = "3.5-1"
-url = "https://cran.r-project.org/src/contrib/spatstat.random_3.5-1.tar.gz"
-checksum = "md5:c7d5f0ae33729d5f1e9f5c2b7b4d3203"
+raw_version = "3.5-2"
+url = "https://cran.r-project.org/src/contrib/spatstat.random_3.5-2.tar.gz"
+checksum = "md5:ac4ff30ce3deaf41960869477bf21b3d"
 requires = [
     "spatstat.data",
     "spatstat.univar",
@@ -3353,11 +3376,11 @@ requires = [
 
 [[package]]
 name = "stbl"
-version = "0.4.0"
+version = "0.5.0"
 source = "cran"
-raw_version = "0.4.0"
-url = "https://cran.r-project.org/src/contrib/stbl_0.4.0.tar.gz"
-checksum = "md5:24ae4b0d4ce82e6acfd437dcdbd80318"
+raw_version = "0.5.0"
+url = "https://cran.r-project.org/src/contrib/stbl_0.5.0.tar.gz"
+checksum = "md5:549a20ef55567784423650f116ffcab7"
 requires = [
     "cli",
     "glue",
@@ -3582,11 +3605,11 @@ requires = [
 
 [[package]]
 name = "tidytuesdayR"
-version = "1.3.2"
+version = "1.3.3"
 source = "cran"
-raw_version = "1.3.2"
-url = "https://cran.r-project.org/src/contrib/tidytuesdayR_1.3.2.tar.gz"
-checksum = "md5:143eb94e66f91e3e40b58a17a59cbd07"
+raw_version = "1.3.3"
+url = "https://cran.r-project.org/src/contrib/tidytuesdayR_1.3.3.tar.gz"
+checksum = "md5:ece86f5288f0a9e0d8f12c1d0cb47d21"
 requires = [
     "cli",
     "gh",
@@ -3594,6 +3617,7 @@ requires = [
     "jsonlite",
     "lubridate",
     "magrittr",
+    "markdown",
     "purrr",
     "readr",
     "rlang",
@@ -3662,11 +3686,11 @@ requires = ["cpp11"]
 
 [[package]]
 name = "tinytex"
-version = "0.60.0"
+version = "0.61.0"
 source = "cran"
-raw_version = "0.60"
-url = "https://cran.r-project.org/src/contrib/tinytex_0.60.tar.gz"
-checksum = "md5:c680dc21cfd948a22a4f72427967e3e0"
+raw_version = "0.61"
+url = "https://cran.r-project.org/src/contrib/tinytex_0.61.tar.gz"
+checksum = "md5:67e114649aa529e1631baed939110e97"
 requires = ["xfun"]
 
 [[package]]
@@ -3929,8 +3953,8 @@ checksum = "md5:b5603af0a2d1b62511f85f5574c747a8"
 name = "weird"
 version = "3.1.0-4.9000"
 source = "github"
-url = "https://api.github.com/repos/robjhyndman/weird/tarball/888e08b47cab9a4783d98def59d43620843614de"
-checksum = "git:888e08b47cab9a4783d98def59d43620843614de"
+url = "https://api.github.com/repos/robjhyndman/weird/tarball/f29bfb19fef2e9d6e1d706e125718d9b2e494b4d"
+checksum = "git:f29bfb19fef2e9d6e1d706e125718d9b2e494b4d"
 requires = [
     "aplpack",
     "broom",
@@ -3958,11 +3982,11 @@ checksum = "md5:121bf3699aadb9d1b47d648964b934f8"
 
 [[package]]
 name = "xfun"
-version = "0.60.0"
+version = "0.61.0"
 source = "cran"
-raw_version = "0.60"
-url = "https://cran.r-project.org/src/contrib/xfun_0.60.tar.gz"
-checksum = "md5:1bea9ab58602d9b6eac3b5823a95e5e6"
+raw_version = "0.61"
+url = "https://cran.r-project.org/src/contrib/xfun_0.61.tar.gz"
+checksum = "md5:70130070c686204fb71dbf20c6c871ac"
 
 [[package]]
 name = "xml2"
@@ -3994,9 +4018,9 @@ checksum = "md5:6beea9b09717960f6c79fcbc1e129c41"
 
 [[package]]
 name = "zoo"
-version = "1.9.0"
+version = "1.9.1"
 source = "cran"
-raw_version = "1.9-0"
-url = "https://cran.r-project.org/src/contrib/zoo_1.9-0.tar.gz"
-checksum = "md5:fba440a280e772990f55aeec7257ef85"
+raw_version = "1.9-1"
+url = "https://cran.r-project.org/src/contrib/zoo_1.9-1.tar.gz"
+checksum = "md5:d948b0cd582fea7c99faa2cdbe5cf305"
 requires = ["lattice"]
