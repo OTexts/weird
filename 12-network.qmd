@@ -45,7 +45,7 @@ party_palette <- c(
   common = "#009E73"
 )
 
-# Plot a network using a Fruchterman-Reingold layout, optionally coloured by
+# Plot a network using a Fruchterman–Reingold layout, optionally coloured by
 # a vertex grouping (e.g. political party).
 network_plot <- function(
   gr,
@@ -280,7 +280,7 @@ We now turn to a different question: instead of looking for unusual nodes within
 We now turn to the second problem introduced at the start of the chapter: given a sequence of networks $\mathcal{G}_1, \mathcal{G}_2, \dots$ observed over time, is any one of them anomalous compared to the rest?
 Unlike the node-level problem, this requires modelling the temporal dependence between networks, which `oddnet` builds up in three steps: mapping each network to a feature vector, modelling each feature series over time, and finally reducing dimension and detecting anomalies in the resulting residuals.
 
-### From networks to features {#sec-network-features}
+### From networks to features
 
 The obvious way to compare two networks is to look at them.
 But networks resist direct comparison much more than numerical data does: two networks with a very different number of edges can look superficially similar when drawn, while two networks that look very different might have almost identical numbers of nodes, edges, and connected components.
@@ -362,7 +362,7 @@ The 100th Congress's raw edge count ranks only `r scales::ordinal(rank(-senate_e
 Not every anomaly will show up as an obvious spike in a raw feature, especially once we allow for trend and seasonality in how a feature evolves over time.
 For that, we need to bring in the time series tools from @sec-timeseries.
 
-### Modelling temporal dependence {#sec-network-timeseries}
+### Modelling temporal dependence
 
 Because the networks $\mathcal{G}_1, \mathcal{G}_2, \dots$ arrive in a sequence, so does each feature: $x_{t,1}, x_{t,2}, \dots, x_{t,m}$ traces out $m$ separate univariate time series, one per feature.
 This means we can bring the full machinery of time series anomaly detection to bear, rather than comparing raw feature values directly.
@@ -436,9 +436,9 @@ A network is flagged as anomalous if its surprisal probability, as estimated by 
 
 Putting these pieces together, `oddnet` proceeds as follows.
 
-**Step 1: Compute features.** Map each network $\mathcal{G}_t$ to its feature vector $\bm{x}_t = f(\mathcal{G}_t) \in \mathbb{R}^{m}$, as described in @sec-network-features.
+**Step 1: Compute features.** Map each network $\mathcal{G}_t$ to its feature vector $\bm{x}_t = f(\mathcal{G}_t) \in \mathbb{R}^{m}$, as described in "From networks to features" above.
 
-**Step 2: Model each feature series.** Fit an ARIMA model to each of the 20 feature series in turn, and compute the residuals $\bm{e}_t$, as described in @sec-network-timeseries.
+**Step 2: Model each feature series.** Fit an ARIMA model to each of the 20 feature series in turn, and compute the residuals $\bm{e}_t$, as described in "Modelling temporal dependence" above.
 
 **Step 3: Reduce dimension.** Project the residual vectors onto two dimensions using robust PCA.
 

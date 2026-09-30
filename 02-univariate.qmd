@@ -22,7 +22,7 @@ But for the first half of the book, we will only deal with numerical data.
 Let $Y$ denote a continuous random variable taking values in $\mathbb{R}$ (the real numbers), with its cumulative distribution function (cdf) given by
 $$
   F(y) = \Pr(Y \le y).
-$$ {#eq-cdf}
+$$
 This function is monotonically increasing in $y$, and takes values between 0 and 1.
 Because $Y$ is a continuous random variable, $F(y)$ is a continuous function of $y$.
 The probability density function (pdf) is defined as the derivative of the cdf, so $f(y) = F'(y)$, assuming the derivative exists at $y$.
@@ -294,7 +294,7 @@ The **order statistics** of a sample $y_1,\dots,y_n$ are the values rearranged i
 The $i$th **spacing** is the gap between consecutive order statistics,
 $$
   d_i = y_{(i+1)} - y_{(i)}, \quad i = 1, \ldots, n - 1.
-$$ {#eq-spacing}
+$$
 
 If the sample is iid from a U(0,1) distribution, then for large $n$ the spacings are approximately iid exponential random variables with mean $1/(n + 1)$, i.e., $\text{Exp}(n + 1)$.
 A spacing substantially larger than $1/(n + 1)$ therefore signals an unusually large gap at that location, which may indicate an anomalous observation.
@@ -537,7 +537,7 @@ For example, a 95% HDR is the region of the sample space that contains 95% of th
 For the univariate random variable $Y$, with a smooth, continuous density function $f$, the $100(1 - \alpha)$% HDR is the set
 $$
   R_\alpha = \{y: f(y) \ge f_\alpha\}
-$$ {#eq-hdr}
+$$
 where $\Pr(Y \in R_\alpha) = 1 - \alpha$.
 
 A useful property of the HDR is that it is the smallest region containing $1 - \alpha$ of the probability mass.
@@ -667,7 +667,7 @@ Another commonly used robust estimator of spread is the median absolute deviatio
 $$
   \text{MAD} = \text{median}(|y_i - \text{median}(y)|).
 $$ {#eq-mad}
-If our data come from a Normal distribution, then the standard deviation can be estimated by $0.7413 \times \text{IQR}$ or by $1.4826 \times \text{MAD}$.
+If our data come from a Normal distribution, then the standard deviation can be estimated by $0.7413 \times \text{IQR}$ (@eq-iqr) or by $1.4826 \times \text{MAD}$ (@eq-mad).
 
 A third robust estimator of the spread is the $Q_n$ estimator [@Rousseeuw1993-tq], based on pairwise differences between observations.
 Let $\Delta_{ij} = |y_i - y_j|$ denote the absolute difference between the $i$th and $j$th observations, for $1 \le i < j \le n$.
@@ -1062,7 +1062,7 @@ The probability distribution of *exceedances* above a specified threshold $u$ ca
 $$
   H(y) = \Pr\left\{ Y \le u + y \mid Y > u \right\}
        = \frac{F(u + y) - F(u)}{1 - F(u)}.
-$$ {#eq-POT3}
+$$
 When $F$ is in the domain of attraction of a GEV distribution, then for large $u$, $H$ is well approximated by a **Generalised Pareto Distribution** (GPD) [@coles2001introduction, p. 75] defined by
 $$
   H(y) \approx 1 - \Big( 1 + \frac{\xi y}{\sigma_u} \Big)^{-1/\xi} ,
@@ -1073,7 +1073,7 @@ In particular, the shape parameter $\xi$ is the same in both distributions.
 
 Continuing the previous example, we now look at the probability distribution of exceedances above 3 from a N(0,1) distribution.
 We simulate 100,000 N(0,1) values and only keep those above 3.
-Then two GPD estimates are drawn in @fig-pot.
+Then two GPD estimates (@eq-POT) are drawn in @fig-pot.
 The blue GPD uses the parameters obtained previously from the GEV estimate, while the orange GPD estimates the parameters from the exceedances.
 
 ```{r}

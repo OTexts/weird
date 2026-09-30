@@ -9,7 +9,7 @@ source("before-each-chapter.R")
 ```
 
 ```{r}
-#| label: ch11_functions
+#| label: ch10_functions
 #| include: false
 
 tscv_plot <- function(.init, .step, h = 1) {
@@ -752,7 +752,7 @@ The process can be illustrated as in @fig-tscvplots.
 #| label: fig-tscvplots
 #| fig-cap: Rolling origin forecasts, with the training sets expanding by one observation at each iteration, and one-step forecasts computed for each training set.
 #| echo: false
-#| dependson: ch11_functions
+#| dependson: ch10_functions
 
 tscv_plot(.init = 8, .step = 1, h = 1) +
   annotate(
@@ -931,7 +931,7 @@ Now let's look at the A12 series that we started with, and consider the times wh
 ```{r}
 #| label: fig-pbs-a12-anomalies
 #| code-fold: false
-#| dependson: [ch11_functions, pbs, pbs_scores3]
+#| dependson: [ch10_functions, pbs, pbs_scores3]
 #| fig-cap: Surveillance anomalies identified over time for ATC group A12 (Mineral supplements).
 
 pbs_plot(pbs, pbs_anomalies, "A12")
@@ -946,7 +946,7 @@ After that, the model has learned to allow for large jumps in the series, so the
 ```{r}
 #| label: fig-pbs-n07-anomalies
 #| code-fold: false
-#| dependson: [ch11_functions, pbs, pbs_scores3]
+#| dependson: [ch10_functions, pbs, pbs_scores3]
 #| fig-cap: Surveillance anomalies identified over time for ATC group N07.
 
 pbs_plot(pbs, pbs_anomalies, "N07")
@@ -956,7 +956,7 @@ The next example, shown in @fig-pbs-r05-anomalies, shows less dramatic anomalies
 
 ```{r}
 #| label: fig-pbs-r05-anomalies
-#| dependson: [ch11_functions, pbs, pbs_scores3]
+#| dependson: [ch10_functions, pbs, pbs_scores3]
 #| code-fold: false
 #| fig-cap: Surveillance anomalies identified over time for ATC group R05.
 

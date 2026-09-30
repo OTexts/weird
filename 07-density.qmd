@@ -363,7 +363,7 @@ The largest possible LOO KDE surprisal is infinite, occurring when there are no 
 ### The lookout algorithm
 
 The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2.
-It computes surprisal probabilities using a GPD approximation applied to the LOO KDE surprisals, where the bandwidth is chosen using the "lookout" method.
+It computes surprisal probabilities using a GPD approximation applied to the LOO KDE surprisals, where the bandwidth matrix is chosen using the "lookout" method (@eq-lookoutH).
 These probabilities can be calculated using the `surprisals_prob()` function with `loo = TRUE`, `approximation = "gpd"`, and `method = "lookout"`.
 
 ## Example: Old Faithful eruption durations {#sec-oldfaithful-density}
@@ -605,6 +605,11 @@ of
 of |>
   ggplot(aes(x = duration, y = waiting, colour = gmm_prob < 0.005)) +
   geom_point() +
+  labs(
+    x = "Duration",
+    y = "Waiting time",
+    colour = "Surprisal probability < 0.005"
+  ) +
   scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = "#D55E00"))
 ```
 
@@ -734,7 +739,7 @@ of_scores |>
   mutate(anomaly = prob < 0.005) |>
   ggplot(aes(x = duration, y = waiting, col = anomaly)) +
   geom_point() +
-  labs(col = "Surprisal Probability < 0.005") +
+  labs(x = "Duration", y = "Waiting time", col = "Surprisal probability < 0.005") +
   scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = "#D55E00"))
 ```
 

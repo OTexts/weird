@@ -912,7 +912,7 @@ batting_gaps |>
   ggplot(aes(x = upper_average, y = ws)) +
   geom_hline(yintercept = 2.25, linetype = "dashed", colour = "gray50") +
   geom_point(alpha = 0.5) +
-  labs(x = "Career batting average", y = "Tukey-Wainer-Schacht gap score")
+  labs(x = "Career batting average", y = "Tukey–Wainer–Schacht gap score")
 ```
 
 Restricting attention to scores above the exploratory threshold of 2.25, we show the five largest gaps below.

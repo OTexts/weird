@@ -212,7 +212,7 @@ pca_bases |>
   ggplot() +
   aes(x = Age, y = value, group = Basis, colour = Basis) +
   geom_line() +
-  labs(y = latex2exp::TeX("$b_i(x)$"), x = "Age (x)")
+  labs(y = latex2exp::TeX("$b_j(x)$"), x = "Age (x)")
 ```
 
 @fig-pca-bases shows the first three empirical basis functions.
@@ -242,7 +242,7 @@ pca_scores |>
   ) |>
   ggplot(aes(x = Year, y = value)) +
   geom_line(aes(colour = PC)) +
-  labs(y = latex2exp::TeX("$\\beta_{i,t}$"), x = "Year (t)")
+  labs(y = latex2exp::TeX("$\\beta_{ij}$"), x = "Year")
 ```
 
 @fig-pca-scores shows how the three component scores evolve over time.
@@ -404,7 +404,7 @@ This agreement across methods, along with the time series analysis of @sec-weird
 
 A boxplot summarises a univariate sample using a central box and whiskers, with points beyond the whiskers flagged as outliers.
 Several different ways of extending this idea to functional data are described over the sections that follow.
-The functional bagplot and the functional HDR boxplot, covered in this section and the next, were proposed by @HS08 [@rainbow].
+The functional bagplot and the functional HDR boxplot, covered in this section and the next, were proposed by Hyndman and Shang [-@HS08; -@rainbow].
 They follow a similar approach: reduce each curve to its first two functional principal component scores (@sec-basis-functions), draw the bivariate bagplot or HDR boxplot of those scores, and then map each region back to a functional envelope formed from the curves whose scores fall inside it.
 So the inner region of the functional bagplot is bounded by the curves whose scores lie in the bivariate bag, and the outer region is bounded by the curves whose scores lie in the bivariate loop.
 The bagplot's central point (the depth median of the scores) need not coincide with any observed point, so the "median curve" is instead taken to be the observed curve whose scores are closest (in Euclidean distance) to that central point.

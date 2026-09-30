@@ -496,21 +496,21 @@ df_no <- cricket_batting |>
 p <- sum(df_no$NotOuts) / sum(df_no$Innings)
 ```
 
-Consider the number of "not outs" for each male batter in the `cricket_batting` data set who has batted at least once.
-A "not out" occurs when a batter has not been dismissed at the end of the team's innings.
+Consider the number of "not-outs" for each male batter in the `cricket_batting` data set who has batted at least once.
+A "not-out" occurs when a batter has not been dismissed at the end of the team's innings.
 This can occur when the other ten batters have been dismissed (as the last batter cannot continue alone), or when the innings ends for some other reason (e.g., the captain declares the innings ended, or the team reaches its target and wins).
 
-Let's consider if there are some batters who have an unusually high proportion of not outs.
-The data set contains results from `r sum(df_no$Innings)` innings, of which `r sum(df_no$NotOuts)` were not outs.
-So the overall proportion of not outs is $`r sum(df_no[["NotOuts"]])` / `r sum(df_no[["Innings"]])` = `r sprintf("%.3f", p)`$.
+Let's consider if there are some batters who have an unusually high proportion of not-outs.
+The data set contains results from `r sum(df_no$Innings)` innings, of which `r sum(df_no$NotOuts)` were not-outs.
+So the overall proportion of not-outs is $`r sum(df_no[["NotOuts"]])` / `r sum(df_no[["Innings"]])` = `r sprintf("%.3f", p)`$.
 
 Players who bat first in the batting order are more likely to be dismissed than those who bat last, simply because there is more time for them to be dismissed.
 Unfortunately the data set does not include information about the position in which each player normally batted, so we can't use batting order directly.
 However, the best batters tend to bat early in the order, leaving the most unskilled batters (who are usually specialist bowlers) to bat last.
 A measure of a batter's skill is the number of runs they scored per innings (RPI), also known as the uncensored batting average.
-This is slightly different from the conventional batting average, which is the total number of runs scored divided by the number of times a batter has been dismissed.^[We use the uncensored batting average so that it is not directly affected by the number of not outs for each batter, which is the response variable in our fitted model.]
+This is slightly different from the conventional batting average, which is the total number of runs scored divided by the number of times a batter has been dismissed.^[We use the uncensored batting average so that it is not directly affected by the number of not-outs for each batter, which is the response variable in our fitted model.]
 
-@fig-notouts shows the proportion of not outs for each batter, plotted against their RPI.
+@fig-notouts shows the proportion of not-outs for each batter, plotted against their RPI.
 The relationship turns out to be slightly U-shaped, due to two different mechanisms.
 Weaker batters (with an RPI below 25) typically bat near the end of the batting order, so they are disproportionately likely to be the "last man standing", which inflates their not-out proportion.
 At the high end (RPI above about 40), a different mechanism applies: the best batters are simply harder to dismiss, so they often survive longer than weaker batters.
@@ -519,7 +519,7 @@ Batters with moderate RPIs (25--40) benefit from neither mechanism, so they have
 ```{r}
 #| label: fig-notouts
 #| fig-cap: >-
-#|   Proportion of not outs for each batter as a function of their runs per innings.
+#|   Proportion of not-outs for each batter as a function of their runs per innings.
 #|   Batters with few innings (fewer than 20) are shown in grey, to highlight the pattern from batters with more innings, shown in blue.
 #| message: false
 #| code-fold: true
@@ -548,11 +548,11 @@ df_no |>
 The unusual horizontal patterns in the grey points are due to the discrete nature of the data --- batters who have played only two innings must have a not-out proportion of either 0, 1/2, or 1, while those who have played only three innings must have a not-out proportion of either 0, 1/3, 2/3, or 1, and so on.
 As the number of innings played goes up, more not-out proportions become possible.
 
-We also expect that the pattern of not outs has changed over time.
+We also expect that the pattern of not-outs has changed over time.
 Test cricket has been played for almost 150 years, and the style of play and the nature of playing conditions have changed considerably over that time.
 Modern players tend to be more aggressive, and the pitches tend to be in better condition (and easier to bat on), than in earlier eras.
 
-To take all this into account, we can construct a GAM for the number of not outs for each batter as a function of their RPI and the year they started playing.
+To take all this into account, we can construct a GAM for the number of not-outs for each batter as a function of their RPI and the year they started playing.
 It is natural to use a Binomial distribution with a logit link function:
 $$
   \text{NotOuts} \mid \text{RPI}, \text{Start}
@@ -588,9 +588,9 @@ fit_notouts <- mgcv::gam(
 gratia::draw(fit_notouts)
 ```
 
-As expected, the probability of being not-out decreases as the RPI increases to about 30, and then increases again for the very best batters.
+As expected, the probability of being not out decreases as the RPI increases to about 30, and then increases again for the very best batters.
 The confidence interval on the curve is very wide after about 50, as there are very few batters with RPIs that high.
-The probability of being not-out also increases as the year of debut increases, until about 1975, and then decreases again.
+The probability of being not out also increases as the year of debut increases, until about 1975, and then decreases again.
 This is likely due to the introduction of limited overs cricket in the 1970s, which changed the style of play in Test cricket, and batters have since become more aggressive.
 
 Now we can use the fitted model to compute the surprisals from the Binomial distribution, and find the most anomalous batters.
@@ -612,13 +612,13 @@ notouts_aug <- augment(fit_notouts, data = df_no, type.predict = "response") |>
 notouts_aug
 ```
 
-The `.fitted` value is the expected proportion of not outs for each player under the fitted model, while `prop_no` gives the actual proportion of not outs they have had.
+The `.fitted` value is the expected proportion of not-outs for each player under the fitted model, while `prop_no` gives the actual proportion of not-outs they have had.
 
-The largest surprisal is for South African Shaun Pollock, who had `r notouts_aug$NotOuts[1]` not outs in `r notouts_aug$Innings[1]` innings, which is much higher than the expected number of not outs of $`r notouts_aug[["Innings"]][1]` \times `r sprintf("%.3f", notouts_aug[[".fitted"]][1])` = `r sprintf("%.1f", notouts_aug[[".fitted"]][1]*notouts_aug[["Innings"]][1])`$.
+The largest surprisal is for South African Shaun Pollock, who had `r notouts_aug$NotOuts[1]` not-outs in `r notouts_aug$Innings[1]` innings, which is much higher than the expected number of not-outs of $`r notouts_aug[["Innings"]][1]` \times `r sprintf("%.3f", notouts_aug[[".fitted"]][1])` = `r sprintf("%.1f", notouts_aug[[".fitted"]][1]*notouts_aug[["Innings"]][1])`$.
 Shaun Pollock was a bowling all-rounder and a capable batter in the lower order, playing a crucial role in building partnerships with the weakest batters.
 
 The next most anomalous result is for New Zealander Trent Boult, a specialist bowler who batted last, who for a while was Test cricket's leading run-scorer in that position, showing an unusual flair for entertaining batting.
-He had `r notouts_aug$NotOuts[2]` not outs in `r notouts_aug$Innings[2]` innings, compared to the expected number of not outs of $`r notouts_aug[["Innings"]][2]` \times `r sprintf("%.3f", notouts_aug[[".fitted"]][2])` = `r sprintf("%.1f", notouts_aug[[".fitted"]][2]*notouts_aug[["Innings"]][2])`$.
+He had `r notouts_aug$NotOuts[2]` not-outs in `r notouts_aug$Innings[2]` innings, compared to the expected number of not-outs of $`r notouts_aug[["Innings"]][2]` \times `r sprintf("%.3f", notouts_aug[[".fitted"]][2])` = `r sprintf("%.1f", notouts_aug[[".fitted"]][2]*notouts_aug[["Innings"]][2])`$.
 
 Neither of these anomalies is particularly unusual in their proportion of not-outs, but they become anomalous once their RPI and year of debut are taken into account.
 Because we have used a statistical model, we have been able to account for the particular features of this data set, such as the discrete nature of the data, and the changing variance, to identify observations that are anomalous in the context of the model.

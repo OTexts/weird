@@ -314,7 +314,7 @@ Suppose we have a multivariate random variable $\bm{Y}$ with a smooth, continuou
 Then the $100(1 - \alpha)$% HDR is the set
 $$
   R_\alpha = \{\bm{y}: f(\bm{y}) \ge f_\alpha\}
-$$ {#eq-mhdr}
+$$
 where $f_\alpha$ is the largest constant such that $\Pr(\bm{Y} \in R_\alpha) = 1 - \alpha$.
 
 HDRs are equivalent to level sets of the density function, and so can be plotted as contours for bivariate density functions.
