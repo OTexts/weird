@@ -471,7 +471,7 @@ Consequently, we will always use `type = 8` when computing sample quantiles in t
 
 ### Example: Test cricket batting averages {-}
 
-We can calculate some of the sample quantiles for Test cricket batting averages, considering only those batters who have played more than 20 innings.
+We can calculate some of the sample quantiles for Test cricket batting averages, considering only those batters who have played at least 20 innings.
 These values are easily computed using the `quantile()` function with argument `type = 8`.
 
 ```{r}
@@ -479,7 +479,7 @@ These values are easily computed using the `quantile()` function with argument `
 #| code-fold: false
 
 cricket_batting |>
-  filter(Innings > 20) |>
+  filter(Innings >= 20) |>
   pull(Average) |>
   quantile(prob = c(0, 0.25, 0.50, 0.75, 0.99, 1), type = 8)
 ```
@@ -489,10 +489,10 @@ cricket_batting |>
 #| fig-asp: 0.2
 #| warning: false
 #| message: false
-#| fig-cap: "Some sample quantiles of career batting averages for all men and women to have played Test cricket and batted more than 20 times."
+#| fig-cap: "Some sample quantiles of career batting averages for all men and women to have played Test cricket and batted at least 20 times."
 
 batave <- cricket_batting |>
-  filter(Innings > 20)
+  filter(Innings >= 20)
 p <- c(0.25, 0.5, 0.75, 0.99)
 Qs <- quantile(batave$Average, prob = p, type = 8)
 batave |>

@@ -520,7 +520,7 @@ Batters with moderate RPIs (25--40) benefit from neither mechanism, so they have
 #| label: fig-notouts
 #| fig-cap: >-
 #|   Proportion of not outs for each batter as a function of their runs per innings.
-#|   Batters with few innings (no more than 20) are shown in grey, to highlight the pattern from batters with more innings, shown in blue.
+#|   Batters with few innings (fewer than 20) are shown in grey, to highlight the pattern from batters with more innings, shown in blue.
 #| message: false
 #| code-fold: true
 
@@ -536,7 +536,7 @@ df_no |>
     aes(
       x = RPI,
       y = prop_no,
-      colour = Innings > 20
+      colour = Innings >= 20
     )
   ) +
   geom_point() +

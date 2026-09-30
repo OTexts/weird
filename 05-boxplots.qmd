@@ -46,10 +46,19 @@ Because each depth is roughly half the previous depth, the lower letter values p
 #| label: battinglv
 #| echo: false
 
-batave <- cricket_batting |> filter(Innings > 20)
+batave <- cricket_batting |> filter(Innings >= 20)
 n <- NROW(batave)
 lv <- lvplot::lvtable(batave$Average, k = 4)
 d <- lv[4:7, "depth"]
+# LaTeX for the order statistic(s) at depth d, averaging when d is a half-integer
+yd <- function(d, upper = FALSE) {
+  i <- if (upper) n - d + 1 else d
+  if (i == trunc(i)) {
+    sprintf("y_{(%d)}", as.integer(i))
+  } else {
+    sprintf("(y_{(%d)} + y_{(%d)})/2", as.integer(floor(i)), as.integer(ceiling(i)))
+  }
+}
 ```
 
 Consider the batting averages from @sec-sample-quantiles.
@@ -60,13 +69,13 @@ $$
 $$
 and the corresponding letter values are given by
 \begin{align*}
-  L_1 & = U_1 = y_{(`r trunc(d[1])`)} = `r sprintf("%2.2f", lv[4,"LV"])` &\\
-  L_F & = y_{(`r trunc(d[2])`)} = `r sprintf("%2.2f", lv[3,"LV"])` \qquad
-      & U_F                                                                                                & = y_{(`r trunc(n-d[2]+1)`)} = `r sprintf("%2.2f", lv[5,"LV"])` \\
-  L_E & = y_{(`r trunc(d[3])`)} = `r sprintf("%2.2f", lv[2,"LV"])` \qquad
-      & U_E                                                                                                & = y_{(`r trunc(n-d[3]+1)`)} = `r sprintf("%2.2f", lv[6,"LV"])` \\
-  L_D & = y_{(`r trunc(d[4])`)} = `r sprintf("%2.2f", lv[1,"LV"])` \qquad
-      & U_D                                                                                                & = y_{(`r trunc(n-d[4]+1)`)} = `r sprintf("%2.2f", lv[7,"LV"])`
+  L_1 & = U_1 = `r yd(d[1])` = `r sprintf("%2.2f", lv[4,"LV"])` &\\
+  L_F & = `r yd(d[2])` = `r sprintf("%2.2f", lv[3,"LV"])` \qquad
+      & U_F                                                                                                & = `r yd(d[2], upper = TRUE)` = `r sprintf("%2.2f", lv[5,"LV"])` \\
+  L_E & = `r yd(d[3])` = `r sprintf("%2.2f", lv[2,"LV"])` \qquad
+      & U_E                                                                                                & = `r yd(d[3], upper = TRUE)` = `r sprintf("%2.2f", lv[6,"LV"])` \\
+  L_D & = `r yd(d[4])` = `r sprintf("%2.2f", lv[1,"LV"])` \qquad
+      & U_D                                                                                                & = `r yd(d[4], upper = TRUE)` = `r sprintf("%2.2f", lv[7,"LV"])`
 \end{align*}
 We can compute the letter values using the `lvtable()` function from the `lvplot` package.
 
@@ -75,7 +84,7 @@ We can compute the letter values using the `lvtable()` function from the `lvplot
 #| code-fold: false
 
 batave <- cricket_batting |>
-  filter(Innings > 20) |>
+  filter(Innings >= 20) |>
   pull(Average)
 batave |> lvplot::lvtable(k = 4)
 ```
@@ -100,7 +109,7 @@ batave |> quantile(prob = c(0.5^(4:1), 1 - 0.5^(2:4)), type = 8)
 #| echo: false
 
 batting <- cricket_batting |>
-  filter(Innings > 20)
+  filter(Innings >= 20)
 donave <- max(batting$Average)
 ```
 
@@ -109,10 +118,10 @@ donave <- max(batting$Average)
 #| fig-asp: 0.2
 #| code-fold: false
 #| dependson: donave
-#| fig-cap: !expr paste("Career batting averages for all men and women to have played test cricket and batted more than 20 times. The anomaly is Don Bradman, who averaged", scales::number(donave, 0.01), "over his career.")
+#| fig-cap: !expr paste("Career batting averages for all men and women to have played test cricket and batted at least 20 times. The anomaly is Don Bradman, who averaged", scales::number(donave, 0.01), "over his career.")
 
 cricket_batting |>
-  filter(Innings > 20) |>
+  filter(Innings >= 20) |>
   ggplot(aes(x = Average)) +
   geom_boxplot() +
   scale_y_discrete() +
@@ -134,7 +143,7 @@ In the `ggplot2` version of the boxplot shown here, the ends of the box are the 
 #|   The box is computed using letter values (the fourths) rather than quantiles.
 
 cricket_batting |>
-  filter(Innings > 20) |>
+  filter(Innings >= 20) |>
   pull(Average) |>
   boxplot(
     horizontal = TRUE,
@@ -288,7 +297,7 @@ barbato_anomaly <- function(y, extreme = FALSE) {
   return(y > q3 + threshold | y < q1 - threshold)
 }
 cricket_batting |>
-  filter(Innings > 20) |>
+  filter(Innings >= 20) |>
   filter(barbato_anomaly(Average))
 oldfaithful |> filter(barbato_anomaly(duration))
 n01b <- tibble(y = c(n01$v2[1:18], 4, 4.5))
@@ -307,7 +316,7 @@ chisq4 |> filter(barbato_anomaly(y))
 #| dependson: barbato4
 
 n1 <- cricket_batting |>
-  filter(Innings > 20) |>
+  filter(Innings >= 20) |>
   filter(barbato_anomaly(Average)) |>
   NROW()
 n2 <- oldfaithful |>
@@ -344,11 +353,11 @@ These can be produced using the `lvplot` package, as shown in @fig-cricketboxlv.
 #| label: fig-cricketboxlv
 #| code-fold: false
 #| fig-asp: 0.2
-#| fig-cap: "Letter-value plot of career batting averages for all men and women who played test cricket and batted more than 20 times."
+#| fig-cap: "Letter-value plot of career batting averages for all men and women who played test cricket and batted at least 20 times."
 
 library(lvplot)
 cricket_batting |>
-  filter(Innings > 20) |>
+  filter(Innings >= 20) |>
   ggplot(aes(x = 1, y = Average)) +
   geom_lv(aes(fill = after_stat(LV))) +
   scale_x_discrete() +
@@ -362,7 +371,7 @@ cricket_batting |>
 #| echo: false
 
 lv <- cricket_batting |>
-  filter(Innings > 20) |>
+  filter(Innings >= 20) |>
   stat_lv(mapping = aes(y = Average))
 ```
 
@@ -370,7 +379,7 @@ Here the median is given by M, the fourths by F, and so on.
 The middle box (F) is bounded by the fourths and contains all but 2/4 of the data; the next box (E) is bounded by the eighths and contains all but 2/8 of the data; then D is bounded by the sixteenths and contains all but 2/16 of the data; and so on.
 
 In this example, the most extreme box (labelled Z) is bounded by the points that fall within the 1/256 letter values.
-So it contains all but 2/256 of the data, and shows $2 / 256 \times `r NROW(filter(cricket_batting, Innings > 20))` = `r round(2/256 * NROW(filter(cricket_batting, Innings > 20)))`$ points as anomalies.
+So it contains all but 2/256 of the data, and shows $2 / 256 \times `r NROW(filter(cricket_batting, Innings >= 20))` = `r round(2/256 * NROW(filter(cricket_batting, Innings >= 20)))`$ points as anomalies.
 
 The stopping rule used in the letter-value plot is to show the boxes up to letter value $k$, where
 $$

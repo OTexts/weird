@@ -357,7 +357,7 @@ These examples will be revisited in the next couple of chapters as we introduce 
 #| echo: false
 
 batting <- cricket_batting |>
-  filter(Innings > 20)
+  filter(Innings >= 20)
 donave <- max(batting$Average)
 ```
 
