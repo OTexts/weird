@@ -488,16 +488,12 @@ By the 1930s, the concept of hypothesis testing had been developed, and the t di
 Many tests were developed under different assumptions about the underlying distribution and what was assumed to be known [@Hawkins1980].
 We will mention just two of them here, as they are the most widely used.
 
-Egon Pearson and Chandra Sekar proposed [@Pearson1936] that an observation be considered an anomaly if $|z_i| > c_\alpha$, where the critical value is given by
+Egon Pearson and C Chandra Sekar proposed [@Pearson1936] that an observation be considered an anomaly if its z-score is larger than a critical value based on the $t$ distribution.
+Later, this was modified by Frank Grubbs [@Grubbs1950] who proposed that anomalies be identified if $|z_i| > c_\alpha$ where
 $$
-  c_\alpha = t_{\alpha/n, n-2} \sqrt{\frac{n - 1}{n - 2 + t^2_{\alpha/n, n-2}}}
+  c_\alpha = \frac{(n - 1)t_{\alpha/2n, n-2}}{\sqrt{n(n - 2 + t^2_{\alpha/2n, n-2})}},
 $$
-and $t_{p, k}$ is the $(1 - p)$ quantile of the t distribution with $k$ degrees of freedom.
-Later, this was extended by Frank Grubbs [@Grubbs1950] who proposed using
-$$
-  c_\alpha
-  = \frac{(n - 1)t_{\alpha/2n, n-2}}{\sqrt{n(n - 2 + t^2_{\alpha/2n, n-2})}}.
-$$
+and $t_{p,k}$ is the $(1 - p)$ quantile of the t distribution with $k$ degrees of freedom.
 
 @fig-zscoretests shows the critical values at $\alpha = 0.05$ for these tests, along with the corresponding value from @Chauvenet1863 for comparison.
 
@@ -513,12 +509,11 @@ df <- tibble(n = n) |>
   mutate(
     t1 = qt(1 - alpha / n, n - 2),
     t3 = qt(1 - alpha / (2 * n), n - 2),
-    pearson = t1 * sqrt((n - 1) / (n - 2 + t1^2)),
     chauvenet = qnorm(1 - 0.25 / n),
     grubbs = (n - 1) / sqrt(n) * sqrt(t3^2 / (n - 2 + t3^2)),
   ) |>
   select(-t1, -t3) |>
-  tidyr::pivot_longer(pearson:grubbs, values_to = "c", names_to = "test")
+  tidyr::pivot_longer(chauvenet:grubbs, values_to = "c", names_to = "test")
 df |>
   ggplot(aes(x = n, y = c, col = test)) +
   geom_line() +
@@ -534,8 +529,8 @@ df |>
     data = data.frame(
       x = rep(1.1e4, 3),
       y = c(4.35, 4.6, 4.0),
-      col = c("pearson", "grubbs", "chauvenet"),
-      label = c("Pearson-Sekar test", "Grubbs test", "Chauvenet criterion")
+      col = c("grubbs", "chauvenet"),
+      label = c("Grubbs test", "Chauvenet criterion")
     )
   ) +
   coord_cartesian(xlim = c(4, 60000))
@@ -581,14 +576,15 @@ pzscoredf |>
     data = data.frame(
       x = rep(1.1e4, 3),
       y = c(0.10, 0.05, 0.40),
-      test = c("pearson", "grubbs", "chauvenet"),
-      label = c("Pearson-Sekar test", "Grubbs test", "Chauvenet criterion")
+      test = c("grubbs", "chauvenet"),
+      label = c("Grubbs test", "Chauvenet criterion")
     )
   ) +
   coord_cartesian(xlim = c(4, 60000))
 ```
 
-@fig-pzscoretests shows that only Grubbs' test gives reasonable results, with the others finding too many anomalies except in small samples.
+@fig-pzscoretests shows that Grubbs' test has the correct size.
+The Chauvenet criterion is much worse, finding far too many anomalies except in very small samples.
 
 However, when we allow for different data distributions, Grubbs' test also gives poor results (@fig-pgrubbs), showing it is sensitive to the assumed data distribution.
 
