@@ -488,7 +488,7 @@ By the 1930s, the concept of hypothesis testing had been developed, and the t di
 Many tests were developed under different assumptions about the underlying distribution and what was assumed to be known [@Hawkins1980].
 We will mention just two of them here, as they are the most widely used.
 
-Egon Pearson and C Chandra Sekar proposed [@Pearson1936] that an observation be considered an anomaly if its z-score is larger than a critical value based on the $t$ distribution.
+Egon Pearson and C Chandra Sekar proposed [@Pearson1936] that an observation be considered an anomaly if its $z$-score is larger than a critical value based on the t distribution.
 Later, this was modified by Frank Grubbs [@Grubbs1950] who proposed that anomalies be identified if $|z_i| > c_\alpha$ where
 $$
   c_\alpha = \frac{(n - 1)t_{\alpha/2n, n-2}}{\sqrt{n(n - 2 + t^2_{\alpha/2n, n-2})}},
@@ -527,8 +527,8 @@ df |>
   geom_label(
     aes(x = x, y = y, col = col, label = label, hjust = "left"),
     data = data.frame(
-      x = rep(1.1e4, 3),
-      y = c(4.35, 4.6, 4.0),
+      x = rep(1.1e4, 2),
+      y = c(4.6, 4.0),
       col = c("grubbs", "chauvenet"),
       label = c("Grubbs test", "Chauvenet criterion")
     )
@@ -574,8 +574,8 @@ pzscoredf |>
   geom_label(
     aes(x = x, y = y, col = test, label = label, hjust = "left"),
     data = data.frame(
-      x = rep(1.1e4, 3),
-      y = c(0.10, 0.05, 0.40),
+      x = rep(1.1e4, 2),
+      y = c(0.05, 0.40),
       test = c("grubbs", "chauvenet"),
       label = c("Grubbs test", "Chauvenet criterion")
     )
