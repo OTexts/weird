@@ -302,6 +302,28 @@ $$
 The notation $|\bm{\Sigma}|$ denotes the determinant of the matrix $\bm{\Sigma}$.
 
 Multivariate Normal distributions have the interesting property that the marginal distributions are also Normal.
+More generally, suppose we split $\bm{Y}$ into two parts, $\bm{Y}_1$ and $\bm{Y}_2$, with the mean and covariance matrix split in the same way:
+$$
+  \bm{Y} = \begin{bmatrix}\bm{Y}_1 \\ \bm{Y}_2\end{bmatrix}, \qquad
+  \bm{\mu} = \begin{bmatrix}\bm{\mu}_1 \\ \bm{\mu}_2\end{bmatrix}, \qquad
+  \bm{\Sigma} = \begin{bmatrix}\bm{\Sigma}_{11} & \bm{\Sigma}_{12} \\ \bm{\Sigma}_{21} & \bm{\Sigma}_{22}\end{bmatrix}.
+$$
+Then the marginal distribution of $\bm{Y}_1$ is $\text{N}(\bm{\mu}_1, \bm{\Sigma}_{11})$.
+The conditional distribution of $\bm{Y}_1$ given $\bm{Y}_2 = \bm{y}_2$ (see @sec-conditional) is also Normal:
+$$
+  \bm{Y}_1 \mid \bm{Y}_2 = \bm{y}_2 \sim
+  \text{N}\left(\bm{\mu}_1 + \bm{\Sigma}_{12}\bm{\Sigma}_{22}^{-1}(\bm{y}_2 - \bm{\mu}_2),\;
+  \bm{\Sigma}_{11} - \bm{\Sigma}_{12}\bm{\Sigma}_{22}^{-1}\bm{\Sigma}_{21}\right).
+$$ {#eq-mvn-conditional}
+So the conditional mean is a linear function of $\bm{y}_2$, while the conditional covariance matrix does not depend on $\bm{y}_2$ at all.
+This is the basis of linear regression with Normal errors.
+
+Another useful result concerns the quadratic form $(\bm{Y} - \bm{\mu})^\intercal\bm{\Sigma}^{-1}(\bm{Y} - \bm{\mu})$ that appears in the pdf.
+If $\bm{\Sigma}^{-1} = \bm{U}^\intercal\bm{U}$, then $\bm{Z} = \bm{U}(\bm{Y} - \bm{\mu})$ has a $\text{N}(\bm{0}, \bm{I})$ distribution (using the results for linear transformations above), so its elements are independent standard Normal random variables.
+Therefore
+$$
+  (\bm{Y} - \bm{\mu})^\intercal\bm{\Sigma}^{-1}(\bm{Y} - \bm{\mu}) = \bm{Z}^\intercal\bm{Z} = \sum_{i=1}^m Z_i^2 \sim \chi^2_m.
+$$ {#eq-mvn-chisq}
 
 ### Further reading
 
