@@ -1174,6 +1174,9 @@ plot2 <- df |>
 patchwork::wrap_plots(plot1, plot2, nrow = 1)
 ```
 
-Another neat property of Normal distributions is that the conditional distribution of a subset of variables is also Normal.
-For example, suppose $\bm{Y} = (Y_1,Y_2,Y_3)^\intercal$ is a multivariate Normal random vector.
-Then the conditional distribution of $Y_1$ given $Y_2$ and $Y_3$ is also Normally distributed.
+For a multivariate Normal distribution, the slices are all Normal densities, with the same variance, and with means lying on a straight line, as given by @eq-mvn-conditional.
+For the mixture distribution in @fig-conditional, the conditional densities change shape as $y_2$ changes, and some of them are bimodal.
+
+Conditional distributions will be important when we come to define anomalies in the presence of other information.
+In @sec-regression-methods, an anomaly is an observation that is unusual given the values of its predictors, while in @sec-timeseries, an anomaly is an observation that is unusual given the past history of the series.
+In both cases, we need the conditional distribution of the observation, not its marginal distribution.
