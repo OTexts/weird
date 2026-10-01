@@ -370,10 +370,25 @@ Here, the 10%, 20%, 30% and 40% HDRs contain disconnected regions, but for the l
 
 ## Multivariate quantiles {#sec-mv-quantiles}
 
-Unlike the univariate case, there is no unique definition of a multivariate quantile.
-There are many different definitions, and each has its own advantages and disadvantages.
+Unlike the univariate case, there is no unique definition of a multivariate quantile, because there is no natural way to order points in $\mathbb{R}^m$.
+Instead, multivariate quantiles are usually defined in a "centre-outward" way, so that a quantile describes a region containing a given probability, and the boundary of that region plays the role of a quantile.
+There are many different definitions, each with its own advantages and disadvantages [@Serfling2002].
+Two of them will be particularly useful in this book.
 
-In this book, we are mostly concerned with sample multivariate quantiles, and one useful definition for sample quantiles is based on data depth.
+The first uses the HDRs of the previous section.
+Because $\Pr(\bm{Y} \in R_\alpha) = \Pr(f(\bm{Y}) \ge f_\alpha) = 1-\alpha$, the threshold $f_\alpha$ is the $\alpha$ quantile of the univariate random variable $f(\bm{Y})$, the density evaluated at a random observation.
+So the boundary of $R_\alpha$ can be thought of as a multivariate quantile, and an observation lying outside $R_\alpha$ for some small value of $\alpha$ is in a region of low density.
+This idea is the basis of the surprisal approach to anomaly detection that we will develop in @sec-density-methods.
+
+For a multivariate Normal distribution, the density is a decreasing function of $(\bm{y} - \bm{\mu})^\intercal\bm{\Sigma}^{-1}(\bm{y} - \bm{\mu})$, so it follows from @eq-mvn-chisq that
+$$
+  R_\alpha = \left\{\bm{y}: (\bm{y} - \bm{\mu})^\intercal\bm{\Sigma}^{-1}(\bm{y} - \bm{\mu}) \le \chi^2_{m,1-\alpha}\right\},
+$$
+where $\chi^2_{m,1-\alpha}$ is the $(1-\alpha)$ quantile of the $\chi^2_m$ distribution.
+That is, the HDRs of a multivariate Normal distribution are ellipsoids centred on $\bm{\mu}$, such as the ellipses in @fig-bivariate.
+
+HDRs require the density to be known, or estimated.
+The second approach, based on data depth, works directly with a sample of observations, and does not require a density.
 We will discuss this approach in @sec-depth.
 
 ## Robust covariance estimation {#sec-robust-cov}
