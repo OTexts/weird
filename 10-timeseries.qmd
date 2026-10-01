@@ -557,10 +557,19 @@ Unusually low mortality rates have also been identified in weeks 13 and 15 of 20
 
 Next we consider unusual series within a large collection of time series.
 
+Comparing whole time series directly is awkward, because the series can have very different scales and lengths, and two series with similar behaviour may be offset in time.
+Instead, we summarise each series by a vector of *features*: statistics computed from the series, such as the strength of trend and seasonality, autocorrelations, spectral entropy, and the size of level shifts [@icdm2015; @fpp3, Ch.\ 4].
+Each series then becomes a single point in feature space, and finding a weird series becomes a multivariate anomaly detection problem, for which we can use any of the methods of the preceding chapters.
+Most of these features do not depend on the scale of the series, so a series is identified as anomalous because of its shape and dynamics, rather than its size.
+The choice of features determines what kind of "unusual" we can detect; a series that is unusual in some way that is not captured by any feature will not be deemed anomalous.
+
 To illustrate the ideas we will use a data set of monthly observations on the Australian Pharmaceutical Benefits Scheme (PBS), from July 1991 to June 2008.
 The PBS involves the Australian government subsidising certain pharmaceutical products, to allow more equitable access to essential medicines.
 The data set contains monthly sales volumes of those products being subsidised, classified according to the Anatomical Therapeutic Chemical (ATC) classification system, by the type of government subsidy, and by whether the purchaser was in a concession group (such as pensioner, unemployed, etc.).
 There are `r NROW(attributes(tsibbledata::PBS)$key)` separate time series contained in the `PBS` data set.
+
+We compute all the features available in the `feasts` package for each series.
+Because there are many features, and many of them are correlated with each other, we reduce them to the first two principal components (@sec-pca) after scaling each feature to have unit variance.
 
 ```{r}
 #| label: weirdseries
@@ -579,6 +588,8 @@ PBS_prcomp <- PBS_feat_nomissing |>
   prcomp(scale = TRUE, rank = 2) |>
   augment(PBS_feat_nomissing)
 ```
+
+This gives `r ncol(PBS_feat) - 4` features for each series.
 
 ```{r}
 #| label: fig-weirdseries_pca
@@ -743,7 +754,7 @@ For each $t = I,I + 1,\dots$, and for all series $i = 1,\dots,M$:
 ### A first iteration
 
 To illustrate, let's apply this to the `pbs` data.
-Starting with $I = 36$ (3 years of data), we will fit ETS models to all available series [Ch 8, @fpp3], and forecast one step ahead in each case.
+Starting with $I = 36$ (3 years of data), we will fit ETS models to all available series [@fpp3, Ch.\ 8], and forecast one step ahead in each case.
 Then we repeat the exercise using 37 observations, then 38 observations, and so on.
 This is known as a "rolling origin forecast" because the forecast origin rolls forward by one period each iteration.
 The process can be illustrated as in @fig-tscvplots.
@@ -767,7 +778,7 @@ tscv_plot(.init = 8, .step = 1, h = 1) +
 
 Let's step through the process for the first iteration, with $t = 36$.
 We fit ETS models to each of the time series, with the specific ETS model selected according to the characteristics of the series.
-See [Ch 8, @fpp3] for details of how this is done.
+See @fpp3 [Ch.\ 8] for details of how this is done.
 
 ```{r}
 #| label: pbsfit
@@ -964,3 +975,130 @@ pbs_plot(pbs, pbs_anomalies, "R05")
 ```
 
 The first anomaly in 1994 has an unusually large peak compared to the preceding years; the next two, in December 1997 and January 1998, precede an unusually low trough compared to the previous years; and the final two in 2004 coincide with a disruption to the seasonal pattern in that year.
+
+### Surveillance across several series
+
+So far, we have monitored each series separately.
+But some events affect many series at once, such as a change in the rules of the PBS, or a change in the way the data are recorded.
+In any one series, such an event may look only mildly unusual, but if it happens in many series in the same month, it is much more surprising.
+
+One simple way to monitor all the series jointly is to count the number of series that are flagged as anomalous in each month.
+Let $M_t$ be the number of series for which a surprisal probability is available at time $t$, and let $N_t$ be the number of these with surprisal probability below 0.001.
+Here $M_t = 83$ until November 2000, and $M_t = 84$ from December 2000, once there are enough observations on the A05 group, which only began in July 2000.
+If the series were independent, and each observation had the same probability $\pi$ of being flagged, then $N_t$ would have a Binomial$(M_t,\pi)$ distribution, and the probability of seeing at least $n$ flagged series would be $\Pr(N_t \ge n)$.
+
+If each forecast distribution were the true distribution of the next observation, the surprisal probabilities would be uniformly distributed on (0,1) (by the probability integral transform, @sec-pit, applied to the surprisals), and so each observation would be flagged with probability $\pi = 0.001$.
+But the ETS forecast distributions are too narrow for these data, and `r sprintf("%.1f", 100 * mean(pbs_scores$prob < 0.001, na.rm = TRUE))`% of all observations have surprisal probabilities below 0.001.
+So we estimate $\pi$ in real time, using the proportion of flagged observations in all previous months.
+To give a reasonable estimate of $\pi$ at the start, we only compute the joint probabilities after the first 12 months of surprisal probabilities are available.
+
+```{r}
+#| label: pbs_joint
+#| code-fold: false
+#| dependson: realpbsloop
+
+pbs_joint <- pbs_scores |>
+  as_tibble() |>
+  filter(!is.na(prob)) |>
+  group_by(Month) |>
+  summarise(M = n(), n = sum(prob < 0.001), .groups = "drop") |>
+  mutate(
+    # Proportion of flagged observations in all previous months
+    pi = (cumsum(n) - n) / (cumsum(M) - M),
+    # Probability of at least n flagged series
+    prob = pbinom(n - 1, M, pi, lower.tail = FALSE)
+  ) |>
+  filter(row_number() > 12)
+pbs_joint |> filter(prob < 0.001)
+```
+
+```{r}
+#| label: check_pbs_joint
+#| include: false
+#| dependson: pbs_joint
+
+stopifnot(
+  identical(
+    format(pbs_joint |> filter(prob < 0.001) |> pull(Month)),
+    c("1997 Dec", "1998 Jan", "1999 Mar", "2001 Dec", "2008 Feb")
+  ),
+  pbs_joint |> filter(Month == yearmonth("2008 Feb")) |> pull(n) == 33,
+  identical(
+    pbs_joint |> group_by(M) |> summarise(from = min(Month), to = max(Month)) |>
+      mutate(across(c(from, to), format)),
+    tibble(M = c(83L, 84L), from = c("1995 Jul", "2000 Dec"), to = c("2000 Nov", "2008 Jun"))
+  )
+)
+```
+
+```{r}
+#| label: fig-pbs-joint
+#| code-fold: false
+#| dependson: pbs_joint
+#| fig-cap: Number of ATC groups flagged as anomalous in each month.
+#|   Months where the probability of at least this many flagged groups is below 0.001 are shown in orange.
+
+pbs_joint |>
+  ggplot(aes(x = Month, y = n)) +
+  geom_col() +
+  geom_col(data = pbs_joint |> filter(prob < 0.001), fill = "#D55E00") +
+  tsibble::scale_x_yearmonth(date_breaks = "2 years", date_labels = "%Y") +
+  labs(y = "Number of flagged ATC groups")
+```
+
+Most months have between zero and three flagged series, consistent with the estimated value of $\pi$.
+The five months shown in orange in @fig-pbs-joint have many more flagged series than we would expect.
+Three are in December or January, around the time of the usual end-of-year spike, which occurs because patients stockpile medicines before the PBS safety-net thresholds reset at the start of each calendar year [@fpp3, Ch.\ 2]; in these months the size of the spike, or of the drop that follows it, was unusual in many groups at once.
+We have no explanation for March 1999.
+The most extreme month is February 2008, when 33 of the 84 groups were flagged.
+
+```{r}
+#| label: pbs_janfeb
+#| include: false
+#| dependson: pbs
+
+# Total scripts in January and February of 2007 and 2008
+janfeb <- pbs |>
+  as_tibble() |>
+  filter(Month %in% yearmonth(c("2007 Jan", "2007 Feb", "2008 Jan", "2008 Feb"))) |>
+  group_by(Month) |>
+  summarise(Scripts = sum(Scripts)) |>
+  pull(Scripts, name = Month)
+feb_growth <- round(100 * (janfeb[["2008 Feb"]] / janfeb[["2007 Feb"]] - 1))
+janfeb_growth <- round(
+  100 * (sum(janfeb[c("2008 Jan", "2008 Feb")]) / sum(janfeb[c("2007 Jan", "2007 Feb")]) - 1)
+)
+stopifnot(janfeb[["2008 Jan"]] < janfeb[["2007 Jan"]])
+```
+
+In that year, the usual fall in script volumes in February did not occur; total volume was about `r feb_growth`% higher than in February 2007.
+However, the combined volume for January and February 2008 was only about `r janfeb_growth`% higher than a year earlier, in line with previous years, and January 2008 was lower than January 2007.
+So it seems that some scripts that would normally have been recorded in January were recorded in February instead: a change in timing rather than in demand.
+We have not been able to find an administrative reason for this.
+An event like this is much easier to spot when looking across all series than in any single series.
+
+The independence assumption is unrealistic here, as the same events affect many series.
+Dependence between series makes large values of $N_t$ more likely than the Binomial distribution suggests, so the probabilities computed this way are too small.
+They are still useful for ranking months by how unusual they are, and in practice the threshold may need to be set using experience of how often the system raises an alarm.
+
+### Feature-based surveillance
+
+Another approach to surveillance is to use features of the series, rather than the raw observations.
+The methods of @sec-weird-series can be applied to streaming data, where the features are updated as new data arrive (possibly using a rolling window).
+Feature-based methods for streaming time series data are discussed by @Talagala2020-fp.
+
+## Summary {#sec-timeseries-summary}
+
+We have considered three ways that time series can be weird.
+To find weird times in historical data, we first remove the signal (trend, seasonality, and other structure) from the series, using a moving median in the Hampel identifier, or an STL decomposition.
+The standardised residuals can then be treated as approximately independent observations, and analysed using the surprisal probabilities of @sec-density-methods.
+When there are many related series, we can either analyse each series separately, or combine the series using principal components to find periods that are unusual across all series.
+
+To find weird series within a collection, we summarise each series by a vector of features, and look for anomalies in the resulting feature space.
+This turns the problem into one of multivariate anomaly detection, so any of the methods from earlier chapters can be used.
+In the PBS example, the anomalous series consisted almost entirely of zeros or very small counts, which is more likely to indicate a data problem than an interesting change in behaviour, but that is exactly the sort of thing we want to find before modelling a large collection of series.
+
+In surveillance, we compute surprisal probabilities from one-step forecast distributions, refitting the model as each new observation arrives.
+Because the model is updated, a sudden change in level is flagged when it first happens, but the model gradually adapts to the "new normal".
+The forecast distributions produced by the models are often too narrow, so many more observations will be flagged than the nominal probability threshold implies.
+Counting the number of series flagged in each month gives a simple way to detect events that affect many series at once.
