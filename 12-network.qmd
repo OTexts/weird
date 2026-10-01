@@ -565,6 +565,9 @@ A directed edge runs from sender to receiver each time a message is sent, and th
 
 uci_messages <- tnet::OnlineSocialNetwork.n1899.lnet |>
   mutate(date = as_date(as_datetime(t)))
+# Remove self-loops (rows where sender and receiver are the same student)
+n_selfloops <- sum(uci_messages$i == uci_messages$j)
+uci_messages <- uci_messages |> dplyr::filter(i != j)
 uci_dates <- unique(uci_messages$date)
 uci_networks <- lapply(uci_dates, \(d) {
   edges <- uci_messages |> dplyr::filter(date == d) |> dplyr::select(i, j)
@@ -572,13 +575,14 @@ uci_networks <- lapply(uci_dates, \(d) {
 })
 ```
 
+The data also contain `r scales::comma(n_selfloops)` rows in which the sender and receiver are the same student, one for each student in the data set; these are not messages between students, so we have removed them.
 This gives `r length(uci_networks)` daily networks, ranging in size from a handful of active students early in the data to several hundred later on.
-@fig-uci-networks shows three of these daily networks, illustrating how sparse activity on an ordinary day (day 6) contrasts with much busier days (days 25 and 45).
+@fig-uci-networks shows three of these daily networks, illustrating how sparse activity in the first few days (day 3) contrasts with much busier days (days 22 and 42).
 
 ```{r}
 #| label: fig-uci-networks
 #| dependson: [uci-data, ch12_libraries]
-#| fig-cap: "UCI message networks for three days, showing how activity varies from sparse (day 6) to much busier (days 25 and 45)."
+#| fig-cap: "UCI message networks for three days, showing how activity varies from sparse (day 3) to much busier (days 22 and 42)."
 #| fig-asp: 0.36
 
 uci_gr <- function(i) {
@@ -587,7 +591,7 @@ uci_gr <- function(i) {
     title = paste("Day", i)
   )
 }
-patchwork::wrap_plots(uci_gr(6), uci_gr(25), uci_gr(45), nrow = 1)
+patchwork::wrap_plots(uci_gr(3), uci_gr(22), uci_gr(42), nrow = 1)
 ```
 
 Because the daily networks vary hugely in size, some features (such as the mean distance between nodes) are undefined on the smallest, sparsest days.
@@ -608,7 +612,7 @@ uci_flagged
 ```{r}
 #| label: fig-uci-prob
 #| dependson: [uci-data, uci-oddnet, ch12_libraries]
-#| fig-cap: "Surprisal probability of each UCI daily message network, from March to October 2004."
+#| fig-cap: "Surprisal probability of each UCI daily message network, from April to October 2004."
 
 prob_plot(uci_dates, uci_result$outlier_probability, xlab = "Date")
 ```
@@ -618,12 +622,21 @@ prob_plot(uci_dates, uci_result$outlier_probability, xlab = "Date")
 #| include: false
 #| dependson: uci-oddnet
 
-key_dates <- as_date(c("2004-05-22", "2004-05-28", "2004-06-15", "2004-09-24"))
-stopifnot(all(key_dates %in% uci_flagged))
+key_dates <- as_date(c("2004-04-19", "2004-05-22", "2004-05-28", "2004-06-15", "2004-09-24"))
+two_smallest <- uci_dates[order(uci_result$outlier_probability)[1:2]]
+stopifnot(
+  all(key_dates %in% uci_flagged),
+  setequal(two_smallest, as_date(c("2004-04-19", "2004-05-28"))),
+  uci_dates[3] == as_date("2004-04-19"),
+  NROW(uci_networks[[2]]) == 2,
+  NROW(uci_networks[[3]]) == 16
+)
 ```
 
 Unlike the Senate network, which drifts slowly over decades, this network is driven by the rhythm of the academic calendar.
-Several of the flagged dates cluster around 28 May, close to the end of the platform's initial rapid growth phase identified by @Panzarasa2009, and around 15 June and 24 September, close to the end of the Spring term (19 June) and the start of the Fall term (20 September) respectively.
+The two most anomalous days are 19 April and 28 May.
+On 19 April, only the third day on which any messages were sent, the network suddenly grew from 2 to 16 students, early in the platform's initial rapid growth phase identified by @Panzarasa2009.
+Several of the other flagged dates cluster around 28 May, close to the end of the platform's initial rapid growth phase identified by @Panzarasa2009, and around 15 June and 24 September, close to the end of the Spring term (19 June) and the start of the Fall term (20 September) respectively.
 The Senate and UCI examples illustrate quite different anomaly patterns: a slow structural realignment measured in decades, against short bursts of activity tied to a fixed calendar.
 
 ## Summary {#sec-network-summary}
