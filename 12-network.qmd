@@ -358,7 +358,7 @@ The remaining features describe the overall structure of the network, rather tha
 The **triangle** count $\tau_i$ was defined along with transitivity in @sec-network-nodes; `oddnet` again uses the 99th percentile of $\tau_1,\dots,\tau_n$, alongside the network-wide **clustering coefficient** $\sum_i \tau_i \big / \sum_i \binom{d_i}{2}$, the proportion of all pairs of neighbours (across all nodes) that are themselves connected.
 **Assortativity** measures whether nodes tend to connect to other nodes with a similar degree to their own: a network is assortative if well-connected nodes mostly link to other well-connected nodes, and disassortative if well-connected nodes tend to link to poorly connected ones.
 The **diameter** is the largest distance $\delta_{ij}$ between any two nodes in the network, and the **mean distance** is the average of $\delta_{ij}$ over all pairs of nodes (in both cases ignoring pairs with no path between them, where $\delta_{ij} = \infty$); both describe how spread out the network is, in the same spirit as closeness centrality, but summarised across the whole network rather than computed for a single node.
-A network's nodes need not all be reachable from one another: the **number of connected components** counts how many separate pieces the network breaks into, and `oddnet` also records the size of the largest such component.
+A network's nodes need not all be reachable from one another: the **number of connected components** counts how many separate pieces the network breaks into, and `oddnet` also records the 99th percentile of the component sizes (which is close to, but not always equal to, the size of the largest component).
 Finally, **vertex connectivity** counts the minimum number of nodes that would need to be removed to disconnect the network, and **global efficiency** is the average of $1/\delta_{ij}$ over all pairs of nodes $i \ne j$ (with $1/\infty = 0$), so that networks with many short paths between nodes are more efficient than those relying on a few long ones.
 
 Computing the total number of edges for every Congress in the sequence, and plotting it over time in @fig-senate-edges, does not make the 100th Congress obviously anomalous: it sits within a noisy, generally increasing trend in the number of co-voting edges across the whole `r length(senate_congress)`-Congress sequence.
@@ -470,10 +470,12 @@ A network is flagged as anomalous if its surprisal probability, as estimated by 
 Putting these pieces together, `oddnet` proceeds as follows.
 
 **Step 1: Compute features.** Map each network $\mathcal{G}_t$ to its feature vector $\bm{x}_t = f(\mathcal{G}_t) \in \mathbb{R}^{m}$, as described in "From networks to features" above.
+Any feature that is missing for every network, or that takes the same value for every network, carries no information about which networks are unusual, and is dropped.
 
-**Step 2: Model each feature series.** Fit an ARIMA model to each of the 20 feature series in turn, and compute the residuals $\bm{e}_t$, as described in "Modelling temporal dependence" above.
+**Step 2: Model each feature series.** Fit an ARIMA model to each of the remaining feature series in turn, and compute the residuals $\bm{e}_t$, as described in "Modelling temporal dependence" above.
 
-**Step 3: Reduce dimension.** Project the residual vectors onto two dimensions using robust PCA.
+**Step 3: Reduce dimension.** Standardise each residual series using a trimmed mean and a trimmed standard deviation, which ignore the most extreme 0.5% of values, so that the anomalies we are looking for do not distort the scaling.
+Then project the standardised residual vectors onto two dimensions using robust PCA.
 
 **Step 4: Detect anomalies.** Apply the lookout algorithm to the two-dimensional projection, giving a surprisal probability for each network.
 
@@ -596,6 +598,8 @@ patchwork::wrap_plots(uci_gr(3), uci_gr(22), uci_gr(42), nrow = 1)
 
 Because the daily networks vary hugely in size, some features (such as the mean distance between nodes) are undefined on the smallest, sparsest days.
 We set these missing features to zero before running `oddnet`.
+The proportion of isolated nodes is zero on every day, because students only appear in a daily network if they sent or received a message that day, and the vertex connectivity is also zero on every day.
+So `oddnet` drops these two features, leaving 18.
 
 ```{r}
 #| label: uci-oddnet
@@ -620,7 +624,7 @@ prob_plot(uci_dates, uci_result$outlier_probability, xlab = "Date")
 ```{r}
 #| label: uci-check
 #| include: false
-#| dependson: uci-oddnet
+#| dependson: [uci-data, uci-oddnet]
 
 key_dates <- as_date(c("2004-04-19", "2004-05-22", "2004-05-28", "2004-06-15", "2004-09-24"))
 two_smallest <- uci_dates[order(uci_result$outlier_probability)[1:2]]
@@ -631,6 +635,12 @@ stopifnot(
   NROW(uci_networks[[2]]) == 2,
   NROW(uci_networks[[3]]) == 16
 )
+# The prose says oddnet drops the isolates and connectivity features (always zero)
+uci_constant <- sapply(uci_networks, \(m) {
+  f <- compute_features(graph_from_adjacency_matrix(m))
+  c(f$isolates, f$connectivity)
+})
+stopifnot(all(uci_constant == 0))
 ```
 
 Unlike the Senate network, which drifts slowly over decades, this network is driven by the rhythm of the academic calendar.
