@@ -423,19 +423,105 @@ $$ {#eq-cov}
 However, it is sensitive to anomalies, and so is not suitable for our purposes.
 
 There have been many robust estimators of covariance proposed in the literature, but we will discuss only one, known as the "Minimum Covariance Determinant" (MCD) estimator [@Rousseeuw2003-ip;@fastmcd], which is implemented in the `covMcd()` function in the `robustbase` package [@robustbase].
-This estimator finds a subset of $n_\alpha$ observations (where $n_\alpha > n/2$) that has the smallest determinant of the covariance matrix, and then uses these observations to compute a robust estimate of the covariance matrix.
-The idea is that the subset of observations with the smallest covariance determinant is likely to be a subset of "good" observations, and so the resulting covariance matrix will be robust to anomalies.
+This estimator finds the subset of $h$ observations (where $n/2 < h \le n$) whose covariance matrix has the smallest determinant.
+The idea is that the subset of observations with the smallest covariance determinant is likely to be a subset of "good" observations, and so a covariance matrix computed from them will be robust to anomalies.
+If $H$ denotes this subset, the raw MCD estimate of the covariance matrix is
+$$
+  \bm{S}_H
+  = \frac{c_H}{h} \sum_{i \in H} (\bm{y}_i - \bar{\bm{y}}_H)(\bm{y}_i - \bar{\bm{y}}_H)^\intercal,
+$$
+where $\bar{\bm{y}}_H$ is the mean of the observations in $H$.
+Because $H$ deliberately leaves out the most outlying observations, the covariance of the observations in $H$ underestimates the spread of the distribution, and $c_H > 1$ is a correction factor chosen so that $\bm{S}_H$ is a consistent estimate of $\bm{\Sigma}$ when the data come from a multivariate Normal distribution (with an additional adjustment for small samples).
 
-Specifically,
+The raw estimate uses only $h$ observations, which makes it rather inefficient.
+So a reweighting step follows, in which every observation is compared to the raw estimate.
+Using @eq-mvn-chisq, an observation is retained if $(\bm{y}_i - \bar{\bm{y}}_H)^\intercal\bm{S}_H^{-1}(\bm{y}_i - \bar{\bm{y}}_H) \le \chi^2_{m,0.975}$, and dropped otherwise.
+If $W$ is the set of $n_W$ retained observations, with mean $\bar{\bm{y}}_W$, the final MCD estimate is
 $$
   \bm{S}_{\text{MCD}}
-  = \frac{1}{n_\alpha} \sum_{i \in H} (\bm{y}_i - \bar{\bm{y}}_H)(\bm{y}_i - \bar{\bm{y}}_H)^\intercal,
+  = \frac{c_W}{n_W - 1} \sum_{i \in W} (\bm{y}_i - \bar{\bm{y}}_W)(\bm{y}_i - \bar{\bm{y}}_W)^\intercal,
 $$ {#eq-mcd}
-where $H$ is the subset of $n_\alpha$ observations that has the smallest covariance determinant, and $\bar{\bm{y}}_H$ is the mean of the observations in $H$.
-The value of $n_\alpha$ is approximately $\alpha n$, where $\alpha$ is the targeted proportion of observations to use in the subset.
-We will use $\alpha = 0.9$ (allowing up to 10% anomalies).
+where $c_W$ is another correction factor.
+The `covMcd()` function returns $\bm{S}_{\text{MCD}}$ (as `cov`) along with the raw estimate $\bm{S}_H$ (as `raw.cov`).
+The subset size $h$ is set via the argument `alpha`, with $h \approx$ `alpha` $\times\, n$; the default `alpha = 0.5` gives the most robust estimate, allowing almost half the observations to be anomalies.
+The `mvscale()` and `kde_bandwidth()` functions in the `weird` package use `alpha = 0.9`, allowing up to 10% of the observations to be anomalies, which gives a more efficient estimate, and we will use the same value here.
 
-The `covMcd()` function will return this covariance matrix, along with some other information, using a default value of $\alpha = 0.5$.
+To illustrate, we will construct a data set where we know the true distribution.
+We take the first two variables of the `n01` data set, $v_1$ and $v_2$, and let $y_1 = v_1$ and $y_2 = v_1 + v_2$.
+Then $(y_1,y_2)$ has a bivariate Normal distribution with mean $(0,0)$ and covariance matrix $\bm{\Sigma} = \begin{bmatrix} 1 & 1 \\ 1 & 2 \end{bmatrix}$ (using the results for linear transformations in @sec-joint), so the correlation between $y_1$ and $y_2$ is $1/\sqrt{2} \approx 0.71$.
+We then replace the last 50 of the 1000 observations with a small cluster of anomalies centred at $(2, -2)$, constructed from two other variables in `n01`.
+
+```{r}
+#| label: mcd-data
+#| code-fold: false
+
+mcd_df <- n01 |>
+  transmute(y1 = v1, y2 = v1 + v2, anomaly = FALSE)
+# Replace the last 50 observations with a cluster of anomalies
+idx <- 951:1000
+mcd_df$y1[idx] <- 2 + 0.3 * n01$v3[idx]
+mcd_df$y2[idx] <- -2 + 0.3 * n01$v4[idx]
+mcd_df$anomaly[idx] <- TRUE
+# Sample and MCD estimates
+mcd_y <- mcd_df |> select(y1, y2)
+mcd_est <- robustbase::covMcd(mcd_y, alpha = 0.9)
+cor(mcd_y)
+cov2cor(mcd_est$cov)
+```
+
+The sample correlation has been pulled down to `r sprintf("%.2f", cor(mcd_y)[1, 2])` by the anomalies, while the MCD estimate gives `r sprintf("%.2f", cov2cor(mcd_est$cov)[1, 2])`, close to the true value of 0.71.
+In the reweighting step, `r sum(mcd_est$raw.weights[idx] == 0)` of the 50 anomalies are dropped.
+
+Because the bulk of these data really do come from a bivariate Normal distribution, we can use @eq-mvn-chisq to draw the 95% HDR of the true distribution, and the corresponding ellipses obtained by plugging in the sample estimates and the MCD estimates of the mean and covariance matrix.
+These are shown in @fig-robust-cov.
+
+```{r}
+#| label: fig-robust-cov
+#| dependson: mcd-data
+#| fig-cap: "Simulated bivariate Normal data (grey) with a cluster of 50 anomalies (black). The ellipses show the 95% HDR of the true distribution, and the corresponding regions obtained using the sample mean and covariance matrix, and the MCD estimates."
+
+# Compute an ellipse containing 95% of a bivariate Normal distribution
+ellipse <- function(centre, S, level = 0.95) {
+  theta <- seq(0, 2 * pi, length = 200)
+  r <- sqrt(qchisq(level, df = 2))
+  pts <- centre + r * t(chol(S)) %*% rbind(cos(theta), sin(theta))
+  tibble(y1 = pts[1, ], y2 = pts[2, ])
+}
+ellipses <- bind_rows(
+  ellipse(c(0, 0), matrix(c(1, 1, 1, 2), 2, 2)) |>
+    mutate(method = "True distribution"),
+  ellipse(colMeans(mcd_y), cov(mcd_y)) |> mutate(method = "Sample covariance"),
+  ellipse(mcd_est$center, mcd_est$cov) |> mutate(method = "MCD")
+)
+mcd_df |>
+  ggplot(aes(x = y1, y = y2)) +
+  geom_point(data = ~ filter(.x, !anomaly), colour = "#999999", alpha = 0.4) +
+  geom_point(data = ~ filter(.x, anomaly), colour = "black", alpha = 0.6) +
+  geom_path(data = ellipses, aes(colour = method), linewidth = 0.8) +
+  labs(
+    x = latex2exp::TeX("$y_1$"),
+    y = latex2exp::TeX("$y_2$"),
+    colour = ""
+  )
+```
+
+```{r}
+#| label: check-robust-cov
+#| include: false
+#| dependson: mcd-data
+
+stopifnot(
+  abs(cor(mcd_y)[1, 2] - 0.51) < 0.01,
+  abs(cov2cor(mcd_est$cov)[1, 2] - 0.69) < 0.01,
+  sum(mcd_est$raw.weights[idx] == 0) == 49,
+  # All anomalies outside the MCD ellipse, some inside the sample ellipse
+  all(mahalanobis(mcd_y[idx, ], mcd_est$center, mcd_est$cov) > qchisq(0.95, 2)),
+  any(mahalanobis(mcd_y[idx, ], colMeans(mcd_y), cov(mcd_y)) <= qchisq(0.95, 2))
+)
+```
+
+The MCD ellipse is almost identical to the true HDR, and all 50 anomalies lie outside it.
+In contrast, the ellipse based on the sample covariance matrix has been stretched towards the anomalies, and is less elongated because of the reduced correlation, so that some of the anomalies lie inside it.
 
 ## Multivariate scaling {#sec-scaling}
 
