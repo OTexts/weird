@@ -1842,11 +1842,11 @@ requires = [
 
 [[package]]
 name = "igraph"
-version = "2.3.3"
+version = "2.3.4"
 source = "cran"
-raw_version = "2.3.3"
-url = "https://cran.r-project.org/src/contrib/igraph_2.3.3.tar.gz"
-checksum = "md5:afb847dd9d9cd2c0606573ebe214393d"
+raw_version = "2.3.4"
+url = "https://cran.r-project.org/src/contrib/igraph_2.3.4.tar.gz"
+checksum = "md5:32025403dd0a955373615930cf0aa578"
 requires = [
     "cli",
     "lifecycle",
