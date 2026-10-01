@@ -366,7 +366,7 @@ For that, we need to bring in the time series tools from @sec-timeseries.
 
 Because the networks $\mathcal{G}_1, \mathcal{G}_2, \dots$ arrive in a sequence, so does each feature: $x_{t,1}, x_{t,2}, \dots, x_{t,m}$ traces out $m$ separate univariate time series, one per feature.
 This means we can bring the full machinery of time series anomaly detection to bear, rather than comparing raw feature values directly.
-In particular, we can fit an ARIMA model [Ch 9, @fpp3] to each feature series in turn, and work with the residuals $e_{t,i} = x_{t,i} - \hat{x}_{t,i}$, where $\hat{x}_{t,i}$ is the value forecast from the history of that feature alone.
+In particular, we can fit an ARIMA model [@fpp3, Ch. 9] to each feature series in turn, and work with the residuals $e_{t,i} = x_{t,i} - \hat{x}_{t,i}$, where $\hat{x}_{t,i}$ is the value forecast from the history of that feature alone.
 If the ARIMA model has captured the trend and any seasonal pattern in the feature, the residuals should show no remaining temporal structure, so that an anomalous network shows up as an unusually large residual, regardless of whatever trend or seasonality it sits on top of.
 
 To see why this matters, we fit an ARIMA model to the Senate edge-count series shown in @fig-senate-edges.
