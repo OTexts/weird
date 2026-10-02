@@ -396,7 +396,7 @@ stmf_fit
 ```
 
 The `.fitted` column contains $m_t$, and the `.resid` column contains estimates of $y_t - m_t$, where $m_t$ takes account of any seasonality in the data.
-We will estimate the spread $a_t$ using a multiple of the IQR, where the multiple is chosen so that $a_t$ is equivalent to a standard deviation if the data were normally distributed.
+We will estimate the spread $a_t$ using the robust $Q_n$ estimator (@sec-robust-univariate), which is scaled to be equivalent to a standard deviation if the data were normally distributed.
 A separate estimate of spread is needed for each age group because the mortality rates are so different.
 
 ```{r}
@@ -406,10 +406,7 @@ A separate estimate of spread is needed for each age group because the mortality
 
 stmf_scores <- stmf_fit |>
   group_by(`Age group`) |>
-  mutate(
-    s = IQR(.resid),
-    e = .resid / IQR(.resid) / 1.349
-  ) |>
+  mutate(e = .resid / robustbase::s_Qn(.resid)) |>
   ungroup()
 stmf_scores
 ```
@@ -463,16 +460,97 @@ if (n_low_mortality != 1L) {
 @fig-stl_anomalies shows the identified anomalies.
 A total of `r NROW(stmf_scores)` observations have surprisal probabilities less than 0.02, with the most extreme being in weeks 15--16 of 2020, in the elderly age groups.
 Although the test can pick up unusually low or unusually high mortality rates, only `r n_low_mortality` of the `r NROW(stmf_scores)` identified anomalies is for low mortality, and that is for 85+ year olds in week 3 of 2020.
-It is possible that the elderly were taking precautions against COVID-19, resulting in restricted movements, and therefore lower mortality rates.
 
-There are four anomalous peaks in the plot, centred on the following dates:
+```{r}
+#| label: check_low_mortality
+#| include: false
+#| dependson: stmf_scores2
 
-- 2020 W14 -- W18
-- 2020 W49 -- 2021 W03
-- 2021 W33 -- W39
-- 2022 W02 -- W05
+score_stl <- function(data) {
+  data |>
+    model(stl = STL(Mortality)) |>
+    augment() |>
+    as_tibble() |>
+    group_by(`Age group`) |>
+    mutate(e = .resid / robustbase::s_Qn(.resid)) |>
+    ungroup() |>
+    mutate(
+      prob = surprisals_prob(
+        e,
+        distribution = dist_normal(),
+        approximation = "gpd"
+      )
+    )
+}
+w03 <- function(x) {
+  x |> filter(`Age group` == "85+", Week == yearweek("2020 W03"))
+}
+fit_full <- us_stmf |> model(STL(Mortality)) |> components() |> as_tibble()
+fit_pre <- us_stmf |>
+  filter(Week <= yearweek("2020 W10")) |>
+  model(STL(Mortality)) |>
+  components() |>
+  as_tibble()
+trend_w03 <- function(cmp) {
+  cmp$trend[cmp$`Age group` == "85+" & cmp$Week == yearweek("2020 W03")]
+}
+m85 <- function(wk) {
+  us_stmf$Mortality[us_stmf$`Age group` == "85+" & us_stmf$Week == yearweek(wk)]
+}
+stopifnot(
+  low_mortality$Week == yearweek("2020 W03"),
+  w03(score_stl(us_stmf))$prob < 0.02,
+  w03(score_stl(us_stmf |> filter(Week <= yearweek("2020 W10"))))$prob > 0.02,
+  trend_w03(fit_full) > trend_w03(fit_pre) * 1.05,
+  abs(m85("2020 W03") / m85("2019 W03") - 1) < 0.03
+)
+```
 
-Some of these periods affected some age groups more than others.
+This was weeks before COVID-19 led to any restrictions on movement in the US, which began in March 2020.
+In fact, the mortality rate for 85+ year olds in that week was almost the same as in the same week of 2019.
+The anomaly is an artefact of the STL decomposition: the trend is pulled upwards by the very large COVID-19 peak a few weeks later, so the January observations lie well below the estimated trend.
+If the STL decomposition is applied only to data up to early March 2020, that week is no longer flagged as anomalous.
+
+```{r}
+#| label: check_covid_waves
+#| include: false
+#| dependson: stmf_scores2
+
+wave_groups <- function(from, to) {
+  stmf_scores |>
+    filter(Week >= yearweek(from), Week <= yearweek(to)) |>
+    pull(`Age group`) |>
+    unique() |>
+    sort()
+}
+high <- stmf_scores |> filter(e > 0)
+stopifnot(
+  !any(stmf_scores$`Age group` == "0-14"),
+  setequal(wave_groups("2020 W14", "2020 W18"), c("15-64", "65-74", "75-84", "85+")),
+  setequal(wave_groups("2020 W49", "2021 W03"), c("65-74", "75-84", "85+")),
+  setequal(wave_groups("2021 W33", "2021 W39"), c("15-64", "65-74")),
+  setequal(wave_groups("2022 W03", "2022 W05"), c("65-74", "75-84", "85+")),
+  all(
+    high$Week >= yearweek("2020 W14") & high$Week <= yearweek("2020 W18") |
+      high$Week >= yearweek("2020 W49") & high$Week <= yearweek("2021 W03") |
+      high$Week >= yearweek("2021 W33") & high$Week <= yearweek("2021 W39") |
+      high$Week >= yearweek("2022 W02") & high$Week <= yearweek("2022 W05")
+  )
+)
+```
+
+There are four anomalous peaks in the plot, each corresponding to a major wave of COVID-19 in the US:
+
+- 2020 W14 -- W18: the first wave, centred on New York in April 2020;
+- 2020 W49 -- 2021 W03: the winter wave of 2020--21, the deadliest of the pandemic in the US;
+- 2021 W33 -- W39: the Delta wave of late summer 2021;
+- 2022 W02 -- W05: the Omicron wave of early 2022.
+
+These waves affected the age groups differently.
+The first wave produced anomalously high mortality in every adult age group, while in the winter 2020--21 wave and the Omicron wave, the anomalies were mostly in those aged 65 and over.
+In contrast, the Delta wave produced anomalies only in the 15--64 and 65--74 age groups.
+By then, most older people had been vaccinated, and deaths from the Delta variant were concentrated among younger, unvaccinated adults.
+No anomalies were identified in the 0--14 age group.
 
 ### Multivariate time series
 
@@ -549,9 +627,30 @@ As expected, many of the same weeks identified earlier in an analysis of individ
 The probability of false positives increases with both the length of each series and the number of series.
 So we have used a larger probability threshold here than in the analysis of individual series.
 Conversely, some anomalies might appear to be marginal in the individual series, but when the series are combined like this, the anomalous periods may be clearer.
-This appears to be the case in weeks 3 and 4 of 2020, where unusually low mortality rates are seen, probably because of restricted movements due to growing uncertainty associated with the spread of COVID-19.
-(The earlier analysis only showed an anomaly in this period for 85+ year olds in 2020 W3.)
-Unusually low mortality rates have also been identified in weeks 13 and 15 of 2021, probably also due to restricted movements, especially of older people.
+For example, weeks 3 and 4 of 2020 are flagged here, whereas the earlier analysis only flagged 2020 W3 for 85+ year olds.
+However, as noted above, these low values are an artefact of the STL trend being pulled upwards by the COVID-19 peak that followed a few weeks later.
+
+```{r}
+#| label: check_low_2021
+#| include: false
+#| dependson: stmf
+
+old85_rate <- function(yr, wk) {
+  us_stmf$Mortality[
+    us_stmf$`Age group` == "85+" &
+      us_stmf$Week == yearweek(paste0(yr, " W", wk))
+  ]
+}
+stopifnot(
+  all(sapply(c(13, 15), function(wk) {
+    old85_rate(2021, wk) < min(sapply(2016:2019, old85_rate, wk = wk))
+  }))
+)
+```
+
+Unusually low mortality rates have also been identified in weeks 13 and 15 of 2021.
+In those weeks, the mortality rate for 85+ year olds was lower than in the same weeks of any year from 2016 to 2019.
+There are several possible explanations: restricted movements, especially of older people; vaccination, as older people were among the first to be vaccinated against COVID-19 in early 2021; and mortality displacement, as many of the frailest older people had died during the COVID-19 wave of the preceding winter.
 
 ## Weird series {#sec-weird-series}
 
@@ -1024,9 +1123,15 @@ stopifnot(
   ),
   pbs_joint |> filter(Month == yearmonth("2008 Feb")) |> pull(n) == 33,
   identical(
-    pbs_joint |> group_by(M) |> summarise(from = min(Month), to = max(Month)) |>
+    pbs_joint |>
+      group_by(M) |>
+      summarise(from = min(Month), to = max(Month)) |>
       mutate(across(c(from, to), format)),
-    tibble(M = c(83L, 84L), from = c("1995 Jul", "2000 Dec"), to = c("2000 Nov", "2008 Jun"))
+    tibble(
+      M = c(83L, 84L),
+      from = c("1995 Jul", "2000 Dec"),
+      to = c("2000 Nov", "2008 Jun")
+    )
   )
 )
 ```
@@ -1060,13 +1165,18 @@ The most extreme month is February 2008, when 33 of the 84 groups were flagged.
 # Total scripts in January and February of 2007 and 2008
 janfeb <- pbs |>
   as_tibble() |>
-  filter(Month %in% yearmonth(c("2007 Jan", "2007 Feb", "2008 Jan", "2008 Feb"))) |>
+  filter(
+    Month %in% yearmonth(c("2007 Jan", "2007 Feb", "2008 Jan", "2008 Feb"))
+  ) |>
   group_by(Month) |>
   summarise(Scripts = sum(Scripts)) |>
   pull(Scripts, name = Month)
 feb_growth <- round(100 * (janfeb[["2008 Feb"]] / janfeb[["2007 Feb"]] - 1))
 janfeb_growth <- round(
-  100 * (sum(janfeb[c("2008 Jan", "2008 Feb")]) / sum(janfeb[c("2007 Jan", "2007 Feb")]) - 1)
+  100 *
+    (sum(janfeb[c("2008 Jan", "2008 Feb")]) /
+      sum(janfeb[c("2007 Jan", "2007 Feb")]) -
+      1)
 )
 stopifnot(janfeb[["2008 Jan"]] < janfeb[["2007 Jan"]])
 ```
