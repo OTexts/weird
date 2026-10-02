@@ -49,6 +49,8 @@ Also update this skill to take account of any new issues you find when reviewing
 - LaTeX macros such as `\dots` or `\times` written *outside* `$...$` in prose are silently dropped in the HTML ("ages 0, 1, 2, ,").
 - A cross-reference to another chapter's section must point to the section that actually contains the material (e.g. the lookout algorithm is in @sec-loo-surprisals, not @sec-kdesurprisals; HDoutliers/stray are in ch9, not ch6). A reference like "the masking seen in @sec-x" must correspond to something that section really discusses.
 - Claims that "nothing later depends on this chapter" must be checked by grepping other chapters for this chapter's `@sec-` labels.
+- Such claims must also be checked for reuse of this chapter's *data or examples* (e.g. "the six examples we introduced in @sec-examples"), not just its methods. Likewise, roadmap claims in the introduction ("we will use data sets of each type") must be checked against what the later chapters actually do.
+- `[@sec-x]` (with or without a leading `\ `) renders as bare "Section 6.6" with no brackets; use `(@sec-x)` when a parenthetical is meant.
 
 **Accuracy**
 - Variable counts in prose match the code
@@ -82,15 +84,31 @@ Also update this skill to take account of any new issues you find when reviewing
 - Terminology: output of `surprisals_prob()`/lookout is a "surprisal probability" (not "conditional probability" or "outlier probability"); "KDE"/"LOO" are capitalised in prose; "data" is plural throughout the book; "Normal" is capitalised (but "normal reference rule" is a fixed term).
 - A random variable used inside $\Pr(\cdot)$ (e.g. $S$ in $\Pr(S > s)$) must be defined, and the inequality should match the book's main definition in @eq-pi-density.
 - Moving-window parameters: distinguish the half-width $h$ (window $2h+1$) from the full window size.
+- Prose that lists the members of a printed top-$n$ table or flagged set must account for every row (or say "including"); "X is also flagged" after the top result implies the list is complete, so count how many actually pass the threshold and state the count inline if there are more. An event list tied to a filtered figure (e.g. "years with at least three anomalies") must match exactly the set passing the filter --- a range like "1940--1944" can claim years the plot does not show. When explaining *why* several flagged items are anomalous, check each one separately (e.g. rank profiles by age); they may be unusual for different reasons.
+- A vague count ("several", "some", "approximately 10--20") must not contradict an exact statement elsewhere in the chapter, and should be recomputed from the plot's own rule (fence values with that plot's quantile type, `lvplot` stopping rule) rather than a rounded value.
+- When prose lists a package function's options ("A final option is ..."), check the list against the function's `match.arg()` choices. When a function runs in stages (e.g. `robustX::BACON()` calls `mvBACON` then `.lmBACON`), check which stage each argument controls. When a function iterates or modifies a textbook algorithm (e.g. `leaderCluster` re-runs until stable) or rebuilds an object internally with different defaults (e.g. `oddnet::anomalous_networks()` uses `graph_from_adjacency_matrix()` with `mode = "directed"`), say so, and describe toy-example outputs from the code actually run.
+- Rules of the form "choose $k$ such that ..." must say which $k$ (smallest or largest). Stated ranges of a score ($(0,1]$ vs $(0,1)$) must match what its formula can actually take. Trimming/robustness claims must hold at the actual sample size (`mean(x, trim = 0.005)` trims nothing when $n < 200$).
+- Leverage explanations must agree with $h_i = 1/n + (x_i-\bar x)^2/S_{xx}$ (it does not depend on how many observations share an $x$ value); "the outliers have low leverage" should be compared with `mean(.hat)`. Leverage measures *potential* influence ("can", not "will").
+- Rank/empirical probabilities cannot go below $1/n$; a claim that they are accurate "in the extreme tails" is wrong. A formula integrating a fitted GPD from an observed value must match the book's definition of the GPD on exceedances $y > 0$.
+- Quantiles of merge distances (e.g. lookout's $\gamma = 0.98$) describe the fraction of *merges* above the threshold, not the fraction of observations left unmerged. Depth/band definitions ("bands formed by *other* curves") must match whether the code includes the curve itself.
+- A stated mechanism must produce the effect for the distribution actually used (e.g. "some coordinate lies in the tails" cannot explain the curse of dimensionality for Uniform data, which have no tails). A stated trade-off for a tuning parameter must point the right way given the mechanism just described; when a threshold changes between two analyses, give both values and a reason that follows.
+- A summary that groups methods ("these cannot distinguish X from Y") must not contradict a method's stated purpose earlier in the chapter. When an algorithm states a minimum training size, check the code applies it to every series (late-starting series may be scored after a few observations).
+- Ranges read off a heatmap or anomaly map (ages, years) should be computed from the fitted values, not estimated from the plot. Date ranges for a data set should be checked *after* the chapter's own cleaning (removing self-loops moved the UCI start from March to April). When a caption counts the splits of a fitted tree, the prose walk-through should cover all of them. When a figure computes several series but plots only some, the lead-in must name only what is plotted.
 
 **Clarity for 3rd year undergraduates**
 - Notation introduced before it is used
+- Terms introduced before they are used *book-wide*: a term defined in a later chapter (e.g. "surprisal probability", ch7) must not appear in an earlier one; describe the idea in plain words and keep the forward `@sec-` reference.
+- When an explanation is wrong only in detail, keep the author's intuition and correct the faulty part rather than replacing it with a more technical argument.
 - No unnecessary complexity beyond what the content requires
 - Intuition before mathematical formulation
 - Use precise terminology: in multivariate KDE the smoothing parameter is a "bandwidth matrix", not just "the bandwidth".
+- In an optimal-bandwidth (or similar) derivation, every quantity in the final formula must be given (e.g. $R(K)$ as well as $R(f'')$).
+- In chapters on the Normal distribution, avoid "normally" meaning "usually".
 
 **Spelling**
 - Use Australian spelling throughout. Check for spelling consistency.
+- Consistency must hold across chapters, not just within one: grep the whole book for variants (sulphur/sulfur, "kd trees"/"kd-trees", "Test cricket" --- a proper noun --- vs "test cricket").
+- Capitalise all distribution names, not just Normal: Normal, Uniform, Exponential, Gamma, Beta (and "non-Normal"); prefer "Normal" to "Gaussian" for the distribution.
 
 **R chunks**
 - All R chunks should have labels. Don't just eyeball this — count `grep -c '^```{r}' file.qmd` vs `grep -c '^#| label:' file.qmd`; a mismatch means at least one unlabelled chunk (often a small inline-display chunk like `df |> arrange(x)` added between two labelled chunks).
@@ -100,6 +118,7 @@ Also update this skill to take account of any new issues you find when reviewing
 - When an object is reassigned across several chunks (`x <- x |> mutate(...)`), a later chunk's `dependson` should point at the most recent reassigning chunk, not the one that first created it. With `cache: true` set globally, the first data-building chunk (often a `fig-` chunk that both creates and plots the data) is the easiest dependency to miss.
 - Chunks inside `::: {#fig-...}` divs (rgl/webgl figures) still need a label; give them a non-`fig-` label (e.g. `demo-rgl`).
 - Chunk labels must be unique across the whole book (e.g. two chapters both using `setup12`).
+- Flag hidden chunks whose result is never used later, especially ones that overwrite an earlier object of the same name, and assignments to base-R function names (`median`, `c`, `t`, `df`) --- report, don't change.
 - When prose hard-codes a model size chosen by a data-driven fit (e.g. three `Mclust()` components), there should be a `stopifnot()` guard or the size should be inline.
 - Do not change any code contained in an R chunk (plot titles/labels that are plainly wrong strings may be corrected, and should be reported)
 - A chunk label starting `fig-` should belong to a chunk that actually produces a plot. Watch for chunks that only fit a model or prepare data but were left with a stale `fig-` label and `fig-cap` (likely a leftover from restructuring) — the caption ends up describing an output that doesn't exist and the label is never (or wrongly) cross-referenced. Rename the label (dropping `fig-`) and remove the orphaned `fig-cap`; update any downstream `#| dependson:` that pointed at the old label. After such a rename, `quarto render <file> --to html` is worth running to confirm cross-references still resolve and figure numbering is unaffected.

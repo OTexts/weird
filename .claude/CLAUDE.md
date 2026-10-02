@@ -29,7 +29,7 @@ This reads `uvr.toml`/`uvr.lock` and installs packages into a project-local envi
 ## Architecture
 
 ### Source Files
-- `*.qmd` — Book chapters in Quarto Markdown (R code + prose). Chapters 1–10 have substantial content; chapters 11–15 are stubs.
+- `*.qmd` — Book chapters in Quarto Markdown (R code + prose). Chapters 1–12 have substantial content; chapters 13–16 are stubs.
 - `_quarto.yml` — Master configuration: chapter order, HTML theme (Cosmo + `otexts.scss`), bibliography (`weird.bib` with `apa-single-spaced.csl`), execution settings.
 - `before-each-chapter.R` — Sourced at the start of every chapter via `_quarto.yml`. Sets random seed (1967), loads the `weird` package, configures knitr chunk defaults, sets ggplot2 themes (Okabe-Ito discrete palette, Viridis continuous), and defines a `cache()` helper that saves/loads `.rds` files from `rds/`.
 
