@@ -220,16 +220,18 @@ stopifnot(nanomalies$Zscore == c(1, 3, 0, 1, 18, 15))
 Even if the data did come from a Normal distribution, the probability of an observation being more than 3 standard deviations from the mean is $`r round(2 * pnorm(-3),4)`$, so we would expect to see approximately 1 in every $1 / `r round(2 * pnorm(-3),4)` = `r round(.5/pnorm(-3))`$ regular observations being identified as an anomaly using this approach.
 
 In fact, we can be more accurate than this.
-If our $n$ observations come from a Normal distribution, then the $z$-scores follow (approximately) a $\text{t}_{n-1}$ distribution.
+If our $n$ observations come from a Normal distribution, then the $z$-scores approximately follow a N(0,1) distribution.
 (The approximation arises because we replace the mean and standard deviation by their sample estimates.)
 When we identify anomalies as those points with $|z| > c$, then the probability of finding at least one spurious anomaly is the probability of the maximum being above $c$ or the minimum being below $-c$.
 Since the distribution is symmetric, these probabilities are the same.
-Let $M_n$ be the maximum of $n$ $z$-scores computed from the data; then $\Pr(M_n \le c) \approx (F_{t}(c; n - 1))^n$ where $F_{t}(y; n - 1)$ is the cumulative distribution function of a t distribution with $n - 1$ degrees of freedom.
+Let $M_n$ be the maximum of $n$ $z$-scores computed from the data; then $\Pr(M_n \le c) \approx (\Phi(c))^n$ where $\Phi$ is the standard Normal cdf.
 So the probability of at least one spurious anomaly is
 $$
-  1 - (F_{t}(c; n - 1))^{2n}.
+  1 - (\Phi(c))^{2n}.
 $$ {#eq-spuriousz}
 This probability is accurate for large $n$, but not for small sample sizes.
+Because each observation contributes to both $\bar{y}$ and $s_y$, an extreme $y_i$ pulls the mean towards itself and inflates the standard deviation, so its $z$-score cannot be very large; in fact, $|z_i| \le (n-1)/\sqrt{n}$.
+For example, with $n \le 10$ no $z$-score can exceed 3, whatever the data.
 So, instead, we will use simulation to compute the probabilities; these are plotted in @fig-zspurious for several values of $c$ and $n$.
 
 ```{r}
@@ -1075,9 +1077,21 @@ nanomalies$Gap <- c(
 )
 stopifnot(nanomalies$Gap == c(1, 68, 0, 0, 0, 0))
 nof <- nanomalies$Gap[2]
+# The prose says the Old Faithful flags are every whole second in a central range
+of_flagged <- oldfaithful |>
+  filter(gap_test_pvalue(duration) < 0.05) |>
+  pull(duration) |>
+  sort()
+stopifnot(
+  all(of_flagged == round(of_flagged)),
+  all(diff(of_flagged) == 1),
+  min(of_flagged) == 207,
+  max(of_flagged) == 274
+)
 ```
 
 While the method worked well for the cricket batting averages, it identified `r nof` "anomalies" in the Old Faithful data, and it failed to identify either of the two clear anomalies in `n01b`.
+The Old Faithful "anomalies" are every whole-second duration from `r min(of_flagged)` to `r max(of_flagged)` seconds; because the durations are rounded to the nearest second, the spacings near the centre of the data are much larger than the test expects for continuous data.
 
 Like all methods in this chapter, both the Tukey--Wainer--Schacht gap score and the transformed-gap test depend on an assumed null distribution, and so the results depend on the adequacy of the model.
 Related extreme-spacing ideas underlie the HDoutliers and stray algorithms discussed in @sec-hdoutliers and @sec-stray, where gaps in nearest-neighbour distances are used rather than gaps in the raw univariate data.
@@ -1122,7 +1136,7 @@ purrr::reduce2(
 ```
 
 Only the $z$-score method found the three (and only the three) clear anomalies in the Old Faithful data, and most failed to find either of the artificial anomalies in `n01b`.
-All tests except the gap test found at least one spurious anomaly in the large simulated data sets with no real anomalies.
+All tests except the gap test found at least one spurious anomaly in the large simulated data sets with no real anomalies, although the gap test flagged `r nof` Old Faithful durations because those data are rounded to whole seconds.
 
 As noted at the start of this chapter, anomaly detection methods based on assumed data distributions are unreliable.
 Until about 1975, they were the only viable methods given the lack of computing facilities available, because they could be implemented using tables and hand calculations.
