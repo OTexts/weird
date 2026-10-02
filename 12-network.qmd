@@ -525,7 +525,7 @@ Applying `anomalous_networks()` to the full sequence:
 #| code-fold: false
 #| dependson: senate-data
 
-senate_result <- anomalous_networks(senate_networks)
+senate_result <- anomalous_networks(senate_networks, mode = "undirected")
 senate_probs <- tibble(
   congress = senate_congress,
   prob = senate_result$outlier_probability
