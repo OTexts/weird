@@ -2523,16 +2523,14 @@ checksum = "md5:f894081f6d73822a362f156e849c9657"
 
 [[package]]
 name = "oddnet"
-version = "0.1.2"
-source = "cran"
-raw_version = "0.1.2"
-url = "https://cran.r-project.org/src/contrib/oddnet_0.1.2.tar.gz"
-checksum = "md5:0b5b7ef56cd248cc3ee2be8bde4d0015"
+version = "0.1.1-4.2"
+source = "github"
+url = "https://api.github.com/repos/sevvandi/oddnet/tarball/0868e0ccc17887573e3bf10155f52266f79c8b11"
+checksum = "git:0868e0ccc17887573e3bf10155f52266f79c8b11"
 requires = [
     "dplyr",
     "fable",
     "fabletools",
-    "feasts",
     "igraph",
     "lookout",
     "pcaPP",

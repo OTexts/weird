@@ -148,14 +148,12 @@ As an illustration, we consider the 100th Congress (1987--1989).
 #| fig-cap: "US Senate co-voting network for the 100th Congress (1987--1989), coloured by party (blue = Democrat, red = Republican)."
 #| fig-asp: 0.5
 
-network_plot(
-  graph_from_adjacency_matrix(
-    senate_networks[[congress100]],
-    mode = "undirected"
-  ),
-  group = senate_party[[congress100]],
-  palette = party_palette
-)
+senate_networks[[congress100]] |>
+  graph_from_adjacency_matrix(mode = "undirected") |>
+  network_plot(
+    group = senate_party[[congress100]],
+    palette = party_palette
+  )
 ```
 
 For each senator, we compute six `igraph` features that describe their position in the co-voting network.
@@ -259,7 +257,9 @@ senate_node_features |> arrange(prob) |> head(3)
 flagged <- senate_node_features |> filter(prob < 0.05)
 n_flagged <- NROW(flagged)
 n_isolated <- sum(senate_node_features$degree == 0)
-top2_betweenness <- sort(senate_node_features$betweenness, decreasing = TRUE)[1:2]
+top2_betweenness <- sort(senate_node_features$betweenness, decreasing = TRUE)[
+  1:2
+]
 # The prose describes the flagged senators as the two with the highest
 # betweenness plus all the isolated senators, with the most anomalous
 # senator having the highest betweenness
@@ -268,7 +268,8 @@ stopifnot(
   all(flagged$degree == 0 | flagged$betweenness %in% top2_betweenness),
   sum(flagged$degree == 0) == n_isolated,
   n_isolated > 0,
-  which.min(senate_node_features$prob) == which.max(senate_node_features$betweenness)
+  which.min(senate_node_features$prob) ==
+    which.max(senate_node_features$betweenness)
 )
 ```
 
@@ -329,9 +330,11 @@ To illustrate, we compute these features for the same 100th Congress network use
 #| code-fold: false
 #| dependson: senate-data
 
-features_100 <- compute_features(
-  graph_from_adjacency_matrix(senate_networks[[congress100]], mode = "undirected")
-)
+features_100 <- graph_from_adjacency_matrix(
+  senate_networks[[congress100]],
+  mode = "undirected"
+) |>
+  compute_features()
 tibble(
   feature = names(features_100)[1:20],
   value = as.numeric(features_100[1:20])
@@ -498,13 +501,13 @@ After the earliest Congresses, the parties become clearly separated, from an alm
 #| fig-asp: 0.3
 
 senate_gr <- function(i) {
-  gr <- graph_from_adjacency_matrix(senate_networks[[i]], mode = "undirected")
-  network_plot(
-    gr,
-    group = senate_party[[i]],
-    palette = party_palette,
-    title = paste(scales::ordinal(senate_congress[i]), "Congress")
-  )
+  senate_networks[[i]] |>
+    graph_from_adjacency_matrix(mode = "undirected") |>
+    network_plot(
+      group = senate_party[[i]],
+      palette = party_palette,
+      title = paste(scales::ordinal(senate_congress[i]), "Congress")
+    )
 }
 patchwork::wrap_plots(
   senate_gr(1),
@@ -535,7 +538,9 @@ senate_probs |> dplyr::arrange(prob) |> head()
 ```{r}
 #| label: fig-senate-prob
 #| dependson: [senate-data, senate-oddnet, ch12_libraries]
-#| fig-cap: "Surprisal probability of each US Senate co-voting network, from the 40th to the 113th Congress. The dashed line shows the 0.05 threshold."
+#| fig-cap: >-
+#|   Surprisal probability of each US Senate co-voting network, from the 40th to the 113th Congress.
+#|   The dashed line shows the 0.05 threshold.
 
 prob_plot(senate_congress, senate_result$outlier_probability, xlab = "Congress")
 ```
@@ -551,7 +556,8 @@ stopifnot(most_anomalous == 100)
 
 As anticipated in @sec-network-nodes, the `r scales::ordinal(most_anomalous)` Congress (1987--1989) stands out as by far the most anomalous, with a surprisal probability of `r sprintf("%.4f", min(senate_probs$prob))`.
 Compared with its neighbours, this Congress had many more co-voting edges (@fig-senate-edges), and a few edges between the parties where the 99th and 101st Congresses had none.
-This is consistent with the high-betweenness senators found at the node level in @sec-network-nodes, and with @Huang2020, who also flag it as the most anomalous Congress in this data set using an unrelated Laplacian-based method.
+This is consistent with the high-betweenness senators found at the node level in @sec-network-nodes.
+The 100th Congress is also the top anomaly in the Laplacian-based analysis of @Huang2020, but their sequence is a different Senate network, based on bill co-sponsorship rather than co-voting and covering only the 97th to 108th Congresses.
 Of the `r english::words(sum(senate_probs$prob < 0.05))` Congresses below the $\alpha = 0.05$ threshold, the next most anomalous is the 43rd Congress (1873--1875), with a surprisal probability of `r sprintf("%.4f", senate_probs$prob[senate_probs$congress == 43])`.
 This Congress sat during the Panic of 1873, a severe economic depression that was known as "the Great Depression" until the 1929 crash claimed the name --- a period of considerable political instability that plausibly disrupted the usual voting coalitions.
 
@@ -617,7 +623,9 @@ uci_flagged
 ```{r}
 #| label: fig-uci-prob
 #| dependson: [uci-data, uci-oddnet, ch12_libraries]
-#| fig-cap: "Surprisal probability of each UCI daily message network, from April to October 2004. The dashed line shows the 0.05 threshold."
+#| fig-cap: >-
+#|   Surprisal probability of each UCI daily message network, from April to October 2004.
+#|   The dashed line shows the 0.05 threshold.
 
 prob_plot(uci_dates, uci_result$outlier_probability, xlab = "Date")
 ```
@@ -627,7 +635,13 @@ prob_plot(uci_dates, uci_result$outlier_probability, xlab = "Date")
 #| include: false
 #| dependson: [uci-data, uci-oddnet]
 
-key_dates <- as_date(c("2004-04-19", "2004-05-22", "2004-05-28", "2004-06-15", "2004-09-24"))
+key_dates <- as_date(c(
+  "2004-04-19",
+  "2004-05-22",
+  "2004-05-28",
+  "2004-06-15",
+  "2004-09-24"
+))
 two_smallest <- uci_dates[order(uci_result$outlier_probability)[1:2]]
 stopifnot(
   all(key_dates %in% uci_flagged),
@@ -647,7 +661,7 @@ stopifnot(all(uci_constant == 0))
 Unlike the Senate network, which drifts slowly over decades, this network is driven by the rhythm of the academic calendar.
 The two most anomalous days are 19 April and 28 May.
 On 19 April, only the third day on which any messages were sent, the network suddenly grew from 2 to 16 students, early in the platform's initial rapid growth phase identified by @Panzarasa2009.
-Several of the other flagged dates cluster around 28 May, close to the end of that growth phase, and around 15 June and 24 September, close to the end of the Spring term (19 June) and the start of the Fall term (20 September) respectively.
+Several of the other flagged dates cluster around 28 May, close to the end of that growth phase, and around 15 June (during the Spring final examinations) and 24 September (the first day of Fall instruction).
 The Senate and UCI examples illustrate quite different anomaly patterns: a slow structural realignment measured in decades, against short bursts of activity tied to a fixed calendar.
 
 ## Summary {#sec-network-summary}

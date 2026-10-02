@@ -184,7 +184,6 @@ nlme = "*"
 nnet = "*"
 np = "*"
 numDeriv = "*"
-oddnet = "*"
 openssl = "*"
 otel = "*"
 patchwork = "*"
@@ -293,6 +292,9 @@ xml2 = "*"
 xmlparsedata = "*"
 yaml = "*"
 zoo = "*"
+
+[dependencies.oddnet]
+git = "sevvandi/oddnet"
 
 [dependencies.weird]
 git = "robjhyndman/weird"
