@@ -172,9 +172,16 @@ Conversely, distance-based tools are making an implicit assumption about the pro
 
 Distance-based methods are discussed in @sec-distance-methods, while density-based methods are the subject of @sec-density-methods.
 
+### Regression methods
+
+Sometimes we are interested in anomalies in one variable of interest (the "response"), after allowing for the values of some other variables (the "predictors").
+For example, we might want to find wines that are unusually expensive given how highly they were rated by reviewers.
+Then an anomaly is an observation whose response is unusual given its predictor values, rather than one that is unusual in itself.
+Such methods are discussed in @sec-regression-methods.
+
 ### Beyond simple data sets
 
-For the most part, we will restrict attention in the first seven chapters to numerical data with only one or two variables.
+For the most part, we will illustrate the methods in @sec-tests to @sec-regression-methods using numerical data with only one or two variables.
 This allows us to introduce the main ideas and tools of anomaly detection in a simple setting, where we can easily visualise the data and the anomalies.
 However, many real data sets are more complex than this, and we will need to use more sophisticated methods to find anomalies in them.
 
