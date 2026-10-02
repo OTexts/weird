@@ -84,8 +84,8 @@ For an $m$-dimensional N$(\bm{0}, \bm{\Sigma})$ distribution, a surprisal is giv
 $$
   s_i
   = -\log\left( (2\pi)^{-m/2}|\bm{\Sigma}|^{-1/2} \exp\Big\{-\frac{1}{2}\bm{y}_i^\intercal\bm{\Sigma}^{-1}\bm{y}_i\Big\} \right)
-      = \frac{1}{2} \bm{y}_i^\intercal\bm{\Sigma}^{-1}\bm{y}_i
-        + \frac{m}{2}\log(2\pi) + \frac{1}{2} \log|\bm{\Sigma}|
+  = \frac{1}{2} \bm{y}_i^\intercal\bm{\Sigma}^{-1}\bm{y}_i
+    + \frac{m}{2}\log(2\pi) + \frac{1}{2} \log|\bm{\Sigma}|
 $$
 When $\bm{\Sigma} = \bm{I}$, this is simply the sum of surprisals computed on each of the marginal distributions.
 
@@ -326,7 +326,7 @@ Then $f_i \approx K_{\bm{H}}(\bm{0})/n$ because $K_{\bm{H}}(\bm{y}_i - \bm{y}_j)
 So the largest possible KDE surprisal, when using a Gaussian kernel, is
 $$
   -\log(K_{\bm{H}}(\bm{0})/n) = \log(n) + \frac{m}{2}\log(2\pi)
-                               + \frac{1}{2}\log|\bm{H}|,
+                                + \frac{1}{2}\log|\bm{H}|,
 $$
 where $\bm{H}$ is now the bandwidth matrix.
 For univariate data, when $m = 1$, this simplifies to
@@ -658,8 +658,7 @@ This construction can be viewed as applying a multivariate Normal model to trans
 
 Under the Gaussian copula model, anomaly scores can be constructed using the Mahalanobis distance of the transformed observations:
 $$
-  d_i^2
-  = (\bm{w}_i - \bm{\mu}_w)^\intercal \bm{\Sigma}_w^{-1} (\bm{w}_i - \bm{\mu}_w).
+  d_i^2 = (\bm{w}_i - \bm{\mu}_w)^\intercal \bm{\Sigma}_w^{-1} (\bm{w}_i - \bm{\mu}_w).
 $$
 Large values of $d_i^2$ indicate that the observation is unusual relative to the data according to the fitted Gaussian copula model, and so are potential anomalies.
 
@@ -671,8 +670,8 @@ $$
 $$
 so the corresponding surprisal is
 $$
-  s_i = -\log \hat f_W(\bm{w}_i) = \frac{1}{2} d_i^2
-        + \frac{m}{2}\log(2\pi) + \frac{1}{2}\log|\bm{\Sigma}_w|.
+  s_i = -\log \hat f_W(\bm{w}_i)
+      = \frac{1}{2} d_i^2 + \frac{m}{2}\log(2\pi) + \frac{1}{2}\log|\bm{\Sigma}_w|.
 $$
 Thus ranking observations by $d_i^2$ is equivalent to ranking them by the surprisals of their transformed values $\bm{w}_i$ under the fitted multivariate Normal model.
 If the model is appropriate, then, for large $n$, $d_i^2$ approximately follows a chi-squared distribution with $m$ degrees of freedom, giving the approximate surprisal probability
@@ -739,9 +738,32 @@ of_scores |>
   mutate(anomaly = prob < 0.005) |>
   ggplot(aes(x = duration, y = waiting, col = anomaly)) +
   geom_point() +
-  labs(x = "Duration", y = "Waiting time", col = "Surprisal probability < 0.005") +
+  labs(
+    x = "Duration",
+    y = "Waiting time",
+    col = "Surprisal probability < 0.005"
+  ) +
   scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = "#D55E00"))
 ```
 
 In this case, the method has picked up several observations around the edge of the main clusters, and failed to identify some observations that appear to be more obvious anomaly candidates.
 The Gaussian copula approach is not well-suited to multimodal data.
+
+## Summary {#sec-density-summary}
+
+Density-based methods define an anomaly as an observation that is improbable under the distribution of the data.
+The surprisal, $s_i = -\log f(\bm{y}_i)$, measures how improbable each observation is, and the surprisal probability puts this on a probability scale, as the chance of seeing an observation at least as surprising.
+Flagging observations with surprisal probability below $\alpha$ then gives a false positive rate of $\alpha$, and the non-anomalous observations are those lying in the $100(1 - \alpha)$% highest density region.
+Unlike $z$-scores, this allows anomalies to lie anywhere in the distribution, including between the modes of a multimodal distribution, although for Normal data the two approaches are equivalent.
+
+The main practical difficulty is that we rarely know $f$.
+Two ideas make the approach work in practice.
+First, the surprisal probabilities of the most extreme observations can be estimated accurately even when the density used to compute the surprisals is wrong, by fitting a Generalised Pareto Distribution to the largest surprisals, or by using their ranks, as we saw when a $\text{t}_4$ density was used for Normal data.
+Second, when the density is estimated from the data, using leave-one-out estimates stops each anomaly from inflating its own density estimate; for kernel density estimates, the leave-one-out values can be computed without re-estimating the density.
+
+The choice of density estimate still matters.
+On the Old Faithful data, the leave-one-out KDE surprisals immediately identified the three spurious short eruption durations, and the bivariate version flagged observations away from the two main clusters of durations and waiting times.
+A Gaussian mixture model gave a more parsimonious description of the same data and identified the nine observations that do not appear to belong to either cluster.
+The Gaussian copula model, which assumes a single Gaussian dependence structure after transforming the marginal distributions, flagged several observations around the edges of the main clusters while missing some of those lying between the clusters, as it is not well-suited to multimodal data.
+
+The surprisal approach is used throughout the rest of the book, with the density replaced by a conditional distribution when we want to find observations that are unusual given other information, such as predictor values in @sec-regression-methods or the past history of a time series in @sec-timeseries.
