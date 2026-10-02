@@ -27,20 +27,22 @@ The depth of the median is $d_1 = (1 + n)/2$.
 The depths of successive letter values are defined recursively as $d_i = (1 + \lfloor d_{i-1}\rfloor)/2$, $i = 2,3,\dots$.
 The corresponding letter values are defined as
 $$
-  L_i = y_{(\lfloor d_i\rfloor)} \qquad\text{and}\qquad U_i
-      = y_{(\lfloor n-d_i+1\rfloor)},
+  L_i = y_{(\lfloor d_i\rfloor)} \qquad\text{and}
+  \qquad
+  U_i = y_{(\lfloor n-d_i+1\rfloor)},
 $$
 when the depth is an integer.
 Otherwise, the depth is an integer plus 1/2, and the letter values are given by
 $$
-  L_i
-  = (y_{(\lfloor d_i\rfloor)} + y_{(\lfloor d_i\rfloor+1)})/2 \qquad\text{and}\qquad U_i
-      = (y_{(\lfloor n-d_i+1\rfloor)} + y_{(\lfloor n-d_i+1\rfloor+1)})/2 .
+  L_i = (y_{(\lfloor d_i\rfloor)} + y_{(\lfloor d_i\rfloor+1)})/2 \qquad\text{and}
+  \qquad
+  U_i = (y_{(\lfloor n-d_i+1\rfloor)} + y_{(\lfloor n-d_i+1\rfloor+1)})/2 .
 $$
 Rather than label these using integers ($L_2,L_3,\dots$), Tukey proposed using letters ($L_F,L_E,L_D,\dots$) where $F =$ fourths, $E =$ eighths, $D =$ sixteenths, and so on.
 
 Because each depth is roughly half the previous depth, the lower letter values provide estimates of the quantiles with probabilities $p = \frac{1}{2},\frac14,\frac18,\dots$, while the upper letter values provide estimates of the quantiles with probabilities $p = \frac{1}{2},\frac34,\frac78,\dots$.
-@hoaglin1983letter [p. 44] showed that $\hat{Q}(p)$ with `type = 8` gives approximately the same result as the corresponding letter value.
+@hoaglin1983letter [p.
+44] showed that $\hat{Q}(p)$ with `type = 8` gives approximately the same result as the corresponding letter value.
 
 ```{r}
 #| label: battinglv
@@ -56,7 +58,11 @@ yd <- function(d, upper = FALSE) {
   if (i == trunc(i)) {
     sprintf("y_{(%d)}", as.integer(i))
   } else {
-    sprintf("(y_{(%d)} + y_{(%d)})/2", as.integer(floor(i)), as.integer(ceiling(i)))
+    sprintf(
+      "(y_{(%d)} + y_{(%d)})/2",
+      as.integer(floor(i)),
+      as.integer(ceiling(i))
+    )
   }
 }
 ```
@@ -64,18 +70,18 @@ yd <- function(d, upper = FALSE) {
 Consider the batting averages from @sec-sample-quantiles.
 In this example, $n = `r n`$, so the depths of the first four letter values are given by
 $$
-  d_1 = `r d[1]`,\quad d_2 = `r d[2]`,\quad d_3
-      = `r d[3]`,\quad\text{and}\quad d_4 = `r d[4]`,
+  d_1 = `r d[1]`,\quad d_2 = `r d[2]`,
+  \quad d_3 = `r d[3]`,\quad\text{and}\quad d_4 = `r d[4]`,
 $$
 and the corresponding letter values are given by
 \begin{align*}
   L_1 & = U_1 = `r yd(d[1])` = `r sprintf("%2.2f", lv[4,"LV"])` &\\
   L_F & = `r yd(d[2])` = `r sprintf("%2.2f", lv[3,"LV"])` \qquad
-      & U_F                                                                                                & = `r yd(d[2], upper = TRUE)` = `r sprintf("%2.2f", lv[5,"LV"])` \\
+      & U_F                                                         & = `r yd(d[2], upper = TRUE)` = `r sprintf("%2.2f", lv[5,"LV"])` \\
   L_E & = `r yd(d[3])` = `r sprintf("%2.2f", lv[2,"LV"])` \qquad
-      & U_E                                                                                                & = `r yd(d[3], upper = TRUE)` = `r sprintf("%2.2f", lv[6,"LV"])` \\
+      & U_E                                                         & = `r yd(d[3], upper = TRUE)` = `r sprintf("%2.2f", lv[6,"LV"])` \\
   L_D & = `r yd(d[4])` = `r sprintf("%2.2f", lv[1,"LV"])` \qquad
-      & U_D                                                                                                & = `r yd(d[4], upper = TRUE)` = `r sprintf("%2.2f", lv[7,"LV"])`
+      & U_D                                                         & = `r yd(d[4], upper = TRUE)` = `r sprintf("%2.2f", lv[7,"LV"])`
 \end{align*}
 We can compute the letter values using the `lvtable()` function from the `lvplot` package.
 
@@ -132,26 +138,6 @@ cricket_batting |>
 In Tukey's original version, the ends of the box were determined by the letter values corresponding to the fourths, and the middle line within the box showed the median.
 This is what is produced by the base R function `boxplot()`.
 In the `ggplot2` version of the boxplot shown here, the ends of the box are the quartiles computed using `type = 7`.
-
-```{r}
-#| label: fig-cricketbox2
-#| fig-asp: 0.3
-#| code-fold: false
-#| eval: false
-#| include: false
-#| fig-cap: >-
-#|   The version of the boxplot computed using `boxplot()` showing the same data as @fig-cricketbox.
-#|   The box is computed using letter values (the fourths) rather than quantiles.
-
-cricket_batting |>
-  filter(Innings >= 20) |>
-  pull(Average) |>
-  boxplot(
-    horizontal = TRUE,
-    ylab = "",
-    xlab = "Career batting average"
-  )
-```
 
 Whichever variation is used, roughly half of all observations lie within the box.
 The length of the box is an estimate of the "interquartile range" (IQR).
@@ -368,12 +354,21 @@ cricket_batting |>
 ```
 
 ```{r}
-#| label: lv
-#| echo: false
+#| label: check-lv
+#| include: false
 
-lv <- cricket_batting |>
+# The prose says the outermost box is Z and 10 points (Bradman + 9) are shown
+lv_data <- cricket_batting |>
   filter(Innings >= 20) |>
-  stat_lv(mapping = aes(y = Average))
+  ggplot(aes(x = 1, y = Average)) +
+  geom_lv(aes(fill = after_stat(LV)))
+lv_data <- layer_data(lv_data)
+lv_points <- lv_data$outliers[[1]]
+stopifnot(
+  as.character(dplyr::last(lv_data$LV)) == "Z",
+  length(lv_points) == 10,
+  max(lv_points) == max(filter(cricket_batting, Innings >= 20)$Average)
+)
 ```
 
 Here the median is given by M, the fourths by F, and so on.
@@ -500,7 +495,7 @@ The blue region is depth 1, the orange region is depth 2, the pink region is dep
 #|   The 10 observations are shown in black.
 #|   These lie at the outer edges of the depth regions.
 
-median <- aplpack::compute.bagplot(n01[1:10, 1:2])
+bagplot_fit <- aplpack::compute.bagplot(n01[1:10, 1:2])
 z <- tidyr::expand_grid(
   v1 = seq(-0.9, 1.6, l = 200),
   v2 = seq(-1.95, 1.15, l = 200)
@@ -535,7 +530,7 @@ p +
   geom_point() +
   coord_fixed(xlim = c(-0.85, 1.6), ylim = c(-1.85, 1.1)) +
   geom_point(
-    data = data.frame(v1 = median$center[1], v2 = median$center[2]),
+    data = data.frame(v1 = bagplot_fit$center[1], v2 = bagplot_fit$center[2]),
     col = "yellow",
     size = 2
   )
@@ -692,6 +687,16 @@ oldfaithful |>
 ```
 
 ## Summary {#sec-boxplots-summary}
+
+The plots in this chapter summarise a distribution by a series of nested central regions, and show the observations outside the outermost region individually.
+They differ in how "central" is defined.
+Boxplots and letter-value plots use univariate depth: a boxplot shows the median, a box bounded by the fourths (or quartiles), and fences 1.5 IQR beyond the box, while a letter-value plot adds further letter values (eighths, sixteenths, and so on) until the next one can no longer be estimated reliably, which makes it better suited to large data sets.
+Bagplots extend the boxplot to bivariate data using Tukey depth, with the depth median at the centre, a bag containing the deepest half of the observations, and a loop obtained by inflating the bag by a factor of 3.
+HDR boxplots define the regions by probability density instead, using highest density regions of a kernel density estimate.
+
+The points shown individually are not necessarily anomalies.
+With fixed fences, a boxplot shows more spurious anomalies as the sample size grows; the modified IQR rule widens the fences with the sample size to control this, but only under Normality.
+Letter-value plots show a few legitimate observations in each tail by design, and an HDR boxplot shows about 1% of observations outside its 99% region.
 
 Boxplots, letter-value plots, bagplots, and HDR boxplots are all extremely useful tools in exploratory data analysis, and deserve to be widely applied.
 They are particularly useful in summarising univariate and bivariate data distributions.
