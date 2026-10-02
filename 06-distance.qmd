@@ -462,10 +462,10 @@ This provides a relative measure of the density of each observation compared to 
 An observation is regarded as an anomaly if it is in a low-density region while its neighbours are in higher density regions.
 A value of $\ell_{i,k}$ much greater than 1 shows that the observation has much larger average reachability compared to its neighbours, and so is regarded as an anomaly.
 
-One problem with this definition is that $\ell_{i,k}$ can be infinite.
-If the data set contains at least $k + 1$ identical observations, then the average reachability $\bar{r}_{j,k}$ will be 0 if $\bm{y}_j$ is one of the group of identical observations.
-Consequently, $\ell_{i,k} = \infty$ if one of the group of identical observations is among the $k$ nearest neighbours of $\bm{y}_i$.
-In this book we use a slightly different definition from that used elsewhere and replace these infinite values with 1s (indicating they have similar reachability to their identical neighbours).
+A complication arises when the data set contains at least $k + 1$ identical observations.
+Then the average reachability $\bar{r}_{j,k}$ is 0 for each $\bm{y}_j$ in the group of identical observations.
+These observations are assigned $\ell_{j,k} = 1$, as they have the same (infinite) density as their identical neighbours.
+But any other observation $\bm{y}_i$ that has one of the identical observations among its $k$ nearest neighbours has $\ell_{i,k} = \infty$.
 
 Another problem is that it can be difficult to determine an appropriate value for $k$.
 
@@ -534,8 +534,10 @@ As distance threshold $\varepsilon$ increases from very small to very large, the
 - As $\varepsilon$ increases, observations one by one cease to be noise and join clusters; clusters appear, grow, and eventually merge with each other.
 - At very large $\varepsilon$, every observation is absorbed into one all-encompassing cluster.
 
-For each observation $\bm{y}_i$, let $\varepsilon_i = d_{i,k}$.
-This is the smallest distance threshold at which $\bm{y}_i$ qualifies as a core point: for $\varepsilon \ge \varepsilon_i$ it can belong to a cluster, but as soon as $\varepsilon$ drops below $\varepsilon_i$ it falls back into noise.
+For each observation $\bm{y}_i$, let $\varepsilon_i$ be the smallest distance threshold at which $\bm{y}_i$ belongs to a cluster.
+This must be at least $d_{i,k}$, because $\bm{y}_i$ has to be a core point, and $\bm{y}_i$ must also be linked to another core point at that threshold, so $\varepsilon_i = \min_{j \ne i} d_\text{mreach}(\bm{y}_i, \bm{y}_j)$.
+In most cases, this is simply $\varepsilon_i = d_{i,k}$.
+For $\varepsilon \ge \varepsilon_i$, $\bm{y}_i$ belongs to a cluster, but as soon as $\varepsilon$ drops below $\varepsilon_i$ it falls back into noise.
 So $\varepsilon_i$ is the distance threshold at which $\bm{y}_i$ *joins* a cluster going upwards, or equivalently the threshold at which it *leaves* its cluster going downwards.
 Points with many close neighbours have a small $\varepsilon_i$; isolated points have a large $\varepsilon_i$.
 
