@@ -127,9 +127,9 @@ The "curse of dimensionality" refers to the increasing sparseness of space as th
 
 ### Points in the corners
 
-Suppose we observed a high-dimensional data set of independent U(-1,1) variables, and consider the proportion of points that lie outside the unit sphere (in the corners of the space) as the number of dimensions increases.
+Suppose we observed a high-dimensional data set of independent U$(-1,1)$ variables, and consider the proportion of points that lie outside the unit sphere (in the corners of the space) as the number of dimensions increases.
 First, let's visualise what this means in 1, 2 and 3 dimensions.
-In 1 dimension, the unit sphere is just the interval [-1,1], so no points lie outside this interval.
+In 1 dimension, the unit sphere is just the interval $[-1,1]$, so no points lie outside this interval.
 In 2 dimensions, the unit sphere is the circle with radius 1, sitting snugly within a square of side length 2, as shown in @fig-curse2d.
 
 ```{r}
@@ -1076,7 +1076,7 @@ $$
 $$ {#eq-lookoutH}
 where $d_\gamma$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_{n-1}\}$ for a large value of $\gamma$; we use $\gamma = 0.98$, so that $d_\gamma$ is the merge distance at which only about 2% of observations remain unmerged.
 This bandwidth is matched to the spacing between neighbouring observations in the sparse parts of the data, where anomalies lie, rather than to the bulk of the data.
-It does not give a consistent estimate of the density as $n\rightarrow\infty$, but @lookout2 argue that consistency is not needed for anomaly detection, and show in simulations that it works well for that purpose.
+It does not give a consistent estimate of the density as $n \rightarrow \infty$, but @lookout2 argue that consistency is not needed for anomaly detection, and show in simulations that it works well for that purpose.
 We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-loo-surprisals.
 The `kde_bandwidth()` function will return this bandwidth when `method = "lookout"`.
 For univariate data, $h = d_\gamma Q_n$.
