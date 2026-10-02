@@ -387,7 +387,7 @@ These correspond to the cluster of five observations near the bottom of @fig-pro
 az_aq_proj |>
   ggplot(aes(x = a1, y = a2, colour = surprisal_anomaly)) +
   geom_point(alpha = 0.2 + 0.8 * az_aq_proj$surprisal_anomaly) +
-  scale_colour_manual(values = c("FALSE" = "#0072B2", "TRUE" = "#D55E00")) 
+  scale_colour_manual(values = c("FALSE" = "#0072B2", "TRUE" = "#D55E00"))
 ```
 
 Further inspection shows that this was a period of high particulate matter (`pm2_5` and `pm10`), `co` and `dew_point`, and moderately high `so2`.
@@ -491,7 +491,8 @@ Stahel--Donoho outlyingness is a robust projection-based measure of how far each
 For any unit vector $\bm{a}$, project the data to one dimension via $\bm{a}^\intercal\bm{y}_i$, then scale the result using a robust $z$-score (@sec-scaling), adjusted for skewness [@Brys2005-pc].
 The "outlyingness" of $\bm{y}_i$ is the largest absolute $z$-score over all possible directions $\bm{a}$, so an observation is flagged when it looks extreme in at least one projection.
 
-Stahel--Donoho outlyingness is a guided tour index: it searches over one-dimensional projections. For each candidate direction $\bm{a}$, compute the robust $z$-scores of the projected data, and keep track of the largest value seen so far.
+Stahel--Donoho outlyingness is a guided tour index: it searches over one-dimensional projections.
+For each candidate direction $\bm{a}$, compute the robust $z$-scores of the projected data, and keep track of the largest value seen so far.
 
 In practice, the optimisation over all directions is approximated using many candidate projections.
 In R, `robustbase::adjOutlyingness()` provides an efficient implementation for computing these scores.
@@ -1078,9 +1079,11 @@ The other distinguishing feature of HDoutliers is that it applies extreme value 
 After sorting the nearest-neighbour distances, the gaps between the largest of them are, by Weissman's spacing theorem, approximately independent exponential random variables whenever the underlying distribution is in the domain of attraction of the Gumbel distribution.
 HDoutliers therefore takes the smallest half of the distances to be typical, fits an exponential distribution to the upper-tail spacings of that typical set, and sets the threshold at its upper $1 - \alpha$ point.
 It then works upwards through the remaining distances one at a time: each candidate that exceeds the current threshold is flagged as an anomaly, while each one that does not is absorbed into the typical set and the threshold re-estimated.
-Because the cutoff is a quantile of a fitted distribution, it carries a genuine probability, and the user controls the false-discovery rate directly through the significance level $\alpha$.
+Because the cutoff is a quantile of a fitted distribution, $\alpha$ is the probability that each typical observation tested is wrongly flagged.
+It is a per-test false-positive rate, not an overall false-discovery rate, so with many candidates tested, a few false positives can still occur.
 
 An implementation of the HDoutliers algorithm was previously available in the [HDoutliers](https://CRAN.R-project.org/package=HDoutliers) package, but it is now archived on CRAN.
+However, the stray algorithm discussed in the next section is a modification of HDoutliers that omits the clustering step and replaces nearest-neighbour distances with $k$-nearest-neighbour distances, and it is available in the [stray](https://CRAN.R-project.org/package=stray) and [weird](https://CRAN.R-project.org/package=weird) packages.
 
 ## Stray algorithm {#sec-stray}
 
@@ -1092,7 +1095,7 @@ Stray avoids clustering altogether, but deals with clusters of anomalies by usin
 
 Recall from @sec-knn-scores that $d_{i,k}$ denotes the distance from observation $\bm{y}_i$ to its $k$th nearest neighbour, so that $d_{i,1} \le d_{i,2} \le \cdots \le d_{i,k}$ are its neighbour distances ranked from closest to furthest.
 Stray finds the largest jump between one of these distances and the next (counting the step from the observation itself to $d_{i,1}$), and scores the observation by the distance at which this largest jump occurs.
-Picture stepping outward from the observation: at first we pass through any points packed tightly around it, and then at some radius we cross an empty gap into the main body of the data.
+Imagine stepping outward from the observation: at first we pass through any points packed tightly around it, and then at some radius we cross an empty gap into the main body of the data.
 The stray score is the radius at which that crossing happens.
 A typical point in a dense region reaches the bulk on its very first step, so it scores low; a lone anomaly is already far from its nearest neighbour, so the largest jump comes immediately, and it scores high.
 
@@ -1105,27 +1108,58 @@ Setting $k = 1$ recovers the HDoutliers nearest-neighbour score; a larger $k$ gu
 Without the clustering step, stray is also faster than HDoutliers.
 It uses kd-trees (@sec-nn) for the neighbour search, and returns both an anomaly score and a binary classification.
 The weird package provides `stray_scores()` for the score and `stray_anomalies()` for the classification.
-Applying it to the same standardised air quality and meteorological variables from Aotizhongxin used previously:
+We will apply it to the same standardised air quality and meteorological variables from Aotizhongxin used previously.
 
 ```{r}
 #| label: stray
 #| code-fold: false
 #| dependson: fastpcs-scores
 
-az_aq_proj |>
-  mutate(
-    stray = stray_scores(Y),
-    stray_anomaly = stray_anomalies(Y)
-  ) |>
+stray_top <- az_aq_proj |>
+  mutate(stray = stray_scores(Y)) |>
   slice_max(order_by = stray, n = 10)
+stray_top
 ```
 
-Stray confirms the extreme hours of 31 May and the isolated points the other methods agree on, but it reaches them without fitting any covariance: working only from nearest-neighbour distances, it makes no assumption about the shape of the bulk of the data, and so can flag anomalies that sit away from an elliptical centre --- here it also picks up the transition late on 29--30 May.
+```{r}
+#| label: stray-check
+#| include: false
+#| dependson: stray
+
+no2_run <- az_aq |>
+  filter((day == 29 & hour >= 21) | (day == 30 & hour <= 1))
+n_no2_run <- NROW(no2_run)
+stopifnot(
+  n_no2_run == 5L,
+  all(no2_run$no2 >= sort(az_aq$no2, decreasing = TRUE)[5]),
+  all(no2_run$no2 / median(az_aq$no2) > 3.5),
+  all(no2_run$wind_speed < 1),
+  identical(paste(stray_top$day, stray_top$hour)[4], "3 20"),
+  stray_top$day[1] == 31,
+  stray_top$hour[1] == 21,
+  stray_top$rainfall[1] == max(az_aq$rainfall),
+  identical(paste(stray_top$day, stray_top$hour)[2:3], c("31 22", "19 3")),
+  all(stray_top$rainfall[1:3] > 0),
+  all(
+    c("31-9", "29-23", "30-0") %in%
+      paste(stray_top$day, stray_top$hour, sep = "-")
+  )
+)
+```
+
+The four highest stray scores (9pm and 10pm on 31 May, 3am on 19 May and 8pm on 3 May) belong to the same isolated hours that head the orthogonal-distance and isolation-forest rankings earlier in the chapter (@sec-projection-anomalies and @sec-robpca).
+Three of them were among the wettest hours of the month: rain fell in only `r sum(az_aq$rainfall > 0)` of the `r NROW(Y)` hours, with a median fall in those hours of just `r median(az_aq$rainfall[az_aq$rainfall > 0])` mm, but `r max(az_aq$rainfall)` mm fell at 9pm on 31 May.
+
+What stray adds is further down the list.
+The hours of 11pm on 29 May and midnight on 30 May belong to a run of five consecutive hours, from 9pm to 1am, with the five highest nitrogen dioxide readings of the month (around four times the monthly median), almost no ozone and almost no wind.
+No other method in this chapter ranks these hours among its ten most anomalous.
+Each hour has a close nearest neighbour within the run, but the run as a whole lies some distance from the rest of the data, which is the small-cluster effect described above.
+Stray finds these hours without fitting any covariance, so it makes no assumption about the shape of the bulk of the data.
 
 ## Comparisons using the O3 plot {#sec-o3}
 
 Throughout this chapter we have applied several different anomaly-detection methods to the same air quality data, and while they broadly agree on the most extreme observations, they do not agree on everything.
-FastPCS (@sec-fastpcs) found a run of extreme hours on 31 May whereas other methods only identified a few of these hours, while stray (@sec-stray) caught a transition late on 29--30 May that no other method flagged.
+FastPCS (@sec-fastpcs) found a run of extreme hours on 31 May whereas other methods only identified a few of these hours, while stray (@sec-stray) picked out a late-night run of very high nitrogen dioxide on 29--30 May that no other method ranked highly.
 Every method also depends on some choice of variables, whether the full set or a chosen projection, and an anomaly can be missed simply because the wrong variable, or the wrong combination of variables, was used to look for it.
 
 The **O3 plot** ("Overview Of Outliers") of @Unwin2019 addresses this by turning the choice of variables into part of the diagnostic, rather than a decision made once in advance.
