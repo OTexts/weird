@@ -102,7 +102,7 @@ nanomalies <- tibble(
     "Chi-squared(4)"
   ),
   `N observations` = c(
-    NROW(cricket_batting),
+    NROW(filter(cricket_batting, Innings >= 20)),
     NROW(oldfaithful),
     NROW(n01b),
     NROW(n01),
@@ -924,11 +924,33 @@ Restricting attention to scores above the exploratory threshold of 2.25, we show
 
 batting_gaps |>
   filter(ws > 2.25) |>
-  slice_max(spacing, n = 5)
+  slice_max(spacing, n = 5) |>
+  select(lower_player, upper_player, spacing, weight, ws)
 ```
 
 The largest gap of `r sprintf("%.1f", batting_gaps |> filter(ws > 2.25) |> slice_max(spacing, n = 1) |> pull(spacing))` should be interpreted as the separation between Kamindu Mendis (who, at the time the data was collected, had the second highest batting average among batters with at least 20 innings) and Don Bradman, not as a score belonging to Bradman alone.
 This illustrates that the method detects separations, not individual anomalous observations.
+
+```{r}
+#| label: ws-noise
+#| include: false
+#| dependson: fig-ws-gaps
+
+ws_flagged <- batting_gaps |> filter(ws > 2.25)
+bradman_gap <- batting_gaps |> filter(upper_player == "DG Bradman")
+bradman_rank <- sum(batting_gaps$ws > bradman_gap$ws) + 1
+stopifnot(
+  NROW(ws_flagged) / NROW(batting_gaps) > 0.03,
+  median(ws_flagged$spacing) < 0.5,
+  all(batting_gaps |> slice_max(ws, n = 5) |> pull(spacing) < 1),
+  bradman_rank > 5
+)
+```
+
+The example also shows the main weakness of the method.
+In total, `r NROW(ws_flagged)` of the `r NROW(batting_gaps)` gaps (`r sprintf("%.1f", 100 * NROW(ws_flagged) / NROW(batting_gaps))`%) have scores above 2.25, more than the 3% expected for Normal data, and almost all of them are gaps of a fraction of a run between batters with unremarkable averages, in the middle of the sample where the weights $a_i$ are largest.
+The gap below Bradman, which is by far the largest, has a score of only `r sprintf("%.2f", bradman_gap$ws)` (the `ws` column in the first row of the table above), ranking `r english::ordinal(bradman_rank)` among all gaps, because gaps at the extremes are given so little weight.
+We found it above only because we sorted the flagged gaps by their raw size; the scores themselves are dominated by small gaps in the middle of the sample.
 
 ```{r}
 #| label: check-second-batter
