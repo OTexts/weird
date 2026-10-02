@@ -619,16 +619,13 @@ As shown in @fig-gmm-surprisals, the model has effectively highlighted the `r en
 
 Density-based methods define an anomaly as an observation that is improbable under the distribution of the data.
 The surprisal, $s_i = -\log f(\bm{y}_i)$, measures how improbable each observation is, and the surprisal probability puts this on a probability scale, as the chance of seeing an observation at least as surprising.
-Flagging observations with surprisal probability below $\alpha$ then gives a false positive rate of $\alpha$, and the non-anomalous observations are those lying in the $100(1 - \alpha)$% highest density region.
+Flagging observations with surprisal probability below $\alpha$ then gives a false positive rate of $\alpha$, and the non-anomalous observations are those lying in the $100(1-\alpha)$% highest density region.
 Unlike $z$-scores, this allows anomalies to lie anywhere in the distribution, including between the modes of a multimodal distribution, although for Normal data the two approaches are equivalent.
 
 The main practical difficulty is that we rarely know $f$.
 Two ideas make the approach work in practice.
-First, the surprisal probabilities of the most extreme observations can be estimated accurately even when the density used to compute the surprisals is wrong, by fitting a Generalised Pareto Distribution to the largest surprisals, or by using their ranks, as we saw when a $\text{t}_4$ density was used for Normal data.
+First, the surprisal probabilities of the most extreme observations can be estimated accurately even when the density used to compute the surprisals is wrong, by fitting a Generalised Pareto Distribution to the largest surprisals, or by using their ranks.
 Second, when the density is estimated from the data, using leave-one-out estimates stops each anomaly from inflating its own density estimate; for kernel density estimates, the leave-one-out values can be computed without re-estimating the density.
 
-The choice of density estimate still matters.
-On the Old Faithful data, the leave-one-out KDE surprisals immediately identified the three spurious short eruption durations, and the bivariate version flagged observations away from the two main clusters of durations and waiting times.
-A Gaussian mixture model gave a more parsimonious description of the same data and identified the nine observations that do not appear to belong to either cluster.
-
+The density estimate can be nonparametric, such as a kernel density estimate, which makes few assumptions but requires a bandwidth, or parametric, such as a Gaussian mixture model, which is more parsimonious and can still capture multimodality.
 The surprisal approach is used throughout the rest of the book, with the density replaced by a conditional distribution when we want to find observations that are unusual given other information, such as predictor values in @sec-regression-methods or the past history of a time series in @sec-timeseries.

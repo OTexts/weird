@@ -875,10 +875,15 @@ So the magnitude-shape plot re-discovers the same problem as the Sun--Genton fun
 
 ## Summary {#sec-functional-summary}
 
-We have applied several different methods to the same French male mortality data in this chapter, and they do not all agree, because they are not all measuring the same thing.
-Reducing each curve to its first two or three principal component scores, and then applying surprisal probabilities, the O3 plot, the bagplot, or the HDR boxplot, all give a similar answer: the war years and a handful of other historical crises are flagged as anomalies, because these methods look for scores that sit apart from the rest: the gradual trend becomes a continuous path along the first component, while the unusual age-pattern of the war years stands out on the second.
-Working directly with the curves via band depth or directional outlyingness gives a different answer, because these magnitude-based measures cannot distinguish a curve that is genuinely unusual in shape from one that sits at the end of a long, gradual trend; on these data, that confounding is severe enough that both the Sun--Genton depth boxplot and the magnitude-shape plot flag the most recent low-mortality years as anomalous, with the magnitude-shape plot flagging every year after World War II.
-The outliergram sits in between, using the same band depth but comparing it against a curve's rank (via MEI) rather than its raw value, which lets it isolate genuine shape anomalies and, on these data, recovers a conservative version of the same war years found by the PCA-based methods.
+The methods in this chapter fall into two groups, and they do not always agree, because they are not measuring the same thing.
 
-No single method here is more "correct" than the others.
-In practice, applying more than one method, as we have done here, and using the disagreements between them to understand *why* particular curves are flagged is more informative than relying on any single method to decide what counts as anomalous.
+The first group reduces each curve to a few principal component scores, and then applies multivariate methods (such as surprisal probabilities, the O3 plot, the bagplot or the HDR boxplot) to the scores.
+These methods find curves whose scores sit apart from the rest, so they detect curves that are unusual relative to the main modes of variation captured by the components.
+A gradual trend over time becomes a continuous path through the score space, rather than a set of isolated points, so these methods are not easily misled by curves at the end of a trend.
+
+The second group works directly with the curves, via functional depth (such as the modified band depth) or directional outlyingness, leading to the functional boxplot and the magnitude-shape plot.
+These measures mainly capture how far a curve lies from the centre of the sample, so they cannot distinguish a curve with a genuinely unusual shape from one that simply lies at one extreme of the sample, such as the last curve of a long, gradual trend.
+The outliergram addresses this by comparing a curve's modified band depth with its rank position (via the modified epigraph index), so that curves which are poorly enveloped only because they are extreme are not flagged, while curves with unusual shapes are.
+
+No single method is more "correct" than the others.
+In practice, applying more than one method, and using the disagreements between them to understand *why* particular curves are flagged, is more informative than relying on any single method to decide what counts as anomalous.

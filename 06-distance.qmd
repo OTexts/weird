@@ -1066,17 +1066,16 @@ Finally, the large blue area at the upper right of the plot indicates unusually 
 ## Summary {#sec-distance-summary}
 
 Distance-based methods treat an anomaly as an observation that is far from the rest of the data, but "far" depends on how distances are measured.
-Unless the variables are on comparable scales, the variable with the largest range will dominate, so we usually compute distances after a robust multivariate scaling, which gives Mahalanobis distances.
+Unless the variables are on comparable scales, the variable with the largest range will dominate, so distances are usually computed after a robust multivariate scaling, which gives Mahalanobis distances.
 
 The methods in this chapter measure distance in different ways.
-Mahalanobis anomaly scores and the BACON algorithm measure the distance of each observation from a single centre, so they work best when the bulk of the scaled data forms one elliptical cloud, and they rely on a robust estimate of the centre and covariance (or a clean basic subset) to avoid being distorted by the anomalies themselves.
-The kNN, LOF and GLOSH scores instead use distances to nearby observations, so they can handle data with more complicated shapes: kNN scores measure absolute isolation, LOF measures isolation relative to the local neighbourhood, and GLOSH combines the two.
-Isolation forests avoid computing distances altogether, and score observations by how easily they can be separated from the rest by random splits.
+Mahalanobis anomaly scores and the BACON algorithm measure the distance of each observation from a single centre.
+They work best when the bulk of the data forms one elliptical cloud, and they rely on a robust estimate of the centre and covariance (or a clean basic subset) to avoid being distorted by the anomalies themselves.
+The kNN, LOF and GLOSH scores instead use distances to nearby observations, so they can handle data with more complicated shapes, including multiple clusters: kNN scores measure absolute isolation, LOF measures isolation relative to the local neighbourhood, and GLOSH combines the two.
+Isolation forests avoid computing distances altogether, and score observations by how easily they can be separated from the rest by random splits, which allows them to scale to large data sets.
 
-On the Dongsi air quality data, all of these methods agreed on the two days with extreme ozone levels, and all except BACON also identified the unusually cold day of 23 January 2016.
-They disagreed about the less extreme observations around the edge of the main data cloud, such as the hottest days, which were flagged by LOF and the isolation forest but not by kNN scores.
-Apart from the Mahalanobis scores and BACON, which use thresholds that are only justified for Normal data, none of these methods provides a natural threshold for deciding when a score is large enough to indicate an anomaly, and we had to flag a fixed proportion of observations or choose a threshold by experimentation.
-The density-based methods of @sec-density-methods address this by turning anomaly scores into probabilities.
+Apart from Mahalanobis scores and BACON, whose thresholds are only justified for Normal data, none of these methods provides a natural threshold for deciding when a score is large enough to indicate an anomaly, and the neighbour-based methods also require a choice of $k$.
+The density-based methods of @sec-density-methods address the first of these problems by turning anomaly scores into probabilities.
 
 Finally, the DDC algorithm takes a different perspective, looking for anomalous cells rather than anomalous observations.
-This is useful when contamination is spread across many observations, as in the French mortality data, where the anomalous cells corresponded to wars and pandemics affecting particular ages in particular years.
+This is useful when contamination is spread across many observations, so that there are too few clean observations for row-based methods to work.

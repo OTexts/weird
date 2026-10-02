@@ -44,8 +44,7 @@ Many regression-based anomaly detection methods involve finding anomalies in the
 
 The diagonals of $\bm{H}$, given by
 $$
-  h_i = \bm{x}_i^\intercal(\bm{X}^\intercal\bm{X})^{-1}\bm{x}_i,\qquad i
-      = 1,\dots,n,
+  h_i = \bm{x}_i^\intercal(\bm{X}^\intercal\bm{X})^{-1}\bm{x}_i,\qquad i = 1,\dots,n,
 $$ {#eq-leverage}
 take values between 0 and 1.
 These are known as the "leverage" values [@faraway2004linear, p. 69], and measure how much each observation influences the corresponding fitted value.
@@ -195,8 +194,7 @@ $$
 $$
 so (if we knew $\sigma$) we could standardise each LOO residual to obtain
 $$
-  \frac{e_i / (1 - h_i)}{\sigma/\sqrt{1 - h_i}}
-  = \frac{e_i}{\sigma \sqrt{1 - h_i}}.
+  \frac{e_i / (1 - h_i)}{\sigma/\sqrt{1 - h_i}} = \frac{e_i}{\sigma \sqrt{1 - h_i}}.
 $$
 Of course, we don't know $\sigma$, so we need to estimate it.
 To reduce the effect of anomalies on the estimate of $\sigma$, we consider again the leave-one-out models.
@@ -454,7 +452,7 @@ shiraz |>
   ggplot(aes(x = points, y = price, colour = prob < 0.002)) +
   geom_jitter(height = 0, width = 0.2) +
   scale_y_log10() +
-  scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = "#D55E00")) 
+  scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = "#D55E00"))
 ```
 
 ```{r}
@@ -478,8 +476,7 @@ In some applications, it is not appropriate to assume the conditional density is
 One useful model that allows for non-Gaussian densities, and non-linear relationships, is a generalised additive model or GAM.
 Under this model, the conditional density is given by [@Wood2017gam]
 $$
-  y \mid \bm{x} \sim f(\mu, \bm{\theta}), \qquad \ell(\mu)
-    = \sum_{k=1}^p g_k(x_{k}),
+  y \mid \bm{x} \sim f(\mu, \bm{\theta}), \qquad \ell(\mu) = \sum_{k=1}^p g_k(x_{k}),
 $$
 where $\mu = \text{E}(y \mid \bm{x})$ denotes the conditional mean, $\bm{\theta}$ is a vector of any other parameters, $\ell()$ is a link function (mapping the mean to an unbounded scale), and each $g_k$ function is smooth.
 If $f$ is Normal, $\bm{\theta} = \sigma^2$, $\ell$ is the identity, and $g_k(u) = \beta_k u$, then this reduces to the linear Gaussian model (@eq-gaussian-regression).
@@ -555,8 +552,7 @@ Modern players tend to be more aggressive, and the pitches tend to be in better 
 To take all this into account, we can construct a GAM for the number of not-outs for each batter as a function of their RPI and the year they started playing.
 It is natural to use a Binomial distribution with a logit link function:
 $$
-  \text{NotOuts} \mid \text{RPI}, \text{Start}
-                 \sim \text{Binomial}(\text{Innings},~ q),
+  \text{NotOuts} \mid \text{RPI}, \text{Start} \sim \text{Binomial}(\text{Innings},~ q),
 $$
 where $q$ denotes the probability of a batter not being dismissed in an innings, and
 $$
@@ -844,3 +840,18 @@ wine_bacon |>
   labs(x = "Points", y = "Absolute scaled prediction error") +
   guides(colour = "none")
 ```
+
+## Summary {#sec-regression-summary}
+
+Regression methods look for observations whose response is unusual given the values of the predictors, rather than observations that are unusual in themselves.
+The key idea is to work with the conditional distribution of the response given the predictors.
+
+The simplest approach is to fit a regression model and look for anomalies in the residuals, after standardising them to allow for their different variances.
+Leave-one-out residuals, which can be computed without refitting the model, prevent each observation from influencing its own fitted value.
+Leverage and Cook's distance are useful diagnostics, but they measure the influence of an observation on the fitted model rather than whether its response is anomalous.
+Because least squares estimates can be pulled towards anomalous observations with high leverage, anomalies can be masked; robust methods such as least trimmed squares or the regression version of the BACON algorithm avoid this by fitting the model to a subset of regular observations.
+
+Specifying a conditional density for the response turns the residuals into surprisals, and the surprisal probabilities of @sec-density-methods then provide a natural threshold for identifying anomalies.
+A linear model with Normal errors is the simplest choice.
+When the conditional distribution is not Normal, or the relationships are not linear, a generalised additive model can be used instead, allowing for other response distributions (such as Binomial counts) and smooth nonlinear effects of the predictors.
+Where a model is mis-specified, the GPD approximation to the surprisal probabilities still gives reasonable estimates for the most extreme observations.

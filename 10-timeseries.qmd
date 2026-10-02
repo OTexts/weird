@@ -1202,11 +1202,12 @@ Feature-based methods for streaming time series data are discussed by @Talagala2
 We have considered three ways that time series can be weird.
 To find weird times in historical data, we first remove the signal (trend, seasonality, and other structure) from the series, using a moving median in the Hampel identifier, or an STL decomposition.
 The standardised residuals can then be treated as approximately independent observations, and analysed using the surprisal probabilities of @sec-density-methods.
+Very large anomalies can distort the estimated signal nearby, so that neighbouring observations appear anomalous in the opposite direction; such apparent anomalies should be checked before they are interpreted.
 When there are many related series, we can either analyse each series separately, or combine the series using principal components to find periods that are unusual across all series.
 
 To find weird series within a collection, we summarise each series by a vector of features, and look for anomalies in the resulting feature space.
 This turns the problem into one of multivariate anomaly detection, so any of the methods from earlier chapters can be used.
-In the PBS example, the anomalous series consisted almost entirely of zeros or very small counts, which is more likely to indicate a data problem than an interesting change in behaviour, but that is exactly the sort of thing we want to find before modelling a large collection of series.
+Anomalous series often reflect data problems, such as series consisting mostly of zeros, rather than interesting behaviour, but that is exactly the sort of thing we want to find before modelling a large collection of series.
 
 In surveillance, we compute surprisal probabilities from one-step forecast distributions, refitting the model as each new observation arrives.
 Because the model is updated, a sudden change in level is flagged when it first happens, but the model gradually adapts to the "new normal".

@@ -654,11 +654,11 @@ The Senate and UCI examples illustrate quite different anomaly patterns: a slow 
 The key idea in this chapter is the same one used for time series in @sec-weird-series: networks are hard to compare directly, so we summarise each node, or each whole network, by a vector of numerical features, and then use the anomaly detection methods of earlier chapters on those features.
 
 To find anomalous nodes within a single network, each node is described by measures such as its degree, betweenness, closeness, PageRank, coreness and transitivity.
-After standardising these features, reducing them to two dimensions with robust PCA, and applying lookout, the anomalous senators in the 100th Congress turned out to be of two kinds: senators who bridged the two party blocs, and senators who were not connected to anyone.
+After standardising these features, they can be reduced to a few dimensions with robust PCA, and then any of the methods of earlier chapters, such as lookout, can be applied.
+Anomalous nodes may be unusually central, such as nodes that bridge otherwise separate groups, or unusually isolated.
 
 To find anomalous networks within a sequence, `oddnet` computes 20 features for each network, removes the temporal dependence in each feature series using ARIMA models, and then applies robust PCA and lookout to the residuals.
-Modelling the temporal dependence matters: the 100th Congress did not stand out in the raw edge counts, but it was the most extreme value once the trend had been removed, and it was the most anomalous network in the whole Senate sequence.
-In the UCI message networks, the anomalies were short bursts of activity tied to the academic calendar.
+Modelling the temporal dependence matters: a network may not stand out in its raw features, but be clearly anomalous once trends and other temporal structure have been removed.
 
 As with the time series features of @sec-weird-series, the choice of features determines which anomalies can be found.
 A change in a network that does not affect any of the features will not be detected; for example, if a Democrat and a Republican swapped all their co-voting partners, the network would be politically very unusual, but it would have exactly the same structure as before, so every one of the whole-network features would be unchanged.
