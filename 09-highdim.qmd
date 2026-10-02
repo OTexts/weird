@@ -439,7 +439,7 @@ az_aq_proj |>
 ```
 
 The observation with the most extreme orthogonal distance is also the most extreme in the projection space, so it is visible as an anomaly in both spaces.
-However, the other observations with large orthogonal distances are not visible as anomalies in the projection space, illustrating the importance of considering both spaces when looking for anomalies.
+Of the others, only 10pm on 31 May (the following hour) also stands out in the projection space; the remaining observations with large orthogonal distances lie within or near the bulk of the projected data, illustrating the importance of considering both spaces when looking for anomalies.
 
 ### Outlier map
 
@@ -497,7 +497,9 @@ For each candidate direction $\bm{a}$, compute the robust $z$-scores of the proj
 In practice, the optimisation over all directions is approximated using many candidate projections.
 In R, `robustbase::adjOutlyingness()` provides an efficient implementation for computing these scores.
 
-We can apply this to the same standardised air quality and meteorological variables from Aotizhongxin used in @fig-proj-11dto2d.
+We can apply this to the same standardised air quality and meteorological variables from Aotizhongxin used in @fig-proj-11dto2d, except that `rainfall` must be dropped first.
+Rain fell in only `r sum(az_aq$rainfall > 0)` of the `r NROW(Y)` hours, so when the data are projected onto the rainfall axis, almost all of the projected values are identical and their robust scale is zero.
+Every wet hour then receives an essentially infinite outlyingness, and the measure simply ranks the hours by how much rain fell.
 Because the outlyingness is maximised over all directions, it does not require us to choose a projection in advance: an observation receives a high score if it is extreme in *any* direction.
 
 ```{r}
@@ -506,14 +508,36 @@ Because the outlyingness is maximised over all directions, it does not require u
 #| dependson: score-distances
 
 set.seed(1)
-ao <- robustbase::adjOutlyingness(Y)
-az_aq_proj |>
+ao <- Y |>
+  select(-rainfall) |>
+  robustbase::adjOutlyingness()
+sd_top <- az_aq_proj |>
   mutate(sd_out = ao$adjout) |>
   slice_max(order_by = sd_out, n = 10)
+sd_top
+```
+
+```{r}
+#| label: stahel-donoho-check
+#| include: false
+#| dependson: stahel-donoho
+
+sd_lab <- paste(sd_top$day, sd_top$hour)
+stopifnot(
+  identical(sd_lab[1:3], c("3 20", "31 22", "25 9")),
+  all(paste(25, 8:10) %in% sd_lab),
+  sum(sd_top$day == 31 & sd_top$hour %in% 7:12) == 3L,
+  all(sd_top$pm10[sd_lab %in% c("3 20", "31 22")] > 5 * median(az_aq$pm10)),
+  all(sd_top$co[sd_top$day == 25] <= median(az_aq$co)),
+  all(sd_top$so2[sd_top$day == 25] < median(az_aq$so2))
+)
 ```
 
 The top 10 most anomalous observations by this measure are shown above.
-Without our having to choose a projection in advance, it recovers most of the residual-space anomalies of @fig-proj-residuals2 --- including the run of hours early on 11 May --- because an observation that is extreme in any single direction is found by maximising over all directions.
+The highest scores belong to 8pm on 3 May and 10pm on 31 May, both with very high coarse particulate matter (`pm10` of `r az_aq$pm10[az_aq$day == 3 & az_aq$hour == 20]` and `r az_aq$pm10[az_aq$day == 31 & az_aq$hour == 22]`, compared to a monthly median of `r median(az_aq$pm10)`); these were also among the largest orthogonal distances in @fig-proj-residuals2.
+The morning of 25 May is another period of high particulates, but with low sulphur dioxide and carbon monoxide.
+Three more hours come from the morning of 31 May, when carbon monoxide and sulphur dioxide were extremely high.
+None of these required us to choose a projection in advance, because an observation that is extreme in any single direction is found by maximising over all directions.
 The price is the opposite blind spot: because the measure relies on one-dimensional projections, it can miss anomalies that only appear unusual when several variables are considered jointly.
 
 ## Principal component analysis {#sec-pca}
@@ -860,9 +884,23 @@ The columns of the mapping matrix used there are the first two DOBIN vectors.
 round(A, 2)
 ```
 
+```{r}
+#| label: dobin-check
+#| include: false
+#| dependson: score-distances
+
+may22 <- az_aq_proj |> mutate(r2 = rank(a2), rpm = rank(-pm2_5)) |>
+  filter(day == 22, hour %in% 8:12)
+stopifnot(
+  all(A[, "a1"] > 0),
+  setequal(may22$r2, 1:5),
+  setequal(may22$rpm, 1:5)
+)
+```
+
 The first DOBIN vector $\bm{a}_1$ gives positive weights to all variables, so an observation moves out along the first DOBIN coordinate when *all* of the air-quality and meteorological variables are jointly elevated.
-This is why the hours flagged in @fig-proj-kde corresponded to a period of simultaneously high particulates, carbon monoxide and dew point: such hours sit furthest from their neighbours along $\bm{a}_1$.
 The second DOBIN vector $\bm{a}_2$ is dominated by `pm2_5`, with the opposite sign to the other variables, and so separates hours whose fine-particulate level is unusual relative to everything else.
+The hours of 22 May flagged in @fig-proj-kde had simultaneously high particulates, carbon monoxide and dew point, so they score fairly high on $\bm{a}_1$, but it is $\bm{a}_2$ that sets them apart: their fine-particulate levels were the highest of the month, even relative to the other elevated variables, giving them the five lowest values of $\bm{a}_2$.
 Unlike the principal component loadings in @fig-pca-2d, the DOBIN loadings remain easy to read in terms of the original variables, which is a deliberate feature of the method.
 
 Two cautions are worth noting.
@@ -1053,7 +1091,22 @@ az_aq_proj |>
   slice_max(order_by = fpcs, n = 10)
 ```
 
-Where the earlier methods flagged only the most extreme hours of 31 May 2014, FastPCS resolves the whole daytime build-up of that day --- a run of hours dominated by extreme carbon monoxide and sulphur dioxide (both around four standard deviations above their means), together with warm temperatures, a high dew point and low wind speeds that would have inhibited dispersion.
+```{r}
+#| label: fastpcs-check
+#| include: false
+#| dependson: fastpcs-scores
+
+run31 <- az_aq |> filter(day == 31, hour %in% 7:12)
+stopifnot(
+  all(between(run31$co / median(az_aq$co), 4, 5)),
+  all(between(run31$so2 / median(az_aq$so2), 7, 9)),
+  run31$co[run31$hour == 11] == max(az_aq$co),
+  run31$so2[run31$hour == 11] == max(az_aq$so2)
+)
+```
+
+Where the earlier methods flagged only some of the hours of 31 May 2014, FastPCS resolves the whole daytime build-up of that day --- a run of hours dominated by extreme carbon monoxide and sulphur dioxide (four to five and seven to eight times their monthly medians respectively, with both reaching their highest values of the month at 11am), on a warm and humid morning.
+Stahel--Donoho outlyingness (@sec-stahel-donoho), also computed without `rainfall`, came closest, with three of these hours in its top ten.
 This sustained episode is the distinctive contribution of FastPCS.
 
 ## HDoutliers algorithm {#sec-hdoutliers}
