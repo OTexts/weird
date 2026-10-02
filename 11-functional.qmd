@@ -20,7 +20,7 @@ Each line in @fig-fr-mortality denotes the mortality rates for one year as a fun
 We see a large decrease in mortality rates during early childhood years, then an increase during teenage years.
 After about age 30, the rates increase almost linearly on a log scale.
 Comparing the curves over time, we see that the rates have steadily fallen for all ages, with more than a 40-fold reduction in mortality rates at around age 10.
-The noticeable gap between the curves occurred after World War II due to the effective use of antibiotics, and widespread vaccinations for polio, diphtheria, tetanus, whooping cough, measles, mumps and rubella.
+The noticeable gap between the curves occurred after World War II due to the effective use of antibiotics, and widespread vaccinations for diphtheria, tetanus, whooping cough and tuberculosis, followed by polio in the late 1950s.
 
 ```{r}
 #| label: fig-fr-mortality
@@ -616,7 +616,32 @@ Curves can then be ranked from the deepest (most typical) to the shallowest (mos
 One of the simplest depths is the band depth: it counts how often a curve $y_i$ lies completely within the "band" traced out by every possible group of $k$ other curves in the sample, so that curves often enveloped by others are deep, while curves that stick out --- even briefly --- have low depth.
 Looking at @fig-fr-mortality, we would expect that some of the most recent years, which have low mortality at almost every age, would be shallow; the war years would also be shallow, since they have high mortality at ages 20--40 that is not seen in other years.
 
-Because the exact band depth is expensive to compute for anything beyond a handful of curves, in practice it is usually replaced by the more tractable modified band depth (MBD), which instead measures the proportion of the domain $x$ over which $y_i(x)$ lies within each band, averaged over all bands [@LopezPintado2009].
+```{r}
+#| label: band-depth
+#| include: false
+#| dependson: [fr_smooth, pca-bases]
+
+# Exact band depth using bands formed by pairs of curves
+bd_n <- NROW(frmort_mat)
+bd_pairs <- utils::combn(bd_n, 2)
+bd_count <- numeric(bd_n)
+for (p in seq_len(NCOL(bd_pairs))) {
+  lo <- pmin(frmort_mat[bd_pairs[1, p], ], frmort_mat[bd_pairs[2, p], ])
+  hi <- pmax(frmort_mat[bd_pairs[1, p], ], frmort_mat[bd_pairs[2, p], ])
+  inside <- rowSums(
+    sweep(frmort_mat, 2, lo, ">=") & sweep(frmort_mat, 2, hi, "<=")
+  ) ==
+    NCOL(frmort_mat)
+  bd_count <- bd_count + inside
+}
+bd <- bd_count / choose(bd_n, 2)
+bd_min_n <- sum(bd_count == bd_n - 1)
+stopifnot(bd_min_n >= 10, median(bd) < 0.05)
+```
+
+However, curves that cross each other are rarely contained entirely within a band, so many curves have a band depth close to zero, with many ties.
+For the French mortality curves, `r bd_min_n` of the `r bd_n` curves lie entirely within none of the bands except those they help to form, and so share the smallest possible band depth.
+In practice, to address this problem, the band depth is usually replaced by the modified band depth (MBD), which instead measures the proportion of the domain $x$ over which $y_i(x)$ lies within each band, averaged over all bands [@LopezPintado2009].
 
 ```{r}
 #| label: mbd-build
@@ -725,7 +750,9 @@ These are simply the most recent years in the sample, which have the lowest mort
 This may seem inconsistent with 1854, 1870 and 1871 being the shallowest 19th century curves, but a low MBD only means a curve is poorly enveloped by bands of other curves; it does not mean the curve's values are pointwise extreme, which is what the boxplot fence tests.
 The mortality in those three years, though above the central region at many ages, stays well inside the upper fence, which is wide because the central region spans more than a century of declining mortality; only the `r english::words(length(outlier_years))` most recent years cross the (lower) fence.
 
-The functional bagplot and HDR boxplot do not share the problem of trend. The trend is still there in the principal component scores (it is essentially the first component), but in the score space the most recent years lie at one end of a long, continuous trajectory of first component scores, close to the scores of the years just before them, rather than apart from the bulk of the data. The war years, on the other hand, stand out on the second component, which captures the specific age-pattern (young men versus children) that made them unusual.
+The functional bagplot and HDR boxplot do not share the problem of trend.
+The trend is still there in the principal component scores (it is essentially the first component), but in the score space the most recent years lie at one end of a long, continuous trajectory of first component scores, close to the scores of the years just before them, rather than apart from the bulk of the data.
+The war years, on the other hand, stand out on the second component, which captures the specific age-pattern (young men versus children) that made them unusual.
 
 While the Sun--Genton functional boxplot did not do well in this example, it can still be a useful tool for identifying unusual curves in other contexts, especially where the first two principal component scores do not capture the most interesting variation in the data.
 
