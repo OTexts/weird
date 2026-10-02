@@ -253,6 +253,7 @@ If $Y$ is a continuous random variable with cdf $F$, then the random variable $U
 This is because $\Pr(U \le u) = \Pr(F(Y) \le u) = \Pr(Y \le F^{-1}(u)) = F(F^{-1}(u)) = u$ for $0 < u < 1$.
 The inverse is also true: if $U$ is a U(0,1) random variable, then the random variable $Y = F^{-1}(U)$ has distribution $F$.
 A useful consequence of this result is that it is possible to simulate from any continuous distribution by first simulating from a U(0,1) distribution, and then applying the inverse cdf of the desired distribution.
+For anomaly detection, it allows us to put observations from any continuous distribution on a common scale, which we will use for the spacings in @sec-gaps, and it explains why the tail probabilities of anomaly scores are uniformly distributed when the model is correct (@sec-timeseries).
 
 There is also a discrete version of the probability integral transform, but we will not need to use it in this book.
 
@@ -309,6 +310,7 @@ Methods based on this idea are discussed in @sec-gap-tests.
 
 A quantile of a continuous univariate distribution is a point that divides the sample space into two regions, based on the probability of observations falling below or above the quantile value.
 If $Q(p)$ denotes the quantile corresponding to probability $p$, then $\Pr(Y \le Q(p)) = p$ and $\Pr(Y > Q(p)) = 1 - p$.
+Quantiles are the basis of boxplots (@sec-boxplots), one of the oldest graphical tools for spotting anomalies.
 An example is shown in @fig-quantile.
 
 ```{r}
@@ -533,6 +535,7 @@ This is an asymptotic result, which assumes both $np$ and $n(1 - p)$ are large, 
 A **highest density region** (HDR) is defined as the region of the sample space where the density is higher than a given threshold [@HDR96].
 It is commonly specified using the probability mass that the HDR contains.
 For example, a 95% HDR is the region of the sample space that contains 95% of the probability mass, and where every point inside the region has higher density than any point outside the region.
+An observation lying outside an HDR with high coverage is in a region of low density, which is the idea behind HDR boxplots (@sec-hdr-boxplots) and the density-based approach to anomaly detection (@sec-surprisals).
 
 For the univariate random variable $Y$, with a smooth, continuous density function $f$, the $100(1 - \alpha)$% HDR is the set
 $$
@@ -655,7 +658,7 @@ p +
 
 ## Robust estimation {#sec-robust-univariate}
 
-Many anomaly detection methods will need an estimate of the centre and the spread of the distribution of data.
+Many anomaly detection methods will need an estimate of the centre and the spread of the distribution of data; for example, to standardise the data (@sec-scaling) before computing distances between observations (@sec-distance-methods).
 The usual estimators are the sample mean and sample standard deviation, but these are sensitive to outliers, so we will need to use alternatives.
 
 For univariate data, the sample median provides a convenient robust estimator of the centre of the distribution.
@@ -689,6 +692,7 @@ All three of these robust estimators of the standard deviation can be computed u
 Unlike the examples discussed in @sec-common, we will not normally know what distribution our data come from, and they will almost never be from a standard parametric distribution such as a Normal, t, $\chi^2$ or Gamma distribution.
 Instead, we will need to estimate the probability density function from the data.
 Kernel density estimation is the most popular method for nonparametric estimation of a probability density function.
+It is the basis of the density-based methods of @sec-density-methods, where anomalies are observations lying in regions of low estimated density.
 
 ### Kernel density estimates
 
@@ -1070,6 +1074,7 @@ $$ {#eq-POT}
 where the domain of $H$ is $\{y > 0 : 1 + \xi y/\sigma_u > 0 \}$, and $\sigma_u = \sigma_G + \xi(u - \mu_G)$.
 The GPD parameters are determined from the associated GEV parameters.
 In particular, the shape parameter $\xi$ is the same in both distributions.
+The GPD will allow us to estimate the tail probabilities of anomaly scores without knowing the distribution of the data (@sec-approximate-surprisal-prob).
 
 Continuing the previous example, we now look at the probability distribution of exceedances above 3 from a N(0,1) distribution.
 We simulate 100,000 N(0,1) values and only keep those above 3.
@@ -1114,3 +1119,7 @@ Another important result from EVT is Weissman's spacing theorem [@Weissman1978],
 Specifically, let $D_k = Y_{(k+1)} - Y_{(k)}$ denote the spacing between successive order statistics.
 If $F$ is in the domain of attraction of the Gumbel distribution, then, for fixed $r$, the upper spacings $D_{n-1}, D_{n-2}, \dots, D_{n-r}$ are asymptotically independent and approximately exponentially distributed, with $D_{k}$ having mean $a_n/(n - k)$.
 (Here $a_n$ is the same scaling constant that was used in the FTG theorem.)
+Equivalently, the scaled spacings $(n - k) D_k$, for $k = n - r, \dots, n - 1$, are approximately independent exponential random variables with a common mean $a_n$.
+This is useful for anomaly detection because we do not need to know $F$, or $a_n$.
+The common mean can be estimated from the scaled spacings among the largest observations, and an unusually large spacing at the top of the sample can then be judged against the fitted exponential distribution.
+This is the idea behind the HDoutliers algorithm (@sec-hdoutliers), which applies it to nearest-neighbour distances.
