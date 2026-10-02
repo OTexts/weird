@@ -1074,8 +1074,9 @@ Finally, we can set
 $$
   \bm{H} = d_\gamma^2\bm{S}_{\text{MCD}}
 $$ {#eq-lookoutH}
-where $d_\gamma$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_{n-1}\}$ for a large value of $\gamma$.
-@lookout2 showed that this leads to a consistent density estimate, with good properties for anomaly detection, when $\gamma = 0.98$.
+where $d_\gamma$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_{n-1}\}$ for a large value of $\gamma$; we use $\gamma = 0.98$, so that $d_\gamma$ is the merge distance at which only about 2% of observations remain unmerged.
+This bandwidth is matched to the spacing between neighbouring observations in the sparse parts of the data, where anomalies lie, rather than to the bulk of the data.
+It does not give a consistent estimate of the density as $n\rightarrow\infty$, but @lookout2 argue that consistency is not needed for anomaly detection, and show in simulations that it works well for that purpose.
 We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-loo-surprisals.
 The `kde_bandwidth()` function will return this bandwidth when `method = "lookout"`.
 For univariate data, $h = d_\gamma Q_n$.
@@ -1093,13 +1094,13 @@ oldfaithful |>
 ```
 
 Notice that the contours in @fig-ofbivariate3 are larger and smoother than in @fig-ofbivariate2.
-In general, multivariate lookout bandwidths will be larger than bandwidths chosen using normal reference rules, making them particularly suitable for anomaly detection.
+Whether the lookout bandwidth is larger or smaller than a normal reference bandwidth depends on the dimension and sample size; what matters for anomaly detection is that it is matched to the spacing of observations in the tails.
 
 ### Further reading
 
 There is a rich literature on multivariate kernel density estimation.
 Good starting points are @Scott2015 or @chacon2018multivariate.
-The idea of using the cluster merge distances to compute the bandwidth matrix is due to @lookout and @lookout2, although they framed it in terms of topological data analysis rather than clustering.
+The idea of using the cluster merge distances to compute the bandwidth matrix is due to @lookout, who framed it in terms of topological data analysis, and @lookout2, who expressed it using the minimum spanning tree (equivalently, single-linkage clustering).
 
 ## Conditional probability distributions {#sec-conditional}
 
