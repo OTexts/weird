@@ -103,7 +103,7 @@ Then the Euclidean distance between the scaled observations $\bm{z}_i$ and $\bm{
 $$
   \|\bm{z}_i - \bm{z}_j\|
   = \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{U}^\intercal\bm{U} (\bm{y}_i - \bm{y}_j)}
-                          = \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{S}_{\text{MCD}}^{-1} (\bm{y}_i - \bm{y}_j)}.
+  = \sqrt{(\bm{y}_i - \bm{y}_j)^\intercal \bm{S}_{\text{MCD}}^{-1} (\bm{y}_i - \bm{y}_j)}.
 $$
 This combination of first scaling using a covariance matrix (or its estimate) and then computing a Euclidean distance is known as the **Mahalanobis distance**, named after the Indian statistician Prasanta Chandra Mahalanobis.
 It is a multivariate generalisation of the number of standard deviations separating two observations, and accounts for both the different scales of the variables and the correlations between them.
@@ -129,8 +129,9 @@ head(z, 5) |>
 Rather than compute distances between observations, we can compute the distance of each observation from the centre of the data.
 For example, if we define the centre as the pointwise median, then Mahalanobis distance from the centre can be expressed as
 $$
-  d_i = \|\bm{z}_i\|
-      = \sqrt{(\bm{y}_i - \bm{m})^\intercal \bm{S}_{\text{MCD}}^{-1} (\bm{y}_i - \bm{m})}.
+  d_i
+  = \|\bm{z}_i\|
+  = \sqrt{(\bm{y}_i - \bm{m})^\intercal \bm{S}_{\text{MCD}}^{-1} (\bm{y}_i - \bm{m})}.
 $$
 That is, it is equivalent to the Euclidean distance of the scaled observation $\bm{z}_i$ from the origin.
 A large $d_i$ means the observation is far from the centre of the data and is potentially anomalous.
@@ -453,8 +454,7 @@ An observation will have high average reachability if it is far from its neighbo
 
 Then the local outlier factor for observation $\bm{y}_i$ is given by
 $$
-  \ell_{i,k}
-  = \frac{\bar{r}_{i,k}}{k}\sum_{\bm{y}_j \in N_{i,k}} \bar{r}^{-1}_{j,k}.
+  \ell_{i,k} = \frac{\bar{r}_{i,k}}{k}\sum_{\bm{y}_j \in N_{i,k}} \bar{r}^{-1}_{j,k}.
 $$
 Thus, it is the product of $\bar{r}_{i,k}$ and the average value of $\bar{r}^{-1}_{j,k}$ for points within its neighbourhood.
 
@@ -1060,3 +1060,21 @@ There was also unusually high mortality for males in their 20s in 1840--1843, wh
 The same pattern is not seen for females.
 Unusually high childhood mortality at around 10 years of age is seen until about 1870, probably driven by infectious diseases such as cholera, tuberculosis and measles.
 Finally, the large blue area at the upper right of the plot indicates unusually low mortality rates for older ages in recent years.
+
+## Summary {#sec-distance-summary}
+
+Distance-based methods treat an anomaly as an observation that is far from the rest of the data, but "far" depends on how distances are measured.
+Unless the variables are on comparable scales, the variable with the largest range will dominate, so we usually compute distances after a robust multivariate scaling, which gives Mahalanobis distances.
+
+The methods in this chapter measure distance in different ways.
+Mahalanobis anomaly scores and the BACON algorithm measure the distance of each observation from a single centre, so they work best when the bulk of the scaled data forms one elliptical cloud, and they rely on a robust estimate of the centre and covariance (or a clean basic subset) to avoid being distorted by the anomalies themselves.
+The kNN, LOF and GLOSH scores instead use distances to nearby observations, so they can handle data with more complicated shapes: kNN scores measure absolute isolation, LOF measures isolation relative to the local neighbourhood, and GLOSH combines the two.
+Isolation forests avoid computing distances altogether, and score observations by how easily they can be separated from the rest by random splits.
+
+On the Dongsi air quality data, all of these methods agreed on the two days with extreme ozone levels, and all except BACON also identified the unusually cold day of 23 January 2016.
+They disagreed about the less extreme observations around the edge of the main data cloud, such as the hottest days, which were flagged by LOF and the isolation forest but not by kNN scores.
+Apart from the Mahalanobis scores and BACON, which use thresholds that are only justified for Normal data, none of these methods provides a natural threshold for deciding when a score is large enough to indicate an anomaly, and we had to flag a fixed proportion of observations or choose a threshold by experimentation.
+The density-based methods of @sec-density-methods address this by turning anomaly scores into probabilities.
+
+Finally, the DDC algorithm takes a different perspective, looking for anomalous cells rather than anomalous observations.
+This is useful when contamination is spread across many observations, as in the French mortality data, where the anomalous cells corresponded to wars and pandemics affecting particular ages in particular years.
