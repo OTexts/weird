@@ -449,7 +449,7 @@ For multivariate data, there is no unique natural ordering of observations by si
 It is still a measure of how centrally a point is located in a data set, but we need to think about what "central" means when there are multiple variables.
 
 There are numerous ways to define depth for multivariate data, nicely summarised in @Liu1999, and implemented in the [`depthR` package](https://cran.r-project.org/package=depthR) for R.
-Here, we will consider the two simplest approaches.
+Here, we will consider only the simplest and oldest of these, Tukey depth, which is the basis of the bagplot (@sec-bagplots).
 
 ### Tukey depth
 
