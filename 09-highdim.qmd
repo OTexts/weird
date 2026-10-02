@@ -40,10 +40,14 @@ az_aq <- air_quality |>
   select(-station) |>
   tidyr::drop_na()
 Y <- az_aq |>
-  select(pm2_5:rainfall, wind_speed) |>
+  select(pm2_5:dew_point, wind_speed) |>
   mvscale(center = mean, scale = sd, cov = NULL)
 Y
 ```
+
+We omit `rainfall`, which is zero in `r round(100 * mean(az_aq$rainfall == 0))`% of the hours.
+A variable that is almost always zero causes problems for several of the methods in this chapter: robust measures of scale are zero in the direction of that variable, so every hour with rain looks infinitely anomalous, while after standardising, the few wet hours lie so far from the rest that they dominate any distance-based method.
+It is better to find anomalies in rainfall separately, and to consider the other variables without rainfall.
 
 ### Projecting from 2 to 1 dimension
 
@@ -225,32 +229,32 @@ $$
 $$
 
 The Aotizhongxin station data contains `r english::words(NCOL(Y))` variables.
-We can project this `r NCOL(Y)`-dimensional space onto a 2-dimensional subspace defined by an $`r NCOL(Y)` \times 2$ matrix $\bm{A}$ with orthonormal columns.
+We can project this `r NCOL(Y)`-dimensional space onto a 2-dimensional subspace defined by a matrix $\bm{A}$ of size $`r NCOL(Y)` \times 2$ with orthonormal columns.
 The resulting 2D projection will capture some aspects of the joint structure, but not all.
 For example, suppose we choose the following mapping matrix $\bm{A}$, using a method that we will discuss later in @sec-dobin.
 
 ```{r}
-#| label: 11dto2d
+#| label: 10dto2d
 #| code-fold: false
 #| dependson: aotizhongxin
 
-A <- dobin::dobin(Y)$rotation[, 1:2]
+A <- dobin::dobin(as.matrix(Y), norm = 0)$rotation[, 1:2]
 colnames(A) <- c("a1", "a2")
 rownames(A) <- colnames(Y)
 A
 ```
 
-Then the resulting 2D projection is shown in @fig-proj-11dto2d.
+Then the resulting 2D projection is shown in @fig-proj-10dto2d.
 
 ```{r}
-#| label: fig-proj-11dto2d
+#| label: fig-proj-10dto2d
 #| code-fold: false
 #| fig-cap: >-
-#|   Projection of the 11 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace.
-#|   Each blue point is the projection of an 11-dimensional observation onto the 2D subspace defined by the columns of $\bm{A}$.
-#|   The orange arrows show the axes of the original 11D space, with the length of each arrow indicating how much of the variation in the corresponding variable is captured by the projection.
+#|   Projection of the 10 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace.
+#|   Each blue point is the projection of a 10-dimensional observation onto the 2D subspace defined by the columns of $\bm{A}$.
+#|   The orange arrows show the axes of the original 10D space, with the length of each arrow indicating how much of the variation in the corresponding variable is captured by the projection.
 #|   Only the longest arrows are labelled.
-#| dependson: 11dto2d
+#| dependson: 10dto2d
 
 W <- as.matrix(Y) %*% A
 az_aq_proj <- az_aq |>
@@ -258,11 +262,43 @@ az_aq_proj <- az_aq |>
 biplot_projection(scores = W, loadings = A, label_threshold = 0.1, alpha = 0.2)
 ```
 
-This is a 2D shadow of the original 11D data cloud.
-Each point in the plot corresponds to an 11D observation, and the arrows show the directions of the original variables in the projection.
+This is a 2D shadow of the original 10D data cloud.
+Each point in the plot corresponds to a 10D observation, and the arrows show the directions of the original variables in the projection.
 The length of each arrow indicates how much of the variation in that variable is captured by the projection: the longer the arrow, the more that variable contributes to the projection.
 In this example, an increase in any variable will lead to an increase in `a1`, an increase in any variable other than `pm2_5` will lead to an increase in `a2`, and an increase in `pm2_5` will lead to a decrease in `a2`.
-The arrows help us to interpret individual points in the projection: the cluster of five points at the bottom of the plot probably corresponds to high `pm2_5` values, while the point on the far right could be high in any of the variables (or high on average across all variables).
+
+```{r}
+#| label: biplot-check
+#| include: false
+#| dependson: fig-proj-10dto2d
+
+br <- az_aq_proj |> filter(a1 > 3, a2 < -2, day == 22)
+fr <- az_aq_proj |> filter(a1 > 4.5, a2 > -1)
+stopifnot(
+  all(br$hour %in% 5:12),
+  NROW(br) >= 6,
+  all(sort(az_aq_proj$pm2_5, decreasing = TRUE)[1:6] %in% br$pm2_5),
+  all(br$co >= quantile(az_aq$co, 0.9)),
+  setequal(
+    paste(fr$day, fr$hour)[fr$day != 31 | fr$hour == 22],
+    c("3 20", "31 22")
+  ),
+  all(
+    rank(-az_aq_proj$pm10)[
+      az_aq_proj$a1 > 4.5 &
+        az_aq_proj$a2 > -1 &
+        paste(az_aq_proj$day, az_aq_proj$hour) %in% c("3 20", "31 22")
+    ] <=
+      2
+  ),
+  all(fr$co[fr$day == 31 & fr$hour < 20] >= quantile(az_aq$co, 0.95)),
+  all(fr$so2[fr$day == 31 & fr$hour < 20] >= quantile(az_aq$so2, 0.95))
+)
+```
+
+The arrows help us to interpret individual points in the projection.
+The group of points at the bottom right are mostly from the morning of 22 May, including the six highest `pm2_5` readings of the month, along with high `pm10`, `co` and `dew_point`.
+Points on the far right with `a2` near zero are high in `pm10` (the longest arrow), such as 8pm on 3 May and 10pm on 31 May (the two highest `pm10` readings of the month), or high in several variables at once, such as the daytime hours of 31 May, when `co` and `so2` were extremely high.
 
 A few observations in this projection appear to be anomalies, but we may also have missed some anomalies that are only visible in other projections.
 This illustrates the challenge of anomaly detection in high dimensions: we may not know which projection will reveal the anomalies, and there are infinitely many projections to choose from.
@@ -277,7 +313,7 @@ In both cases the residual is the part of the vector orthogonal to the subspace,
 
 ### A tour of projections
 
-@fig-proj-11dto2d used one particular mapping matrix $\bm{A}$ to project the 11-dimensional data onto two dimensions.
+@fig-proj-10dto2d used one particular mapping matrix $\bm{A}$ to project the 10-dimensional data onto two dimensions.
 A different choice of $\bm{A}$ would give a different 2D shadow of the data, potentially hiding some anomalies while revealing others.
 Rather than selecting a specific $\bm{A}$, a **tour** [@Asimov1985] moves continuously through many projections, playing them as an animation so that we can watch the data cloud change shape as the projection changes.
 
@@ -293,7 +329,7 @@ How the target matrices are chosen distinguishes different types of tours.
   In the context of anomaly detection, a guided tour would use an index that measures anomalousness.
   An example is the Stahel--Donoho outlyingness index, which we will discuss in @sec-stahel-donoho.
 
-@fig-grand-tour shows a grand tour of the 11 standardised air quality and meteorological variables from Aotizhongxin, generated using the `tourr` package [@tourr].
+@fig-grand-tour shows a grand tour of the 10 standardised air quality and meteorological variables from Aotizhongxin, generated using the `tourr` package [@tourr].
 
 ```{r}
 #| label: grand-tour
@@ -329,7 +365,7 @@ tourr::render_gif(
 #| warning: false
 #| out-width: 70%
 #| fig-cap: >-
-#|   A grand tour of the 11 standardised air quality and meteorological variables at Aotizhongxin.
+#|   A grand tour of the 10 standardised air quality and meteorological variables at Aotizhongxin.
 #|   Each frame is a different 2-dimensional projection of the data, with axis labels showing the (abbreviated) contribution of each variable to that projection.
 
 knitr::include_graphics("gifs/highdim-grand-tour.gif")
@@ -337,7 +373,7 @@ knitr::include_graphics("gifs/highdim-grand-tour.gif")
 
 As the tour rotates through different projections, the bulk of the data remains near the centre, but individual points move in and out of the data cloud.
 A point that is hidden inside the cloud in one frame can suddenly appear as a clear anomaly in another, and vice versa.
-This is the practical value of a tour for anomaly detection: instead of hoping that a single chosen projection (such as the one in @fig-proj-11dto2d) happens to reveal every anomaly, we can watch many projections in sequence and catch anomalies as they emerge.
+This is the practical value of a tour for anomaly detection: instead of hoping that a single chosen projection (such as the one in @fig-proj-10dto2d) happens to reveal every anomaly, we can watch many projections in sequence and catch anomalies as they emerge.
 
 For an excellent overview of tours in interactively exploring high-dimensional data through projections, see @mulgar.
 
@@ -355,34 +391,71 @@ There are two types of projection-based anomalies:
 
 ### Anomalies in the projection space
 
-@fig-proj-11dto2d shows some potential anomalies in the projection space.
+@fig-proj-10dto2d shows some potential anomalies in the projection space.
 The general distance-based and density-based anomaly detection methods discussed in @sec-distance-methods and @sec-density-methods can be applied to the projected scores to flag these anomalies.
 
 For example, using KDE surprisals (@sec-kdesurprisals), we can flag the observations with the lowest density in the projection as potential anomalies.
-Here the threshold probability of 0.02 has been chosen after some experimentation.
+Here the threshold probability of 0.025 has been chosen after some experimentation.
 
 ```{r}
 #| label: proj-kde
 #| code-fold: false
-#| dependson: fig-proj-11dto2d
+#| dependson: fig-proj-10dto2d
 
 az_aq_proj <- az_aq_proj |>
   mutate(
     prob = surprisals_prob(pick(a1, a2), loo = TRUE, approximation = "gpd"),
-    surprisal_anomaly = prob < 0.02
+    surprisal_anomaly = prob < 0.025
   )
 az_aq_proj |>
   filter(surprisal_anomaly)
 ```
 
-This shows that there was an unusual period between 8am and 12noon on 22 May 2014.
-These correspond to the cluster of five observations near the bottom of @fig-proj-kde.
+```{r}
+#| label: proj-kde-check
+#| include: false
+#| dependson: proj-kde
+
+kde_lab <- with(filter(az_aq_proj, surprisal_anomaly), paste(day, hour))
+stopifnot(
+  setequal(
+    kde_lab,
+    c(
+      "3 20",
+      "20 5",
+      paste(22, 8:12),
+      paste(25, 8:10),
+      paste(31, c(11, 12, 22))
+    )
+  ),
+  with(az_aq_proj, paste(day, hour)[which.max(a1)]) == "31 22",
+  identical(
+    with(az_aq_proj, paste(day, hour)[order(-pm10)[1:2]]),
+    c("3 20", "31 22")
+  )
+)
+W_ab <- az_aq_proj |> select(a1, a2)
+top_overlap <- function(score) {
+  length(intersect(
+    with(az_aq_proj, paste(day, hour))[order(-score)][seq_along(kde_lab)],
+    kde_lab
+  ))
+}
+stopifnot(
+  top_overlap(dbscan::kNNdist(as.matrix(W_ab), k = 10)) >= 10,
+  top_overlap(glosh_scores(W_ab)) >= 10,
+  top_overlap(lof_scores(W_ab, k = 10)) <= 8
+)
+```
+
+Five of the flagged hours (8am to noon) come from an unusual period on the morning of 22 May 2014.
+They form the group of points at the bottom right of @fig-proj-kde.
 
 ```{r}
 #| label: fig-proj-kde
 #| code-fold: true
 #| dependson: proj-kde
-#| fig-cap: "Projection of the 11 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace, with points coloured by whether their KDE surprisal probability is less than 0.02."
+#| fig-cap: "Projection of the 10 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace, with points coloured by whether their KDE surprisal probability is less than 0.025."
 
 az_aq_proj |>
   ggplot(aes(x = a1, y = a2, colour = surprisal_anomaly)) +
@@ -391,10 +464,10 @@ az_aq_proj |>
 ```
 
 Further inspection shows that this was a period of high particulate matter (`pm2_5` and `pm10`), `co` and `dew_point`, and moderately high `so2`.
-The point on the far right of @fig-proj-kde corresponds to the last line of the table above.
-The observations at that time showed high `co` and `dew_point` and very high `rainfall`.
+The point on the far right of @fig-proj-kde corresponds to the last line of the table above (10pm on 31 May), when `pm10` was `r az_aq$pm10[az_aq$day == 31 & az_aq$hour == 22]`, compared to a monthly median of `r median(az_aq$pm10)`.
+Only 8pm on 3 May had a higher `pm10` reading that month, and it is also flagged.
 
-Similar results are obtained with other anomaly detection methods.
+Similar results are obtained with some other anomaly detection methods applied to the projected scores, such as kNN distances (@sec-knn-scores) and GLOSH (@sec-glosh), although methods based on local density ratios, such as LOF (@sec-lof), agree less closely.
 
 ### Anomalies in the residual space
 
@@ -428,7 +501,7 @@ The points with the largest orthogonal distances are highlighted in orange.
 ```{r}
 #| label: fig-proj-residuals2
 #| dependson: fig-proj-residuals1
-#| fig-cap: "Projection of the 11 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace, with points coloured by whether their orthogonal distance from the projection subspace is in the top 1% of all orthogonal distances."
+#| fig-cap: "Projection of the 10 air quality and meteorological variables at Aotizhongxin onto a 2-dimensional subspace, with points coloured by whether their orthogonal distance from the projection subspace is in the top 1% of all orthogonal distances."
 
 threshold <- quantile(az_aq_proj$od, 0.99, type = 8)
 az_aq_proj |>
@@ -438,8 +511,32 @@ az_aq_proj |>
   guides(colour = "none")
 ```
 
-The observation with the most extreme orthogonal distance is also the most extreme in the projection space, so it is visible as an anomaly in both spaces.
-Of the others, only 10pm on 31 May (the following hour) also stands out in the projection space; the remaining observations with large orthogonal distances lie within or near the bulk of the projected data, illustrating the importance of considering both spaces when looking for anomalies.
+```{r}
+#| label: od-check
+#| include: false
+#| dependson: fig-proj-residuals1
+
+od_top <- az_aq_proj |> filter(od >= quantile(od, 0.99, type = 8))
+od_lab <- paste(od_top$day, od_top$hour)
+stopifnot(
+  setequal(od_lab, c("3 12", "3 17", "3 20", "4 10", "4 11", "4 12", "31 11")),
+  od_lab[which.max(od_top$od)] == "3 20",
+  all(
+    rank(-az_aq_proj$a1)[
+      az_aq_proj$od >= quantile(az_aq_proj$od, 0.99, type = 8) &
+        paste(az_aq_proj$day, az_aq_proj$hour) %in% c("3 20", "31 11")
+    ] <=
+      10
+  ),
+  all(od_top$dew_point[od_top$day %in% 3:4] < 2),
+  all(od_top$wind_speed[od_top$day %in% 3:4] >= 4)
+)
+```
+
+Two of these observations, 8pm on 3 May (which has the largest orthogonal distance) and 11am on 31 May, also lie on the far right of the projection.
+The other five lie within the bulk of the projected data, so they are visible only in the residual space.
+They are daytime hours on 3 and 4 May, which were unusually dry and windy: dew points were between `r min(od_top$dew_point[od_top$day %in% 3:4 & od_top$hour < 20])` and `r max(od_top$dew_point[od_top$day %in% 3:4 & od_top$hour < 20])`°C (compared to a monthly median of `r median(az_aq$dew_point)`°C), and wind speeds were at least `r min(od_top$wind_speed[od_top$day %in% 3:4])` m/s (compared to a median of `r median(az_aq$wind_speed)` m/s).
+This illustrates the importance of considering both spaces when looking for anomalies.
 
 ### Outlier map
 
@@ -469,7 +566,7 @@ This is known as an "outlier map" [@Hubert2005-qa].
 #| label: fig-odsdplot
 #| code-fold: true
 #| dependson: score-distances
-#| fig-cap: "Orthogonal distance plotted against score distance for the 11 air quality and meteorological variables at Aotizhongxin projected onto a 2-dimensional subspace."
+#| fig-cap: "Orthogonal distance plotted against score distance for the 10 air quality and meteorological variables at Aotizhongxin projected onto a 2-dimensional subspace."
 
 az_aq_proj |>
   ggplot(aes(x = sd, y = od)) +
@@ -477,7 +574,7 @@ az_aq_proj |>
   labs(x = "Score distance", y = "Orthogonal distance")
 ```
 
-In @fig-odsdplot there is one observation with both large orthogonal and score distances, and two observations with large orthogonal distances but moderate score distances.
+In @fig-odsdplot there is one observation (8pm on 3 May) with a much larger orthogonal distance than any other, together with a fairly large score distance, while the observations with the largest score distances mostly have moderate orthogonal distances.
 
 Remember that not all anomalies correspond to large distances.
 So the outlier map may miss anomalies that lie in a low-density region of either the projection space or the residual space, but which are not far from the centre.
@@ -497,9 +594,7 @@ For each candidate direction $\bm{a}$, compute the robust $z$-scores of the proj
 In practice, the optimisation over all directions is approximated using many candidate projections.
 In R, `robustbase::adjOutlyingness()` provides an efficient implementation for computing these scores.
 
-We can apply this to the same standardised air quality and meteorological variables from Aotizhongxin used in @fig-proj-11dto2d, except that `rainfall` must be dropped first.
-Rain fell in only `r sum(az_aq$rainfall > 0)` of the `r NROW(Y)` hours, so when the data are projected onto the rainfall axis, almost all of the projected values are identical and their robust scale is zero.
-Every wet hour then receives an essentially infinite outlyingness, and the measure simply ranks the hours by how much rain fell.
+We can apply this to the same standardised air quality and meteorological variables from Aotizhongxin used in @fig-proj-10dto2d.
 Because the outlyingness is maximised over all directions, it does not require us to choose a projection in advance: an observation receives a high score if it is extreme in *any* direction.
 
 ```{r}
@@ -508,9 +603,7 @@ Because the outlyingness is maximised over all directions, it does not require u
 #| dependson: score-distances
 
 set.seed(1)
-ao <- Y |>
-  select(-rainfall) |>
-  robustbase::adjOutlyingness()
+ao <- robustbase::adjOutlyingness(Y)
 sd_top <- az_aq_proj |>
   mutate(sd_out = ao$adjout) |>
   slice_max(order_by = sd_out, n = 10)
@@ -534,7 +627,7 @@ stopifnot(
 ```
 
 The top 10 most anomalous observations by this measure are shown above.
-The highest scores belong to 8pm on 3 May and 10pm on 31 May, both with very high coarse particulate matter (`pm10` of `r az_aq$pm10[az_aq$day == 3 & az_aq$hour == 20]` and `r az_aq$pm10[az_aq$day == 31 & az_aq$hour == 22]`, compared to a monthly median of `r median(az_aq$pm10)`); these were also among the largest orthogonal distances in @fig-proj-residuals2.
+The highest scores belong to 8pm on 3 May and 10pm on 31 May, both with very high coarse particulate matter (`pm10` of `r az_aq$pm10[az_aq$day == 3 & az_aq$hour == 20]` and `r az_aq$pm10[az_aq$day == 31 & az_aq$hour == 22]`, compared to a monthly median of `r median(az_aq$pm10)`); 8pm on 3 May also had the largest orthogonal distance in @fig-proj-residuals2.
 The morning of 25 May is another period of high particulates, but with low sulphur dioxide and carbon monoxide.
 Three more hours come from the morning of 31 May, when carbon monoxide and sulphur dioxide were extremely high.
 None of these required us to choose a projection in advance, because an observation that is extreme in any single direction is found by maximising over all directions.
@@ -570,7 +663,7 @@ It is possible to calculate up to $k = \min(n - 1, m)$ principal components, but
 
 ### Air quality example
 
-For the 11 air quality and meteorological variables from Aotizhongxin, the 11 principal components can be computed using `prcomp()`, or using `rrcov::PcaClassic()`.
+For the 10 air quality and meteorological variables from Aotizhongxin, the 10 principal components can be computed using `prcomp()`, or using `rrcov::PcaClassic()`.
 We will use the latter, because it will make it easier to compare with other methods.
 
 ```{r}
@@ -613,13 +706,13 @@ Using only the first two principal components gives the scores shown in @fig-pca
 biplot_projection(pca, alpha = 0.2)
 ```
 
-Two-dimensional principal component projection of the 11 air quality and meteorological variables from Aotizhongxin.
+Two-dimensional principal component projection of the 10 air quality and meteorological variables from Aotizhongxin.
 The first two principal components capture about `r cum_var_explained[2]`% of the variance in the data.
 :::
 
-Compare this to the projection shown in @fig-proj-11dto2d.
-The variables here are much more evenly weighted, with both positive and negative weights causing the 11D axes (shown in orange) to point in diverse directions.
-Also, the anomalies are now much less obvious than in @fig-proj-11dto2d.
+Compare this to the projection shown in @fig-proj-10dto2d.
+The variables here are much more evenly weighted, with both positive and negative weights causing the 10D axes (shown in orange) to point in diverse directions.
+Also, the anomalies are now much less obvious than in @fig-proj-10dto2d.
 This can happen for two reasons:
 
 1. If the anomalies are not aligned with the main axes of variation, they may be hidden in the lower variance components that we have not included in the 2D projection, although they may be visible in the residuals.
@@ -676,15 +769,17 @@ When combined with the outlier map shown above, these cutoffs partition the obse
 outlier_map(PcaClassic(Y, k = 2))
 ```
 
-Here we can see that there are no points that are particularly bad leverage points (the two black points are very close to the cutoff).
+Here we can see that there are no points that are particularly bad leverage points (the three black points are all close to the cutoffs).
 So the most anomalous observations are orthogonal outliers in the residual space, but these are not having a strong effect on the first two principal component directions.
 
 ### Varying the number of components
 
 We can repeat this analysis using different values of $k$, the number of principal components used in the projection.
 As $k$ increases, more of the variance is captured by the projection, which can cause the orthogonal distances to decrease, and the score distances to increase, because the projection is capturing more of the structure of the data.
-Any outlying anomalies that are not well represented by the first few principal components will have large orthogonal distances, but as we include more components, they may become better represented in the projection.
-This can lead to some anomalies being classified as good leverage points in higher dimensions, even if they were orthogonal outliers in lower dimensions.
+Any outlying anomalies that are not well represented by the first few principal components will have large orthogonal distances, but as we include more components, their score distances will increase and their orthogonal distances will decrease.
+An anomaly that was an orthogonal outlier in lower dimensions can therefore change category in higher dimensions.
+If the new components capture the direction in which it is unusual, its orthogonal distance becomes small and it is classified as a good leverage point.
+If its score distance grows but its orthogonal distance remains large, it becomes a bad leverage point instead.
 
 ```{r}
 #| label: pca-outliermaps-code
@@ -720,10 +815,40 @@ patchwork::wrap_plots(
   theme(legend.position = "none")
 ```
 
-This can be seen in the second-largest score distance in the $k = 4$ plot.
-The corresponding observation was an orthogonal outlier in the other plots, but is now a good leverage point, because it is now well represented in the projection.
+```{r}
+#| label: pca-check
+#| include: false
+#| dependson: aotizhongxin
 
-Notice that we now also have some bad leverage points in $k = 3$ and $k = 4$.
+pca_type <- function(k) {
+  p <- PcaClassic(Y, k = k)
+  sdh <- p@sd > p@cutoff.sd
+  odh <- p@od > p@cutoff.od
+  ifelse(sdh & odh, "bad", ifelse(sdh, "good", ifelse(odh, "orth", "reg")))
+}
+types <- lapply(1:4, pca_type)
+pca4 <- PcaClassic(Y, k = 4)
+lab <- paste(az_aq$day, az_aq$hour)
+good4 <- order(-pca4@sd * (types[[4]] == "good"))[1:4]
+n_bad_k4 <- sum(types[[4]] == "bad")
+stopifnot(
+  sum(types[[2]] == "bad") == 3L,
+  setequal(lab[good4], c("25 10", "27 8", "27 9", "3 19")),
+  all(sapply(types[1:3], function(t) all(t[good4] == "orth"))),
+  all(rank(-az_aq$pm10)[good4] <= 7),
+  rownames(pca4$loadings)[which.max(abs(pca4$loadings[, 4]))] == "pm10",
+  all(types[[4]][lab %in% c("3 20", "31 22")] == "bad"),
+  all(diff(sapply(types, function(t) sum(t == "bad"))) >= 0),
+  sum(types[[4]] == "bad" & az_aq$day == 31 & az_aq$hour %in% 7:12) == 6L
+)
+```
+
+This can be seen in the $k = 4$ plot.
+The four good leverage points with the largest score distances (10am on 25 May, 8am and 9am on 27 May, and 7pm on 3 May) were all orthogonal outliers with fewer components.
+These hours had four of the seven highest `pm10` readings of the month, and the fourth principal component is dominated by `pm10`, so with four components they are well represented in the projection.
+The two hours with the highest `pm10` readings (8pm on 3 May and 10pm on 31 May) still lie far from the projection subspace, and so become bad leverage points instead.
+
+Notice also that the number of bad leverage points grows with $k$, reaching `r n_bad_k4` with $k = 4$, including every hour from 7am to noon on 31 May.
 So the third and subsequent principal components are being pulled towards some anomalies, making them harder to identify in the lower dimensional space.
 This could be masking some of the anomalies.
 
@@ -760,14 +885,14 @@ pca_robpca$loadings
 ```
 
 The first two robust principal components are shown in @fig-pca-robpca.
-Compared to @fig-pca-2d, these two plots are quite similar, although PC2 has been flipped to point in the opposite direction.
+Compared to @fig-pca-2d, both components have been flipped to point in the opposite direction (the sign of a principal component is arbitrary), and the robust first component gives more weight to `no2` and `wind_speed`, and less to the particulates.
 The main differences are in the higher principal components, which are not shown here, but which are more influenced by the anomalies in the standard PCA than in the ROBPCA.
 
 ```{r}
 #| label: fig-pca-robpca
 #| code-fold: false
 #| dependson: robpca
-#| fig-cap: Two-dimensional robust principal component projection of the 11 air quality and meteorological variables from Aotizhongxin.
+#| fig-cap: Two-dimensional robust principal component projection of the 10 air quality and meteorological variables from Aotizhongxin.
 
 biplot_projection(pca_robpca, alpha = 0.2)
 ```
@@ -792,9 +917,8 @@ outlier_map(PcaHubert(Y, k = 4, skew = TRUE, mcd = FALSE), alpha = 0.9)
 #| fig-cap: "Outlier maps for the Aotizhongxin data computed with the ROBPCA algorithm, using different numbers of principal components in the projection."
 #| message: false
 
-maps <- lapply(1:4, function(k) {
-  outlier_map(PcaHubert(Y, k, skew = TRUE, mcd = FALSE), alpha = 0.9)
-})
+rob <- lapply(1:4, function(k) PcaHubert(Y, k, skew = TRUE, mcd = FALSE))
+maps <- lapply(rob, outlier_map, alpha = 0.9)
 # Extract one shared legend from a panel containing all four categories
 g <- ggplotGrob(maps[[2]] + theme(legend.title = element_blank()))
 legend <- g$grobs[[which(g$layout$name == "guide-box-bottom")]]
@@ -811,8 +935,40 @@ patchwork::wrap_plots(
   theme(legend.position = "none")
 ```
 
+```{r}
+#| label: robpca-maps-check
+#| include: false
+#| dependson: fig-pca-outliermap2
+
+rob_bad <- lapply(rob, function(p) p@sd > p@cutoff.sd & p@od > p@cutoff.od)
+i320 <- which(az_aq$day == 3 & az_aq$hour == 20)
+rob4 <- rob[[4]]
+stopifnot(
+  all(sapply(rob, function(p) which.max(p@od)) == i320),
+  all(sapply(rob_bad, sum) <= 2),
+  all(sapply(rob[1:3], function(p) p@od[i320] > 1.5 * p@cutoff.od)),
+  rob_bad[[4]][i320],
+  between(rob4@sd[i320] / rob4@cutoff.sd, 0.9, 1.4),
+  rob4@od[i320] > 2 * rob4@cutoff.od,
+  rob[[1]]@od[i320] - rob4@od[i320] < 2.5,
+  all(rob4$loadings[c("wind_speed", "pm10"), 4] > 0.25),
+  PcaClassic(Y, k = 4)@sd[i320] > 2 * PcaClassic(Y, k = 4)@cutoff.sd,
+  all(abs(pca_robpca$loadings[c("no2", "wind_speed"), 1]) >
+    abs(pca$loadings[c("no2", "wind_speed"), 1]) + 0.1),
+  all(abs(pca_robpca$loadings[c("pm2_5", "pm10"), 1]) <
+    abs(pca$loadings[c("pm2_5", "pm10"), 1]) - 0.1),
+  rob[[1]]@od[i320] / rob4@od[i320] < 1.3
+)
+```
+
 Now there are far fewer bad leverage points than in @fig-pca-outliermaps, and the map changes much less as we increase $k$.
 This suggests that the ROBPCA algorithm has found projection directions that are less influenced by the anomalies, so they are easier to identify in the projection space.
+
+The observation with the largest orthogonal distance, for every value of $k$, is 8pm on 3 May.
+With $k = 4$, its score distance lies close to the cutoff, because the fourth robust component gives positive weights to `wind_speed` and `pm10`, both of which were very high at that hour (especially `pm10`).
+Whether it falls just above the cutoff (making it a bad leverage point, as in @fig-pca-outliermap2) or just below it varies slightly between runs, because ROBPCA uses random subsets of the data.
+Either way, its orthogonal distance falls only slightly as components are added, so the robust components have not been pulled towards it, and it remains clearly anomalous.
+By contrast, in the classical PCA with four components (@fig-pca-outliermaps), the same hour had a score distance of more than twice the cutoff, as the classical components had been pulled towards it.
 
 ### Combining components with orthogonal distances
 
@@ -833,7 +989,35 @@ az_aq_proj |>
   slice_max(order_by = iso_score, n = 10)
 ```
 
-These are the most extreme hours by this combined measure: the isolated points and the extreme hours late on 31 May that the other methods also single out.
+```{r}
+#| label: robpca-iso-check
+#| include: false
+#| dependson: robpca-iso
+
+robpca_iso_lab <- az_aq_proj |>
+  mutate(iso_score = predict(iso_model, W_od)) |>
+  slice_max(order_by = iso_score, n = 10) |>
+  with(paste(day, hour))
+stopifnot(
+  robpca_iso_lab[1] == "3 20",
+  all(
+    c(
+      "3 12",
+      "3 17",
+      "3 19",
+      "4 12",
+      "25 10",
+      "27 8",
+      "27 9",
+      "31 11",
+      "31 22"
+    ) %in%
+      robpca_iso_lab
+  )
+)
+```
+
+These are the most extreme hours by this combined measure: the dry, windy hours of 3 and 4 May, including the spike in `pm10` at 8pm on 3 May; the mornings of 25 and 27 May, both with very high `pm10`; and 11am and 10pm on 31 May.
 
 ## DOBIN {#sec-dobin}
 
@@ -873,13 +1057,13 @@ Projecting the data onto these columns, $\bm{W} = \bm{Y}\bm{A}$, gives the DOBIN
 ### Air quality example
 
 In fact we have already seen the result.
-The two-dimensional projection in @fig-proj-11dto2d was the DOBIN projection of the Aotizhongxin data, and the anomalies it revealed --- in both the projection space (@fig-proj-kde) and the residual space (@fig-proj-residuals2) --- were found in this basis.
+The two-dimensional projection in @fig-proj-10dto2d was the DOBIN projection of the Aotizhongxin data, and the anomalies it revealed --- in both the projection space (@fig-proj-kde) and the residual space (@fig-proj-residuals2) --- were found in this basis.
 The columns of the mapping matrix used there are the first two DOBIN vectors.
 
 ```{r}
 #| label: dobin
 #| code-fold: false
-#| dependson: 11dto2d
+#| dependson: 10dto2d
 
 round(A, 2)
 ```
@@ -889,18 +1073,22 @@ round(A, 2)
 #| include: false
 #| dependson: score-distances
 
-may22 <- az_aq_proj |> mutate(r2 = rank(a2), rpm = rank(-pm2_5)) |>
+may22 <- az_aq_proj |>
+  mutate(r2 = rank(a2), rpm = rank(-pm2_5)) |>
   filter(day == 22, hour %in% 8:12)
 stopifnot(
   all(A[, "a1"] > 0),
-  setequal(may22$r2, 1:5),
+  rownames(A)[which.max(A[, "a1"])] == "pm10",
+  rownames(A)[which.min(A[, "a2"])] == "pm2_5",
+  sum(A[, "a2"] < 0) == 1L,
+  setequal(may22$r2[may22$hour %in% 8:11], 1:4),
   setequal(may22$rpm, 1:5)
 )
 ```
 
 The first DOBIN vector $\bm{a}_1$ gives positive weights to all variables, so an observation moves out along the first DOBIN coordinate when *all* of the air-quality and meteorological variables are jointly elevated.
 The second DOBIN vector $\bm{a}_2$ is dominated by `pm2_5`, with the opposite sign to the other variables, and so separates hours whose fine-particulate level is unusual relative to everything else.
-The hours of 22 May flagged in @fig-proj-kde had simultaneously high particulates, carbon monoxide and dew point, so they score fairly high on $\bm{a}_1$, but it is $\bm{a}_2$ that sets them apart: their fine-particulate levels were the highest of the month, even relative to the other elevated variables, giving them the five lowest values of $\bm{a}_2$.
+The hours of 22 May flagged in @fig-proj-kde had simultaneously high particulates, carbon monoxide and dew point, so they score highly on $\bm{a}_1$, but it is $\bm{a}_2$ that sets them apart: their fine-particulate levels were the highest of the month, even relative to the other elevated variables, giving them the four lowest values of $\bm{a}_2$.
 Unlike the principal component loadings in @fig-pca-2d, the DOBIN loadings remain easy to read in terms of the original variables, which is a deliberate feature of the method.
 
 Two cautions are worth noting.
@@ -918,7 +1106,7 @@ Following the recipe we used for ROBPCA (@sec-robpca), we take the first four DO
 #| code-fold: false
 #| dependson: score-distances
 
-A4 <- dobin::dobin(Y)$rotation[, 1:4]
+A4 <- dobin::dobin(as.matrix(Y), norm = 0)$rotation[, 1:4]
 colnames(A4) <- paste0("a", 1:4)
 W4 <- as.matrix(Y) %*% A4
 W4_od <- as_tibble(W4) |>
@@ -929,7 +1117,35 @@ az_aq_proj |>
   slice_max(order_by = iso_score, n = 10)
 ```
 
-With only four components, the isolation forest flags both the morning cluster of 22 May seen in @fig-proj-kde and the extreme hours late on 31 May, together with the isolated points the other methods also identify.
+```{r}
+#| label: dobin-iso-check
+#| include: false
+#| dependson: dobin-detect
+
+dobin_iso_lab <- az_aq_proj |>
+  mutate(iso_score = predict(iso_model, W4_od)) |>
+  slice_max(order_by = iso_score, n = 10) |>
+  with(paste(day, hour))
+stopifnot(
+  setequal(
+    dobin_iso_lab,
+    c(
+      "3 20",
+      "4 12",
+      "22 10",
+      "22 11",
+      "22 12",
+      "25 10",
+      "30 10",
+      "31 11",
+      "31 12",
+      "31 22"
+    )
+  )
+)
+```
+
+With only four components, the isolation forest picks out three hours of the morning cluster of 22 May seen in @fig-proj-kde, the late morning of 31 May, and the `pm10` spikes at 8pm on 3 May and 10pm on 31 May, together with the mornings of 25 and 30 May.
 A handful of components from a basis built to expose anomalies is enough to surface these episodes.
 
 ## Multidimensional scaling {#sec-mds}
@@ -1015,7 +1231,7 @@ The classical scaling map reproduces the PCA projection, while the non-metric ma
 #| code-fold: true
 #| dependson: mds-nonmetric
 #| fig-cap: >-
-#|   Two-dimensional multidimensional scaling maps of the 11 air quality and meteorological variables from Aotizhongxin, computed from the Euclidean distance matrix.
+#|   Two-dimensional multidimensional scaling maps of the 10 air quality and meteorological variables from Aotizhongxin, computed from the Euclidean distance matrix.
 #|   Left: classical scaling, which reproduces the principal component projection of @fig-pca-2d up to a reflection.
 #|   Right: non-metric scaling, which preserves only the rank order of the distances.
 
@@ -1029,17 +1245,41 @@ bind_rows(
   labs(x = "First coordinate", y = "Second coordinate")
 ```
 
-The two extreme anomalies in the non-metric scaling map are from 19 May and 31 May:
+The extreme anomaly at the bottom of the non-metric scaling map is 8pm on 3 May:
 
 ```{r}
 #| label: mds-nonmetric-cases
 #| code-fold: false
 #| dependson: mds-nonmetric
 
-az_aq[nm$points[, 2] < -50, ]
+az_aq[which.min(nm$points[, 2]), ]
 ```
 
-Because non-metric scaling preserves only the rank order of the distances, it can push anomalies to be even more extreme.
+```{r}
+#| label: mds-check
+#| include: false
+#| dependson: mds-nonmetric
+
+i320 <- which(az_aq$day == 3 & az_aq$hour == 20)
+Dm <- as.matrix(D)
+dist_centre <- function(x) sqrt(rowSums(scale(x, scale = FALSE)^2))
+dn <- dist_centre(nm$points)
+dc <- dist_centre(cs$points)
+stopifnot(
+  which.min(nm$points[, 2]) == i320,
+  which.max(dn) == i320,
+  dn[i320] > 1.2 * sort(dn, decreasing = TRUE)[2],
+  dc[i320] < median(dc),
+  which.max(rowMeans(Dm)) == i320,
+  which.max(apply(Dm + diag(Inf, NROW(Dm)), 1, min)) == i320,
+  which.max(PcaClassic(Y, k = 2)@od) == i320
+)
+```
+
+In the classical scaling map, this hour lies closer to the centre than most other observations.
+Like the PCA projection, classical scaling keeps the directions of greatest variance, and 8pm on 3 May is unusual in a direction that these miss: it was the orthogonal outlier with the largest orthogonal distance in @fig-pca-outliermap.
+Non-metric scaling instead tries to preserve the rank order of all the pairwise distances, and 8pm on 3 May is further from the other hours than any other observation, both on average and to its nearest neighbour.
+To preserve that ordering, it has to be placed well away from the rest of the map.
 
 Like PCA and DOBIN, MDS is a dimension-reduction step rather than an anomaly detector in itself: the resulting coordinates are handed to one of the distance- or density-based methods of the earlier chapters.
 Its distinctive feature is that it begins from a matrix of pairwise distances --- or, more generally, dissimilarities --- so it can be applied to data for which no natural coordinates exist.
@@ -1062,9 +1302,7 @@ FastPCS estimates a centre and covariance matrix from this clean subset of the d
 Because the anomalies are excluded before the covariance is estimated, they cannot distort it.
 The method does require every variable to vary across the observations.
 If more than half of all observations share an identical value on some variable, FastPCS then treats those tied observations as the clean subset, the covariance estimated from them collapses, and the algorithm stops with an error.
-
-For the Aotizhongxin data this rules out `rainfall`, which is zero for `r round(100 * mean(az_aq$rainfall == 0))`% of the hours, so we drop it before fitting.
-The PCA-based methods avoid this problem because their first stage collapses the data onto the subspace with highest variation.
+This is another reason for omitting `rainfall` from the Aotizhongxin data.
 
 ```{r}
 #| label: fastpcs
@@ -1072,9 +1310,7 @@ The PCA-based methods avoid this problem because their first stage collapses the
 #| dependson: aotizhongxin
 #| message: false
 
-fpcs_fit <- Y |>
-  select(-rainfall) |>
-  FastPCS::FastPCS()
+fpcs_fit <- FastPCS::FastPCS(Y)
 ```
 
 The algorithm returns a robust centre and covariance matrix, estimated from the projection congruent subset, together with the robust Mahalanobis distance (@sec-distances) of every observation from that centre.
@@ -1105,13 +1341,13 @@ stopifnot(
 )
 ```
 
-Where the earlier methods flagged only some of the hours of 31 May 2014, FastPCS resolves the whole daytime build-up of that day --- a run of hours dominated by extreme carbon monoxide and sulphur dioxide (four to five and seven to eight times their monthly medians respectively, with both reaching their highest values of the month at 11am), on a warm and humid morning.
-Stahel--Donoho outlyingness (@sec-stahel-donoho), also computed without `rainfall`, came closest, with three of these hours in its top ten.
+FastPCS ranks the whole daytime build-up of 31 May 2014 among its most outlying hours --- a run of hours dominated by extreme carbon monoxide and sulphur dioxide (four to five and seven to eight times their monthly medians respectively, with both reaching their highest values of the month at 11am), on a warm and humid morning.
+Several of these hours appeared among the bad leverage points of the four-component PCA in @fig-pca-outliermaps, and Stahel--Donoho outlyingness (@sec-stahel-donoho) put three of them in its top ten, but FastPCS is the only method here to rank the whole run at the top.
 This sustained episode is the distinctive contribution of FastPCS.
 
 ## HDoutliers algorithm {#sec-hdoutliers}
 
-The methods considered so far all work by estimating a centre and a covariance, and then measuring how far each observation lies from that centre.
+FastPCS, like the score distances of the PCA-based methods, works by estimating a centre and a covariance, and then measuring how far each observation lies from that centre.
 The HDoutliers algorithm of @Wilkinson2017-rb takes a different approach, based on the distances between observations rather than their distance from a centre.
 It was designed to address several problems at once:
 
@@ -1187,24 +1423,20 @@ stopifnot(
   all(no2_run$no2 >= sort(az_aq$no2, decreasing = TRUE)[5]),
   all(no2_run$no2 / median(az_aq$no2) > 3.5),
   all(no2_run$wind_speed < 1),
-  identical(paste(stray_top$day, stray_top$hour)[4], "3 20"),
-  stray_top$day[1] == 31,
-  stray_top$hour[1] == 21,
-  stray_top$rainfall[1] == max(az_aq$rainfall),
-  identical(paste(stray_top$day, stray_top$hour)[2:3], c("31 22", "19 3")),
-  all(stray_top$rainfall[1:3] > 0),
-  all(
-    c("31-9", "29-23", "30-0") %in%
-      paste(stray_top$day, stray_top$hour, sep = "-")
-  )
+  setequal(paste(stray_top$day, stray_top$hour)[1:2], c("31 22", "3 20")),
+  all(stray_top$pm10[1:2] >= sort(az_aq$pm10, decreasing = TRUE)[2]),
+  sum(
+    paste(stray_top$day, stray_top$hour) %in% paste(no2_run$day, no2_run$hour)
+  ) ==
+    3L,
+  all(c("29 22", "29 23", "30 0") %in% paste(stray_top$day, stray_top$hour))
 )
 ```
 
-The four highest stray scores (9pm and 10pm on 31 May, 3am on 19 May and 8pm on 3 May) belong to the same isolated hours that head the orthogonal-distance and isolation-forest rankings earlier in the chapter (@sec-projection-anomalies and @sec-robpca).
-Three of them were among the wettest hours of the month: rain fell in only `r sum(az_aq$rainfall > 0)` of the `r NROW(Y)` hours, with a median fall in those hours of just `r median(az_aq$rainfall[az_aq$rainfall > 0])` mm, but `r max(az_aq$rainfall)` mm fell at 9pm on 31 May.
+The two highest stray scores, 10pm on 31 May and 8pm on 3 May, are the two hours with the highest `pm10` readings of the month, which several of the earlier methods also found.
 
 What stray adds is further down the list.
-The hours of 11pm on 29 May and midnight on 30 May belong to a run of five consecutive hours, from 9pm to 1am, with the five highest nitrogen dioxide readings of the month (around four times the monthly median), almost no ozone and almost no wind.
+Three of the top ten hours (10pm and 11pm on 29 May, and midnight on 30 May) belong to a run of five consecutive hours, from 9pm to 1am, with the five highest nitrogen dioxide readings of the month (around four times the monthly median), almost no ozone and almost no wind.
 No other method in this chapter ranks these hours among its ten most anomalous.
 Each hour has a close nearest neighbour within the run, but the run as a whole lies some distance from the rest of the data, which is the small-cluster effect described above.
 Stray finds these hours without fitting any covariance, so it makes no assumption about the shape of the bulk of the data.
@@ -1212,7 +1444,7 @@ Stray finds these hours without fitting any covariance, so it makes no assumptio
 ## Comparisons using the O3 plot {#sec-o3}
 
 Throughout this chapter we have applied several different anomaly-detection methods to the same air quality data, and while they broadly agree on the most extreme observations, they do not agree on everything.
-FastPCS (@sec-fastpcs) found a run of extreme hours on 31 May whereas other methods only identified a few of these hours, while stray (@sec-stray) picked out a late-night run of very high nitrogen dioxide on 29--30 May that no other method ranked highly.
+FastPCS (@sec-fastpcs) found a run of extreme hours on 31 May whereas other methods ranked only a few of these hours among their most anomalous, while stray (@sec-stray) picked out a late-night run of very high nitrogen dioxide on 29--30 May that no other method ranked highly.
 Every method also depends on some choice of variables, whether the full set or a chosen projection, and an anomaly can be missed simply because the wrong variable, or the wrong combination of variables, was used to look for it.
 
 The **O3 plot** ("Overview Of Outliers") of @Unwin2019 addresses this by turning the choice of variables into part of the diagnostic, rather than a decision made once in advance.
@@ -1229,9 +1461,8 @@ The result is passed to `O3plotM()`, which displays how many methods flagged eac
 
 ### Air quality example
 
-Checking every combination of all 11 Aotizhongxin variables would mean examining $2^{11} - 1 = 2047$ combinations for each method, which is impractical to compute and to display together.
-Instead, we restrict attention to five variables that recurred throughout our earlier discussion --- `co`, `so2`, `pm2_5`, `dew_point` and `temperature` --- and compare all five methods available in `OutliersO3` across every combination of one to five of them.
-We omit `rainfall`, because the FastPCS method cannot handle a variable that is constant for more than half of the observations.
+Checking every combination of all 10 Aotizhongxin variables would mean examining $2^{10} - 1 = 1023$ combinations for each method, which is impractical to compute and to display together.
+Instead, we restrict attention to five variables that recurred throughout our earlier discussion --- `co`, `so2`, `pm2_5`, `pm10` and `dew_point` --- and compare all five methods available in `OutliersO3` across every combination of one to five of them.
 
 ```{r}
 #| label: o3prep
@@ -1241,11 +1472,11 @@ We omit `rainfall`, because the FastPCS method cannot handle a variable that is 
 
 set.seed(1)
 o3 <- OutliersO3::O3prep(
-  as.data.frame(Y[, c("co", "so2", "pm2_5", "dew_point", "temperature")]),
+  as.data.frame(Y[, c("co", "so2", "pm2_5", "pm10", "dew_point")]),
   method = c("PCS", "adjOut", "MCD", "BAC", "DDC"),
   tolPCS = 0.01,
   toladj = 0.15,
-  tolMCD = 0.001,
+  tolMCD = 1e-6,
   tolBAC = 0.025,
   tolDDC = 0.025
 )
@@ -1256,7 +1487,7 @@ o3_plots <- OutliersO3::O3plotM(
 )
 ```
 
-This checks `r o3$nw` combinations of the five variables for each of the five methods, using tolerances tuned so that the methods flag broadly comparable numbers of anomalies overall: from `r o3_plots$nOut[["BAC"]]` for mvBACON up to `r o3_plots$nOut[["MCD"]]` for MCD, with FastPCS (`r o3_plots$nOut[["PCS"]]`), DDC (`r o3_plots$nOut[["DDC"]]`) and Stahel--Donoho outlyingness (`r o3_plots$nOut[["adjOut"]]`) in between.
+This checks `r o3$nw` combinations of the five variables for each of the five methods, using tolerances tuned so that the methods flag broadly comparable numbers of anomalies overall: from `r o3_plots$nOut[["PCS"]]` for FastPCS up to `r o3_plots$nOut[["adjOut"]]` for Stahel--Donoho outlyingness, with DDC (`r o3_plots$nOut[["DDC"]]`), mvBACON (`r o3_plots$nOut[["BAC"]]`) and MCD (`r o3_plots$nOut[["MCD"]]`) in between.
 Even with comparable totals, the methods do not all flag the same observations, which is why the O3 plot looks at how consistently they agree across combinations of variables, rather than at the raw counts alone.
 @fig-o3plot shows the resulting O3 plot.
 
@@ -1268,7 +1499,7 @@ Even with comparable totals, the methods do not all flag the same observations, 
 #| fig-width: 14
 #| fig-asp: 0.5
 #| fig-cap: >-
-#|   O3 plot comparing five outlier-detection methods --- FastPCS, mvBACON, Stahel--Donoho outlyingness (adjOut), DDC and MCD --- across all combinations of one to five of five key air quality variables (`co`, `so2`, `pm2_5`, `dew_point`, `temperature`) at Aotizhongxin.
+#|   O3 plot comparing five outlier-detection methods --- FastPCS, mvBACON, Stahel--Donoho outlyingness (adjOut), DDC and MCD --- across all combinations of one to five of five key air quality variables (`co`, `so2`, `pm2_5`, `pm10`, `dew_point`) at Aotizhongxin.
 #|   Rows are variable combinations, grouped by the number of variables used (separated by dashed lines); the grey cells at left show which variables are included in each combination.
 #|   Columns are observations, sorted by how often they are flagged; colour shows how many of the five methods flag that observation for that combination, from light blue (one method) to red (all five methods).
 
@@ -1277,7 +1508,7 @@ o3_plots$gO3
 
 Reading along any row of @fig-o3plot shows how many of the five methods agree for one combination of variables; reading down a column shows how consistently one observation is flagged, across both combinations and methods.
 Most flagged cells are light or mid blue, meaning only one or two methods identified the observation as an anomaly for that combination.
-Full agreement is rare: there is a single red cell in the whole plot, for the combination of `so2`, `dew_point` and `temperature`, marking the one observation that all five methods flag as an anomaly.
+Full agreement is rare: there are only three red cells in the whole plot, all for the combination of `co`, `pm2_5`, `pm10` and `dew_point`, marking the three observations that all five methods flag as anomalies for that combination.
 
 To identify which observations are most consistently flagged, we can find the columns of the O3 plot with the most flags.
 
@@ -1301,9 +1532,32 @@ az_aq_proj |>
   arrange(year, month, day, hour)
 ```
 
-The most consistently flagged hours are mostly from the daytime build-up of 31 May already identified by FastPCS in @sec-fastpcs, together with the morning of 22 May picked out by the KDE surprisals of @fig-proj-kde, and the morning of 30 May.
-The single red cell in @fig-o3plot belongs to noon on 31 May, the one hour where all five methods agree, for the combination of `so2`, `dew_point` and `temperature`, flagged in `r out_table$n_flagged[out_table$red]` of the `r o3$nw * 5` combination/method pairs checked.
-The hour flagged most often overall is an hour earlier, 11am on 31 May, flagged in `r out_table$n_flagged[1]` of the pairs checked --- more than half of them --- even though no single combination of variables gets all five methods to agree on it.
+```{r}
+#| label: o3-check
+#| include: false
+#| dependson: o3-top
+
+o3_lab <- paste(az_aq$day, az_aq$hour)
+top_lab <- o3_lab[out_table$Case]
+pm10_top8 <- o3_lab[order(-az_aq$pm10)[1:8]]
+stopifnot(
+  names(which.min(o3_plots$nOut)) == "PCS",
+  names(which.max(o3_plots$nOut)) == "adjOut",
+  max(o3_plots$nOut) < 2 * min(o3_plots$nOut),
+  NROW(red_case) == 3L,
+  all(red_case$Combination == "c10111"),
+  setequal(o3_lab[red_case$Case], c("3 19", "27 8", "27 9")),
+  all(pm10_top8 %in% top_lab),
+  all(setdiff(top_lab, pm10_top8) %in% c(paste(31, 7:13), "22 10")),
+  top_lab[1] == "25 10"
+)
+```
+
+The most consistently flagged hours fall into two groups.
+Half of them are the eight hours with the highest `pm10` readings of the month (7pm and 8pm on 3 May, 4am on 18 May, 10am and 11am on 25 May, 8am and 9am on 27 May, and 10pm on 31 May), most of which were also picked out by Stahel--Donoho outlyingness, the isolation forests and the outlier maps earlier in the chapter.
+The rest are from the daytime build-up of 31 May already identified by FastPCS in @sec-fastpcs, together with 10am on 22 May, from the cluster picked out by the KDE surprisals of @fig-proj-kde.
+The hour flagged most often overall is 10am on 25 May, flagged in `r out_table$n_flagged[1]` of the `r o3$nw * 5` combination/method pairs checked.
+The three red cells in @fig-o3plot all belong to `pm10` episodes (7pm on 3 May, and 8am and 9am on 27 May), each flagged in between `r min(out_table$n_flagged[out_table$red])` and `r max(out_table$n_flagged[out_table$red])` of the pairs checked.
 
 No single method, projection, or choice of variables has revealed every anomaly in this data, and none of the methods in this chapter agree completely with each other.
 This is an important lesson of high-dimensional anomaly detection: the curse of dimensionality means that anomalies can hide in some views of the data and stand out in others, so no one projection or method should be trusted on its own.
