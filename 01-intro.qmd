@@ -216,7 +216,7 @@ That is, we have no idea *a priori* what observations are anomalous, and there i
 
 ### Testing anomaly detection algorithms {-}
 
-That makes it difficult to measure how well an anomaly detection algorithm performs.
+The lack of a right answer makes it difficult to measure how well an anomaly detection algorithm performs.
 If we don't know the right answer, we can't know if an algorithm has found the true anomalies.
 There are three solutions to this problem that are often employed when testing anomaly detection algorithms.
 
@@ -254,7 +254,7 @@ So we will often be talking about anomaly scores, even when we are really intere
 ### Test cricket batting data
 
 Cricket is a popular sport in England, India, Australia, and other countries which had strong ties to England during the 19th and 20th centuries.
-The `cricket_batting` data set contains summary statistics for all `r NROW(cricket_batting)` men and women who have played test cricket (the traditional and long form of the game), up to 6 October 2025.
+The `cricket_batting` data set contains summary statistics for all `r NROW(cricket_batting)` men and women who have played Test cricket (the traditional and long form of the game), up to 6 October 2025.
 Each row contains data on one player, and we will be looking for anomalies in their playing statistics.
 
 ```{r}
@@ -297,7 +297,7 @@ gun_deaths
 ### Air quality in Beijing {-}
 
 The `air_quality` data set contains hourly data on air quality from 12 monitoring stations in Beijing, China, collected between 1 March 2013 and 28 February 2017.
-The data set contains `r scales::comma(NROW(air_quality))` hourly observations of the concentration of various pollutants, including PM2.5 (particulate matter with diameter less than 2.5 microns), PM10 (particulate matter with diameter less than 10 microns), SO2 (sulfur dioxide), NO2 (nitrogen dioxide), CO (carbon monoxide), and O3 (ozone).
+The data set contains `r scales::comma(NROW(air_quality))` hourly observations of the concentration of various pollutants, including PM2.5 (particulate matter with diameter less than 2.5 microns), PM10 (particulate matter with diameter less than 10 microns), SO2 (sulphur dioxide), NO2 (nitrogen dioxide), CO (carbon monoxide), and O3 (ozone).
 The data set also includes several weather variables, including temperature, pressure, dew point, rainfall, wind direction and speed.
 Because it is a rather large data set, it does not come pre-loaded with the package, but can be obtained using the `fetch_air_quality()` function.
 
@@ -370,13 +370,13 @@ donave <- max(batting$Average)
 
 Don Bradman was an Australian cricketer in the first half of the 20th century, and is renowned as the best batter to ever play the game.
 The most common measure of a batter's ability is their career average --- the total number of runs made divided by the number of times they were dismissed.
-@fig-cricket1 shows a strip plot of the career averages for all `r NROW(filter(cricket_batting, Innings >= 20))` men and women who have played test cricket and batted at least 20 times.
+@fig-cricket1 shows a strip plot of the career averages for all `r NROW(filter(cricket_batting, Innings >= 20))` men and women who have played Test cricket and batted at least 20 times.
 
 ```{r}
 #| label: fig-cricket1
 #| dependson: cricket0
 #| fig-asp: 0.2
-#| fig-cap: !expr paste("Career batting averages for all men and women to have played test cricket and batted at least 20 times. The anomaly is Don Bradman, who averaged", scales::number(donave, 0.01), "over his career.")
+#| fig-cap: !expr paste("Career batting averages for all men and women to have played Test cricket and batted at least 20 times. The anomaly is Don Bradman, who averaged", scales::number(donave, 0.01), "over his career.")
 
 cricket_batting |>
   filter(Innings >= 20) |>
@@ -388,7 +388,7 @@ cricket_batting |>
 
 The points are "jittered" vertically to reduce overplotting, and made slightly transparent to show where overplotting occurs.
 There is an obvious anomaly on the right of the plot; this point is Don Bradman who averaged `r scales::number(donave, 0.01)` over his career.
-Clearly, Don Bradman was much better than any of the other men and women who have played test cricket.
+Clearly, Don Bradman was much better than any of the other men and women who have played Test cricket.
 
 ### Example: Old Faithful eruption durations {-}
 
@@ -448,7 +448,7 @@ For example, there are two eruptions of 110--120 seconds, followed by waiting ti
 Neither the waiting time nor the duration is unusual on its own, but the combination is anomalous.
 Similarly, there is one eruption of about 240 seconds, followed by a waiting time of about 3000 seconds.
 The waiting time is the second-smallest overall, but appears even more extraordinary given the long duration of the previous eruption.
-All other eruptions of similar duration had waiting times about twice as long.
+Every other eruption of similar duration was followed by a waiting time of at least 4500 seconds, and typically almost twice as long.
 
 ### Example: Wine prices and quality {-}
 
@@ -473,7 +473,7 @@ This adds a small amount of random noise to the points variable, but not so much
 The price is shown on a log scale to allow all the points to be seen more clearly.
 
 Here the most interesting observations are the ones that have an unusual price given their points value.
-For example, the lowest priced wine above 95 points is a 2007 Syrah from the Rulo vineyard in the Columbia Valley, Washington.
+For example, the lowest priced wine above 95 points is a 2007 Syrah from the Rulo winery in the Columbia Valley, Washington.
 It is an anomaly given its high points value and low price, although neither the price nor the points value is particularly unusual.
 There are also two very expensive wines that do not have a rating to match, with points values in the low 90s.
 These can also be considered anomalies.
@@ -492,7 +492,7 @@ wine_reviews |>
 ```
 
 A similar phenomenon occurs whenever you consider additional variables.
-An anomaly in three dimensions may not appear anomalous in any of the 2-dimensional sets of variables.
+An anomaly in three dimensions may not appear anomalous in any pair of variables.
 As the number of dimensions increases, there are more ways for observations to be anomalous, but it is increasingly difficult to find them.
 
 While strip plots and scatterplots are useful for finding anomalies in small- to moderate-sized data sets with one or two numerical variables, we will need alternative tools once we have three or more variables, or a large data set, or non-numerical data.

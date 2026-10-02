@@ -89,7 +89,8 @@ batave <- cricket_batting |>
 batave |> lvplot::lvtable(k = 4)
 ```
 
-The output also provides 95% confidence intervals based on @eq-sample-quantile-distribution.
+The output also provides 95% confidence intervals for each letter value.
+These are formed from the order statistics either side of each depth, using a Normal approximation for the depth of each letter value, so (unlike @eq-sample-quantile-distribution) they do not require an estimate of the density.
 The estimates are similar, but not identical, to the quantiles calculated using the `quantile()` function.
 
 ```{r}
@@ -118,7 +119,7 @@ donave <- max(batting$Average)
 #| fig-asp: 0.2
 #| code-fold: false
 #| dependson: donave
-#| fig-cap: !expr paste("Career batting averages for all men and women to have played test cricket and batted at least 20 times. The anomaly is Don Bradman, who averaged", scales::number(donave, 0.01), "over his career.")
+#| fig-cap: !expr paste("Career batting averages for all men and women to have played Test cricket and batted at least 20 times. The anomaly is Don Bradman, who averaged", scales::number(donave, 0.01), "over his career.")
 
 cricket_batting |>
   filter(Innings >= 20) |>
@@ -165,7 +166,7 @@ In this cricket batting example, the boxplot works well because the data set is 
 
 However, boxplots can be misleading, and they are limited in at least two respects.
 
-1. For large data sets, boxplots show too many points as anomalies, and it is hard to distinguish them.
+1. For large data sets, boxplots show too many points as anomalies, and it is hard to distinguish the genuine anomalies from the rest.
 2. Boxplots assume that the distribution of the data is unimodal.
 
 ```{r}
@@ -218,7 +219,7 @@ oldfaithful |>
 
 Quite a few "anomalies" are shown, including the three abnormally short eruptions we identified earlier.
 But the remaining "anomalies" are not particularly unusual observations.
-All the points below 180 seconds are identified as anomalies, even though we know that observations in the region between 100 and 140 are not unusual for this geyser.
+All the points below 183 seconds are identified as anomalies, even though we know that observations in the region between 100 and 140 seconds are not unusual for this geyser.
 Because the boxplot does not allow for more than one mode, all the points in the second smaller cluster are identified as anomalies.
 The points around 300 seconds are also not really anomalies --- these are just values in the upper tail of the distribution for eruptions.
 
@@ -353,7 +354,7 @@ These can be produced using the `lvplot` package, as shown in @fig-cricketboxlv.
 #| label: fig-cricketboxlv
 #| code-fold: false
 #| fig-asp: 0.2
-#| fig-cap: "Letter-value plot of career batting averages for all men and women who played test cricket and batted at least 20 times."
+#| fig-cap: "Letter-value plot of career batting averages for all men and women who played Test cricket and batted at least 20 times."
 
 library(lvplot)
 cricket_batting |>
@@ -378,16 +379,16 @@ lv <- cricket_batting |>
 Here the median is given by M, the fourths by F, and so on.
 The middle box (F) is bounded by the fourths and contains all but 2/4 of the data; the next box (E) is bounded by the eighths and contains all but 2/8 of the data; then D is bounded by the sixteenths and contains all but 2/16 of the data; and so on.
 
-In this example, the most extreme box (labelled Z) is bounded by the points that fall within the 1/256 letter values.
-So it contains all but 2/256 of the data, and shows $2 / 256 \times `r NROW(filter(cricket_batting, Innings >= 20))` = `r round(2/256 * NROW(filter(cricket_batting, Innings >= 20)))`$ points as anomalies.
+In this example, the most extreme box (labelled Z) is bounded by the 1/256 letter values.
+So it contains all but 2/256 of the data, and shows $2 / 256 \times `r NROW(filter(cricket_batting, Innings >= 20))` \approx `r round(2/256 * NROW(filter(cricket_batting, Innings >= 20)))`$ points individually.
 
-The stopping rule used in the letter-value plot is to show the boxes up to letter value $k$, where
+The stopping rule used in the letter-value plot is to show the boxes up to letter value $k$, where $k$ is the smallest value satisfying
 $$
   0.5\sqrt{2d_k} z_{1-\alpha/2} > d_{k+1}
 $$
 and $z_{1-\alpha/2}$ is the $(1 - \alpha/2)$ quantile of a standard Normal distribution.
 This choice is based on the idea that the edges of the boxes are quantile estimates, and the confidence interval for each quantile estimate that is displayed should not overlap the subsequent quantile estimate.
-The Normal distribution arises because the quantile estimate has an approximate Normal distribution (@eq-sample-quantile-distribution).
+The Normal distribution arises because, for large $n$, the depth (rank) at which a sample quantile falls is approximately Normally distributed; this is the rank-based counterpart of @eq-sample-quantile-distribution.
 This stopping rule means that, on average, there should be no more than about $2z^2_{1-\alpha/2}$ legitimate observations in each tail.
 By default, $\alpha = 0.05$, so that, on average, there should be no more than about $2 \times (`r qnorm(1 - 0.05/2)`)^2 = `r round(2 * qnorm(1 - 0.05/2)^2,1)`$ legitimate observations in each tail, regardless of the size of the data set.
 
@@ -396,7 +397,7 @@ So the display of legitimate observations in the tails of the distribution is by
 
 In this cricketing example, it looks like there is one true anomaly (Don Bradman) and the remaining 9 observations displayed directly are simply in the tails of the distribution of the remaining data.
 
-When applied to three of the other examples (@fig-lvplots1, @fig-lvplots2 and @fig-lvplots3), we see approximately 10--20 observations shown as individual points in each case.
+When applied to three of the other examples (@fig-lvplots1, @fig-lvplots2 and @fig-lvplots3), we see between 8 and 16 observations shown as individual points in each case.
 
 ```{r}
 #| label: fig-lvplots1
@@ -441,7 +442,7 @@ n01b |>
 ```
 
 In this last example, because there are only 20 observations, there is not enough data to estimate the quantiles beyond the fourths.
-So only the middle box is shown.
+So only the middle box is shown, and the 10 observations outside it are all plotted individually.
 
 ## Multivariate data depth {#sec-depth}
 
@@ -480,7 +481,7 @@ n01 |>
   coord_fixed(xlim = c(-0.85, 1.6), ylim = c(-1.85, 1.1))
 ```
 
-There are an infinite number of ways of dividing the plane into halfspaces, and the number of points in each half plane will vary depending on where the dividing line falls.
+There are an infinite number of ways of dividing the plane into halfspaces, and the number of points in each halfspace will vary depending on where the dividing line falls.
 
 To find the depth of the orange point, we need to find the line which divides the plane into two sections where the half containing the orange point includes as few observations as possible.
 In fact, the red line is one such solution which has the orange point in a halfspace containing only two observations.
@@ -617,7 +618,7 @@ In any case, we will consider approaches to handle high-dimensional data in @sec
 
 ## HDR boxplots {#sec-hdr-boxplots}
 
-We can compute HDRs from a kernel density estimate to find regions of the sample space where observations are unlikely to occur.
+We can compute HDRs (@sec-hdr) from a kernel density estimate to find regions of the sample space where observations are unlikely to occur.
 
 Let's illustrate the idea with univariate data.
 In @sec-kde, we estimated the density of the duration of Old Faithful eruptions using a kernel density estimate, and plotted it in @fig-oldfaithful4.
@@ -659,7 +660,7 @@ oldfaithful |>
 Points outside the 99% region are shown separately and jittered vertically to reduce overplotting.
 This type of boxplot has the advantage that it allows for multimodal distributions, and can identify "inliers" that occur in regions of low density between regions of high density.
 
-Of course, by definition, 1% of points will lie outside the 99% region, so the points shown are not necessarily anomalies, just observations that occur in the lower probability regions of the space.
+Of course, by definition, about 1% of points will lie outside the 99% region, so the points shown are not necessarily anomalies, just observations that occur in the lower probability regions of the space.
 By setting `show_anomalies = TRUE`, some of the points are highlighted as potential anomalies, using the LOO surprisal probabilities described in @sec-loo-surprisals.
 
 The idea naturally extends to higher dimensions.

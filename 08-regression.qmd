@@ -48,7 +48,7 @@ $$
 $$ {#eq-leverage}
 take values between 0 and 1.
 These are known as the "leverage" values [@faraway2004linear, p. 69], and measure how much each observation influences the corresponding fitted value.
-High leverage values (close to 1) correspond to observations that have a large influence on the estimated coefficients, and so leaving those observations out will lead to very different values for the fitted values and residuals.
+High leverage values (close to 1) correspond to observations that can have a large influence on the estimated coefficients, and so leaving those observations out can lead to very different values for the fitted values and residuals.
 On the other hand, small leverage values (close to 0) correspond to observations that have little influence on the estimated coefficients, and so leaving those observations out will lead to similar values for the fitted values and residuals.
 Often high leverage values are those corresponding to anomalies in the predictor space (although not necessarily in the space of the response variable).
 
@@ -128,7 +128,7 @@ wine_aug |>
 
 Here the highest leverage values are due to the only two wines with 100 points, while the three on 99 points result in the next highest.
 After that come the wines with the lowest points values.
-Observations at the edges of the predictor space will always lead to the highest leverage values, especially when there are few observations with the same predictor value.
+For a model with an intercept and a single predictor taking values $x_1,\dots,x_n$, $h_i = 1/n + (x_i - \bar{x})^2/\sum_{j=1}^n (x_j - \bar{x})^2$, so leverage depends only on how far $x_i$ is from the mean of the predictor, and observations at the edges of the predictor space always have the highest leverage values.
 In this case, none of the observations look particularly extreme in the points dimension.
 
 ### Robust regression
@@ -404,7 +404,7 @@ wine_aug |>
   select(country:winery, year, points:price, std_loo_res, loo_surprisals)
 ```
 
-This corresponds to the only orange point in @fig-shiraz-regression-density that has a point value above 95 and a price below the 95% prediction interval.
+This corresponds to the only orange point in @fig-shiraz-regression-density that has a points score above 95 and a price below the 95% prediction interval.
 
 ### Surprisal probabilities
 
@@ -472,14 +472,14 @@ There are three wines with prices above \$300 that are not identified as anomalo
 
 ## GAM surprisals {#sec-gam-surprisals}
 
-In some applications, it is not appropriate to assume the conditional density is Gaussian, or that the relationships are linear.
-One useful model that allows for non-Gaussian densities, and non-linear relationships, is a generalised additive model or GAM.
+In some applications, it is not appropriate to assume the conditional density is Normal, or that the relationships are linear.
+One useful model that allows for non-Normal densities, and non-linear relationships, is a generalised additive model or GAM.
 Under this model, the conditional density is given by [@Wood2017gam]
 $$
   y \mid \bm{x} \sim f(\mu, \bm{\theta}), \qquad \ell(\mu) = \sum_{k=1}^p g_k(x_{k}),
 $$
 where $\mu = \text{E}(y \mid \bm{x})$ denotes the conditional mean, $\bm{\theta}$ is a vector of any other parameters, $\ell()$ is a link function (mapping the mean to an unbounded scale), and each $g_k$ function is smooth.
-If $f$ is Normal, $\bm{\theta} = \sigma^2$, $\ell$ is the identity, and $g_k(u) = \beta_k u$, then this reduces to the linear Gaussian model (@eq-gaussian-regression).
+If $f$ is Normal, $\bm{\theta} = \sigma^2$, $\ell$ is the identity, and $g_k(u) = \beta_k u$, then this reduces to the linear Normal model (@eq-gaussian-regression).
 
 ### Example: Cricket not-outs
 
@@ -616,7 +616,7 @@ Shaun Pollock was a bowling all-rounder and a capable batter in the lower order,
 The next most anomalous result is for New Zealander Trent Boult, a specialist bowler who batted last, who for a while was Test cricket's leading run-scorer in that position, showing an unusual flair for entertaining batting.
 He had `r notouts_aug$NotOuts[2]` not-outs in `r notouts_aug$Innings[2]` innings, compared to the expected number of not-outs of $`r notouts_aug[["Innings"]][2]` \times `r sprintf("%.3f", notouts_aug[[".fitted"]][2])` = `r sprintf("%.1f", notouts_aug[[".fitted"]][2]*notouts_aug[["Innings"]][2])`$.
 
-Neither of these anomalies is particularly unusual in their proportion of not-outs, but they become anomalous once their RPI and year of debut are taken into account.
+Neither of these batters has an exceptional proportion of not-outs on its own (`r english::words(sum(df_no$Innings >= 20 & df_no$prop_no > notouts_aug$prop_no[2]))` batters with at least 20 innings have a higher proportion than Boult), but they become anomalous once their RPI and year of debut are taken into account.
 Because we have used a statistical model, we have been able to account for the particular features of this data set, such as the discrete nature of the data, and the changing variance, to identify observations that are anomalous in the context of the model.
 
 ## BACON algorithm for linear regression {#sec-bacon-reg}
@@ -656,10 +656,10 @@ The sign difference arises because $1 - h_i(B)$ is the variance deflation for an
 
 The algorithm then proceeds as follows.
 
-**Step 1: Initialise the basic subset.** Apply the multivariate BACON algorithm (@sec-bacon) to the predictor variables, ignoring the response.
+**Step 1: Initialise the basic subset.** Apply the multivariate BACON algorithm (@sec-bacon) to the predictor variables, ignoring the response, starting from an initial subset of size $s$.
 This identifies observations with central predictor values and protects the first regression fit from high-leverage points.
-These observations are then used to construct a full-rank initial regression subset, which is grown using the smallest scaled prediction errors until it reaches approximately $s = cp$, where $c$ is usually 4 or 5.
-Larger values of $c$ may be needed if the predictor variables have many repeated values, as then the resulting initial predictor matrix $\bm{X}_B$ may be of low rank.
+These observations are then used to construct a full-rank initial regression subset, which is grown using the smallest scaled prediction errors until it contains approximately $cp$ observations, where $c$ is usually 4 or 5.
+Larger initial subsets (larger $s$ or $c$) may be needed if the predictor variables have many repeated values, as then the initial subsets may contain too few distinct predictor values, giving a singular covariance matrix or a low-rank predictor matrix $\bm{X}_B$.
 
 **Step 2: Fit the regression model.** Fit least squares to the current basic subset $B$, obtaining $\hat{\bm{\beta}}_B$ and $\hat{\sigma}_B$.
 
@@ -683,7 +683,7 @@ The final values $|t_i(B)|$ provide anomaly scores: large values correspond to o
 ```{r}
 #| label: shiraz-points
 #| echo: false
-#| dependson: shiraz-regression
+#| dependson: shiraz-surprisals
 
 shiraz_points <- shiraz |> count(points) |> arrange(desc(n))
 ```
@@ -693,14 +693,14 @@ shiraz_points <- shiraz |> count(points) |> arrange(desc(n))
 We now apply regression BACON to the same `shiraz` data set containing wine reviews that was used in @sec-ols, with `points` as the predictor and `log(price)` as the response.
 Multivariate BACON is first applied to the predictor variable, and then the regression version of the algorithm uses scaled prediction errors.
 Because the predictor has many repeated values (taking only integer values between 80 and 100), we need to specify the initial set to be larger than the number of observations with the most common points score, which is `r shiraz_points$points[1]` with `r shiraz_points$n[1]` observations.
-So we set the initial size to $s = 600$ observations to ensure the initial basic subset does not contain only observations with a single points score.
+So we set the initial size of the multivariate BACON subset to $s = 600$ observations to ensure it does not contain only observations with a single points score (with the default initial size, the subset collapses onto a single points score and its covariance matrix is singular).
 The BACON algorithm then identifies outliers as those with large scaled prediction errors from the fitted regression line based on the final basic subset.
 This initial size $s$ is set using the `m` argument of `robustX::BACON()` below.
 
 ```{r}
 #| label: shiraz-bacon
 #| code-fold: false
-#| dependson: fig-shiraz-regression-scores
+#| dependson: ["fig-shiraz-regression-scores", "shiraz-surprisals"]
 
 bacon_alpha <- 0.05
 bacon_wine <- robustX::BACON(
@@ -754,7 +754,7 @@ These are almost identical to those identified by the linear regression surprisa
 
 To see the effect of the anomalies on the fitted regression relationship, we refit the least-squares model using only the final BACON basic subset.
 This gives the regression line shown in @fig-shiraz-bacon that is obtained after omitting the nominated regression outliers.
-The two lines are almost identical because the nominated outliers have relatively low leverage.
+The two lines are almost identical because the nominated outliers are a tiny fraction of the `r NROW(wine_bacon)` observations, and none of them has high leverage.
 
 ```{r}
 #| label: shiraz-bacon-fit

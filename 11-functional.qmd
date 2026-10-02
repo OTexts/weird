@@ -246,7 +246,7 @@ pca_scores |>
 ```
 
 @fig-pca-scores shows how the three component scores evolve over time.
-Other than during the two world wars, the first component score increases steadily and fairly smoothly across the study period, reflecting the long-run, near-continuous decline in mortality at all ages.
+Other than sharp dips during the two world wars and a few earlier crisis years (notably 1854 and 1870--1871), the first component score increases steadily and fairly smoothly across the study period, reflecting the long-run, near-continuous decline in mortality at all ages.
 The second component score sits close to zero for most years but spikes sharply during 1914--1918 and 1940--1945, capturing the additional mortality among young French men during the two world wars.
 The third component is more subtle, and reflects slow changes in mortality patterns over time, rather than the sharp spikes seen in the second component.
 
@@ -266,7 +266,7 @@ pca_scores |>
 @fig-pca-scores2 plots the pairwise scatterplots of the first three component scores against each other.
 Most years fall along a narrow band in each plot, but there are some clear anomalies, especially in the second component.
 
-This low-dimensional view foreshadows the anomaly detection approach of the next section, where we treat points that lie far from the bulk of the data in this principal component space as candidate anomalies.
+In the next section, we treat points that lie far from the bulk of the data in this principal component space as candidate anomalies.
 
 ## Anomalies in the principal component space {#sec-functional-pca}
 
@@ -320,12 +320,12 @@ format_years <- function(years) {
 ```
 
 @fig-pca-outliers identifies `r english::words(nrow(outliers))` anomalous years: `r format_years(outliers$Year)`.
-These are unsurprising given @fig-fr-mortality, and most coincide with years already flagged in @sec-weird-times using the Hampel identifier applied directly to the raw age-specific series --- a quite different method, applied to the raw data rather than to PCA scores.
+These are unsurprising given @fig-fr-mortality, and most coincide with years already flagged in @sec-weird-times using the Hampel identifier applied directly to the raw age-specific series, a quite different method.
 The following historical events are relevant:
 
 - 1871: Repression of the 'Commune de Paris'
 - 1914--1918: World War I
-- 1919: Spanish flu pandemic
+- 1918--1919: Spanish flu pandemic
 - 1940--1945: World War II
 
 To take another perspective, we can apply the O3 plot (@sec-o3) to the first three principal component scores.
@@ -438,7 +438,7 @@ The following code identifies the curves contained in the bag and the loop, and 
 #| dependson: fig-pca-bagplot
 #| code-fold: true
 #| fig-cap: Functional bagplot of French male mortality.
-#|   The dark band shows the envelope of the bag (50% region), the light band shows the envelope of the loop; the solid curve is the curve corresponding to the bagplot's central point; the raw curves for years flagged as bagplot outliers are overlaid.
+#|   The dark band shows the envelope of the bag (50% region), the light band shows the envelope of the loop; the solid curve is the observed curve closest to the bagplot's central point; the raw curves for years flagged as bagplot outliers are overlaid.
 
 # Pointwise envelope of the actual (smoothed) curves for a set of years
 curve_envelope <- function(years) {
@@ -499,10 +499,10 @@ Another implementation of the functional bagplot is provided by `rainbow::fboxpl
 The functional HDR boxplot follows the same recipe, but uses the highest density regions of a bivariate kernel density estimate of the scores (@sec-mhdr) in place of the bagplot's bag and loop.
 
 @fig-pca-hdrboxplot shows the ordinary bivariate HDR boxplot (@sec-hdr-boxplots) of the first two principal component scores.
-Because of the strange shape that the principal component scores lie on, the resulting kernel density estimate is particularly sensitive to the bandwidth choice, and the resulting HDRs are broken into several disconnected pieces.
+Because of the unusual shape of the principal component scores, the resulting kernel density estimate is particularly sensitive to the bandwidth choice, and the resulting HDRs are broken into several disconnected pieces.
 After some experimentation, we chose the "scv" (smoothed cross-validation) bandwidth method.
 To roughly match the number of years flagged by the bagplot, we use a 93% coverage probability for the larger HDR.
-Thus, the dark region is the 50% HDR (containing 50% of the years), the light region is the 93% HDR (containing 93% of the years), and the points outside the 93% HDR are flagged as outliers, coloured by year to match the corresponding curves in @fig-fhdrboxplot below.
+Thus, the dark region is the 50% HDR (containing about 50% of the years), the light region is the 93% HDR (containing about 93% of the years), and the points outside the 93% HDR are flagged as outliers, coloured by year to match the corresponding curves in @fig-fhdrboxplot below.
 
 ```{r}
 #| label: fig-pca-hdrboxplot
@@ -599,7 +599,7 @@ ggplot() +
   labs(y = "Mortality rate", colour = "Outlier year")
 ```
 
-The bulk of the curves fall into two distinct clusters, corresponding to before and after the end of World War II.
+In @fig-fhdrboxplot, the bulk of the curves fall into two distinct clusters, corresponding to before and after the end of World War II.
 
 Another implementation of the functional HDR boxplot is provided by `rainbow::fboxplot()`.
 
@@ -613,7 +613,7 @@ We have already seen this with multivariate numeric data (@sec-depth); now we wi
 Given a sample of curves $y_1(x),\dots,y_n(x)$, a depth measure assigns each curve $y_i$ a value between 0 and 1 describing how central it is within the sample: curves near the middle of the distribution receive high depth, while unusual curves receive low depth.
 Curves can then be ranked from the deepest (most typical) to the shallowest (most unusual), giving an ordering analogous to ranking univariate observations from the median outward.
 
-One of the simplest depths is the band depth: it counts how often a curve $y_i$ lies completely within the "band" traced out by every possible group of $k$ other curves in the sample, so that curves often enveloped by others are deep, while curves that stick out --- even briefly --- have low depth.
+One of the simplest depths is the band depth: it counts how often a curve $y_i$ lies completely within the "band" traced out by every possible group of $k$ curves in the sample (usually $k=2$, so the bands are formed by pairs of curves), so that curves often enveloped by others are deep, while curves that stick out --- even briefly --- have low depth.
 Looking at @fig-fr-mortality, we would expect that some of the most recent years, which have low mortality at almost every age, would be shallow; the war years would also be shallow, since they have high mortality at ages 20--40 that is not seen in other years.
 
 ```{r}
@@ -676,7 +676,7 @@ The `r english::words(length(shallow_years) - length(shallow_1800s))` most recen
 These earlier shallow years correspond to the 1854 cholera outbreak, the 1870 Franco-Prussian War and the 1871 Repression of the 'Commune de Paris'.
 
 This illustrates an important feature of depth-based ranking: it can fail to distinguish between curves that are unusual due to location and those that are unusual due to shape.
-Because French mortality has fallen more or less steadily across the study period, the most recent curves sit at one edge of the whole 184-year sample and are therefore the least "enveloped" by the rest, even though their shape is not unusual.
+Because French mortality has fallen more or less steadily across the study period, the most recent curves sit at one edge of the whole `r bd_n`-year sample and are therefore the least "enveloped" by the rest, even though their shape is not unusual.
 On the other hand, the 1854, 1870 and 1871 curves are unusual relative to the years around them, although only 1871 lies at the upper edge of the whole sample at most ages.
 
 Other types of functional depth are computed by `rainbow::fdepth()`, and the `fda.usc`, `fdaoutlier` and `mrfDepth` packages.
@@ -765,7 +765,7 @@ The next two sections look at ways of separating genuine shape anomalies from th
 The modified band depth used above conflates two different reasons a curve can be unusual: it might have a genuinely atypical *shape*, or it might sit at one extreme of the bulk of the data, and so be poorly enveloped by the rest of the sample.
 The outliergram of @Arribas-Gil2014-ll separates these two effects by comparing MBD against a second measure, the modified epigraph index (MEI) of @LopezPintadoRomo2011.
 
-Whereas MBD measures how often a curve is enveloped by bands formed from pairs of other curves, MEI measures a curve's rank position: it is close to 1 for a curve lying below almost every other curve across almost the whole domain, close to 0 for a curve lying above almost every other curve, and around 0.5 for a curve in the middle of the pack.
+Whereas MBD measures how often a curve is enveloped by bands formed from pairs of curves, MEI measures a curve's rank position: it is close to 1 for a curve lying below almost every other curve across almost the whole domain, close to 0 for a curve lying above almost every other curve, and around 0.5 for a curve in the middle of the pack.
 So MEI captures a curve's overall level relative to the rest of the sample, in much the same way that the first principal component score did in @sec-basis-functions, while MBD captures how well-enveloped it is.
 
 For most collections of curves, curves with an extreme MEI (very close to 0 or 1) are, by virtue of sitting near the edge of the sample, poorly enveloped and so also have somewhat low MBD.
@@ -824,7 +824,7 @@ mei_tbl |>
 ```
 
 @fig-outliergram flags `r english::words(nrow(og_outliers))` years as shape outliers: `r format_years(sort(og_outliers$Year))`.
-These were in the middle of World War II, and are the years where the age profile changes shape most, with mortality rising sharply for young men while barely moving for children or the elderly.
+These were all during World War II, and in each of them mortality at some ages was much higher than the curve's overall level would suggest: for young men in 1940 and 1943, and for older adults in 1940 and 1941.
 More shape anomalies would be identified if we reduced the fence multiplier from 1.5.
 Unlike the depth boxplot fence of @fig-fbplot-sungenton, none of the low-mortality recent years are flagged, because their low MBD is entirely explained by their extreme MEI --- they sit at one end of the rank ordering, but they do not deviate from the shape that curves at that end of the ranking are expected to have.
 
@@ -833,7 +833,7 @@ Unlike the depth boxplot fence of @fig-fbplot-sungenton, none of the low-mortali
 A second way to separate magnitude and shape effects is the magnitude-shape plot of @Dai2018.
 For each curve, and at each point $x$ on the grid, they compute a *directional outlyingness*: a signed measure of how far, and in which direction, the curve departs from the centre of the distribution of values at that $x$.
 Averaging this quantity over the domain gives a magnitude score (MO) for each curve, taking a value far from zero when a curve sits consistently on one side of the bulk of the data.
-The variation of the directional outlyingness over the domain gives a separate shape score (VO), which is large when a curve's departure from the centre changes direction or size as $x$ varies, which happens when a curve crosses others or has an unusual local pattern, even if its overall MO is modest.
+The variation of the directional outlyingness over the domain gives a separate shape score (VO), which is large when a curve's departure from the centre changes direction or size as $x$ varies (as happens when a curve crosses others or has an unusual local pattern), even if its overall MO is modest.
 Plotting VO against MO for every curve gives the magnitude-shape plot; @Dai2018 then flag outliers using a robust distance in this two-dimensional (MO, VO) space, with a finite-sample correction due to @Hardin2005.
 
 These calculations are implemented in the `fdaoutlier` package, which we use here.
@@ -882,7 +882,7 @@ These methods find curves whose scores sit apart from the rest, so they detect c
 A gradual trend over time becomes a continuous path through the score space, rather than a set of isolated points, so these methods are not easily misled by curves at the end of a trend.
 
 The second group works directly with the curves, via functional depth (such as the modified band depth) or directional outlyingness, leading to the functional boxplot and the magnitude-shape plot.
-These measures mainly capture how far a curve lies from the centre of the sample, so they cannot distinguish a curve with a genuinely unusual shape from one that simply lies at one extreme of the sample, such as the last curve of a long, gradual trend.
+These measures are dominated by how far a curve lies from the centre of the sample. The functional boxplot cannot distinguish a curve with a genuinely unusual shape from one that lies at one extreme of the sample, such as the last curve of a long, gradual trend; the magnitude-shape plot separates the two effects visually, but its outlier rule uses both scores, so curves at the end of a trend are still flagged.
 The outliergram addresses this by comparing a curve's modified band depth with its rank position (via the modified epigraph index), so that curves which are poorly enveloped only because they are extreme are not flagged, while curves with unusual shapes are.
 
 No single method is more "correct" than the others.

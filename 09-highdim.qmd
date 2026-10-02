@@ -15,7 +15,7 @@ Suppose we have observations $\bm{y}_1, \ldots, \bm{y}_n$, where each observatio
 We can think of each observation as a point in $m$-dimensional space.
 In this chapter, it will be helpful to switch between this view of the data as a collection of vectors, and the matrix view of the data where each observation is one row of an $n \times m$ data matrix $\bm{Y}$.
 That is, the $i$th row of $\bm{Y}$ is $\bm{y}_i^\intercal$.
-This is usually how data is stored in practice (think of a tibble or data frame in R), where the columns correspond to the variables and the rows correspond to the observations.
+This is usually how data are stored in practice (think of a tibble or data frame in R), where the columns correspond to the variables and the rows correspond to the observations.
 
 The curse of dimensionality (@sec-curse) makes it difficult to detect anomalies once the number of variables, $m$, grows too large.
 In practice, even a moderate number of variables (e.g., $m > 5$) can cause problems for some methods.
@@ -169,7 +169,7 @@ Interactive 3D scatterplot of the carbon monoxide, nitrogen dioxide and particul
 :::
 
 A pairwise scatterplot matrix, such as that shown in @fig-proj-pairs3, shows three different 2D projections of the 3D data.
-Each panel is the projection you would see if you looked at the 3D plot above along the axis of the variable omitted from that panel.
+Each panel is the projection you would see if you looked at the 3D plot in @fig-aq3d along the axis of the variable omitted from that panel.
 
 ```{r}
 #| label: fig-proj-pairs3
@@ -228,7 +228,7 @@ $$
   \text{Cov}(\bm{W}) = \bm{A}^\intercal \bm{\Sigma} \bm{A}.
 $$
 
-The Aotizhongxin station data contains `r english::words(NCOL(Y))` variables.
+The Aotizhongxin station data contain `r english::words(NCOL(Y))` variables.
 We can project this `r NCOL(Y)`-dimensional space onto a 2-dimensional subspace defined by a matrix $\bm{A}$ of size $`r NCOL(Y)` \times 2$ with orthonormal columns.
 The resulting 2D projection will capture some aspects of the joint structure, but not all.
 For example, suppose we choose the following mapping matrix $\bm{A}$, using a method that we will discuss later in @sec-dobin.
@@ -297,7 +297,7 @@ stopifnot(
 ```
 
 The arrows help us to interpret individual points in the projection.
-The group of points at the bottom right are mostly from the morning of 22 May, including the six highest `pm2_5` readings of the month, along with high `pm10`, `co` and `dew_point`.
+The group of points at the bottom right is mostly from the morning of 22 May, including the six highest `pm2_5` readings of the month, along with high `pm10`, `co` and `dew_point`.
 Points on the far right with `a2` near zero are high in `pm10` (the longest arrow), such as 8pm on 3 May and 10pm on 31 May (the two highest `pm10` readings of the month), or high in several variables at once, such as the daytime hours of 31 May, when `co` and `so2` were extremely high.
 
 A few observations in this projection appear to be anomalies, but we may also have missed some anomalies that are only visible in other projections.
@@ -638,7 +638,7 @@ The price is the opposite blind spot: because the measure relies on one-dimensio
 So far, we haven't said where the mapping matrix $\bm{A}$ comes from.
 By far the most common projection method is **principal component analysis (PCA)**, which finds the projection directions that capture the most variance in the data.
 The first principal component is the direction of maximum variance, the second is the direction of maximum variance orthogonal to the first, and so on.
-Then the lower dimensional projection will contain as much of the variation of the original data as possible, given the number of dimensions in the projection.
+Then the lower-dimensional projection will contain as much of the variation of the original data as possible, given the number of dimensions in the projection.
 
 ### Finding the principal components
 
@@ -849,7 +849,7 @@ These hours had four of the seven highest `pm10` readings of the month, and the 
 The two hours with the highest `pm10` readings (8pm on 3 May and 10pm on 31 May) still lie far from the projection subspace, and so become bad leverage points instead.
 
 Notice also that the number of bad leverage points grows with $k$, reaching `r n_bad_k4` with $k = 4$, including every hour from 7am to noon on 31 May.
-So the third and subsequent principal components are being pulled towards some anomalies, making them harder to identify in the lower dimensional space.
+So the third and subsequent principal components are being pulled towards some anomalies, making them harder to identify in the lower-dimensional space.
 This could be masking some of the anomalies.
 
 ## Robust principal components {#sec-robpca}
@@ -1092,10 +1092,10 @@ stopifnot(
 
 The first DOBIN vector $\bm{a}_1$ gives positive weights to all variables, so an observation moves out along the first DOBIN coordinate when *all* of the air-quality and meteorological variables are jointly elevated.
 The second DOBIN vector $\bm{a}_2$ is dominated by `pm2_5`, with the opposite sign to the other variables, and so separates hours whose fine-particulate level is unusual relative to everything else.
-The hours of 22 May flagged in @fig-proj-kde had simultaneously high particulates, carbon monoxide and dew point, so they score highly on $\bm{a}_1$, but it is $\bm{a}_2$ that sets them apart: their fine-particulate levels were the highest of the month, even relative to the other elevated variables, giving them the four lowest values of $\bm{a}_2$.
+The hours of 22 May flagged in @fig-proj-kde had simultaneously high particulates, carbon monoxide and dew point, so they score highly on $\bm{a}_1$, but it is $\bm{a}_2$ that sets them apart: their fine-particulate levels were the five highest of the month, even relative to the other elevated variables, and the hours from 8am to 11am have the four lowest values of `a2`.
 Unlike the principal component loadings in @fig-pca-2d, the DOBIN loadings remain easy to read in terms of the original variables, which is a deliberate feature of the method.
 
-Two cautions are worth noting.
+There are two cautions.
 First, because the Y space is built from element-wise squared differences, DOBIN is not invariant to rotations of the input space: starting from a rotated set of variables would give a different basis.
 This is the price of working one variable at a time, and it is also what keeps the loadings interpretable.
 (If rotation invariance matters more than interpretability, one can run PCA first and apply DOBIN to the principal component scores.)
@@ -1149,7 +1149,7 @@ stopifnot(
 )
 ```
 
-With only four components, the isolation forest picks out three hours of the morning cluster of 22 May seen in @fig-proj-kde, the late morning of 31 May, and the `pm10` spikes at 8pm on 3 May and 10pm on 31 May, together with the mornings of 25 and 30 May.
+With only four components, the isolation forest picks out three hours of the morning cluster of 22 May seen in @fig-proj-kde, the late morning of 31 May, and the `pm10` spikes at 8pm on 3 May and 10pm on 31 May, together with noon on 4 May and the mornings of 25 and 30 May.
 A handful of components from a basis built to expose anomalies is enough to surface these episodes.
 
 ## Multidimensional scaling {#sec-mds}
@@ -1217,7 +1217,7 @@ D <- dist(Y)
 cs <- cmdscale(D, k = 2, eig = TRUE)
 ```
 
-For a non-Euclidean view, we apply non-metric MDS to the same distance matrix using `MASS::isoMDS()`, which reports the final stress as a percentage.
+For a rank-based alternative, we apply non-metric MDS to the same distance matrix using `MASS::isoMDS()`, which reports the final stress as a percentage.
 
 ```{r}
 #| label: mds-nonmetric
@@ -1346,7 +1346,7 @@ stopifnot(
 ```
 
 FastPCS ranks the whole daytime build-up of 31 May 2014 among its most outlying hours --- a run of hours dominated by extreme carbon monoxide and sulphur dioxide (four to five and seven to eight times their monthly medians respectively, with both reaching their highest values of the month at 11am), on a warm and humid morning.
-Several of these hours appeared among the bad leverage points of the four-component PCA in @fig-pca-outliermaps, and Stahel--Donoho outlyingness (@sec-stahel-donoho) put three of them in its top ten, but FastPCS is the only method here to rank the whole run at the top.
+All six hours from 7am to noon were among the bad leverage points of the four-component PCA in @fig-pca-outliermaps, and Stahel--Donoho outlyingness (@sec-stahel-donoho) put three of them in its top ten, but FastPCS is the only method here to rank the whole run among its ten most anomalous hours.
 This sustained episode is the distinctive contribution of FastPCS.
 
 ## HDoutliers algorithm {#sec-hdoutliers}
@@ -1370,7 +1370,7 @@ Because a whole cluster of nearby anomalies is represented by a single leader, t
 
 The other distinguishing feature of HDoutliers is that it applies extreme value theory (@sec-evt) to determine when a nearest-neighbour distance is "unusually large".
 After sorting the nearest-neighbour distances, the gaps between the largest of them are, by Weissman's spacing theorem, approximately independent exponential random variables whenever the underlying distribution is in the domain of attraction of the Gumbel distribution.
-HDoutliers therefore takes the smallest half of the distances to be typical, fits an exponential distribution to the upper-tail spacings of that typical set, and sets the threshold at its upper $1 - \alpha$ point.
+HDoutliers therefore takes the smallest half of the distances to be typical, fits an Exponential distribution to the upper-tail spacings of that typical set, and sets the threshold at its upper $1 - \alpha$ point.
 It then works upwards through the remaining distances one at a time: each candidate that exceeds the current threshold is flagged as an anomaly, while each one that does not is absorbed into the typical set and the threshold re-estimated.
 Because the cutoff is a quantile of a fitted distribution, $\alpha$ is the probability that each typical observation tested is wrongly flagged.
 It is a per-test false-positive rate, not an overall false-discovery rate, so with many candidates tested, a few false positives can still occur.
@@ -1396,10 +1396,10 @@ This is also what lets stray detect clusters of anomalies.
 A small group of anomalies sitting together but far from everything else behaves like the tight neighbourhood above: its members are the first few points we step through, and the same large jump to the bulk of the data follows.
 Each member is therefore flagged, even though its nearest-neighbour distance $d_{i,1}$ is small enough that the single-neighbour score of HDoutliers would treat it as typical.
 The value of $k$ sets how large such a group can be and still be caught, since only the first $k$ neighbours are examined: a group of up to around $k$ points is stepped across before the jump is reached, whereas a larger group fills the whole window, never reaches the bulk within $k$ steps, and is read as an ordinary dense patch of typical data.
-Setting $k = 1$ recovers the HDoutliers nearest-neighbour score; a larger $k$ guards against larger clusters of anomalies, at the risk of dismissing genuinely small anomalous groups as normal.
+Setting $k = 1$ recovers the HDoutliers nearest-neighbour score; a larger $k$ guards against larger clusters of anomalies, at the risk of flagging small but genuine groups of typical observations that lie apart from the bulk of the data.
 
 Without the clustering step, stray is also faster than HDoutliers.
-It uses kd-trees (@sec-nn) for the neighbour search, and returns both an anomaly score and a binary classification.
+It uses kd trees (@sec-nn) for the neighbour search, and returns both an anomaly score and a binary classification.
 The weird package provides `stray_scores()` for the score and `stray_anomalies()` for the classification.
 We will apply it to the same standardised air quality and meteorological variables from Aotizhongxin used previously.
 
@@ -1505,7 +1505,7 @@ Even with comparable totals, the methods do not all flag the same observations, 
 #| fig-cap: >-
 #|   O3 plot comparing five outlier-detection methods --- FastPCS, mvBACON, Stahel--Donoho outlyingness (adjOut), DDC and MCD --- across all combinations of one to five of five key air quality variables (`co`, `so2`, `pm2_5`, `pm10`, `dew_point`) at Aotizhongxin.
 #|   Rows are variable combinations, grouped by the number of variables used (separated by dashed lines); the grey cells at left show which variables are included in each combination.
-#|   Columns are observations, sorted by how often they are flagged; colour shows how many of the five methods flag that observation for that combination, from light blue (one method) to red (all five methods).
+#|   Columns are observations, sorted by how often they are flagged; colour shows how many of the five methods flag that observation for that combination, from light blue (one method) through darker blue-grey (two or three methods) and orange (four methods) to red (all five methods).
 
 o3_plots$gO3
 ```
@@ -1563,7 +1563,7 @@ The rest are from the daytime build-up of 31 May already identified by FastPCS i
 The hour flagged most often overall is 10am on 25 May, flagged in `r out_table$n_flagged[1]` of the `r o3$nw * 5` combination/method pairs checked.
 The three red cells in @fig-o3plot all belong to `pm10` episodes (7pm on 3 May, and 8am and 9am on 27 May), each flagged in between `r min(out_table$n_flagged[out_table$red])` and `r max(out_table$n_flagged[out_table$red])` of the pairs checked.
 
-No single method, projection, or choice of variables has revealed every anomaly in this data, and none of the methods in this chapter agree completely with each other.
+No single method, projection, or choice of variables has revealed every anomaly in these data, and none of the methods in this chapter agree completely with each other.
 The O3 plot is one way of addressing this problem, by comparing many methods across many variable subsets at once, so that we can distinguish anomalies that are robust to these choices from those that are artefacts of a single method or a single view of the data.
 
 ## Summary {#sec-highdim-summary}

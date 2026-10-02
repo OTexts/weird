@@ -198,13 +198,14 @@ tibble(m = seq(10)) |>
 ```
 
 Remarkably, by 10 dimensions, almost all points lie outside the unit sphere, and live in the corners of the space; almost no points are in the centre of the space.
-This occurs because, with enough variables, at least one of the univariate observations is going to lie in the tails of the distribution, and so the multivariate observation will not lie near the centre of the space.
+This occurs because an observation is only near the centre if all of its coordinates are near zero, and with enough variables, at least one of them is likely to be far from zero.
+For example, the probability that all $m$ coordinates lie between $-0.5$ and $0.5$ is $0.5^m$, which is less than 0.001 when $m = 10$.
 
 ### The size of neighbourhoods
 
-Another way to think about this is to consider hypercubes that contain 50% of the observations.
+Another way to think about this is to consider central hypercubes that contain 50% of the observations.
 These must have sides of length $2^{1-1/m}$, in order for the volume of the hypercube to be $2^{m-1}$, exactly half of the entire space.
-For $m = 1$, the hypercube is a unit interval; for $m = 2$, it is a square of side length $\sqrt{2} \approx 1.41$ as shown in @fig-hypercube; for $m = 3$, the central cube must have side length $2^{2/3} \approx 1.59$; and so on.
+For $m = 1$, the hypercube is an interval of length 1; for $m = 2$, it is a square of side length $\sqrt{2} \approx 1.41$ as shown in @fig-hypercube; for $m = 3$, the central cube must have side length $2^{2/3} \approx 1.59$; and so on.
 
 ```{r}
 #| label: fig-hypercube
@@ -247,7 +248,7 @@ tibble(m = seq(20)) |>
 
 The side lengths of these hypercubes approach the maximum of 2 as the number of dimensions increases.
 So the size of the neighbourhood containing 50% of the observations becomes almost as large as the whole space.
-Therefore, we cannot use methods that rely on local neighbourhoods in high dimensions, as these neighbourhoods must become so large as to no longer be "local".
+Therefore, methods that rely on local neighbourhoods become unreliable in high dimensions, as these neighbourhoods must become so large as to no longer be "local".
 
 ## Joint probability distributions {#sec-joint}
 
@@ -333,7 +334,7 @@ A good reference on multivariate probability distributions is @JKmulticontinuous
 
 ## Highest density regions {#sec-mhdr}
 
-As with univariate distributions, a **highest density region** for a multivariate distribution is defined as the region of the sample space where the density is higher than a given threshold.
+As with univariate distributions (@sec-hdr), a **highest density region** for a multivariate distribution is defined as the region of the sample space where the density is higher than a given threshold.
 Suppose we have a multivariate random variable $\bm{Y}$ with a smooth, continuous density function $f$.
 Then the $100(1 - \alpha)$% HDR is the set
 $$
@@ -425,7 +426,7 @@ $$
 $$ {#eq-cov}
 However, it is sensitive to anomalies, and so is not suitable for our purposes.
 
-There have been many robust estimators of covariance proposed in the literature, but we will discuss only one, known as the "Minimum Covariance Determinant" (MCD) estimator [@Rousseeuw2003-ip;@fastmcd], which is implemented in the `covMcd()` function in the `robustbase` package [@robustbase].
+Many robust estimators of covariance have been proposed in the literature, but we will discuss only one, known as the "Minimum Covariance Determinant" (MCD) estimator [@Rousseeuw2003-ip;@fastmcd], which is implemented in the `covMcd()` function in the `robustbase` package [@robustbase].
 This estimator finds the subset of $h$ observations (where $n/2 < h \le n$) whose covariance matrix has the smallest determinant.
 The idea is that the subset of observations with the smallest covariance determinant is likely to be a subset of "good" observations, and so a covariance matrix computed from them will be robust to anomalies.
 If $H$ denotes this subset, the raw MCD estimate of the covariance matrix is
@@ -619,7 +620,7 @@ This process is repeated until convergence, which occurs when the cluster assign
 
 The K-means algorithm is relatively fast, but it can be sensitive to the choice of initial centroids, so it is common to run the algorithm several times using different random starts.
 It also assumes that the clusters are roughly spherical and of similar size, which may not always be the case.
-A further drawback, especially in the context of anomaly detection, is that anomalies can significantly affect the cluster centroids.
+A further drawback, especially in the context of anomaly detection, is that anomalies can strongly affect the cluster centroids.
 The number of clusters, $K$, must also be specified in advance, which can be difficult to determine, and often requires some experimentation.
 
 ### Leader algorithm
@@ -899,7 +900,7 @@ ggplot() +
 
 @fig-mergedistances shows a bar plot of the cluster merge distances for the point cloud shown in @fig-graph.
 These correspond to the merge heights in the dendrogram in @fig-dendrogram.
-The shortest distance corresponds to when A and F joined to form an edge --- when the two separate vertex clusters merged.
+The shortest distance corresponds to the merge of A and F, the first pair of vertices to be joined by an edge.
 The largest distance corresponds to when all points became connected, when the B--H component merged with the rest of the data.
 With $n$ observations, there are $n$ initial clusters, but only $n - 1$ merges are needed to end up with one final cluster.
 So we get $n - 1$ merge distances.
@@ -909,7 +910,7 @@ So we get $n - 1$ merge distances.
 #| echo: false
 #| fig-cap: >-
 #|   Merge distances of the point cloud in @fig-graph.
-#|   Each line denotes a cluster, with length equal to its merge distance.
+#|   Each bar corresponds to one merge, with length equal to the merge distance.
 #| fig-width: 8
 #| fig-height: 1.6
 #| fig-asp: 0.2
@@ -938,7 +939,7 @@ By contrast, the other points merge together at smaller values of $\delta$, so t
 For single-linkage hierarchical clustering, the graph structure described above is related to the minimum spanning tree (MST) of the data, which is a tree that connects all observations together with the minimum total edge length.
 The merge distances are the MST edge weights in the order they are added to the tree.
 
-The graph structure is also related to topological data analysis (TDA), which is a method of summarising the shape of data.
+The graph structure is also related to topological data analysis (TDA), a collection of methods for summarising the shape of data.
 For example, connected components are known as 0-dimensional topological features in persistent homology.
 When two connected components merge, one is described as "dying" and the other as "persisting".
 The merge distance is called the "death diameter", and the bar plot of merge distances is known as a "barcode".
@@ -1047,7 +1048,7 @@ Hence, the univariate bandwidths need to be squared if used in a bandwidth matri
 That is, if $h_1,\dots,h_m$ are the univariate bandwidths for each of the variables, then the corresponding diagonal bandwidth matrix is given by $\bm{H} = \text{diag}(h_1^2,\dots,h_m^2)$.
 For example, `geom_density_2d()` uses a bivariate Gaussian kernel with diagonal bandwidth matrix where the diagonal values are given by the squares of @eq-nrd.
 However, this approach leads to bandwidths that are too small, as it ignores the convergence properties of the multivariate estimator.
-Additionally, any diagonal bandwidth matrix implicitly assumes that the variables are uncorrelated, and leads to more biased estimators.
+Additionally, a diagonal bandwidth matrix cannot orient the kernels along the direction of any correlation between the variables, and so leads to more biased estimators when the variables are correlated.
 
 The optimal bandwidth matrix (minimising the mean integrated squared error between the true density and its estimate) is of the order $n^{-2/(m+4)}$.
 If such a bandwidth matrix is used, then the mean integrated squared error of the estimator converges to zero at rate $n^{-4/(m+4)}$, implying that kernel density estimation becomes increasingly difficult as the dimension $m$ increases.
@@ -1068,13 +1069,13 @@ A generalisation of the univariate plug-in bandwidth (@sec-kde) is the "plug-in"
 While this typically leads to better estimates of the density as a whole, it can lead to worse estimates in the tails of the distribution where anomalies tend to lie.
 
 An alternative approach to finding the bandwidth matrix uses ideas from clustering (@sec-clustering).
-First, we compute robust multivariate $z$-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \bm{m})$, $i = 1,\dots,n$, where $\bm{m}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}$ is the Cholesky decomposition of $\bm{S}_{\text{MCD}}^{-1}$.
-Then we find the merge distances of the clusters obtained from the $z$-scores: $\{d_1,\dots,d_{n-1}\}$.
+First, we compute robust multivariate $z$-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \bm{m})$, $i = 1,\dots,n$, where $\bm{m}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}^\intercal\bm{U} = \bm{S}_{\text{MCD}}^{-1}$ is the Cholesky decomposition of the inverse of the robust covariance matrix.
+Then we find the single-linkage merge distances (@sec-clustering) of the $z$-scores: $\{d_1,\dots,d_{n-1}\}$.
 Finally, we can set
 $$
   \bm{H} = d_\gamma^2\bm{S}_{\text{MCD}}
 $$ {#eq-lookoutH}
-where $d_\gamma$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_{n-1}\}$ for a large value of $\gamma$; we use $\gamma = 0.98$, so that $d_\gamma$ is the merge distance at which only about 2% of observations remain unmerged.
+where $d_\gamma$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_{n-1}\}$ for a large value of $\gamma$; we use $\gamma = 0.98$, so that only about 2% of the merge distances are larger than $d_\gamma$.
 This bandwidth is matched to the spacing between neighbouring observations in the sparse parts of the data, where anomalies lie, rather than to the bulk of the data.
 It does not give a consistent estimate of the density as $n \rightarrow \infty$, but @lookout2 argue that consistency is not needed for anomaly detection, and show in simulations that it works well for that purpose.
 We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-loo-surprisals.
@@ -1189,7 +1190,7 @@ $$
   \mid \bm{Y}_2 = \bm{y}_2
   \sim \text{N}\left( \bm{\mu}_1 + \bm{\Sigma}_{12}\bm{\Sigma}_{22}^{-1}(\bm{y}_2 - \bm{\mu}_2),\; \bm{\Sigma}_{11} - \bm{\Sigma}_{12}\bm{\Sigma}_{22}^{-1}\bm{\Sigma}_{21} \right).
 $$ {#eq-mvn-conditional}
-So the conditional mean is a linear function of $\bm{y}_2$, while the conditional covariance matrix does not depend on $\bm{y}_2$ at all.
+So the conditional mean in @eq-mvn-conditional is a linear function of $\bm{y}_2$, while the conditional covariance matrix does not depend on $\bm{y}_2$ at all.
 That is, the slices of a multivariate Normal density are all Normal densities with the same variance, and with means lying on a straight line.
 This is the basis of linear regression with Normal errors.
 

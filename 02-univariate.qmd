@@ -170,8 +170,7 @@ There are several parameterisations.
 Here, we use the shape/rate parameterisation which uses the shape $\alpha$ and the rate $\beta$.
 The pdf is given by
 $$
-  f(y; \alpha, \beta)
-  = \frac{\beta^\alpha}{\Gamma(\alpha)} y^{\alpha-1}e^{-\beta y}.
+  f(y; \alpha, \beta) = \frac{\beta^\alpha}{\Gamma(\alpha)} y^{\alpha-1}e^{-\beta y}.
 $$
 We refer to a $\Gamma$ random variable with shape $\alpha$ and rate $\beta$ as $Y \sim \Gamma(\alpha, \beta)$.
 The mean and variance of a $\Gamma$ random variable are $\alpha/\beta$ and $\alpha/\beta^2$ respectively.
@@ -184,7 +183,7 @@ Three $\Gamma$ distributions are shown in @fig-gamma.
 ```{r}
 #| label: fig-gamma
 #| fig-cap: Probability density functions for three $\Gamma$ distributions.
-#|   As $\alpha$ increases, the distribution converges to a N$(\alpha/\beta, \alpha/\beta^2)$ distribution.
+#|   As $\alpha$ increases, the distribution becomes more symmetric, and approximates the Normal distribution N$(\alpha/\beta, \alpha/\beta^2)$.
 
 dist_gamma(c(1, 1, 2), c(1, 2, 1)) |>
   gg_density() +
@@ -238,7 +237,7 @@ density_df(c(d1, d2, dmix)) |>
   theme(legend.position = "none")
 ```
 
-This is an example of a multimodal density function, with modes at $-2$ and $2$.
+This is an example of a multimodal density function, with modes close to $-2$ and $2$.
 The mixture distribution is not Normal, even though both component distributions are Normal.
 The mixture distribution is also not symmetric, even though both component distributions are symmetric.
 
@@ -248,12 +247,12 @@ A good introduction to other probability distributions on real sample spaces is 
 
 ## Probability integral transform {#sec-pit}
 
-The **probability integral transform** is a useful result that allows us to transform any continuous random variable into a uniform random variable.
+The **probability integral transform** is a useful result that allows us to transform any continuous random variable into a Uniform random variable.
 If $Y$ is a continuous random variable with cdf $F$, then the random variable $U = F(Y)$ has a U(0,1) distribution.
 This is because $\Pr(U \le u) = \Pr(F(Y) \le u) = \Pr(Y \le F^{-1}(u)) = F(F^{-1}(u)) = u$ for $0 < u < 1$.
 The inverse is also true: if $U$ is a U(0,1) random variable, then the random variable $Y = F^{-1}(U)$ has distribution $F$.
 A useful consequence of this result is that it is possible to simulate from any continuous distribution by first simulating from a U(0,1) distribution, and then applying the inverse cdf of the desired distribution.
-For anomaly detection, it allows us to put observations from any continuous distribution on a common scale, which we will use for the spacings in @sec-gaps, and it explains why the tail probabilities of anomaly scores are uniformly distributed when the model is correct (@sec-timeseries).
+For anomaly detection, it allows us to put observations from any continuous distribution on a common scale, which we will use in later chapters.
 
 There is also a discrete version of the probability integral transform, but we will not need to use it in this book.
 
@@ -297,7 +296,7 @@ $$
   d_i = y_{(i+1)} - y_{(i)}, \quad i = 1, \ldots, n - 1.
 $$
 
-If the sample is iid from a U(0,1) distribution, then for large $n$ the spacings are approximately iid exponential random variables with mean $1/(n + 1)$, i.e., $\text{Exp}(n + 1)$.
+If the sample is iid from a U(0,1) distribution, then for large $n$ the spacings are approximately iid Exponential random variables with mean $1/(n + 1)$, i.e., Exponential with rate $n + 1$, which we write as $\text{Exp}(n + 1)$.
 A spacing substantially larger than $1/(n + 1)$ therefore signals an unusually large gap at that location, which may indicate an anomalous observation.
 
 For other non-uniform distributions, raw spacings are difficult to compare across the distribution: where the density is high they tend to be small, and where the density is low they tend to be large.
@@ -394,7 +393,7 @@ There are a surprising number of ways this can be done, and there is no accepted
 ### The `quantile()` function
 
 The R function `quantile()` includes nine variations when applied to numerical inputs, based on @HF96.
-Which variation you use makes little difference except for tiny data sets where $n$ is small, or when you are interested in the tails when $p$ is close to 0 or 1.
+Which variation you use makes little difference except for small data sets, or when you are interested in the tails when $p$ is close to 0 or 1.
 However, for anomaly detection, we are usually interested in the tails, so we will need to use a method that works well for extreme values of $p$.
 
 Let's compare two of the possible variations available in `quantile()`: `type = 7` which is the default method, and `type = 8` which was the recommendation of @HF96 due to it having smaller bias.
@@ -468,13 +467,13 @@ qbias |>
   )
 ```
 
-Clearly, the `type = 8` sample quantile gives much better results than the default `type = 7` method, especially when $p$ is close to 0 or 1.
+The `type = 8` sample quantile gives much better results than the default `type = 7` method, especially when $p$ is close to 0 or 1.
 Consequently, we will always use `type = 8` when computing sample quantiles in the remainder of this book.
 
 ### Example: Test cricket batting averages {-}
 
 We can calculate some of the sample quantiles for Test cricket batting averages, considering only those batters who have played at least 20 innings.
-These values are easily computed using the `quantile()` function with argument `type = 8`.
+These values are computed using the `quantile()` function with argument `type = 8`.
 
 ```{r}
 #| label: battingquantiles
@@ -549,7 +548,7 @@ For a symmetric unimodal distribution such as the Normal or t distributions, the
 For a skewed unimodal distribution such as the $\chi^2$ or Gamma distributions, the HDR is also an interval, but it is not centred on the mean (or median), and the ends are not given by symmetric quantiles.
 An example is shown in @fig-hdr, with two 90% regions for a $\chi^2_5$ distribution.
 The one shown in blue is based on the 0.05 and 0.95 quantiles, while the orange region is the 90% HDR.
-Notice that both are intervals, and that the orange interval is smaller than the blue interval.
+Notice that both are intervals, and that the orange interval is shorter than the blue interval.
 The value of the density at the ends of the HDR is the same, and is given by $f_\alpha$.
 
 ```{r}
@@ -813,6 +812,7 @@ A popular choice for $h$ is the "normal reference rule" [@Silverman1986, p. 45] 
 $$
   h = 1.059 s n^{-1/5}.
 $$ {#eq-nrr}
+where $s$ is the sample standard deviation.
 This is implemented in the function `kde_bandwidth()` when `method = "normal"`.
 
 Because we want our results to be robust to outliers, it is usually better to replace $s$ by the robust $Q_n$ estimate, resulting in
@@ -847,7 +847,7 @@ h <- kde_bandwidth(oldfaithful$duration)
 ```
 
 As this is a much bigger data set (with `r NROW(oldfaithful)` observations), the selected bandwidth is smaller and is now $h = `r round(h, 2)`$.
-Here the estimated density has clearly identified the two groups of eruptions, one much larger than the other.
+Here the estimated density identifies the two groups of eruptions, one much larger than the other.
 The extreme observations of 1 minute or less, and the unusual observations between 140 and 180 seconds are in the areas of low density.
 Later we will use density estimates at each observation to identify anomalous points.
 
@@ -865,16 +865,17 @@ An estimator is "consistent" if the MSE goes to zero as the sample size $n$ goes
 So @eq-kde gives a consistent estimator of the underlying density $f$ when both terms in @eq-mse go to zero.
 That is,
 $$
-  \lim_{n \rightarrow \infty} h
-  = 0 \qquad\text{and}\qquad \lim_{n \rightarrow \infty} nh = \infty,
+  \lim_{n \rightarrow \infty} h = 0 \qquad\text{and}
+  \qquad
+  \lim_{n \rightarrow \infty} nh = \infty,
 $$ {#eq-asymptotickde}
 and so $h$ should decrease slowly as $n$ increases.
 Note that these conditions hold for @eq-rnrr.
 
 If we integrate the MSE given by @eq-mse over $y$ (assuming $f$ is sufficiently smooth for the integral to exist), we obtain the mean integrated squared error (MISE) given by
 $$
-  \int \text{E}\left[ (\hat{f}(y) - f(y))^2 \right] dy
-  \approx \frac{1}{4}h^4R(f'') + \frac{R(K)}{nh},
+  \int \text{E}\left[ (\hat{f}(y) - f(y))^2 \right] dy \approx \frac{1}{4}h^4R(f'')
+                                                               + \frac{R(K)}{nh},
 $$ {#eq-mise}
 where $R(f'') = \int [f''(y)]^2 dy$ is the roughness of the second derivative of the underlying density.
 This gives us the average squared error over the whole range of $y$.
@@ -886,16 +887,17 @@ This can be calculated by differentiating @eq-mise with respect to $h$ and setti
 $$
   h = \left( \frac{R(K)}{R(f'')n} \right)^{1/5}.
 $$ {#eq-opth}
-So the optimal $h$ is proportional to $n^{-1/5}$, which clearly satisfies the conditions given by @eq-asymptotickde.
+So the optimal $h$ is proportional to $n^{-1/5}$, which satisfies the conditions given by @eq-asymptotickde.
 
 However, this value of $h$ depends on the underlying density $f$ which we don't know.
 If $f$ is a Normal density with variance $\sigma^2$, then $R(f) = \frac{1}{2\sqrt{\pi}}\sigma^{-1}$ and $R(f'') = \frac{3}{8\sqrt{\pi}}\sigma^{-5}$.
+The Gaussian kernel $K$ is the N(0,1) density, so $R(K) = \frac{1}{2\sqrt{\pi}}$.
 So if we use a Gaussian kernel, and assume the underlying density has the same roughness as a Normal density, we obtain
 $$
   h = \sigma \left( \frac{4}{3n} \right)^{1/5}.
 $$ {#eq-opth2}
-Replacing $\sigma$ in @eq-opth2 by the sample standard deviation $s$ gives us the normal reference rule @eq-nrr.
-When $\sigma$ is replaced by the robust estimate $Q_n$, we obtain the robust normal reference rule @eq-rnrr.
+Replacing $\sigma$ in @eq-opth2 by the sample standard deviation $s$ gives us the normal reference rule (@eq-nrr).
+When $\sigma$ is replaced by the robust estimate $Q_n$, we obtain the robust normal reference rule (@eq-rnrr).
 
 Several other related bandwidth selection methods are widely used.
 For example, instead of using $Q_n$ to estimate $\sigma$, we might use the minimum of the sample standard deviation and the robust estimate based on the IQR, giving
@@ -919,8 +921,8 @@ $$
 This shows that larger bandwidths are required when $f(y)/[f''(y)]^2$ is relatively large, which often occurs in the extreme tails of a distribution.
 So bandwidths for anomaly detection tend to be larger than bandwidths for other purposes.
 
-A final option in `kde_bandwidth()` is `method = "lookout"`.
-We will defer a description of that method until @sec-mvkde.
+The `kde_bandwidth()` function also offers `method = "scv"` (smoothed cross-validation), and `method = "lookout"`.
+We will defer a description of the lookout bandwidth until @sec-mvkde.
 
 ### Highest kernel density regions
 
@@ -939,7 +941,7 @@ hdr
 
 This shows that the 90% HDR comprises two intervals, corresponding to the short and long duration events.
 
-The resulting estimate is shown in @fig-of-hdr, along with the 10% of observations that lie outside the 90% HDR.
+The resulting estimate is shown in @fig-of-hdr, along with the roughly 10% of observations that lie outside the 90% HDR.
 
 ```{r}
 #| label: fig-of-hdr
@@ -996,7 +998,7 @@ for parameters $a, b$ and $\alpha$ where $a, \alpha > 0$.
 
 The three types of limits correspond to different forms of the tail behaviour of $F$.
 
-- When $F$ has a finite upper bound, such as with a uniform distribution, then $G$ is a Weibull distribution.
+- When $F$ has a finite upper bound, such as with a Uniform distribution, then $G$ is a Weibull distribution.
 - When $F$ has light tails (exponentially decaying or faster), such as with a Normal distribution or a Gamma distribution, then $G$ is a Gumbel distribution.
 - When $F$ has heavy tails (such as polynomial decay), then $G$ is a Fréchet distribution.
   One example is when $F$ itself is a Fréchet distribution.
@@ -1064,8 +1066,7 @@ c(
 The Peaks Over Threshold (POT) approach regards extremes as observations greater than a threshold $u$.
 The probability distribution of *exceedances* above a specified threshold $u$ can be expressed as the conditional distribution
 $$
-  H(y) = \Pr\left\{ Y \le u + y \mid Y > u \right\}
-       = \frac{F(u + y) - F(u)}{1 - F(u)}.
+  H(y) = \Pr\left\{ Y \le u + y \mid Y > u \right\} = \frac{F(u + y) - F(u)}{1 - F(u)}.
 $$
 When $F$ is in the domain of attraction of a GEV distribution, then for large $u$, $H$ is well approximated by a **Generalised Pareto Distribution** (GPD) [@coles2001introduction, p. 75] defined by
 $$
@@ -1114,12 +1115,12 @@ The GEV (blue) estimate should be more accurate because it is based on much more
 
 ### Weissman's spacing theorem
 
-Another important result from EVT is Weissman's spacing theorem [@Weissman1978], which states that the spacings between the largest observations often behave asymptotically like independent exponential random variables.
+Another important result from EVT is Weissman's spacing theorem [@Weissman1978], which states that the spacings between the largest observations often behave asymptotically like independent Exponential random variables.
 
 Specifically, let $D_k = Y_{(k+1)} - Y_{(k)}$ denote the spacing between successive order statistics.
 If $F$ is in the domain of attraction of the Gumbel distribution, then, for fixed $r$, the upper spacings $D_{n-1}, D_{n-2}, \dots, D_{n-r}$ are asymptotically independent and approximately exponentially distributed, with $D_{k}$ having mean $a_n/(n - k)$.
 (Here $a_n$ is the same scaling constant that was used in the FTG theorem.)
-Equivalently, the scaled spacings $(n - k) D_k$, for $k = n - r, \dots, n - 1$, are approximately independent exponential random variables with a common mean $a_n$.
+Equivalently, the scaled spacings $(n - k) D_k$, for $k = n - r, \dots, n - 1$, are approximately independent Exponential random variables with a common mean $a_n$.
 This is useful for anomaly detection because we do not need to know $F$, or $a_n$.
-The common mean can be estimated from the scaled spacings among the largest observations, and an unusually large spacing at the top of the sample can then be judged against the fitted exponential distribution.
+The common mean can be estimated from the scaled spacings among the largest observations, and an unusually large spacing at the top of the sample can then be judged against the fitted Exponential distribution.
 This is the idea behind the HDoutliers algorithm (@sec-hdoutliers), which applies it to nearest-neighbour distances.

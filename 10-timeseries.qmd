@@ -184,7 +184,7 @@ fr_mortality |>
   scale_y_log10(labels = scales::comma)
 ```
 
-Anomaly detection methods for identifying weird time anomalies are usually based on fitting a smooth function $m_t$ through the observations, estimating the spread in the series $a_t$, and computing the standardised residuals $e_t = (y_t - m_t)/a_t$.
+Methods for identifying weird times are usually based on fitting a smooth function $m_t$ through the observations, estimating the spread in the series $a_t$, and computing the standardised residuals $e_t = (y_t - m_t)/a_t$.
 We then identify anomalies in the $e_t$ series using one of the methods discussed in @sec-density-methods or @sec-distance-methods.
 To illustrate, we will consider two such approaches, but many more are possible depending on how $m_t$ and $a_t$ are estimated, and how anomalies are identified in $e_t$.
 
@@ -213,7 +213,7 @@ A related idea is the Hampel filter, where each anomaly is replaced by the local
 The threshold is often set under the assumption of a Normal distribution, for which the MAD is equal to 0.6745 times the standard deviation.
 So it is common to set $\tau = k/0.6745$ where $k$ is the number of standard deviations permitted before an observation is considered an outlier.
 Because we apply the rule repeatedly over the length of a time series, we need to be careful of the problem of multiple comparisons, where the probability of a false positive overall is much larger than the probability of a false positive for each individual test.
-However, it is not straightforward to adjust the probabilities because the tests are not independent, and the dependency between them depends on the window half-width $w$, and the characteristics of the time series.
+However, it is not straightforward to adjust the probabilities because the tests are not independent, and the dependence between them is determined by the window half-width $w$ and the characteristics of the time series.
 The `hampel_anomalies()` function implements this algorithm.
 
 The implied statistical model is
@@ -228,7 +228,7 @@ That is, the Normal distribution is used to compute the surprisals, but the GPD 
 Then we would specify the threshold as a probability $\alpha$ rather than a number of standard deviations $k$.
 
 The code below applies the algorithm to all `r fr_mortality |> select(Age, Sex) |> distinct() |> NROW()` time series in `fr_mortality`.
-The `bandwidth` argument corresponds to $w$, and we set $\alpha = 0.01$.
+The `bandwidth` argument corresponds to $w$, and we set $w = 7$ and $\alpha = 0.01$.
 
 ```{r}
 #| label: hampel-anomalies
@@ -326,7 +326,7 @@ The following events in French history are evident in the data:
 - 1871: Repression of the 'Commune de Paris'
 - 1914--1918: World War I
 - 1918: Spanish flu outbreak
-- 1940--1944: World War II
+- 1940: World War II
 
 There also appear to be a couple of additional years involving significant mortality events, whose cause is unknown: there is unusually high infant mortality in 1834, and unusually high elder mortality in 1837.
 I was unable to find any information about these events, but it is possible that they were due to epidemics that have long been forgotten.
@@ -396,7 +396,7 @@ stmf_fit
 ```
 
 The `.fitted` column contains $m_t$, and the `.resid` column contains estimates of $y_t - m_t$, where $m_t$ takes account of any seasonality in the data.
-We will estimate the spread $a_t$ using the robust $Q_n$ estimator (@sec-robust-univariate), which is scaled to be equivalent to a standard deviation if the data were normally distributed.
+We will estimate the spread $a_t$ using the robust $Q_n$ estimator (@sec-robust-univariate), which is scaled to be equivalent to a standard deviation if the data were Normally distributed.
 A separate estimate of spread is needed for each age group because the mortality rates are so different.
 
 ```{r}
@@ -582,7 +582,7 @@ pcs <- us_wide |>
   broom::augment(us_wide |> select(Week))
 ```
 
-The resulting series is plotted in @fig-us_stmf_pcs, and shows strong seasonality, along with large peaks during the periods of COVID outbreaks.
+The resulting series is plotted in @fig-us_stmf_pcs, and shows strong seasonality, along with large peaks during the periods of COVID-19 outbreaks.
 Now we can apply an STL model to find anomalies in this series.
 There is no need to scale the residuals because there is only one series.
 
@@ -625,9 +625,9 @@ pcs |>
 
 As expected, many of the same weeks identified earlier in an analysis of individual series have been returned.
 The probability of false positives increases with both the length of each series and the number of series.
-So we have used a larger probability threshold here than in the analysis of individual series.
+Because there is now only one series rather than five, we have used a larger probability threshold here (0.05) than in the analysis of individual series (0.02).
 Conversely, some anomalies might appear to be marginal in the individual series, but when the series are combined like this, the anomalous periods may be clearer.
-For example, weeks 3 and 4 of 2020 are flagged here, whereas the earlier analysis only flagged 2020 W3 for 85+ year olds.
+For example, weeks 3 and 4 of 2020 are flagged here, whereas the earlier analysis only flagged week 3 of 2020 for 85+ year olds.
 However, as noted above, these low values are an artefact of the STL trend being pulled upwards by the COVID-19 peak that followed a few weeks later.
 
 ```{r}
@@ -733,7 +733,7 @@ Now, let's plot these most anomalous series in @fig-weirdseries_anomalies, to se
 #| label: fig-weirdseries_anomalies
 #| dependson: weirdseries_kde
 #| code-fold: false
-#| fig-cap: The most unusual series, as determined by the principal component scores.
+#| fig-cap: The most unusual series, with KDE surprisal probabilities below 0.001 in the space of the first two principal components.
 
 # Pull out most unusual series using the first principal component
 outliers <- PBS_prcomp |> filter(prob < 0.001)
@@ -779,7 +779,7 @@ In retail, we may want to identify when sales are unusually high or low, and adj
 
 Again, we will use the PBS data.
 For this example, we will combine the data into the ATC level 2 groups, and look at total sales volumes (measured in thousands of scripts).
-The resulting data set contains 84 separate time series, one for each `ATC2` value.
+The resulting data set contains `r n_distinct(PBS$ATC2)` separate time series, one for each `ATC2` value.
 
 ```{r}
 #| label: pbs
@@ -848,7 +848,7 @@ Let $y_{i,t}$ denote the observation of the $i$th series at time $t$.
 For each $t = I,I + 1,\dots$, and for all series $i = 1,\dots,M$:
 
 - Fit a time series model to the series $y_{i,1},\dots,y_{i,t}$, and estimate the one-step forecast density, $f_{i,t+1}(y \mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$.
-- Compute the surprisal: $s_{i,t+1} = -\log f_{i,t+1}(y_{i,t+1} \mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$, and the surprisal probability $\Pr(S > s_{i,t+1})$.
+- Compute the surprisal: $s_{i,t+1} = -\log f_{i,t+1}(y_{i,t+1} \mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$, and the surprisal probability $p_{i,t+1} = \Pr(S \ge s_{i,t+1})$, where $S = -\log f_{i,t+1}(Y \mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$ is the surprisal of a random variable $Y$ drawn from the forecast distribution.
 
 ### A first iteration
 
@@ -1083,7 +1083,7 @@ In any one series, such an event may look only mildly unusual, but if it happens
 
 One simple way to monitor all the series jointly is to count the number of series that are flagged as anomalous in each month.
 Let $M_t$ be the number of series for which a surprisal probability is available at time $t$, and let $N_t$ be the number of these with surprisal probability below 0.001.
-Here $M_t = 83$ until November 2000, and $M_t = 84$ from December 2000, once there are enough observations on the A05 group, which only began in July 2000.
+Here $M_t = 83$ until November 2000, and $M_t = 84$ from December 2000, when the first one-step forecast becomes available for the A05 group, which only began in July 2000.
 If the series were independent, and each observation had the same probability $\pi$ of being flagged, then $N_t$ would have a Binomial$(M_t,\pi)$ distribution, and the probability of seeing at least $n$ flagged series would be $\Pr(N_t \ge n)$.
 
 If each forecast distribution were the true distribution of the next observation, the surprisal probabilities would be uniformly distributed on (0,1) (by the probability integral transform, @sec-pit, applied to the surprisals), and so each observation would be flagged with probability $\pi = 0.001$.

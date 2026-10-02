@@ -18,7 +18,7 @@ Wherever it comes from, we will treat $f$ as an appropriate probability density 
 When $\bm{y}_i$ takes values on a discrete space (such as the integers), then $f$ is a probability mass function, but we will call it a "density" for convenience when discussing methods that can apply to both discrete and continuous data.
 In many cases, $f(\bm{y}_i)$ is the estimated *likelihood* of the observation from a given model.
 
-Note that some of the methods we discussed in @sec-distance-methods are often called "density-based" methods, including LOF\ [@sec-lof] and GLOSH\ [@sec-glosh].
+Note that some of the methods we discussed in @sec-distance-methods are often called "density-based" methods, including LOF (@sec-lof) and GLOSH (@sec-glosh).
 These methods use an *implicit* measure of density, based on the crowdedness of the neighbourhood of each observation.
 In this chapter, we will only discuss methods that *explicitly* involve a density function.
 
@@ -44,7 +44,7 @@ Therefore, finding parameters that minimise the sum of the surprisals is equival
 
 Surprisals are also commonly used in forecasting and prediction problems (where they are called log scores) to assess whether an estimated distribution $f$ provides a good description of the future data values $y$\ [@Gneiting2014].
 In that context, the data are thought to be a reliable reflection of the underlying processes, and once the data are observed, the surprisal is used to assess how well the estimated distribution $f$ matches what actually happened.
-In this book, we are using surprisals in reverse --- we assume $f$ is a good description of the underlying processes, and then we use the surprisals to identify observations that are unlikely to have come from that distribution.
+In this book, we are using surprisals in reverse: we assume $f$ is a good description of the underlying processes, and then we use the surprisals to identify observations that are unlikely to have come from that distribution.
 
 Let's look at some specific examples.
 
@@ -92,7 +92,7 @@ When $\bm{\Sigma} = \bm{I}$, this is simply the sum of surprisals computed on ea
 ## Surprisal probabilities {#sec-surprisal-probabilities}
 
 The surprisal probability of an observation is the probability of observing a value that is at least as surprising as the observation, under the distribution $f$.
-This is a more interpretable measure of how anomalous an observation is compared to the surprisal itself, because it is on the familiar probability scale between 0 and 1.
+This is easier to interpret than the surprisal itself, because it is on the familiar probability scale between 0 and 1.
 It also allows us to set a threshold for identifying anomalies in terms of a false positive rate.
 
 Specifically, for an observation $\bm{y}_i$ under the distribution $f$, its surprisal probability is given by
@@ -210,18 +210,18 @@ Even when $f^*$ is incorrect or poorly estimated, the extreme surprisals will st
 
 Let $\beta$ denote the tail probability used in the GPD threshold, and let $u$ denote the $(1 - \beta)$ sample quantile of the surprisal values.
 For example, $\beta = 0.1$ is a common choice, and then $u$ is the $90^{\text{th}}$ percentile of the $s_i$ values.
-We estimate a GPD distribution using the surprisals above $u$, and then compute the approximate surprisal probability of each observation with $s_i > u$ by
+We fit a GPD to the surprisals above $u$, and then compute the approximate surprisal probability of each observation with $s_i > u$ by
 $$
   \hat{p}_i = \beta\int_{s_i}^\infty \hat g(s) ds,
 $$ {#eq-pi-gpd}
-where $\hat g()$ denotes the estimated GPD density function.
+where $\hat g$ denotes the estimated GPD density of the surprisals above $u$ (that is, the GPD fitted to the exceedances $s_i - u$, shifted to start at $u$).
 This approximation only gives us surprisal probabilities for the surprisals above the threshold $u$.
 For any $s_i \le u$, all we can say is that $\hat{p}_i \ge \beta$.
 
 @surprisals show that, under very general conditions on the true distribution $f$, this will lead to good estimates of the surprisal probabilities for the most extreme surprisal values (which correspond to the anomalies).
 That is, even if our assumed distribution $f^*$ is not correct, we can still fit a GPD to the largest surprisal values and use this to estimate the tail probabilities.
 
-The approach does require a relatively large number of surprisals to be available, in order to adequately estimate the GPD from the top $\beta$ of the observations.
+The approach does require a relatively large number of surprisals to be available, in order to adequately estimate the GPD from the largest $100\beta$% of them.
 So we would normally need at least a few hundred observations to start with.
 
 The `surprisals_prob()` function uses this GPD approximation (@eq-pi-gpd) when `approximation = "gpd"`.
@@ -240,7 +240,7 @@ The `approximation` argument of `surprisals_prob()` can be set to `"rank"`, to s
 
 For example, consider the 1000 values contained in the first column of `n01`.
 These were generated from a standard Normal distribution.
-We can use `surprisals_prob()` to identify anomalies with probability less than 1%.
+We can use `surprisals_prob()` to identify anomalies with surprisal probability less than 1%.
 This is equivalent to $z$-scores greater than `r sprintf("%.3f", qnorm(1-0.01/2))` in absolute value.
 
 We will use all three methods described above, first using the correct density in computing the surprisals, and then repeating the calculation using an incorrect density.
@@ -289,6 +289,7 @@ But `pt_gpd` and `pt_emp` are both reasonable estimates, despite being based on 
 In fact, `p_emp` and `pt_emp` are identical, because the ordering of the surprisals is unchanged despite the incorrect distribution being used.
 
 The various estimates are displayed in @fig-surprisal_prob for values of $y$ greater than 2.5, showing how the estimates (other than `pt`) are particularly accurate in the extreme tails, where we need them for anomaly detection.
+The rank estimates can never be smaller than $1/n$, so they overstate the probability of the most extreme observation, whereas the GPD estimates are not bounded below in this way.
 
 ```{r}
 #| label: fig-surprisal_prob
@@ -328,14 +329,14 @@ $$
   -\log(K_{\bm{H}}(\bm{0})/n) = \log(n) + \frac{m}{2}\log(2\pi)
                                 + \frac{1}{2}\log|\bm{H}|,
 $$
-where $\bm{H}$ is now the bandwidth matrix.
-For univariate data, when $m = 1$, this simplifies to
+where $\bm{H}$ is the bandwidth matrix.
+For univariate data, when $m = 1$ and $\bm{H} = h^2$, this simplifies to
 $$
   -\log(K_h(0)/n) = \log(nh\sqrt{2\pi}).
 $$
 
 Identifying anomalies using KDE surprisals is related to the "local outlier factor" method (@sec-lof).
-However, the local outlier factor method is based on the ratio of the density at a point to the average density at its neighbours, while the KDE surprisal method is based on the density at a point alone.
+However, the local outlier factor method is based on the ratio of the average density at the neighbours of a point to the density at the point itself, while the KDE surprisal method is based on the density at a point alone.
 This means that the KDE surprisal method is more likely to identify points in low density regions as anomalies.
 
 ## LOO surprisals {#sec-loo-surprisals}
@@ -415,7 +416,7 @@ no_between_155_and_165 <- of_surprisals |>
 stopifnot(no == no_above_300 + no_below_90 + no_between_155_and_165)
 ```
 
-Now there are `r english::words(no)` points with probabilities less than 0.005: `r english::words(no_above_300)` with durations above 300, `r english::words(no_below_90)` below 90, and the rest between 155 and 165.
+Now there are `r english::words(no)` points with probabilities less than 0.005: `r english::words(no_above_300)` with durations above 300 seconds, `r english::words(no_below_90)` below 90 seconds, and the rest between 155 and 165 seconds.
 
 @fig-ofpot shows an HDR boxplot of the data, with those points with surprisal probabilities less than 0.005 highlighted in black.
 
@@ -431,7 +432,7 @@ oldfaithful |>
 ```
 
 The same algorithm is easily applied in two dimensions.
-For example, we can consider the bivariate distribution of Duration and Waiting time.
+For example, we can consider the bivariate distribution of eruption duration and waiting time.
 
 ```{r}
 #| label: ofscores-bivariate
@@ -510,7 +511,7 @@ gmm_dist <- gmm_dist[j]
 gmm_wt <- gmm_wt[j]
 ```
 
-The algorithm involves first clustering a random subset of the data, so different results may be obtained on different runs.
+The algorithm initialises by clustering a random subset of the data (because there are more than 2000 observations), so different results may be obtained on different runs.
 The `set.seed()` function is used here to ensure reproducibility.
 
 We have estimated a `r gmm_nc`-component GMM for the Old Faithful data, with means
@@ -613,7 +614,7 @@ of |>
   scale_colour_manual(values = c("FALSE" = "grey70", "TRUE" = "#D55E00"))
 ```
 
-As shown in @fig-gmm-surprisals, the model has effectively highlighted the `r english::words(sum(of$gmm_prob < 0.005))` points that do not appear to belong to the two main clusters of observations.
+As shown in @fig-gmm-surprisals, the model has highlighted the `r english::words(sum(of$gmm_prob < 0.005))` points that do not appear to belong to the two main clusters of observations.
 
 ## Summary {#sec-density-summary}
 

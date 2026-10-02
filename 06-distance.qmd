@@ -219,7 +219,7 @@ This is because a small basic subset selected for being close to the data centre
 As $r$ grows towards $h$, $c_{hr} \to 0$.
 
 **Step 4: Iterate**.
-Repeat Steps 2 and 3 until the size of $B$ no longer changes.
+Repeat Steps 2 and 3 until $B$ no longer changes.
 
 **Step 5: Nominate outliers**.
 All observations excluded from the final $B$ are nominated as outliers.
@@ -231,7 +231,7 @@ By adding multiple observations at each iteration, BACON eliminates the need for
 
 We apply `robustX::BACON()` to the Dongsi air quality data.
 Because the Mahalanobis distance is used in the algorithm, there is no need to scale the data first.
-(The robust MCD covariance estimate we have been using is different from the standard covariance estimate used by BACON, but it shouldn't make much difference on a data set without outliers.)
+(The robust MCD covariance estimate we have been using is different from the standard covariance estimate used by BACON, but it shouldn't make much difference once the outliers have been excluded from the basic subset.)
 The default initialisation strategy is used, which selects the $s = cm = 4 \times 2 = 8$ observations with the smallest Mahalanobis distances from the full-data mean and covariance.
 
 ```{r}
@@ -869,6 +869,7 @@ ggplot() +
 
 This shows that the first split separates the two largest ozone values from the rest of the data.
 The second split divides the main cluster into two unequal groups, while the third split separates off the coldest day from the rest of the main cluster.
+The fourth split divides the warmer days according to their ozone levels.
 
 A tree with a larger maximum depth would continue splitting the remaining observations into smaller groups, so the path lengths for the other observations would be larger.
 The largest ozone levels are more likely to be isolated early on, because they can be separated from the rest of the data by a single additional random split.
@@ -893,7 +894,7 @@ $$
   a(\bm{y}, \psi) = 2^{-\bar{h}(\bm{y})/c(\psi)},
 $$
 where $\bar{h}(\bm{y})$ is the average path length over all trees in the ensemble.
-The score lies in $(0, 1]$.
+The score lies in $(0, 1)$.
 Observations with $a(\bm{y}, \psi)$ closer to 1 are more likely to be anomalies; those with $a(\bm{y}, \psi)$ well below 0.5 are unlikely to be anomalies; if all scores cluster around 0.5, the data probably contain no clear anomalies.
 
 ### Extended Isolation Forest
@@ -1060,7 +1061,7 @@ Mortality rates are often also high in the year after a war, as soldiers return 
 The Spanish flu pandemic of 1918--1919 is evident in the plot, with higher than usual mortality rates for a wider age range than the wars.
 There was also unusually high mortality for males in their 20s in 1840--1843, which does not correspond to any known war [@french_mortality], but seems very similar to the pattern due to the Crimean War thirteen years later.
 The same pattern is not seen for females.
-Unusually high childhood mortality at around 10 years of age is seen until about 1870, probably driven by infectious diseases such as cholera, tuberculosis and measles.
+Unusually high childhood mortality at around 8--9 years of age is seen until about 1860, probably driven by infectious diseases such as cholera, tuberculosis and measles.
 Finally, the large blue area at the upper right of the plot indicates unusually low mortality rates for older ages in recent years.
 
 ## Summary {#sec-distance-summary}

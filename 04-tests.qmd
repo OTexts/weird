@@ -11,7 +11,8 @@ source("before-each-chapter.R")
 The early history of anomaly detection methods involved statistical tests and assumptions about the distribution of the data.
 There are much better methods available now, but these old methods are still widely used.
 So they are included here for historical interest, and to point out their flaws to those still using them.
-There is nothing in later chapters that assumes knowledge of this chapter, so if you want to skip on to more useful methods, head to @sec-boxplots.
+Apart from the six examples introduced in @sec-examples, which are reused in @sec-boxplots, nothing in later chapters assumes knowledge of this chapter.
+So if you want to skip on to more useful methods, read @sec-examples and then head to @sec-boxplots.
 
 We will only consider univariate methods in this chapter.
 There have been multivariate parametric tests for anomaly detection, but they are much less widely used and are also best avoided.
@@ -261,7 +262,7 @@ breaks <- sort(c(2:6, 8, 10^(1:4), 2.5 * 10^(1:3), 5 * 10^(1:3)))
 #| label: fig-zspurious
 #| echo: false
 #| dependson: pspurious
-#| fig-cap: The probability of at least one spurious anomaly using $z$-scores and with a threshold $c$ for normally distributed data.
+#| fig-cap: The probability of at least one spurious anomaly using $z$-scores and with a threshold $c$ for Normally distributed data.
 
 zspuriousdf <- tidyr::expand_grid(n = n, c = seq(2, 3.5, by = 0.5)) |>
   mutate(pmax = pspurious(n, rnorm, c = c)) |>
@@ -450,7 +451,7 @@ stopifnot(nanomalies$Peirce == c(1, 2, 2, 1, 10, 6))
 
 ### Chauvenet's criterion {-}
 
-Peirce's proposal was largely superseded by an alternative proposed by the astrophysicist William Chauvenet, which was much simpler to describe.
+Peirce's proposal was largely superseded by an alternative proposed by the astronomer William Chauvenet, which was much simpler to describe.
 He suggested [@Chauvenet1863] replacing the threshold $c$ by the $(1 - 0.25/n)$ quantile from the standard Normal distribution.
 This threshold is also shown in @fig-zscorecriteria.
 A consequence of this choice is that Chauvenet's criterion will reject, on average, half an observation of genuine data from a Normal distribution regardless of the value of $n$.
@@ -491,11 +492,11 @@ We will mention just two of them here, as they are the most widely used.
 Egon Pearson and C Chandra Sekar proposed [@Pearson1936] that an observation be considered an anomaly if its $z$-score is larger than a critical value based on the t distribution.
 Later, this was modified by Frank Grubbs [@Grubbs1950] who proposed that anomalies be identified if $|z_i| > c_\alpha$ where
 $$
-  c_\alpha = \frac{(n - 1)t_{\alpha/2n, n-2}}{\sqrt{n(n - 2 + t^2_{\alpha/2n, n-2})}},
+  c_\alpha = \frac{(n - 1)t_{\alpha/(2n), n-2}}{\sqrt{n(n - 2 + t^2_{\alpha/(2n), n-2})}},
 $$
 and $t_{p,k}$ is the $(1 - p)$ quantile of the t distribution with $k$ degrees of freedom.
 
-@fig-zscoretests shows the critical values at $\alpha = 0.05$ for these tests, along with the corresponding value from @Chauvenet1863 for comparison.
+@fig-zscoretests shows the critical values of Grubbs' test at $\alpha = 0.05$, along with the corresponding threshold from @Chauvenet1863 for comparison.
 
 ```{r}
 #| label: fig-zscoretests
@@ -537,13 +538,13 @@ df |>
 ```
 
 From these, we can compute the probability of a spurious anomaly in a Normal distribution, using simulation rather than the approximation in @eq-spuriousz.
-This probability should be equal to $\alpha = 0.05$.
+For Grubbs' test, this probability should be equal to $\alpha = 0.05$.
 
 ```{r}
 #| label: fig-pzscoretests
 #| echo: false
 #| dependson: ["pspurious", "fig-zscoretests"]
-#| fig-cap: True size of the tests (i.e., the probability of a spurious anomaly) for normally distributed data with $\alpha=0.05$.
+#| fig-cap: True size of the tests (i.e., the probability of a spurious anomaly) for Normally distributed data with $\alpha=0.05$.
 
 pzscoredf <- df |>
   mutate(pmax = pspurious(n, rnorm, c = c, rep = 1e6)) |>
@@ -718,7 +719,7 @@ The test is clearly flawed for several reasons.
 First, if the two largest values are both anomalies of similar size, then $Q$ will be small and these anomalies will be missed.
 Also, if both maximum and minimum values are anomalies, the denominator will be larger than expected, thereby reducing the size of $Q$.
 
-As with the other tests considered here, the test assumes that the underlying data distribution is normal, and anomalies are identified which appear inconsistent with that assumption.
+As with the other tests considered here, the test assumes that the underlying data distribution is Normal, and anomalies are identified which appear inconsistent with that assumption.
 
 Simulation can be used to compute the critical values for this test, assuming that the data come from a Normal distribution.
 We can also use simulation to compute the probability of false positives, giving the results shown in @fig-spuriousdixon.
@@ -865,7 +866,7 @@ $$
   a_i = i(n - i), \qquad i = 1, \ldots, n - 1,
 $$
 which is largest near the middle of the sample and smallest at the extremes.
-This emphasises unusually large gaps in the centre, where observations are normally close together, and downweights gaps in the tails, where larger spacings are expected.
+This emphasises unusually large gaps in the centre, where observations are usually close together, and downweights gaps in the tails, where larger spacings are expected.
 
 @Wainer1978 developed this idea into a practical diagnostic by transforming and standardising the weighted gaps.
 They proposed using the square root of the weighted gaps,
@@ -928,7 +929,7 @@ batting_gaps |>
   select(lower_player, upper_player, spacing, weight, ws)
 ```
 
-The largest gap of `r sprintf("%.1f", batting_gaps |> filter(ws > 2.25) |> slice_max(spacing, n = 1) |> pull(spacing))` should be interpreted as the separation between Kamindu Mendis (who, at the time the data was collected, had the second highest batting average among batters with at least 20 innings) and Don Bradman, not as a score belonging to Bradman alone.
+The largest gap of `r sprintf("%.1f", batting_gaps |> filter(ws > 2.25) |> slice_max(spacing, n = 1) |> pull(spacing))` should be interpreted as the separation between Kamindu Mendis (who, at the time the data were collected, had the second highest batting average among batters with at least 20 innings) and Don Bradman, not as a score belonging to Bradman alone.
 This illustrates that the method detects separations, not individual anomalous observations.
 
 ```{r}
@@ -974,7 +975,7 @@ A related way to construct a formal gap test is to calculate the uniform spacing
 $$
   \delta_i = F(y_{(i+1)}) - F(y_{(i)}), \quad i = 1, \dots, n - 1.
 $$
-Since the transformed spacings are approximately $\text{Exp}(n + 1)$ (@sec-gaps), and the exponential distribution is in the Gumbel domain of attraction (@sec-evt), then $\delta_{\max} = \max(\delta_1,\dots,\delta_{n-1})$ satisfies
+Since the transformed spacings are approximately $\text{Exp}(n + 1)$ (@sec-gaps), and the Exponential distribution is in the Gumbel domain of attraction (@sec-evt), $\delta_{\max} = \max(\delta_1,\dots,\delta_{n-1})$ satisfies
 $$
   t = (n + 1)\delta_{\max} - \log(n - 1) \approx \text{Gumbel}(0,1).
 $$
@@ -1013,7 +1014,7 @@ batting_gaps |>
   )
 ```
 
-The $p$-value is below 0.05, suggesting that the gap below Bradman's average is too large to be consistent with all batters coming from a single fitted Normal distribution.
+Only the gap below Bradman's average has a $p$-value below 0.05, suggesting that this gap is too large to be consistent with all batters coming from a single fitted Normal distribution.
 
 Finally, we apply the same approach to the other five examples considered in this chapter.
 Here we associate the $p$-value with the larger observation in each gap pair.
@@ -1078,7 +1079,7 @@ nof <- nanomalies$Gap[2]
 
 While the method worked well for the cricket batting averages, it identified `r nof` "anomalies" in the Old Faithful data, and it failed to identify either of the two clear anomalies in `n01b`.
 
-Like all methods in this chapter, both the normalised gap score and the transformed-gap test depend on an assumed null distribution, and so the results depend on the adequacy of the model.
+Like all methods in this chapter, both the Tukey--Wainer--Schacht gap score and the transformed-gap test depend on an assumed null distribution, and so the results depend on the adequacy of the model.
 Related extreme-spacing ideas underlie the HDoutliers and stray algorithms discussed in @sec-hdoutliers and @sec-stray, where gaps in nearest-neighbour distances are used rather than gaps in the raw univariate data.
 
 ## Summary {#sec-tests-summary}
