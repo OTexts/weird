@@ -793,6 +793,24 @@ pbs <- PBS |>
 pbs
 ```
 
+```{r}
+#| label: check_late_series
+#| include: false
+#| dependson: pbs
+
+# The prose says only L03 and A05 start late, in Dec 1992 and Nov 2000
+late_series <- pbs |>
+  as_tibble() |>
+  filter(Scripts > 0) |>
+  group_by(ATC2) |>
+  summarise(start = min(Month)) |>
+  filter(start > min(start))
+stopifnot(
+  identical(late_series$ATC2, c("A05", "L03")),
+  identical(format(late_series$start), c("2000 Nov", "1992 Dec"))
+)
+```
+
 Let's first look at the time series for just one ATC group: A12 (Mineral supplements).
 In fact, this is the same series as was shown in the bottom panel of @fig-tsparadigms.
 
@@ -857,6 +875,8 @@ Starting with $I = 36$ (3 years of data), we will fit ETS models to all availabl
 Then we repeat the exercise using 37 observations, then 38 observations, and so on.
 This is known as a "rolling origin forecast" because the forecast origin rolls forward by one period each iteration.
 The process can be illustrated as in @fig-tscvplots.
+Two series start later than the others: L03 and A05 have their first non-zero values in December 1992 and November 2000, respectively.
+We only fit a model to a series once it has at least 36 observations, counting from its first non-zero value.
 
 ```{r}
 #| label: fig-tscvplots
@@ -886,6 +906,10 @@ See @fpp3 [Ch.\ 8] for details of how this is done.
 
 pbs_fit <- pbs |>
   filter(t <= 36) |>
+  group_by_key() |>
+  filter(cumsum(Scripts) > 0) |>
+  filter(n() >= 36) |>
+  ungroup() |>
   model(ets = ETS(Scripts))
 pbs_fit
 ```
@@ -984,9 +1008,14 @@ compute_pbs_scores <- function(pbs) {
   pbs$prob <- NA_real_
   # Loop over all time periods starting with I=36
   for (i in seq(36, max(pbs$t) - 1)) {
-    # Fit ETS model to all series up to time i and compute 1-step forecasts
+    # Fit ETS model to all series with at least 36 observations up to time i
+    # (counting from each series' first non-zero value) and compute 1-step forecasts
     pbs_fc <- pbs |>
       filter(t <= i) |>
+      group_by_key() |>
+      filter(cumsum(Scripts) > 0) |>
+      filter(n() >= 36) |>
+      ungroup() |>
       model(ets = ETS(Scripts)) |>
       forecast(h = 1) |>
       rename(fcast = Scripts)
@@ -1083,8 +1112,8 @@ In any one series, such an event may look only mildly unusual, but if it happens
 
 One simple way to monitor all the series jointly is to count the number of series that are flagged as anomalous in each month.
 Let $M_t$ be the number of series for which a surprisal probability is available at time $t$, and let $N_t$ be the number of these with surprisal probability below 0.001.
-Here $M_t = 83$ until November 2000, and $M_t = 84$ from December 2000, when the first one-step forecast becomes available for the A05 group, which only began in July 2000.
-If the series were independent, and each observation had the same probability $\pi$ of being flagged, then $N_t$ would have a Binomial$(M_t,\pi)$ distribution, and the probability of seeing at least $n$ flagged series would be $\Pr(N_t \ge n)$.
+Here $M_t = 82$ until November 1995, $M_t = 83$ from December 1995, when the L03 group first has a one-step forecast, and $M_t = 84$ from November 2003, when the A05 group does.
+If the series were independent, and each observation had the same probability $\pi$ of being flagged, then $N_t$ would have a Binomial$(M_t,\pi)$ distribution, and the probability of seeing at least as many flagged series as the observed number $n_t$ would be $\Pr(N_t \ge n_t)$.
 
 If each forecast distribution were the true distribution of the next observation, the surprisal probabilities would be uniformly distributed on (0,1) (by the probability integral transform, @sec-pit, applied to the surprisals), and so each observation would be flagged with probability $\pi = 0.001$.
 But the ETS forecast distributions are too narrow for these data, and `r sprintf("%.1f", 100 * mean(pbs_scores$prob < 0.001, na.rm = TRUE))`% of all observations have surprisal probabilities below 0.001.
@@ -1119,7 +1148,7 @@ pbs_joint |> filter(prob < 0.001)
 stopifnot(
   identical(
     format(pbs_joint |> filter(prob < 0.001) |> pull(Month)),
-    c("1997 Dec", "1998 Jan", "1999 Mar", "2001 Dec", "2008 Feb")
+    c("1997 Dec", "1999 Mar", "2001 Dec", "2008 Feb")
   ),
   pbs_joint |> filter(Month == yearmonth("2008 Feb")) |> pull(n) == 33,
   identical(
@@ -1128,9 +1157,9 @@ stopifnot(
       summarise(from = min(Month), to = max(Month)) |>
       mutate(across(c(from, to), format)),
     tibble(
-      M = c(83L, 84L),
-      from = c("1995 Jul", "2000 Dec"),
-      to = c("2000 Nov", "2008 Jun")
+      M = c(82L, 83L, 84L),
+      from = c("1995 Jul", "1995 Dec", "2003 Nov"),
+      to = c("1995 Nov", "2003 Oct", "2008 Jun")
     )
   )
 )
@@ -1152,8 +1181,8 @@ pbs_joint |>
 ```
 
 Most months have between zero and three flagged series, consistent with the estimated value of $\pi$.
-The five months shown in orange in @fig-pbs-joint have many more flagged series than we would expect.
-Three are in December or January, around the time of the usual end-of-year spike, which occurs because patients stockpile medicines before the PBS safety-net thresholds reset at the start of each calendar year [@fpp3, Ch.\ 2]; in these months the size of the spike, or of the drop that follows it, was unusual in many groups at once.
+The four months shown in orange in @fig-pbs-joint have many more flagged series than we would expect.
+Two are in December, at the time of the usual end-of-year spike, which occurs because patients stockpile medicines before the PBS safety-net thresholds reset at the start of each calendar year [@fpp3, Ch.\ 2]; in these months the size of the spike was unusual in many groups at once.
 We have no explanation for March 1999.
 The most extreme month is February 2008, when 33 of the 84 groups were flagged.
 
