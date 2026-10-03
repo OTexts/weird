@@ -526,12 +526,16 @@ wave_groups <- function(from, to) {
 high <- stmf_scores |> filter(e > 0)
 stopifnot(
   !any(stmf_scores$`Age group` == "0-14"),
-  setequal(wave_groups("2020 W14", "2020 W18"), c("15-64", "65-74", "75-84", "85+")),
+  setequal(
+    wave_groups("2020 W14", "2020 W18"),
+    c("15-64", "65-74", "75-84", "85+")
+  ),
   setequal(wave_groups("2020 W49", "2021 W03"), c("65-74", "75-84", "85+")),
   setequal(wave_groups("2021 W33", "2021 W39"), c("15-64", "65-74")),
   setequal(wave_groups("2022 W03", "2022 W05"), c("65-74", "75-84", "85+")),
   all(
-    high$Week >= yearweek("2020 W14") & high$Week <= yearweek("2020 W18") |
+    high$Week >= yearweek("2020 W14") &
+      high$Week <= yearweek("2020 W18") |
       high$Week >= yearweek("2020 W49") & high$Week <= yearweek("2021 W03") |
       high$Week >= yearweek("2021 W33") & high$Week <= yearweek("2021 W39") |
       high$Week >= yearweek("2022 W02") & high$Week <= yearweek("2022 W05")
@@ -1180,12 +1184,6 @@ pbs_joint |>
   labs(y = "Number of flagged ATC groups")
 ```
 
-Most months have between zero and three flagged series, consistent with the estimated value of $\pi$.
-The four months shown in orange in @fig-pbs-joint have many more flagged series than we would expect.
-Two are in December, at the time of the usual end-of-year spike, which occurs because patients stockpile medicines before the PBS safety-net thresholds reset at the start of each calendar year [@fpp3, Ch.\ 2]; in these months the size of the spike was unusual in many groups at once.
-We have no explanation for March 1999.
-The most extreme month is February 2008, when 33 of the 84 groups were flagged.
-
 ```{r}
 #| label: pbs_janfeb
 #| include: false
@@ -1210,6 +1208,11 @@ janfeb_growth <- round(
 stopifnot(janfeb[["2008 Jan"]] < janfeb[["2007 Jan"]])
 ```
 
+Most months have between zero and three flagged series, consistent with the estimated value of $\pi$.
+The four months shown in orange in @fig-pbs-joint have many more flagged series than we would expect.
+Two are in December, at the time of the usual end-of-year spike, which occurs because patients stockpile medicines before the PBS safety-net thresholds reset at the start of each calendar year [@fpp3, Ch.\ 2]; in these months the size of the spike was unusual in many groups at once.
+We have no explanation for March 1999.
+The most extreme month is February 2008, when 33 of the 84 groups were flagged.
 In that year, the usual fall in script volumes in February did not occur; total volume was about `r feb_growth`% higher than in February 2007.
 However, the combined volume for January and February 2008 was only about `r janfeb_growth`% higher than a year earlier, in line with previous years, and January 2008 was lower than January 2007.
 So it seems that some scripts that would normally have been recorded in January were recorded in February instead: a change in timing rather than in demand.
