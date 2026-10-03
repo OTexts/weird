@@ -1174,8 +1174,8 @@ stopifnot(
 
 pbs_joint |>
   ggplot(aes(x = Month, y = n)) +
-  geom_col() +
-  geom_col(data = pbs_joint |> filter(prob < 0.001), fill = "#D55E00") +
+  geom_col(aes(fill = prob < 0.001), show.legend = FALSE) +
+  scale_fill_manual(values = c(`FALSE` = "grey35", `TRUE` = "#D55E00")) +
   tsibble::scale_x_yearmonth(date_breaks = "2 years", date_labels = "%Y") +
   labs(y = "Number of flagged ATC groups")
 ```
