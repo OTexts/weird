@@ -372,7 +372,7 @@ The years flagged at least 7 times across all `r english::words(length(unique(o3
 red_case <- o3_plots$outsTable |>
   distinct(Case, Combination, Method) |>
   count(Case, Combination, name = "n_agree") |>
-  filter(n_agree == 5L)
+  filter(n_agree == n_distinct(o3_plots$outsTable$Method))
 out_table <- o3_plots$outsTable |>
   count(Case, name = "n_flagged") |>
   filter(n_flagged > 6) |>
@@ -614,6 +614,11 @@ Given a sample of curves $y_1(x),\dots,y_n(x)$, a depth measure assigns each cur
 Curves can then be ranked from the deepest (most typical) to the shallowest (most unusual), giving an ordering analogous to ranking univariate observations from the median outward.
 
 One of the simplest depths is the band depth: it counts how often a curve $y_i$ lies completely within the "band" traced out by every possible group of $k$ curves in the sample (usually $k=2$, so the bands are formed by pairs of curves), so that curves often enveloped by others are deep, while curves that stick out --- even briefly --- have low depth.
+With $k=2$, the band depth of $y_i$ is the proportion of pairs of curves whose band contains it:
+$$
+  \text{BD}(y_i) = \binom{n}{2}^{-1} \sum_{1 \le u < v \le n} 𝟙\Big(\min\{y_u(x), y_v(x)\} \le y_i(x) \le \max\{y_u(x), y_v(x)\} \text{ for all } x\Big),
+$$
+where $𝟙(\cdot)$ is the indicator function, taking value 1 when its argument is true and 0 otherwise.
 Looking at @fig-fr-mortality, we would expect that some of the most recent years, which have low mortality at almost every age, would be shallow; the war years would also be shallow, since they have high mortality at ages 20--40 that is not seen in other years.
 
 ```{r}
@@ -641,7 +646,12 @@ stopifnot(bd_min_n >= 10, median(bd) < 0.05)
 
 However, curves that cross each other are rarely contained entirely within a band, so many curves have a band depth close to zero, with many ties.
 For the French mortality curves, `r bd_min_n` of the `r bd_n` curves lie entirely within none of the bands except those they help to form, and so share the smallest possible band depth.
-In practice, to address this problem, the band depth is usually replaced by the modified band depth (MBD), which instead measures the proportion of the domain $x$ over which $y_i(x)$ lies within each band, averaged over all bands [@LopezPintado2009].
+In practice, to address this problem, the band depth is usually replaced by the modified band depth (MBD), which instead measures the proportion of the domain $x$ over which $y_i(x)$ lies within each band, averaged over all bands [@LopezPintado2009]:
+$$
+  \text{MBD}(y_i) = \binom{n}{2}^{-1} \sum_{1 \le u < v \le n} \frac{1}{|\mathcal{X}|} \int_{\mathcal{X}} 𝟙\Big(\min\{y_u(x), y_v(x)\} \le y_i(x) \le \max\{y_u(x), y_v(x)\}\Big)\,dx,
+$$
+where $\mathcal{X}$ is the domain of the curves and $|\mathcal{X}|$ is its length.
+In practice, the integral is replaced by an average over the grid of ages at which the curves are evaluated, which is what the `mbd()` function below computes.
 
 ```{r}
 #| label: mbd-build
@@ -766,10 +776,18 @@ The modified band depth used above conflates two different reasons a curve can b
 The outliergram of @Arribas-Gil2014-ll separates these two effects by comparing MBD against a second measure, the modified epigraph index (MEI) of @LopezPintadoRomo2011.
 
 Whereas MBD measures how often a curve is enveloped by bands formed from pairs of curves, MEI measures a curve's rank position: it is close to 1 for a curve lying below almost every other curve across almost the whole domain, close to 0 for a curve lying above almost every other curve, and around 0.5 for a curve in the middle of the pack.
+It is the proportion of the domain on which $y_i$ lies on or below each curve, averaged over all $n$ curves (including $y_i$ itself):
+$$
+  \text{MEI}(y_i) = \frac{1}{n} \sum_{u=1}^{n} \frac{1}{|\mathcal{X}|} \int_{\mathcal{X}} 𝟙\big(y_i(x) \le y_u(x)\big)\,dx.
+$$
 So MEI captures a curve's overall level relative to the rest of the sample, in much the same way that the first principal component score did in @sec-basis-functions, while MBD captures how well-enveloped it is.
 
 For most collections of curves, curves with an extreme MEI (very close to 0 or 1) are, by virtue of sitting near the edge of the sample, poorly enveloped and so also have somewhat low MBD.
-In fact, there is a well-defined upper bound on MBD as a function of MEI, tracing out a parabola.
+In fact, there is a well-defined upper bound on MBD as a function of MEI, tracing out a parabola [@Arribas-Gil2014-ll]:
+$$
+  \text{MBD}(y_i) \le a_0 + a_1\,\text{MEI}(y_i) + a_2\,\text{MEI}(y_i)^2,
+  \qquad\text{where } a_0 = -\frac{2}{n(n-1)},\quad a_1 = \frac{2(n+1)}{n-1},\quad a_2 = -\frac{2n}{n-1}.
+$$
 A curve with an unusual shape stands out from this pattern: its MBD falls noticeably *below* the parabola for its MEI value, meaning it is even less enveloped than curves with a similar rank would typically be.
 The outliergram plots MEI against MBD along with this parabola, and flags as shape outliers those curves whose vertical distance below the parabola exceeds a boxplot-style fence (the third quartile of these distances, plus 1.5 times their interquartile range, by default).
 
@@ -825,6 +843,18 @@ mei_tbl |>
 
 @fig-outliergram flags `r english::words(nrow(og_outliers))` years as shape outliers: `r format_years(sort(og_outliers$Year))`.
 These were all during World War II, and in each of them mortality at some ages was much higher than the curve's overall level would suggest: for young men in 1940 and 1943, and for older adults in 1940 and 1941.
+
+```{r}
+#| label: outliergram-check
+#| include: false
+#| dependson: fig-outliergram
+
+# Years named in the text, and every curve on or below the parabola bound
+stopifnot(
+  identical(as.integer(sort(og_outliers$Year)), c(1940L, 1941L, 1943L)),
+  all(mei_tbl$d > -1e-10)
+)
+```
 More shape anomalies would be identified if we reduced the fence multiplier from 1.5.
 Unlike the depth boxplot fence of @fig-fbplot-sungenton, none of the low-mortality recent years are flagged, because their low MBD is entirely explained by their extreme MEI --- they sit at one end of the rank ordering, but they do not deviate from the shape that curves at that end of the ranking are expected to have.
 
