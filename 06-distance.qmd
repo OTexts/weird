@@ -96,9 +96,9 @@ Consequently, it is often preferable to scale the variables before computing dis
 
 We define the scaled observations as the robust multivariate $z$-scores, given by
 $$
-  \bm{z}_i = \bm{U}(\bm{y}_i - \bm{m}),
+  \bm{z}_i = \bm{U}(\bm{y}_i - \tilde{\bm{y}}),
 $$
-where $\bm{m}$ is the pointwise median and $\bm{U}^\intercal\bm{U} = \bm{S}_{\text{MCD}}^{-1}$ is the Cholesky decomposition of the inverse of the robust MCD covariance matrix (@sec-robust-cov).
+where $\tilde{\bm{y}}$ is the pointwise median and $\bm{U}^\intercal\bm{U} = \bm{S}_{\text{MCD}}^{-1}$ is the Cholesky decomposition of the inverse of the robust MCD covariance matrix (@sec-robust-cov).
 Then the Euclidean distance between the scaled observations $\bm{z}_i$ and $\bm{z}_j$ is given by
 $$
   \|\bm{z}_i - \bm{z}_j\|
@@ -131,7 +131,7 @@ For example, if we define the centre as the pointwise median, then Mahalanobis d
 $$
   d_i
   = \|\bm{z}_i\|
-  = \sqrt{(\bm{y}_i - \bm{m})^\intercal \bm{S}_{\text{MCD}}^{-1} (\bm{y}_i - \bm{m})}.
+  = \sqrt{(\bm{y}_i - \tilde{\bm{y}})^\intercal \bm{S}_{\text{MCD}}^{-1} (\bm{y}_i - \tilde{\bm{y}})}.
 $$
 That is, it is equivalent to the Euclidean distance of the scaled observation $\bm{z}_i$ from the origin.
 A large $d_i$ means the observation is far from the centre of the data and is potentially anomalous.
@@ -188,7 +188,7 @@ These are non-robust measures of centre and spread, but because the basic subset
 The algorithm proceeds as follows:
 
 **Step 1: Initialise the basic subset**.
-Choose an initial $B$ of size $s = cm$, where $c$ is a small integer (set to 4 by default), and $m$ is the dimension of each observation $\bm{y}_i$.
+Choose an initial $B$ of size $s$, a small multiple of $m$ ($s = 4m$ by default), where $m$ is the dimension of each observation $\bm{y}_i$.
 Several initialisation strategies are available.
 The default in `BACON()` is to compute the Mahalanobis distances from the full-data mean $\bar{\bm{y}}$ and covariance $\bm{S}$, and select the $s$ observations with the smallest distances.
 An alternative initialisation strategy is to compute distances from the univariate medians rather than the full-data mean.
@@ -232,7 +232,7 @@ By adding multiple observations at each iteration, BACON eliminates the need for
 We apply `robustX::BACON()` to the Dongsi air quality data.
 Because the Mahalanobis distance is used in the algorithm, there is no need to scale the data first.
 (The robust MCD covariance estimate we have been using is different from the standard covariance estimate used by BACON, but it shouldn't make much difference once the outliers have been excluded from the basic subset.)
-The default initialisation strategy is used, which selects the $s = cm = 4 \times 2 = 8$ observations with the smallest Mahalanobis distances from the full-data mean and covariance.
+The default initialisation strategy is used, which selects the $s = 4m = 4 \times 2 = 8$ observations with the smallest Mahalanobis distances from the full-data mean and covariance.
 
 ```{r}
 #| label: bacon-of

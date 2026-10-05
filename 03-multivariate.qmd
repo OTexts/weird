@@ -1059,7 +1059,7 @@ If the underlying density is Normal with mean $\bm{\mu}$ and covariance matrix $
 $$
   \bm{H} = \left( \frac{4}{m + 2} \right)^{2/(m+4)} n^{-2/(m+4)} \bm{\Sigma}.
 $$ {#eq-gaussianH}
-Notice that in the univariate case, when $m = 1$, this rule gives the same bandwidth as the rule of thumb given by @eq-nrr (where $h = \sqrt{H}$).
+Notice that in the univariate case, when $m = 1$, this rule gives the same bandwidth as the rule of thumb given by @eq-nrr (where $\bm{H} = h^2$).
 This is what is calculated by `kde_bandwidth()` when `method = "normal"`, where $\bm{\Sigma}$ is estimated using the sample covariance matrix (@eq-cov).
 
 Replacing $\bm{\Sigma}$ in @eq-gaussianH by the robust covariance matrix $\bm{S}_{\text{MCD}}$ (@eq-mcd), we obtain a robust normal reference rule, calculated by `kde_bandwidth()` when `method = "robust"` (the default setting).
@@ -1069,7 +1069,7 @@ A generalisation of the univariate plug-in bandwidth (@sec-kde) is the "plug-in"
 While this typically leads to better estimates of the density as a whole, it can lead to worse estimates in the tails of the distribution where anomalies tend to lie.
 
 An alternative approach to finding the bandwidth matrix uses ideas from clustering (@sec-clustering).
-First, we compute robust multivariate $z$-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \bm{m})$, $i = 1,\dots,n$, where $\bm{m}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}^\intercal\bm{U} = \bm{S}_{\text{MCD}}^{-1}$ is the Cholesky decomposition of the inverse of the robust covariance matrix.
+First, we compute robust multivariate $z$-scores, $\bm{z}_i = \bm{U}(\bm{y}_i - \tilde{\bm{y}})$, $i = 1,\dots,n$, where $\tilde{\bm{y}}$ is a vector of medians of $\{\bm{y}_1,\dots,\bm{y}_n\}$, and $\bm{U}^\intercal\bm{U} = \bm{S}_{\text{MCD}}^{-1}$ is the Cholesky decomposition of the inverse of the robust covariance matrix.
 Then we find the single-linkage merge distances (@sec-clustering) of the $z$-scores: $\{d_1,\dots,d_{n-1}\}$.
 Finally, we can set
 $$
