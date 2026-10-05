@@ -230,7 +230,7 @@ The argument `threshold_probability` is used to specify $\beta$, with the defaul
 ### Approximate rank-based surprisal probabilities
 
 An alternative approach that does not require a GPD is to estimate $p_i$ as the proportion of observations with surprisal values at least as large as $s_i$.
-That is, $\hat{p}_i = (n - \text{rank}(s_i) + 1)/n$, where $\text{rank}(s_i)$ is the rank of $s_i$ among the $s_1,\dots,s_n$ values, with the smallest value having rank 1.
+That is, $\hat{p}_i = (n - \text{rank}(s_i) + 1)/n$, where $\text{rank}(s_i)$ is the rank of $s_i$ among the $s_1,\dots,s_n$ values, with the smallest value having rank 1, and tied values all given the smallest of their ranks.
 For large $n$, this provides a quick and convenient estimate of $p_i$.
 @surprisals show that this approach works well when the ordering of the largest surprisal values under $f$ and $f^*$ is similar, which should be the case when $f^*$ is a reasonable approximation to $f$.
 
@@ -370,7 +370,7 @@ These probabilities can be calculated using the `surprisals_prob()` function wit
 ## Example: Old Faithful eruption durations {#sec-oldfaithful-density}
 
 Let's apply the KDE surprisals method to the Old Faithful eruptions contained in the `oldfaithful` data set.
-We will use the LOO KDE surprisal probabilities to identify anomalies in the eruption durations.
+We will use the LOO KDE surprisal probabilities to identify anomalies in the eruption durations (but using the default bandwidth selection, rather than the lookout method).
 
 ```{r}
 #| label: ofscores-kde
@@ -509,6 +509,7 @@ mu <- mu[j]
 sigma <- sigma[j]
 gmm_dist <- gmm_dist[j]
 gmm_wt <- gmm_wt[j]
+stopifnot(length(j) == 3L)
 ```
 
 The algorithm initialises by clustering a random subset of the data (because there are more than 2000 observations), so different results may be obtained on different runs.
@@ -620,7 +621,7 @@ As shown in @fig-gmm-surprisals, the model has highlighted the `r english::words
 
 Density-based methods define an anomaly as an observation that is improbable under the distribution of the data.
 The surprisal, $s_i = -\log f(\bm{y}_i)$, measures how improbable each observation is, and the surprisal probability puts this on a probability scale, as the chance of seeing an observation at least as surprising.
-Flagging observations with surprisal probability below $\alpha$ then gives a false positive rate of $\alpha$, and the non-anomalous observations are those lying in the $100(1-\alpha)$% highest density region.
+Flagging observations with surprisal probability below $\alpha$ then gives a false positive rate of $\alpha$, and the non-anomalous observations are those lying in the $100(1 - \alpha)$% highest density region.
 Unlike $z$-scores, this allows anomalies to lie anywhere in the distribution, including between the modes of a multimodal distribution, although for Normal data the two approaches are equivalent.
 
 The main practical difficulty is that we rarely know $f$.

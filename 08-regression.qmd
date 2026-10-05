@@ -416,7 +416,10 @@ We will compute the surprisal probabilities using the rank approximation (@sec-a
 #| dependson: fig-shiraz-regression-scores
 
 wine_aug |>
-  mutate(prob = 1 - (rank(loo_surprisals) - 1) / NROW(wine_aug)) |>
+  mutate(
+    prob = (NROW(wine_aug) - rank(loo_surprisals, ties.method = "min") + 1) /
+      NROW(wine_aug)
+  ) |>
   select(country:winery, year, points, price, loo_surprisals, prob) |>
   arrange(prob)
 ```

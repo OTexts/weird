@@ -327,7 +327,7 @@ How the target matrices are chosen distinguishes different types of tours.
 - A **guided tour** instead finds target matrices that increase some numerical measure of "interestingness", known as a **projection pursuit index** [@FriedmanTukey1974].
   Rather than sweeping through projections at random, the tour moves towards projections that best reveal whatever feature the index is designed to detect.
   In the context of anomaly detection, a guided tour would use an index that measures anomalousness.
-  An example is the Stahel--Donoho outlyingness index, which we will discuss in @sec-stahel-donoho.
+  A related idea is Stahel--Donoho outlyingness (@sec-stahel-donoho), which also searches over projections for those in which observations look extreme.
 
 @fig-grand-tour shows a grand tour of the 10 standardised air quality and meteorological variables from Aotizhongxin, generated using the `tourr` package [@tourr].
 
@@ -588,7 +588,7 @@ Stahel--Donoho outlyingness is a robust projection-based measure of how far each
 For any unit vector $\bm{a}$, project the data to one dimension via $\bm{a}^\intercal\bm{y}_i$, then scale the result using a robust $z$-score (@sec-scaling), adjusted for skewness [@Brys2005-pc].
 The "outlyingness" of $\bm{y}_i$ is the largest absolute $z$-score over all possible directions $\bm{a}$, so an observation is flagged when it looks extreme in at least one projection.
 
-Stahel--Donoho outlyingness is a guided tour index: it searches over one-dimensional projections.
+Computing Stahel--Donoho outlyingness is a form of projection pursuit: it searches over one-dimensional projections, but rather than looking for a single interesting projection, it finds for each observation the direction in which that observation looks most extreme.
 For each candidate direction $\bm{a}$, compute the robust $z$-scores of the projected data, and keep track of the largest value seen so far.
 
 In practice, the optimisation over all directions is approximated using many candidate projections.
@@ -1399,9 +1399,10 @@ The value of $k$ sets how large such a group can be and still be caught, since o
 Setting $k = 1$ recovers the HDoutliers nearest-neighbour score; a larger $k$ guards against larger clusters of anomalies, at the risk of flagging small but genuine groups of typical observations that lie apart from the bulk of the data.
 
 Without the clustering step, stray is also faster than HDoutliers.
-It uses kd trees (@sec-nn) for the neighbour search, and returns both an anomaly score and a binary classification.
+It can use kd trees (@sec-nn) for the neighbour search (although the default is a brute-force search), and returns both an anomaly score and a binary classification.
 The weird package provides `stray_scores()` for the score and `stray_anomalies()` for the classification.
 We will apply it to the same standardised air quality and meteorological variables from Aotizhongxin used previously.
+By default, stray first rescales each variable to the interval $[0,1]$ using its minimum and maximum, so our earlier standardisation by the mean and standard deviation has no effect on the scores; each variable is effectively scaled by its range.
 
 ```{r}
 #| label: stray
