@@ -340,7 +340,9 @@ How the target matrices are chosen distinguishes different types of tours.
 #| output: false
 
 set.seed(1)
-tourr::render_gif(
+frames_dir <- tempfile("tour")
+dir.create(frames_dir)
+tourr::render(
   as.matrix(Y),
   tourr::grand_tour(),
   tourr::display_xy(
@@ -350,26 +352,33 @@ tourr::render_gif(
     cex = 1.1,
     half_range = 11
   ),
-  gif_file = "gifs/highdim-grand-tour.gif",
+  dev = "png",
+  file.path(frames_dir, "frame%03d.png"),
   frames = 150,
   width = 900,
   height = 900
 )
+# Encode the frames as an H.264 video at 10 frames per second
+system2("ffmpeg", c(
+  "-y", "-loglevel", "error", "-framerate", "10",
+  "-i", file.path(frames_dir, "frame%03d.png"),
+  "-c:v", "libx264", "-pix_fmt", "yuv420p", "-movflags", "+faststart",
+  "gifs/highdim-grand-tour.mp4"
+))
+unlink(frames_dir, recursive = TRUE)
 ```
 
-```{r}
-#| label: fig-grand-tour
-#| echo: false
-#| dependson: grand-tour
-#| message: false
-#| warning: false
-#| out-width: 70%
-#| fig-cap: >-
-#|   A grand tour of the 10 standardised air quality and meteorological variables at Aotizhongxin.
-#|   Each frame is a different 2-dimensional projection of the data, with axis labels showing the (abbreviated) contribution of each variable to that projection.
+::: {#fig-grand-tour}
 
-knitr::include_graphics("gifs/highdim-grand-tour.gif")
+```{=html}
+<video src="gifs/highdim-grand-tour.mp4" autoplay loop muted playsinline
+  style="width: 70%; display: block; margin: auto;"></video>
 ```
+
+A grand tour of the 10 standardised air quality and meteorological variables at Aotizhongxin.
+Each frame is a different 2-dimensional projection of the data, with axis labels showing the (abbreviated) contribution of each variable to that projection.
+
+:::
 
 As the tour rotates through different projections, the bulk of the data remains near the centre, but individual points move in and out of the data cloud.
 A point that is hidden inside the cloud in one frame can suddenly appear as a clear anomaly in another, and vice versa.

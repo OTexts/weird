@@ -1,5 +1,7 @@
 project:
   type: book
+  resources:
+    - gifs/*.mp4
 
 book:
   title: "That's weird! Anomaly&nbsp;detection using&nbsp;R"
