@@ -917,6 +917,7 @@ outlier_map(PcaHubert(Y, k = 4, skew = TRUE, mcd = FALSE), alpha = 0.9)
 #| fig-cap: "Outlier maps for the Aotizhongxin data computed with the ROBPCA algorithm, using different numbers of principal components in the projection."
 #| message: false
 
+set.seed(1967)
 rob <- lapply(1:4, function(k) PcaHubert(Y, k, skew = TRUE, mcd = FALSE))
 maps <- lapply(rob, outlier_map, alpha = 0.9)
 # Extract one shared legend from a panel containing all four categories
@@ -951,7 +952,9 @@ stopifnot(
   between(rob4@sd[i320] / rob4@cutoff.sd, 0.9, 1.4),
   rob4@od[i320] > 2 * rob4@cutoff.od,
   rob[[1]]@od[i320] - rob4@od[i320] < 2.5,
-  all(rob4$loadings[c("wind_speed", "pm10"), 4] > 0.25),
+  # Sign of a component is arbitrary: require same sign and |loading| > 0.25
+  abs(sum(sign(rob4$loadings[c("wind_speed", "pm10"), 4]))) == 2,
+  all(abs(rob4$loadings[c("wind_speed", "pm10"), 4]) > 0.25),
   PcaClassic(Y, k = 4)@sd[i320] > 2 * PcaClassic(Y, k = 4)@cutoff.sd,
   all(
     abs(pca_robpca$loadings[c("no2", "wind_speed"), 1]) >
