@@ -858,11 +858,11 @@ requires = [
 
 [[package]]
 name = "dbscan"
-version = "1.2.6"
+version = "1.2.7"
 source = "cran"
-raw_version = "1.2.6"
-url = "https://cran.r-project.org/src/contrib/dbscan_1.2.6.tar.gz"
-checksum = "md5:edb50e67fba7fc8c731be69e4f694978"
+raw_version = "1.2.7"
+url = "https://cran.r-project.org/src/contrib/dbscan_1.2.7.tar.gz"
+checksum = "md5:fbdda33921d96961054b5d3ea0ba4f58"
 requires = [
     "generics",
     "Rcpp",
@@ -1938,6 +1938,14 @@ requires = [
 ]
 
 [[package]]
+name = "jpeg"
+version = "0.1.11"
+source = "cran"
+raw_version = "0.1-11"
+url = "https://cran.r-project.org/src/contrib/jpeg_0.1-11.tar.gz"
+checksum = "md5:415c72850990d7889408dcfd29805613"
+
+[[package]]
 name = "jquerylib"
 version = "0.1.4"
 source = "cran"
@@ -2688,6 +2696,14 @@ requires = [
     "Rcpp",
     "Rcpp",
 ]
+
+[[package]]
+name = "png"
+version = "0.1.9"
+source = "cran"
+raw_version = "0.1-9"
+url = "https://cran.r-project.org/src/contrib/png_0.1-9.tar.gz"
+checksum = "md5:1410f91d9ac052c15c6eea3bc1c89672"
 
 [[package]]
 name = "polyclip"
@@ -3888,11 +3904,11 @@ requires = [
 
 [[package]]
 name = "vital"
-version = "2.0.3"
+version = "2.1.0"
 source = "cran"
-raw_version = "2.0.3"
-url = "https://cran.r-project.org/src/contrib/vital_2.0.3.tar.gz"
-checksum = "md5:f93b0bdda4c4c671f786abe33fafdb6e"
+raw_version = "2.1.0"
+url = "https://cran.r-project.org/src/contrib/vital_2.1.0.tar.gz"
+checksum = "md5:f2044fdcc5b404aeb94d497482859e2e"
 requires = [
     "cobs",
     "distributional",
@@ -3906,6 +3922,7 @@ requires = [
     "patchwork",
     "purrr",
     "rlang",
+    "rvest",
     "StMoMo",
     "tibble",
     "tidyr",
@@ -3951,8 +3968,8 @@ checksum = "md5:b5603af0a2d1b62511f85f5574c747a8"
 name = "weird"
 version = "3.1.0-4.9000"
 source = "github"
-url = "https://api.github.com/repos/robjhyndman/weird/tarball/a38868078edcb985e5244a5a56c51f5436dba039"
-checksum = "git:a38868078edcb985e5244a5a56c51f5436dba039"
+url = "https://api.github.com/repos/robjhyndman/weird/tarball/e4de45fb2873a019b4525a50ac87f71aa159d7cd"
+checksum = "git:e4de45fb2873a019b4525a50ac87f71aa159d7cd"
 requires = [
     "aplpack",
     "broom",

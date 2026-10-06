@@ -1,1 +1,764 @@
 # Image and video data {#sec-image}
+
+```{r}
+#| label: setup13
+#| include: false
+#| cache: false
+
+source("before-each-chapter.R")
+library(rrcov)
+library(mclust)
+```
+
+A greyscale image of $p \times q$ pixels can be stored as a vector of length $m = pq$, where each element is the intensity (darkness) of one pixel.
+So a collection of $n$ images is just an $n \times m$ data matrix, with one row per image, and in principle any of the multivariate methods from earlier chapters could be applied to it.
+In practice, $m$ is large (even a small $28 \times 28$ image has 784 pixels), and neighbouring pixels are very strongly correlated, so the data lie close to a much lower-dimensional subspace.
+That makes images a natural application for the high-dimensional methods of @sec-highdim.
+
+There are two broad strategies.
+The first is to project the images onto a small number of principal components, and look for anomalies among the component scores and in the residuals.
+The second is to compute a small number of interpretable features from each image, and look for anomalies among the features, much as we did for time series features in @sec-timeseries.
+We will apply both strategies, and all of the multivariate methods from earlier chapters, to the same collection of images.
+
+Video adds a time dimension: a video is a sequence of images (frames), usually taken by a fixed camera.
+At the end of the chapter, we will treat each frame as an observation to find the frames in which something happens, and compare each frame with a robust estimate of the static background to find where in the frame it happens.
+
+## Fashion-MNIST data {#sec-fashion}
+
+The Fashion-MNIST data [@Xiao2017] consist of 70,000 greyscale images of clothing items from the online retailer Zalando, each of $28 \times 28$ pixels, in ten classes (T-shirts, trousers, pullovers, dresses, coats, sandals, shirts, sneakers, bags and ankle boots).
+We will use the 1000 sneakers from the test set, and add 10 images from other classes: four ankle boots, three sandals, two bags and one pair of trousers.
+These planted images range from very different from a sneaker (the trousers and bags) to quite similar (the ankle boots), so we know at least some of the anomalies, and can see which methods find them.
+The data are stored in the tibble `fashion`, with one row per image, the original test set index `id`, the class `label`, a logical column `planted`, and a $1010 \times 784$ matrix column `pixels` of pixel intensities between 0 (white) and 255 (black).
+
+```{r}
+#| label: fashion
+#| code-fold: false
+
+fashion <- readRDS(here::here("rds/fashion.rds"))
+fashion |> select(-pixels)
+```
+
+```{r}
+#| label: plot-images
+#| code-fold: false
+#| dependson: fashion
+
+# Plot images given as rows of a matrix with 784 columns
+plot_images <- function(pixels, titles = NULL, ncol = 10) {
+  if (is.null(titles)) {
+    titles <- seq_len(NROW(pixels))
+  }
+  titles <- factor(titles, levels = unique(titles))
+  tibble(
+    title = rep(titles, each = 784),
+    value = c(t(pixels)),
+    col = rep(rep(1:28, 28), NROW(pixels)),
+    row = rep(rep(1:28, each = 28), NROW(pixels))
+  ) |>
+    ggplot(aes(x = col, y = row, fill = value)) +
+    geom_raster() +
+    scale_y_reverse() +
+    scale_fill_gradient(low = "white", high = "black", guide = "none") +
+    facet_wrap(~title, ncol = ncol) +
+    coord_equal() +
+    theme_void() +
+    theme(strip.text = element_text(size = 8))
+}
+```
+
+@fig-fashion shows 20 of the sneakers along with the planted images.
+
+```{r}
+#| label: fig-fashion
+#| dependson: plot-images
+#| fig-asp: 0.36
+#| fig-cap: >-
+#|   Top two rows: 20 randomly selected sneakers from the Fashion-MNIST test set.
+#|   Bottom row: the ten planted images from other classes.
+
+shown <- c(sample(which(!fashion$planted), 20), which(fashion$planted))
+plot_images(
+  fashion$pixels[shown, ],
+  titles = paste0(seq_along(shown), ": ", fashion$label[shown])
+)
+```
+
+## Principal components of images {#sec-image-pca}
+
+We rescale the intensities to lie between 0 and 1, and drop the pixels that are white in every image (all in the corners), as they carry no information.
+We do not standardise each pixel, because all pixels are measured on the same scale, and standardising would inflate the noise in the nearly-white pixels near the edges of the images.
+
+```{r}
+#| label: fashion-pca
+#| code-fold: false
+#| dependson: fashion
+
+X <- fashion$pixels / 255
+used <- apply(X, 2, sd) > 0
+X <- X[, used]
+pca_fashion <- PcaClassic(X, k = 50)
+```
+
+```{r}
+#| label: fashion-var
+#| dependson: fashion-pca
+
+cum_var <- 100 * cumsum(pca_fashion$eigenvalues) / sum(apply(X, 2, var))
+```
+
+This leaves $m = `r sum(used)`$ pixels.
+The first two principal components explain `r round(cum_var[2])`% of the variance, the first ten explain `r round(cum_var[10])`%, and 50 components are needed to explain `r round(cum_var[50])`%.
+So the images are not as close to a low-dimensional subspace as the air quality data of @sec-highdim, but the first few components still capture much of the structure.
+
+Each principal component direction $\bm{a}_j$ is itself a vector of `r sum(used)` pixel weights, and so it can be displayed as an image.
+@fig-eigen-images shows the first ten components, often called "eigen-images".
+
+```{r}
+#| label: fig-eigen-images
+#| dependson: fashion-pca
+#| fig-asp: 0.16
+#| fig-cap: >-
+#|   The first ten principal component directions of the sneaker images, shown as images.
+#|   Red pixels have positive weights, blue pixels have negative weights, and white pixels
+#|   have weights close to zero.
+
+loadings <- matrix(0, nrow = 10, ncol = 784)
+loadings[, used] <- t(pca_fashion$loadings[, 1:10])
+loadings[, !used] <- NA
+tibble(
+  pc = factor(rep(paste0("PC", 1:10), each = 784), levels = paste0("PC", 1:10)),
+  value = c(t(loadings)),
+  col = rep(rep(1:28, 28), 10),
+  row = rep(rep(1:28, each = 28), 10)
+) |>
+  ggplot(aes(x = col, y = row, fill = value)) +
+  geom_raster() +
+  scale_y_reverse() +
+  scale_fill_gradient2(
+    low = "#2166AC", mid = "white", high = "#B2182B",
+    na.value = "white", guide = "none"
+  ) +
+  facet_wrap(~pc, ncol = 10) +
+  coord_equal() +
+  theme_void()
+```
+
+@fig-fashion-pc12 shows the first two principal component scores, with the planted images highlighted.
+
+```{r}
+#| label: fig-fashion-pc12
+#| dependson: fashion-pca
+#| fig-cap: >-
+#|   The first two principal component scores of the sneaker images.
+#|   The planted images from other classes are shown in colour.
+
+fashion_scores <- fashion |>
+  select(id, label, planted) |>
+  mutate(
+    PC1 = pca_fashion$scores[, 1],
+    PC2 = pca_fashion$scores[, 2]
+  )
+fashion_scores |>
+  ggplot(aes(x = PC1, y = PC2)) +
+  geom_point(data = filter(fashion_scores, !planted), col = "grey60") +
+  geom_point(data = filter(fashion_scores, planted), aes(col = label), size = 2) +
+  labs(col = "Planted")
+```
+
+The two bags and the trousers lie towards the edges of the point cloud, but none of the planted images is far from the sneakers in these two dimensions.
+Most of the weights in the first eigen-image are positive, so the first component mostly measures how dark the image is overall (its correlation with the mean intensity is `r round(cor(pca_fashion$scores[, 1], rowMeans(X)), 2)`), and the two bags and most of the ankle boots have large values because they are dark.
+Differences in shape, which would distinguish a sandal or a boot from a sneaker, are spread over many components.
+
+## Anomalies in the principal component scores {#sec-image-pca-anomalies}
+
+We will use $k = 10$ principal components, explaining `r round(cum_var[10])`% of the variance.
+Each image then has two summaries of how unusual it is, as described in @sec-pca: its score distance, which measures how far its 10-dimensional scores are from the centre of the score distribution, and its orthogonal distance, which measures how badly the image is reconstructed by the first ten eigen-images.
+
+```{r}
+#| label: fashion-pca10
+#| code-fold: false
+#| dependson: fashion-pca
+
+pca10 <- PcaClassic(X, k = 10)
+set.seed(1967)
+robpca10 <- PcaHubert(X, k = 10)
+```
+
+@fig-fashion-outliermap shows the outlier maps from classical PCA and from ROBPCA (@sec-robpca).
+
+```{r}
+#| label: fig-fashion-outliermap
+#| dependson: fashion-pca10
+#| fig-cap: >-
+#|   Outlier maps for the sneaker images using ten principal components.
+#|   Left: classical PCA. Right: robust PCA (ROBPCA).
+
+patchwork::wrap_plots(
+  outlier_map(pca10) + ggtitle("Classical PCA"),
+  outlier_map(robpca10) + ggtitle("ROBPCA"),
+  guides = "collect"
+) &
+  theme(legend.position = "bottom")
+```
+
+```{r}
+#| label: fashion-outliermap-check
+#| include: false
+#| dependson: fashion-pca10
+
+# Bags and trousers are bad leverage points under both classical PCA and ROBPCA
+obvious <- fashion$label %in% c("Bag", "Trousers")
+stopifnot(
+  all(pca10@sd[obvious] > pca10@cutoff.sd & pca10@od[obvious] > pca10@cutoff.od),
+  all(robpca10@sd[obvious] > robpca10@cutoff.sd & robpca10@od[obvious] > robpca10@cutoff.od)
+)
+n_flag <- function(p) sum(p@sd > p@cutoff.sd | p@od > p@cutoff.od)
+n_flag_classical <- n_flag(pca10)
+n_flag_robpca <- n_flag(robpca10)
+stopifnot(n_flag_robpca > 2 * n_flag_classical)
+```
+
+The two bags and the trousers are bad leverage points in both maps: they have extreme scores on the first ten components, and they are also poorly reconstructed by them.
+ROBPCA classifies `r n_flag_robpca` images as anomalous (outside one or both cutoffs), compared with `r n_flag_classical` for classical PCA.
+The robust components are fitted to the bulk of the sneakers, so the less typical sneakers are further from them.
+
+### Comparing methods
+
+The scores live in a 10-dimensional space, so we can also apply any of the multivariate methods from @sec-distance-methods and @sec-density-methods to them.
+The function below computes seven of them for a matrix `W`, with larger values indicating more anomalous observations in every case.
+Following @sec-robpca, the isolation forest is applied to the scores together with the orthogonal distances.
+We use $k = 10$ nearest neighbours for the kNN, LOF and GLOSH scores, rather than the $k = 20$ used in @sec-distance-methods.
+We will use the same function on the image features in @sec-image-features, and with $k = 20$ neighbours HDBSCAN finds no clusters among the features, in which case GLOSH gives every observation a score of 1.
+
+```{r}
+#| label: fashion-methods
+#| code-fold: false
+#| dependson: fashion-pca10
+
+anomaly_scores <- function(W, od = NULL, k = 10) {
+  set.seed(1967)
+  gmm <- Mclust(W, verbose = FALSE) |> dist_mclust()
+  iso_data <- as_tibble(W)
+  if (!is.null(od)) {
+    iso_data$od <- od
+  }
+  tibble(
+    kNN = dbscan::kNNdist(W, k = k),
+    LOF = lof_scores(W, k = k),
+    GLOSH = glosh_scores(W, k = k),
+    `Isolation forest` = predict(
+      isotree::isolation.forest(iso_data, seed = 1967),
+      iso_data
+    ),
+    Stray = stray_scores(W),
+    `Stahel-Donoho` = robustbase::adjOutlyingness(W)$adjout,
+    `GMM surprisal` = surprisals(W, distribution = gmm)
+  )
+}
+pca_methods <- anomaly_scores(pca10$scores, od = pca10$od) |>
+  mutate(
+    `Score distance` = pca10$sd,
+    `Orthogonal distance` = pca10$od,
+    `ROBPCA OD` = robpca10$od,
+    .before = 1
+  )
+```
+
+To compare the methods, we convert each set of scores to ranks (1 = most anomalous), and count how many of the ten planted images are among the 20 most anomalous images.
+
+```{r}
+#| label: fashion-method-ranks
+#| code-fold: false
+#| dependson: fashion-methods
+
+method_ranks <- function(scores) {
+  scores |>
+    mutate(across(everything(), \(x) rank(-x, ties.method = "min"))) |>
+    bind_cols(fashion |> select(id, label, planted))
+}
+planted_found <- function(ranks, top = 20) {
+  ranks |>
+    filter(planted) |>
+    summarise(across(-c(id, label, planted), \(x) sum(x <= top))) |>
+    tidyr::pivot_longer(everything(), names_to = "Method", values_to = "Planted")
+}
+pca_ranks <- method_ranks(pca_methods)
+planted_found(pca_ranks)
+```
+
+```{r}
+#| label: fashion-method-ranks-check
+#| include: false
+#| dependson: fashion-method-ranks
+
+found <- planted_found(pca_ranks)
+found <- setNames(found$Planted, found$Method)
+stopifnot(
+  found["ROBPCA OD"] == 7,
+  found["Score distance"] == 6,
+  found["LOF"] == 4,
+  found["GMM surprisal"] == 4,
+  max(found) == 7,
+  min(found) == 4
+)
+# Bags and trousers in the top 20 of every method except LOF and GMM
+bt <- pca_ranks |> filter(label %in% c("Bag", "Trousers"))
+stopifnot(all(as.matrix(bt |> select(-c(id, label, planted, LOF, `GMM surprisal`))) <= 20))
+# The high-heeled sandal (id 2544) is found by orthogonal distance but not score distance
+heel <- pca_ranks |> filter(id == 2544)
+stopifnot(heel$`Orthogonal distance` <= 10, heel$`Score distance` > 100)
+# Every method finds 1-3 of the 4 ankle boots
+boots_found <- pca_ranks |>
+  filter(label == "Ankle boot") |>
+  summarise(across(-c(id, label, planted), \(x) sum(x <= 20)))
+stopifnot(all(boots_found >= 1 & boots_found <= 3))
+# Ankle boot 9968 is missed by every method
+stopifnot(all(as.matrix(pca_ranks |> filter(id == 9968) |> select(-c(id, label, planted))) > 100))
+```
+
+```{r}
+#| label: fashion-gmm-check
+#| include: false
+#| dependson: fashion-pca10
+
+set.seed(1967)
+gmm_fit <- Mclust(pca10$scores, verbose = FALSE)
+cls <- gmm_fit$classification
+bag_cls <- unique(cls[fashion$label == "Bag"])
+gmm_bag_size <- sum(cls == bag_cls)
+stopifnot(
+  length(bag_cls) == 1,
+  sum(cls[fashion$label == "Ankle boot"] == bag_cls) == 3,
+  cor(pca_fashion$scores[, 1], rowMeans(X)) > 0.8,
+  mean(pca_fashion$loadings[, 1] > 0) > 0.8
+)
+```
+
+Every method finds between `r min(found)` and `r max(found)` of the planted images.
+Apart from LOF and the GMM surprisals, all methods put the two bags and the trousers in their top 20, and each method finds between one and three of the four ankle boots.
+The sandals are harder.
+The high-heeled sandal (image 25 in @fig-fashion) has one of the largest orthogonal distances, but an ordinary score distance: its shape is unlike any combination of the first ten eigen-images, but its scores are not unusual.
+Methods that use only the scores miss it, while the orthogonal distances, and the isolation forest which uses them, find it.
+The other two sandals have thin straps and little dark area, so most of their pixels match the pale background of a sneaker image.
+One ankle boot (image 23 in @fig-fashion) is not in the top 100 for any method; it has a low profile and a pale sole, and looks much like a high-top sneaker.
+
+The results from ROBPCA, the isolation forest, and the Stahel--Donoho outlyingness depend on random subsets or random directions.
+Refitting with other seeds changes the number of planted images in their top 20 by at most one.
+
+@fig-fashion-top shows the ten most anomalous images for each method, with the planted images outlined.
+Most of the unplanted images are genuinely unusual sneakers: high-tops, wedge heels, and sneakers with bold contrasting patterns.
+The distance-based methods (score distance, kNN, GLOSH, isolation forest and Stahel--Donoho) largely agree.
+LOF and the GMM surprisals behave differently.
+The planted images lie in the sparse outer region of the score distribution (@fig-fashion-pc12), where the sneakers that surround them are also sparse, so their local density relative to their neighbours (which is what LOF measures) is not unusual.
+The Gaussian mixture model chosen by `Mclust()` has `r gmm_fit$G` components, one of which (with `r gmm_bag_size` images) covers the dark region containing the two bags and three of the ankle boots.
+So these images are not in a region of low density under the fitted mixture, and their surprisals are only moderate.
+
+```{r}
+#| label: fig-fashion-top
+#| dependson: fashion-method-ranks
+#| fig-height: 9
+#| fig-cap: >-
+#|   The ten most anomalous images according to each method applied to the first ten
+#|   principal component scores, ordered from left to right.
+#|   The planted images are outlined.
+
+plot_top <- function(ranks, top = 10) {
+  methods <- setdiff(names(ranks), c("id", "label", "planted"))
+  best <- ranks |>
+    tidyr::pivot_longer(all_of(methods), names_to = "method", values_to = "rank") |>
+    group_by(method) |>
+    slice_min(rank, n = top, with_ties = FALSE) |>
+    mutate(rank = row_number()) |>
+    ungroup() |>
+    mutate(method = factor(method, levels = methods))
+  tibble(
+    method = rep(best$method, each = 784),
+    rank = rep(best$rank, each = 784),
+    value = c(t(fashion$pixels[match(best$id, fashion$id), ])),
+    col = rep(rep(1:28, 28), nrow(best)),
+    row = rep(rep(1:28, each = 28), nrow(best))
+  ) |>
+    ggplot(aes(x = col, y = row, fill = value)) +
+    geom_raster() +
+    geom_rect(
+      data = best |> filter(planted),
+      aes(xmin = 0.5, xmax = 28.5, ymin = 0.5, ymax = 28.5),
+      fill = NA, col = "#D55E00", linewidth = 0.8, inherit.aes = FALSE
+    ) +
+    scale_y_reverse() +
+    scale_fill_gradient(low = "white", high = "black", guide = "none") +
+    facet_grid(method ~ rank, switch = "y") +
+    coord_equal() +
+    theme_void() +
+    theme(
+      strip.text.y.left = element_text(angle = 0, hjust = 1, size = 9),
+      strip.text.x = element_blank()
+    )
+}
+plot_top(pca_ranks)
+```
+
+## Image features {#sec-image-features}
+
+The second strategy is to describe each image by a few interpretable features, and then look for anomalies among the features.
+This is the same idea that we used for time series in @sec-timeseries.
+The choice of features determines which anomalies can be found, since an image that is unusual in a way that none of the features measure will look ordinary.
+
+We will compute seven simple features from each image.
+Pixels with intensity above 0.1 (on the 0--1 scale) are treated as part of the item, and the rest as background.
+
+* `darkness`: the mean intensity of the item pixels;
+* `contrast`: the standard deviation of the intensity of the item pixels;
+* `area`: the proportion of the image covered by the item;
+* `aspect`: the height of the item divided by its width;
+* `vcentre`: the row of the centre of mass of the intensity (larger values are lower in the image);
+* `edges`: the total absolute difference between horizontally and vertically adjacent pixels, divided by the number of item pixels;
+* `entropy`: the entropy of the intensities of the item pixels, grouped into nine bins of width 0.1.
+
+```{r}
+#| label: fashion-features
+#| code-fold: false
+#| dependson: fashion
+
+image_features <- function(x) {
+  img <- matrix(x / 255, 28, 28, byrow = TRUE)
+  item <- img > 0.1
+  rows <- which(rowSums(item) > 0)
+  cols <- which(colSums(item) > 0)
+  grad_x <- img[, -1] - img[, -28]
+  grad_y <- img[-1, ] - img[-28, ]
+  counts <- hist(img[item], breaks = seq(0.1, 1, by = 0.1), plot = FALSE)$counts
+  prop <- counts[counts > 0] / sum(counts)
+  tibble(
+    darkness = mean(img[item]),
+    contrast = sd(img[item]),
+    area = mean(item),
+    aspect = length(rows) / length(cols),
+    vcentre = sum(row(img) * img) / sum(img),
+    edges = (sum(abs(grad_x)) + sum(abs(grad_y))) / sum(item),
+    entropy = -sum(prop * log(prop))
+  )
+}
+features <- lapply(seq_len(nrow(fashion)), \(i) image_features(fashion$pixels[i, ])) |>
+  bind_rows()
+features
+```
+
+The width of almost every sneaker is the full 28 pixels, which is why we use the aspect ratio rather than the height and width separately: a variable with almost no variation has a robust scale of zero, which breaks the robust scaling (@sec-scaling).
+We scale the features robustly using `mvscale()`, and then apply the same methods as before, along with the Mahalanobis distance of the scaled features.
+
+```{r}
+#| label: fashion-feature-methods
+#| code-fold: false
+#| dependson: [fashion-features, fashion-method-ranks]
+
+Z <- mvscale(features)
+feature_methods <- anomaly_scores(as.matrix(Z)) |>
+  mutate(Mahalanobis = sqrt(rowSums(Z^2)), .before = 1)
+feature_ranks <- method_ranks(feature_methods)
+planted_found(feature_ranks)
+```
+
+```{r}
+#| label: fashion-feature-check
+#| include: false
+#| dependson: fashion-feature-methods
+
+found_f <- planted_found(feature_ranks)
+stopifnot(all(found_f$Planted == 5))
+fr <- feature_ranks |> select(-c(id, label, planted)) |> as.matrix()
+# Trousers top for every method; high-heeled sandal and both bags in every top 20
+stopifnot(
+  all(fr[feature_ranks$label == "Trousers", ] == 1),
+  all(fr[feature_ranks$id %in% c(2544, 3153, 9822), ] <= 20)
+)
+# Only the first ankle boot (3311) is in any top 20; ankle boot 9968 is not in any top 100
+boots <- feature_ranks$label == "Ankle boot"
+stopifnot(
+  all(fr[feature_ranks$id == 3311, ] <= 20),
+  all(fr[boots & feature_ranks$id != 3311, ] > 20),
+  all(fr[feature_ranks$id == 9968, ] > 100)
+)
+# Most of the top 10 unplanted images by Mahalanobis distance are pale (low darkness)
+top_unplanted <- feature_ranks |>
+  mutate(darkness = Z$z1) |>
+  filter(!planted) |>
+  slice_min(Mahalanobis, n = 10)
+stopifnot(sum(top_unplanted$darkness < -2) >= 6)
+pale <- top_unplanted |> filter(darkness < -2) |> pull(id)
+pale_pca <- pca_ranks |> filter(id %in% pale)
+stopifnot(
+  all(pale_pca$`Orthogonal distance` > 500),
+  all(pale_pca$kNN > 50),
+  all(pca_fashion$scores[match(pale, fashion$id), 1] < 0)
+)
+```
+
+Every method finds the same five planted images: the trousers (which are the most anomalous image for every method), the high-heeled sandal, the two bags, and one ankle boot.
+The trousers are much taller than they are wide, and cover far less of the image than a sneaker, and the high-heeled sandal is also tall and covers little of the image.
+The other three ankle boots have the same general shape as a sneaker, and none of the seven features distinguishes them.
+
+@fig-feature-top shows that the features also pick out different unplanted images from those found using the principal components.
+Most of these are very pale sneakers, which have low `darkness` and low `entropy`.
+These were not unusual on the principal components: they have large negative scores on the first component, but so do many other pale sneakers, and they are among the best reconstructed images, with small orthogonal distances.
+
+```{r}
+#| label: fig-feature-top
+#| dependson: fashion-feature-methods
+#| fig-height: 7.5
+#| fig-cap: >-
+#|   The ten most anomalous images according to each method applied to the seven image
+#|   features, ordered from left to right.
+#|   The planted images are outlined.
+
+plot_top(feature_ranks)
+```
+
+The two strategies are complementary.
+The principal components are learned from the data, and so can detect any image that is a poor fit to the main patterns of variation, even when we could not say in advance what would make it unusual.
+But each component is a weighted combination of hundreds of pixels, so it is hard to explain why an image is anomalous.
+Features are chosen by the analyst, so they only detect the kinds of anomaly the analyst anticipated, but the anomalies they find are easy to explain.
+
+For larger and more complex images, such as photographs, hand-crafted features like these are usually replaced by features learned by a convolutional neural network that has been trained on a large collection of images.
+The output of one of the final layers of the network provides a few hundred features for each image, and any of the multivariate methods in this book can then be applied to those features.
+
+## Video data {#sec-video}
+
+The PETS2006 video, from the CDnet 2014 change detection benchmark [@Wang2014], was taken by a fixed camera overlooking the concourse of a railway station.
+For most of the video, a man stands near the glass wall at the back of the concourse with a bag, while other people walk past.
+He then puts the bag down, and eventually walks away, leaving it behind.
+For every frame, the benchmark provides a ground-truth mask showing which pixels belong to moving objects, which we will use to check the results.
+
+```{r}
+#| label: pets2006
+#| code-fold: false
+
+pets2006 <- readRDS(here::here("rds/pets2006.rds"))
+V <- pets2006$pixels / 255
+dim(V)
+```
+
+We use frames 300 to 1200 (the frames that have ground-truth masks), taking every third frame, and convert them to greyscale.
+To keep the data manageable, each frame has been reduced from $720 \times 576$ pixels to $120 \times 96$ pixels by averaging over blocks of $6 \times 6$ pixels.
+The data are stored in the list `pets2006`, with the frame numbers in `frame`, and the pixel intensities (from 0 for black to 255 for white) in the $`r nrow(pets2006$pixels)` \times `r ncol(pets2006$pixels)`$ matrix `pixels`, with one row per frame.
+The matrix `truth` has the same dimensions, and gives the number of pixels in each $6 \times 6$ block that the ground truth labels as part of a moving object.
+
+```{r}
+#| label: plot-frames
+#| code-fold: false
+#| dependson: pets2006
+
+# Plot rows of a matrix as video frames
+plot_frames <- function(values, titles, height = 96, width = 120, ...) {
+  values <- matrix(values, ncol = height * width)
+  titles <- factor(rep(titles, each = height * width), levels = unique(titles))
+  tibble(
+    title = titles,
+    value = c(t(values)),
+    row = rep(rep(seq_len(height), width), nrow(values)),
+    col = rep(rep(seq_len(width), each = height), nrow(values))
+  ) |>
+    ggplot(aes(x = col, y = row, fill = value)) +
+    geom_raster() +
+    scale_y_reverse() +
+    facet_wrap(~title, ...) +
+    coord_equal() +
+    theme_void()
+}
+```
+
+```{r}
+#| label: fig-pets-frames
+#| dependson: plot-frames
+#| fig-asp: 0.45
+#| fig-cap: >-
+#|   Six frames from the PETS2006 video, after conversion to greyscale and downsampling to
+#|   120 by 96 pixels.
+
+shown <- match(c(450, 720, 900, 951, 1101, 1197), pets2006$frame)
+plot_frames(V[shown, ], paste("Frame", pets2006$frame[shown]), ncol = 3) +
+  scale_fill_gradient(low = "black", high = "white", guide = "none")
+```
+
+### Anomalous frames
+
+If each frame is treated as an observation, the video becomes a $`r nrow(V)` \times `r ncol(V)`$ data matrix, and we can use the same tools as for the Fashion-MNIST images.
+The background is the same in every frame, so most of the variation between frames is due to the people moving through the scene, and to small changes in lighting.
+A frame containing an unusual event should then be poorly reconstructed by principal components fitted to the bulk of the frames, giving it a large orthogonal distance.
+We use ROBPCA, so that the components are not pulled towards the unusual frames, and let `PcaHubert()` choose the number of components.
+
+```{r}
+#| label: pets-robpca
+#| code-fold: false
+#| dependson: pets2006
+
+set.seed(1967)
+pets_robpca <- PcaHubert(V)
+pets_robpca@k
+```
+
+```{r}
+#| label: pets-robpca-results
+#| dependson: pets-robpca
+
+pets_frames <- tibble(
+  frame = pets2006$frame,
+  od = pets_robpca@od,
+  flagged = od > pets_robpca@cutoff.od,
+  truth = rowMeans(pets2006$truth > 18)
+)
+flagged_frames <- pets_frames$frame[pets_frames$flagged]
+period1 <- range(flagged_frames[flagged_frames < 850])
+period2 <- range(flagged_frames[flagged_frames > 850])
+```
+
+```{r}
+#| label: pets-robpca-check
+#| include: false
+#| dependson: pets-robpca-results
+
+stopifnot(
+  cor(pets_frames$od, pets_frames$truth) > 0.9,
+  # Flagged frames fall in two periods separated by a long gap around frame 850
+  !any(flagged_frames > 800 & flagged_frames < 900),
+  period1[1] > 600, period1[2] < 800,
+  period2[1] > 900, period2[2] < 1050
+)
+```
+
+@fig-pets-od shows the orthogonal distance of each frame over time, along with the proportion of each frame that the ground truth labels as moving objects.
+The two series move together closely (their correlation is `r round(cor(pets_frames$od, pets_frames$truth), 2)`), so the orthogonal distance is a good measure of how much is happening in a frame, even though it uses no information about which pixels are foreground.
+`r sum(pets_frames$flagged)` frames have orthogonal distances above the ROBPCA cutoff, all in two periods: between frames `r period1[1]` and `r period1[2]`, when a person walks across the foreground close to the camera (frame 720 in @fig-pets-frames), and between frames `r period2[1]` and `r period2[2]`, when the man puts down his bag while two other people walk past in the foreground (frames 900 and 951).
+People in the foreground cover many more pixels than people at the back of the concourse, so they dominate the orthogonal distances.
+
+```{r}
+#| label: fig-pets-od
+#| dependson: pets-robpca-results
+#| fig-cap: >-
+#|   Top: orthogonal distances of the PETS2006 frames from the robust principal components,
+#|   with the ROBPCA cutoff shown as a dashed line and frames above it in orange.
+#|   Bottom: the proportion of each frame labelled as moving objects in the ground truth.
+
+patchwork::wrap_plots(
+  pets_frames |>
+    ggplot(aes(x = frame, y = od)) +
+    geom_line(col = "grey50") +
+    geom_point(data = filter(pets_frames, flagged), col = "#D55E00", size = 1) +
+    geom_hline(yintercept = pets_robpca@cutoff.od, linetype = "dashed") +
+    labs(x = NULL, y = "Orthogonal distance"),
+  pets_frames |>
+    ggplot(aes(x = frame, y = truth)) +
+    geom_line() +
+    labs(x = "Frame", y = "Moving proportion"),
+  ncol = 1
+)
+```
+
+The orthogonal distances form a time series, so the methods of @sec-timeseries could also be used here, for example to find frames that are unusual relative to the frames just before them.
+
+### Anomalous pixels
+
+The orthogonal distance tells us *when* something happens, but not *where*.
+To find the pixels that differ from the background, we can treat each pixel location separately.
+The median of the `r nrow(V)` intensities at a pixel location gives a robust estimate of the background at that location, provided the location is covered by a moving object in fewer than half of the frames.
+The difference between a frame and this median background is then large only where something is in front of the background.
+
+```{r}
+#| label: pets-residuals
+#| code-fold: false
+#| dependson: pets2006
+
+background <- apply(V, 2, median)
+resid <- sweep(V, 2, background)
+```
+
+It is tempting to convert these residuals to robust $z$-scores, and flag any pixel with a large score.
+But the noise in the residuals is far from Normal.
+
+```{r}
+#| label: pets-noise
+#| dependson: pets-residuals
+
+noise_scale <- robustbase::s_mad(c(resid))
+still <- c(pets2006$truth == 0)
+z_still <- abs(c(resid)[still]) / noise_scale
+tail_prop <- mean(z_still > 4)
+```
+
+```{r}
+#| label: pets-noise-check
+#| include: false
+#| dependson: pets-noise
+
+stopifnot(
+  abs(noise_scale * 255 - 1.48) < 0.01,
+  tail_prop > 0.01,
+  tail_prop / (2 * pnorm(-4)) > 100
+)
+```
+
+The robust standard deviation of the residuals (`s_mad()`, @sec-robust-univariate) is `r round(255 * noise_scale, 2)` grey levels, which is $1.4826$ times a MAD of a single grey level.
+Among the pixels that contain no moving object, `r round(100 * tail_prop, 1)`% have residuals more than four of these standard deviations from zero, compared with `r signif(100 * 2 * pnorm(-4), 1)`% for a Normal distribution.
+Some of these pixels are shadows and reflections of the people on the polished floor, which the ground truth deliberately excludes from moving objects, and others are caused by the compression of the original video.
+So any threshold based on a Normal distribution would flag far too many pixels, for the reasons given in @sec-zscores.
+
+Instead, @fig-pets-resid shows the absolute residuals for the frames of @fig-pets-frames, alongside the ground truth.
+
+```{r}
+#| label: fig-pets-resid
+#| dependson: [pets-residuals, fig-pets-frames]
+#| fig-asp: 0.7
+#| fig-cap: >-
+#|   Absolute differences between six PETS2006 frames and the median background (top two
+#|   rows), and the ground-truth masks of moving objects for the same frames (bottom two rows).
+#|   Lighter pixels have larger differences.
+
+titles <- paste("Frame", pets2006$frame[shown])
+patchwork::wrap_plots(
+  plot_frames(pmin(abs(resid[shown, ]), 0.3), titles, ncol = 3) +
+    scale_fill_gradient(low = "black", high = "white", guide = "none"),
+  plot_frames(pets2006$truth[shown, ] / 36, titles, ncol = 3) +
+    scale_fill_gradient(low = "black", high = "white", guide = "none"),
+  ncol = 1
+)
+```
+
+```{r}
+#| label: pets-bag-check
+#| include: false
+#| dependson: [pets-residuals, fig-pets-frames]
+
+# The abandoned bag is in the ground truth of the last frame, and has large residuals there
+last <- nrow(V)
+bag <- pets2006$truth[last, ] > 18
+stopifnot(
+  sum(bag) > 0,
+  median(abs(resid[last, bag])) > 0.1,
+  # The bag's location is covered in fewer than half the frames
+  mean(pets2006$truth[, which(bag)[1]] > 0) < 0.5
+)
+```
+
+The people in the foreground stand out clearly, along with their reflections on the floor.
+The bag also stands out once it has been left behind, because it is present in fewer than half the frames, and so is not part of the median background.
+
+## Summary {#sec-image-summary}
+
+An image with $m$ pixels is a point in $m$-dimensional space, so collections of images can be analysed with the high-dimensional methods of @sec-highdim.
+Because neighbouring pixels are strongly correlated, the images lie close to a lower-dimensional subspace, and principal component analysis finds it.
+Each image is then summarised by its scores on the first $k$ components and by its orthogonal distance from the subspace.
+Any multivariate anomaly detection method can be applied to the scores, while the orthogonal distance identifies images whose shape is not captured by the main patterns of variation, which the scores alone can miss.
+Robust PCA gives components that describe the bulk of the images rather than being pulled towards the anomalies.
+
+The alternative is to compute a small number of interpretable features from each image, scale them robustly, and apply the same multivariate methods to the features.
+Features can only reveal the kinds of anomaly they were designed to measure, but the anomalies they find are easy to explain.
+Principal components require no such choices, but the anomalies they find are harder to interpret.
+The two approaches tend to find different anomalies, so it is worth using both.
+
+Methods that measure distance from the bulk of the data (score and orthogonal distances, kNN distances, GLOSH, isolation forests, stray and Stahel--Donoho outlyingness) usually agree with each other.
+Methods that adapt to local structure, such as LOF and Gaussian mixture surprisals, can miss anomalies that lie in a sparse region alongside other unusual but genuine observations, or that are numerous enough to form their own cluster.
+
+A video from a fixed camera can be analysed in two directions.
+Treating each frame as an observation, robust PCA describes the background and its usual variation, and the orthogonal distance of each frame measures how much is happening in it; these distances form a time series that can be monitored.
+Treating each pixel location separately, the median over frames gives a robust estimate of the background, and the residuals show where in a frame something differs from it.
+Pixel noise in real video is heavy-tailed and includes shadows, reflections and compression artefacts, so thresholds based on a Normal distribution flag far too many pixels.
