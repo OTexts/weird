@@ -10,21 +10,21 @@ library(rrcov)
 library(mclust)
 ```
 
-Images and videos are now among the most common types of data, and finding unusual ones is an important task in many areas.
+Many anomaly detection problems involve images or video.
 Manufacturers photograph products on a production line to find defective items, radiologists look for abnormalities in X-rays and MRI scans, and surveillance cameras are monitored for unusual events.
 In each case, most images are similar to each other, and we are looking for the few that differ, or for the part of an image that differs from what we would expect.
 
 A greyscale image of $p \times q$ pixels can be stored as a vector of length $m = pq$, where each element is the intensity (darkness) of one pixel.
 A colour image has three intensities per pixel (red, green and blue), so it can be stored as a vector of length $3pq$ by stacking the three colour channels.
-However, it is usually simpler to convert a colour image to greyscale first, by taking a weighted average of the three channels at each pixel; we do this for the video data in @sec-video.
-So a collection of $n$ images is just an $n \times m$ data matrix, with one row per image, and in principle any of the multivariate methods from earlier chapters could be applied to it.
-In practice, $m$ is large (even a small $28 \times 28$ image has 784 pixels), and neighbouring pixels are very strongly correlated, so the data lie close to a much lower-dimensional subspace.
+Alternatively, we can convert a colour image to greyscale first, by taking a weighted average of the three channels at each pixel; we do this for the video data in @sec-video.
+So a collection of $n$ images is an $n \times m$ data matrix, with one row per image, and in principle any of the multivariate methods from earlier chapters could be applied to it.
+In practice, $m$ is large (even a small $28 \times 28$ image has 784 pixels), and neighbouring pixels are strongly correlated, so the data lie close to a much lower-dimensional subspace.
 That makes images a natural application for the high-dimensional methods of @sec-highdim.
 
 There are two broad strategies that can be applied.
 The first is to project the images onto a small number of principal components, and look for anomalies among the component scores and in the residuals.
 The second is to compute a small number of interpretable features from each image, and look for anomalies among the features, much as we did for time series features in @sec-timeseries.
-We will demonstrate both strategies on the same collection of images, using many of the multivariate methods from earlier chapters.
+Both strategies are demonstrated on the same collection of images, using many of the multivariate methods from earlier chapters.
 
 Video adds a time dimension: a video is a sequence of images (frames), usually taken by a fixed camera.
 At the end of the chapter, we will treat each frame as an observation to find the frames in which something happens, and compare each frame with a robust estimate of the static background to find where in the frame it happens.
@@ -35,7 +35,7 @@ The Fashion-MNIST data [@Xiao2017] consist of 70,000 greyscale images of clothin
 The original product photos have been converted to $28 \times 28$ greyscale images for use in machine learning, and the dataset is split into a training set of 60,000 images and a test set of 10,000 images.
 
 We will use the 1000 sneakers from the test set, and add 10 images from other classes: four ankle boots, three sandals, two bags and one pair of trousers.
-These planted images range from very different from a sneaker (the trousers and bags) to quite similar (the ankle boots), so we know at least some of the anomalies, and can see which methods find them.
+Some of these planted images are very different from a sneaker (the trousers and bags), while others are quite similar (the ankle boots), so we know at least some of the anomalies, and can see which methods find them.
 The data are stored in the tibble `fashion`, with one row per image, the original test set index `id`, the class `label`, a logical column `planted`, and a $1010 \times 784$ matrix column `pixels` of pixel intensities between 0 (white) and 255 (black).
 
 ```{r}
@@ -86,6 +86,8 @@ plot_images(
 
 ## Principal components of images {#sec-image-pca}
 
+The first strategy is to project the images onto a few principal components, and then look for anomalies among the component scores and in the parts of the images that the components fail to reconstruct.
+
 First, we rescale the intensities to lie between 0 and 1, and drop the pixels that are white in every image (all in the corners), as they carry no information.
 We do not standardise each pixel, because all pixels are measured on the same scale, and standardising would inflate the noise in the nearly-white pixels near the edges of the images.
 
@@ -121,11 +123,10 @@ Each principal component direction $\bm{a}_j$ is itself a vector of `r sum(used)
 #| fig-asp: 0.16
 #| fig-cap: >-
 #|   The first ten principal component directions of the sneaker images, shown as images.
-#|   Red pixels have positive weights, blue pixels have negative weights, and white pixels have weights close to zero.
+#|   Red pixels have positive weights, blue pixels have negative weights, and pale pixels have weights close to zero.
 
 loadings <- matrix(0, nrow = 10, ncol = 784)
 loadings[, used] <- t(pca_fashion$loadings[, 1:10])
-loadings[, !used] <- NA
 tibble(
   pc = factor(rep(paste0("PC", 1:10), each = 784), levels = paste0("PC", 1:10)),
   value = c(t(loadings)),
@@ -135,11 +136,9 @@ tibble(
   ggplot(aes(x = col, y = row, fill = value)) +
   geom_raster() +
   scale_y_reverse() +
-  scale_fill_gradient2(
-    low = "#2166AC",
-    mid = "white",
-    high = "#B2182B",
-    na.value = "white",
+  scale_fill_distiller(
+    palette = "RdBu",
+    limits = c(-1, 1) * max(abs(loadings)),
     guide = "none"
   ) +
   facet_wrap(~pc, ncol = 10) +
@@ -164,7 +163,7 @@ fashion_scores <- fashion |>
   )
 fashion_scores |>
   ggplot(aes(x = PC1, y = PC2)) +
-  geom_point(data = filter(fashion_scores, !planted), col = "grey60") +
+  geom_point(data = filter(fashion_scores, !planted), col = "grey70") +
   geom_point(
     data = filter(fashion_scores, planted),
     aes(col = label),
@@ -177,9 +176,7 @@ The two bags and the trousers lie towards the edges of the point cloud, but none
 Most of the weights in the first eigen-image are positive, so the first component mostly measures how dark the image is overall (its correlation with the mean intensity is `r round(cor(pca_fashion$scores[, 1], rowMeans(X)), 2)`), and the two bags and most of the ankle boots have large values because they are dark.
 Differences in shape, which would distinguish a sandal or a boot from a sneaker, are spread over many components.
 
-## Anomalies in the principal component scores {#sec-image-pca-anomalies}
-
-We will use $k = 10$ principal components, explaining `r round(cum_var[10])`% of the variance.
+To look for anomalies, we will use $k = 10$ principal components, explaining `r round(cum_var[10])`% of the variance.
 Each image then has two summaries of how unusual it is, as described in @sec-pca: its score distance, which measures how far its 10-dimensional scores are from the centre of the score distribution, and its orthogonal distance, which measures how badly the image is reconstructed by the first ten eigen-images.
 
 ```{r}
@@ -196,15 +193,33 @@ robpca10 <- PcaHubert(X, k = 10)
 
 ```{r}
 #| label: fig-fashion-outliermap
-#| dependson: fashion-pca10
+#| dependson: [fashion-pca10, fig-fashion]
 #| fig-cap: >-
 #|   Outlier maps for the sneaker images using ten principal components.
 #|   Left: classical PCA.
 #|   Right: robust PCA (ROBPCA).
+#|   The planted images are labelled with their numbers from @fig-fashion.
 
+# Label the planted images with their numbers in fig-fashion
+label_planted <- function(p) {
+  ggrepel::geom_label_repel(
+    data = tibble(
+      sd = p@sd[fashion$planted],
+      od = p@od[fashion$planted],
+      image = match(which(fashion$planted), shown)
+    ),
+    aes(x = sd, y = od, label = image),
+    inherit.aes = FALSE,
+    size = 3,
+    label.padding = 0.1,
+    box.padding = 0.5,
+    min.segment.length = 0,
+    seed = 1967
+  )
+}
 patchwork::wrap_plots(
-  outlier_map(pca10) + ggtitle("Classical PCA"),
-  outlier_map(robpca10) + ggtitle("ROBPCA"),
+  outlier_map(pca10) + label_planted(pca10) + ggtitle("Classical PCA"),
+  outlier_map(robpca10) + label_planted(robpca10) + ggtitle("ROBPCA"),
   guides = "collect"
 ) &
   theme(legend.position = "bottom")
@@ -226,15 +241,34 @@ stopifnot(
       robpca10@od[obvious] > robpca10@cutoff.od
   )
 )
-n_flag <- function(p) sum(p@sd > p@cutoff.sd | p@od > p@cutoff.od)
-n_flag_classical <- n_flag(pca10)
-n_flag_robpca <- n_flag(robpca10)
-stopifnot(n_flag_robpca > 2 * n_flag_classical)
+# Position of each planted image relative to the cutoffs
+type <- function(p, id) {
+  i <- match(id, fashion$id)
+  c(sd = unname(p@sd[i] / p@cutoff.sd), od = unname(p@od[i] / p@cutoff.od))
+}
+stopifnot(
+  # The high-heeled sandal is an orthogonal outlier under both fits
+  all(sapply(list(pca10, robpca10), \(p) {
+    x <- type(p, 2544)
+    x["sd"] < 1 & x["od"] > 1.2
+  })),
+  # A second sandal is just above the orthogonal distance cutoff
+  all(sapply(list(pca10, robpca10), \(p) {
+    x <- type(p, 9422)
+    x["sd"] < 1 & between(x["od"], 1, 1.1)
+  })),
+  # Classical PCA: ankle boot 3311 is a bad leverage point, 9968 is regular,
+  # and 2181 and 1537 lie close to both cutoffs
+  all(type(pca10, 3311) > 1.4),
+  all(type(pca10, 9968) < 0.8),
+  all(sapply(c(2181, 1537), \(id) all(between(type(pca10, id), 0.9, 1.25))))
+)
 ```
 
-The two bags and the trousers are bad leverage points in both maps: they have extreme scores on the first ten components, and they are also poorly reconstructed by them.
-ROBPCA classifies `r n_flag_robpca` images as anomalous (outside one or both cutoffs), compared with `r n_flag_classical` for classical PCA.
-The robust components are fitted to the bulk of the sneakers, so the less typical sneakers are further from them.
+The two bags (images 28 and 29) and the trousers (image 30) are bad leverage points in both maps: they have extreme scores on the first ten components, and those components reconstruct them poorly.
+The high-heeled sandal (image 25 in @fig-fashion) is an orthogonal outlier in both maps: its scores are typical of a sneaker, but it lies far from the subspace spanned by the components.
+A second sandal (image 26) lies just above the orthogonal distance cutoff.
+The ankle boots are spread across the classical map: one (image 21) is a clear bad leverage point, two (images 22 and 24) lie close to the corner where the cutoffs meet, and one (image 23) is a regular observation.
 
 ### Comparing methods
 
@@ -301,7 +335,7 @@ planted_found <- function(ranks, top = 20) {
     )
 }
 pca_ranks <- method_ranks(pca_methods)
-planted_found(pca_ranks)
+planted_found(pca_ranks) |> arrange(desc(Planted))
 ```
 
 ```{r}
@@ -359,17 +393,15 @@ stopifnot(
 
 Every method finds between `r min(found)` and `r max(found)` of the planted images.
 Apart from LOF and the GMM surprisals, all methods put the two bags and the trousers in their top 20, and each method finds between one and three of the four ankle boots.
-The sandals are harder.
-The high-heeled sandal (image 25 in @fig-fashion) has one of the largest orthogonal distances, but an ordinary score distance: its shape is unlike any combination of the first ten eigen-images, but its scores are not unusual.
-Methods that use only the scores miss it, while the orthogonal distances, and the isolation forest which uses them, find it.
+The sandals are harder to find: the high-heeled sandal is an orthogonal outlier, so methods that use only the scores miss it, while the orthogonal distances, and the isolation forest which uses them, find it.
 The other two sandals have thin straps and little dark area, so most of their pixels match the pale background of a sneaker image.
-One ankle boot (image 23 in @fig-fashion) is not in the top 100 for any method; it has a low profile and a pale sole, and looks much like a high-top sneaker.
+Ankle boot 23, a regular observation in the classical outlier map, is not in the top 100 for any method; it has a low profile and a pale sole, and looks much like a high-top sneaker.
 
 The results from ROBPCA, the isolation forest, and the Stahel--Donoho outlyingness depend on random subsets or random directions.
 Refitting with other seeds changes the number of planted images in their top 20 by at most one.
 
 @fig-fashion-top shows the ten most anomalous images for each method, with the planted images outlined.
-Most of the unplanted images are genuinely unusual sneakers: high-tops, wedge heels, and sneakers with bold contrasting patterns.
+Most of the unplanted images are unusual sneakers: high-tops, wedge heels, and sneakers with bold contrasting patterns.
 The distance-based methods (score distance, kNN, GLOSH, isolation forest and Stahel--Donoho) largely agree.
 LOF and the GMM surprisals behave differently.
 The planted images lie in the sparse outer region of the score distribution (@fig-fashion-pc12), where the sneakers that surround them are also sparse, so their local density relative to their neighbours (which is what LOF measures) is not unusual.
@@ -544,7 +576,6 @@ These were not unusual on the principal components: they have large negative sco
 plot_top(feature_ranks)
 ```
 
-The two strategies are complementary.
 The principal components are learned from the data, and so can detect any image that is a poor fit to the main patterns of variation, even when we could not say in advance what would make it unusual.
 But each component is a weighted combination of hundreds of pixels, so it is hard to explain why an image is anomalous.
 Features are chosen by the analyst, so they only detect the kinds of anomaly the analyst anticipated, but the anomalies they find are easy to explain.
@@ -557,25 +588,32 @@ The output of one of the final layers of the network provides a few hundred feat
 The PETS2006 video, from the CDnet 2014 change detection benchmark [@Wang2014], was taken by a fixed camera overlooking the concourse of a railway station.
 For most of the video, a man stands near the glass wall at the back of the concourse with a bag, while other people walk past.
 He then puts the bag down, and eventually walks away, leaving it behind.
-For every frame, the benchmark provides a ground-truth mask showing which pixels belong to moving objects, which we will use to check the results.
+
+We use frames 300 to 1200, taking every third frame, and convert them to greyscale.
+To keep the data manageable, each frame has been reduced from $720 \times 576$ pixels to $120 \times 96$ pixels by averaging over blocks of $6 \times 6$ pixels.
+The data are stored in the list `pets2006`, with the frame numbers in `frame`, the frame height and width (in pixels) in `nrow` and `ncol`, and the pixel intensities (from 0 for black to 255 for white) in the matrix `pixels`, with one row per frame.
 
 ```{r}
 #| label: pets2006
 #| code-fold: false
 
 pets2006 <- readRDS(here::here("rds/pets2006.rds"))
-V <- pets2006$pixels / 255
-dim(V)
+str(pets2006)
 ```
 
-We use frames 300 to 1200 (the frames that have ground-truth masks), taking every third frame, and convert them to greyscale.
-To keep the data manageable, each frame has been reduced from $720 \times 576$ pixels to $120 \times 96$ pixels by averaging over blocks of $6 \times 6$ pixels.
-The data are stored in the list `pets2006`, with the frame numbers in `frame`, and the pixel intensities (from 0 for black to 255 for white) in the $`r nrow(pets2006$pixels)` \times `r ncol(pets2006$pixels)`$ matrix `pixels`, with one row per frame.
-The matrix `truth` has the same dimensions, and gives the number of pixels in each $6 \times 6$ block that the ground truth labels as part of a moving object.
+As with the Fashion-MNIST images, we rescale the intensities to lie between 0 and 1.
+
+```{r}
+#| label: pets-v
+#| code-fold: false
+#| dependson: pets2006
+
+V <- pets2006$pixels / 255
+```
 
 ```{r}
 #| label: fig-pets-frames
-#| dependson: fashion
+#| dependson: pets-v
 #| fig-asp: 0.45
 #| fig-cap: >-
 #|   Six frames from the PETS2006 video, after conversion to greyscale and downsampling to 120 by 96 pixels.
@@ -612,10 +650,11 @@ We use ROBPCA, so that the components are not pulled towards the unusual frames,
 ```{r}
 #| label: pets-robpca
 #| code-fold: false
-#| dependson: pets2006
+#| dependson: pets-v
 
 set.seed(1967)
 pets_robpca <- PcaHubert(V)
+# Number of components chosen by PcaHubert()
 pets_robpca@k
 ```
 
@@ -626,12 +665,11 @@ pets_robpca@k
 pets_frames <- tibble(
   frame = pets2006$frame,
   od = pets_robpca@od,
-  flagged = od > pets_robpca@cutoff.od,
-  truth = rowMeans(pets2006$truth > 18)
+  above_cutoff = od > pets_robpca@cutoff.od
 )
-flagged_frames <- pets_frames$frame[pets_frames$flagged]
-period1 <- range(flagged_frames[flagged_frames < 850])
-period2 <- range(flagged_frames[flagged_frames > 850])
+frames_above <- pets_frames$frame[pets_frames$above_cutoff]
+period1 <- range(frames_above[frames_above < 850])
+period2 <- range(frames_above[frames_above > 850])
 ```
 
 ```{r}
@@ -640,41 +678,39 @@ period2 <- range(flagged_frames[flagged_frames > 850])
 #| dependson: pets-robpca-results
 
 stopifnot(
-  cor(pets_frames$od, pets_frames$truth) > 0.9,
-  # Flagged frames fall in two periods separated by a long gap around frame 850
-  !any(flagged_frames > 800 & flagged_frames < 900),
+  # Frames above the cutoff fall in two periods separated by a long gap around frame 850
+  !any(frames_above > 800 & frames_above < 900),
   period1[1] > 600,
   period1[2] < 800,
   period2[1] > 900,
-  period2[2] < 1050
+  period2[2] < 1050,
+  # Many more frames above the cutoff than expected under a Normal model
+  sum(pets_frames$above_cutoff) > 3 * 0.025 * nrow(pets_frames)
 )
 ```
 
-@fig-pets-od shows the orthogonal distance of each frame over time, along with the proportion of each frame that the ground truth labels as moving objects.
-The two series move together closely (their correlation is `r round(cor(pets_frames$od, pets_frames$truth), 2)`), so the orthogonal distance is a good measure of how much is happening in a frame, even though it uses no information about which pixels are foreground.
-`r sum(pets_frames$flagged)` frames have orthogonal distances above the ROBPCA cutoff, all in two periods: between frames `r period1[1]` and `r period1[2]`, when a person walks across the foreground close to the camera (frame 720 in @fig-pets-frames), and between frames `r period2[1]` and `r period2[2]`, when the man puts down his bag while two other people walk past in the foreground (frames 900 and 951).
+@fig-pets-od shows the orthogonal distance of each frame over time.
+The dashed line in @fig-pets-od is the orthogonal distance cutoff used in the outlier map (@sec-pca), so a frame above it would be classified as an orthogonal outlier or a bad leverage point.
+The cutoff is the 97.5% quantile under a Normal model, so we would expect only about `r round(0.025 * nrow(pets_frames))` of the `r nrow(pets_frames)` frames to lie above it by chance, but `r sum(pets_frames$above_cutoff)` do.
+These frames all fall in two periods: between frames `r period1[1]` and `r period1[2]`, when a person walks across the foreground close to the camera (frame 720 in @fig-pets-frames), and between frames `r period2[1]` and `r period2[2]`, when the man puts down his bag while two other people walk past in the foreground (frames 900 and 951).
 People in the foreground cover many more pixels than people at the back of the concourse, so they dominate the orthogonal distances.
 
 ```{r}
 #| label: fig-pets-od
 #| dependson: pets-robpca-results
 #| fig-cap: >-
-#|   Top: orthogonal distances of the PETS2006 frames from the robust principal components, with the ROBPCA cutoff shown as a dashed line and frames above it in orange.
-#|   Bottom: the proportion of each frame labelled as moving objects in the ground truth.
+#|   Orthogonal distances of the PETS2006 frames from the robust principal components, with the orthogonal distance cutoff from the ROBPCA outlier map shown as a dashed line and frames above it in orange.
 
-patchwork::wrap_plots(
-  pets_frames |>
-    ggplot(aes(x = frame, y = od)) +
-    geom_line(col = "grey50") +
-    geom_point(data = filter(pets_frames, flagged), col = "#D55E00", size = 1) +
-    geom_hline(yintercept = pets_robpca@cutoff.od, linetype = "dashed") +
-    labs(x = NULL, y = "Orthogonal distance"),
-  pets_frames |>
-    ggplot(aes(x = frame, y = truth)) +
-    geom_line() +
-    labs(x = "Frame", y = "Moving proportion"),
-  ncol = 1
-)
+pets_frames |>
+  ggplot(aes(x = frame, y = od)) +
+  geom_line(col = "grey50") +
+  geom_point(
+    data = filter(pets_frames, above_cutoff),
+    col = "#D55E00",
+    size = 1
+  ) +
+  geom_hline(yintercept = pets_robpca@cutoff.od, linetype = "dashed") +
+  labs(x = "Frame", y = "Orthogonal distance")
 ```
 
 The orthogonal distances form a time series, so the methods of @sec-timeseries could also be used here, for example to find frames that are unusual relative to the frames just before them.
@@ -689,58 +725,36 @@ The difference between a frame and this median background is then large only whe
 ```{r}
 #| label: pets-residuals
 #| code-fold: false
-#| dependson: pets2006
+#| dependson: pets-v
 
 background <- apply(V, 2, median)
 resid <- sweep(V, 2, background)
 ```
 
-It is tempting to convert these residuals to robust $z$-scores, and flag any pixel with a large score.
-But the noise in the residuals is far from Normal.
-
-```{r}
-#| label: pets-noise
-#| dependson: pets-residuals
-
-noise_scale <- robustbase::s_mad(c(resid))
-still <- c(pets2006$truth == 0)
-z_still <- abs(c(resid)[still]) / noise_scale
-tail_prop <- mean(z_still > 4)
-```
-
-```{r}
-#| label: pets-noise-check
-#| include: false
-#| dependson: pets-noise
-
-stopifnot(
-  abs(noise_scale * 255 - 1.48) < 0.01,
-  tail_prop > 0.01,
-  tail_prop / (2 * pnorm(-4)) > 100
-)
-```
-
-The robust standard deviation of the residuals (`s_mad()`, @sec-robust-univariate) is `r round(255 * noise_scale, 2)` grey levels, which is $1.4826$ times a MAD of a single grey level.
-Among the pixels that contain no moving object, `r round(100 * tail_prop, 1)`% have residuals more than four of these standard deviations from zero, compared with `r signif(100 * 2 * pnorm(-4), 1)`% for a Normal distribution.
-Some of these pixels are shadows and reflections of the people on the polished floor, which the ground truth deliberately excludes from moving objects, and others are caused by the compression of the original video.
-So any threshold based on a Normal distribution would flag far too many pixels, for the reasons given in @sec-zscores.
-
-Instead, @fig-pets-resid shows the absolute residuals for the frames of @fig-pets-frames, alongside the ground truth.
+@fig-pets-resid shows the absolute residuals for the frame with the largest orthogonal distance in each of the two periods found above, and for the last frame of the video, which has a small orthogonal distance.
 
 ```{r}
 #| label: fig-pets-resid
-#| dependson: [pets-residuals, fig-pets-frames]
-#| fig-asp: 0.7
+#| dependson: [pets-residuals, pets-robpca-results, fig-pets-frames]
+#| fig-asp: 0.6
 #| fig-cap: >-
-#|   Absolute differences between six PETS2006 frames and the median background (top two rows), and the ground-truth masks of moving objects for the same frames (bottom two rows).
+#|   Three PETS2006 frames (top row) and their absolute differences from the median background (bottom row).
+#|   The first two frames have the largest orthogonal distances in the two periods above the cutoff in @fig-pets-od; the last frame is the final frame of the video.
 #|   Lighter pixels have larger differences.
 
-titles <- paste("Frame", pets2006$frame[shown])
+# Frame with the largest orthogonal distance in each period, and the last frame
+top_frame <- function(period) {
+  in_period <- pets_frames$frame >= period[1] & pets_frames$frame <= period[2]
+  which(in_period)[which.max(pets_frames$od[in_period])]
+}
+resid_shown <- c(top_frame(period1), top_frame(period2), nrow(V))
+titles <- paste("Frame", pets2006$frame[resid_shown])
+grey_scale <- scale_fill_gradient(low = "black", high = "white", guide = "none")
 patchwork::wrap_plots(
-  plot_frames(pmin(abs(resid[shown, ]), 0.3), titles, ncol = 3) +
-    scale_fill_gradient(low = "black", high = "white", guide = "none"),
-  plot_frames(pets2006$truth[shown, ] / 36, titles, ncol = 3) +
-    scale_fill_gradient(low = "black", high = "white", guide = "none"),
+  plot_frames(V[resid_shown, ], titles, ncol = 3) + grey_scale,
+  plot_frames(pmin(abs(resid[resid_shown, ]), 0.3), titles, ncol = 3) +
+    grey_scale +
+    theme(strip.text = element_blank()),
   ncol = 1
 )
 ```
@@ -748,39 +762,43 @@ patchwork::wrap_plots(
 ```{r}
 #| label: pets-bag-check
 #| include: false
-#| dependson: [pets-residuals, fig-pets-frames]
+#| dependson: [pets-residuals, pets-robpca-results]
 
-# The abandoned bag is in the ground truth of the last frame, and has large residuals there
+# In the last frame, only a small compact patch (the bag) differs from the
+# background, and those pixels match the background in most frames
 last <- nrow(V)
-bag <- pets2006$truth[last, ] > 18
+bag <- which(abs(resid[last, ]) > 0.1)
+bag_row <- (bag - 1) %% pets2006$nrow + 1
+bag_col <- (bag - 1) %/% pets2006$nrow + 1
 stopifnot(
-  sum(bag) > 0,
-  median(abs(resid[last, bag])) > 0.1,
-  # The bag's location is covered in fewer than half the frames
-  mean(pets2006$truth[, which(bag)[1]] > 0) < 0.5
+  between(length(bag), 10, 50),
+  diff(range(bag_row)) < 10,
+  diff(range(bag_col)) < 15,
+  median(colMeans(abs(resid[, bag]) > 0.1)) < 0.5,
+  # The last frame has a small orthogonal distance
+  pets_frames$od[last] < pets_robpca@cutoff.od / 2
 )
 ```
 
-The people in the foreground stand out clearly, along with their reflections on the floor.
-The bag also stands out once it has been left behind, because it is present in fewer than half the frames, and so is not part of the median background.
+In frames `r pets2006$frame[resid_shown[1]]` and `r pets2006$frame[resid_shown[2]]`, the large residuals are where the people are.
+By frame `r pets2006$frame[resid_shown[3]]`, the man has walked away, leaving his bag behind.
+The bag covers too few pixels to give the frame a large orthogonal distance, but it stands out in the residuals, because it is present in fewer than half of the frames, and so is not part of the median background.
 
 ## Summary {#sec-image-summary}
 
 An image with $m$ pixels is a point in $m$-dimensional space, so collections of images can be analysed with the high-dimensional methods of @sec-highdim.
-Because neighbouring pixels are strongly correlated, the images lie close to a lower-dimensional subspace, and principal component analysis finds it.
+Because neighbouring pixels are strongly correlated, the images lie close to a lower-dimensional subspace, and principal component analysis can help find it.
 Each image is then summarised by its scores on the first $k$ components and by its orthogonal distance from the subspace.
 Any multivariate anomaly detection method can be applied to the scores, while the orthogonal distance identifies images whose shape is not captured by the main patterns of variation, which the scores alone can miss.
 Robust PCA gives components that describe the bulk of the images rather than being pulled towards the anomalies.
 
-The alternative is to compute a small number of interpretable features from each image, scale them robustly, and apply the same multivariate methods to the features.
+An alternative approach is to compute a small number of interpretable features from each image, scale them robustly, and apply the same multivariate methods to the features.
 Features can only reveal the kinds of anomaly they were designed to measure, but the anomalies they find are easy to explain.
 Principal components require no such choices, but the anomalies they find are harder to interpret.
-The two approaches tend to find different anomalies, so it is worth using both.
+The two approaches tend to find different anomalies, so using both is recommended.
 
-Methods that measure distance from the bulk of the data (score and orthogonal distances, kNN distances, GLOSH, isolation forests, stray and Stahel--Donoho outlyingness) usually agree with each other.
-Methods that adapt to local structure, such as LOF and Gaussian mixture surprisals, can miss anomalies that lie in a sparse region alongside other unusual but genuine observations, or that are numerous enough to form their own cluster.
-
-A video from a fixed camera can be analysed in two directions.
-Treating each frame as an observation, robust PCA describes the background and its usual variation, and the orthogonal distance of each frame measures how much is happening in it; these distances form a time series that can be monitored.
-Treating each pixel location separately, the median over frames gives a robust estimate of the background, and the residuals show where in a frame something differs from it.
-Pixel noise in real video is heavy-tailed and includes shadows, reflections and compression artefacts, so thresholds based on a Normal distribution flag far too many pixels.
+A video is a collection of images (frames) with a time order, so the methods for images apply directly to videos, with each frame treated as an observation.
+For a fixed camera, robust principal components describe the static background and its usual variation, and the orthogonal distance of each frame measures how much is happening in it.
+The time order adds two things.
+The orthogonal distances form a time series, which can be monitored with the methods of @sec-timeseries.
+And because each pixel location is observed in every frame, the median over frames gives a robust estimate of the background, and the residuals show where in a frame something differs from the background.
