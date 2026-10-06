@@ -1530,14 +1530,6 @@ requires = [
 ]
 
 [[package]]
-name = "gifski"
-version = "1.32.0-4.2"
-source = "cran"
-raw_version = "1.32.0-2"
-url = "https://cran.r-project.org/src/contrib/gifski_1.32.0-2.tar.gz"
-checksum = "md5:d896c5bb7389dea0ceb29ce1814bcf89"
-
-[[package]]
 name = "gitcreds"
 version = "0.1.2"
 source = "cran"
