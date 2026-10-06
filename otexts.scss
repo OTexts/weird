@@ -27,6 +27,36 @@ $callout-color-tip: $theme-orange;
 
 /*-- scss:rules --*/
 
+// Libron (OFL), self-hosted in fonts/
+@font-face {
+  font-family: "Libron";
+  src: url("fonts/Libron-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Libron";
+  src: url("fonts/Libron-Italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Libron";
+  src: url("fonts/Libron-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Libron";
+  src: url("fonts/Libron-BoldItalic.woff2") format("woff2");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
 h1,
 h2,
 h3 {

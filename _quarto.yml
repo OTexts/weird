@@ -64,7 +64,7 @@ format:
     toc-title: "Sections"
     fontsize: 1rem
     linestretch: 1.5
-    mainfont: "Noto Serif, Georgia, serif"
+    mainfont: "Libron, Georgia, serif"
     html-math-method: katex
     code-link: false
     fig-responsive: true
