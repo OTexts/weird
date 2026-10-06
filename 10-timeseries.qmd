@@ -75,6 +75,7 @@ To learn more about these packages and their use in time series analysis, see @f
 library(tsibble)
 library(fable)
 library(feasts)
+library(ggtime)
 library(broom)
 library(tsibbledata)
 ```
