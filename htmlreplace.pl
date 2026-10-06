@@ -12,9 +12,9 @@ while (<>) {
     s{(<div\b[^>]*\bclass="csl-entry"[^>]*>)(.*?)(</div>)}{
         my ($open, $inner, $close) = ($1, $2, $3);
         # Replace external anchors with bare anchors
-        $inner =~ s|<a\b[^>]*\bhref=([\"'])(https?://[^\"'<>\s]+)\1[^>]*>.*?</a>|<a href="$2"><i class="fa-solid fa-up-right-from-square"></i></a>|gi;
+        $inner =~ s|<a\b[^>]*\bhref=([\"'])(https?://[^\"'<>\s]+)\1[^>]*>.*?</a>|<a href="$2"><i class="bi bi-box-arrow-up-right"></i></a>|gi;
         # Strip text from doc-biblioref anchors
-        $inner =~ s|<a\b([^>]*\brole="doc-biblioref"[^>]*)>.*?</a>|<a$1><i class="fa-solid fa-up-right-from-square"></i></a>|gi;
+        $inner =~ s|<a\b([^>]*\brole="doc-biblioref"[^>]*)>.*?</a>|<a$1><i class="bi bi-box-arrow-up-right"></i></a>|gi;
         "$open$inner$close"
     }gse;
     print;
