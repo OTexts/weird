@@ -11,7 +11,7 @@ The book is written for two audiences: (1)&nbsp;people finding themselves doing 
 You will need a knowledge of statistics and probability at about second-year undergraduate level.
 So if you've done a couple of statistics subjects, and are familiar with multiple regression, hypothesis tests and probability distributions, then you should be prepared for what follows.
 This book takes a probabilistic approach to anomaly detection, and so probability distributions are particularly important.
-This is the subject of Chapters @sec-univariate and @sec-multivariate.
+This is the subject of @sec-univariate and @sec-multivariate.
 You will also need some knowledge of matrix algebra; the most important matrix results that we use are provided in @sec-appendix.
 
 Finally, you will need to know how to use R and be familiar with the [tidyverse](https://tidyverse.org) packages such as `dplyr`, `tidyr` and `ggplot2`.
