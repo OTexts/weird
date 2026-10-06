@@ -17,6 +17,11 @@ build: _book/.built
 _book/.built: $(qmd_files) $(rds_files) $(shared_deps)
 	source .uvr/activate && QUARTO_R=$$(dirname $$(command -v R)) quarto render --to html
 	perl -i htmlreplace.pl _book/*.html
+	# Reduce figures to 256 colours; pngquant leaves a file unchanged (exit 98/99)
+	# if the result would be larger or below the quality floor
+	find _book -path '*_files/figure-html/*.png' -print0 | \
+	  xargs -0 -P8 -I{} sh -c 'pngquant --force --ext .png --skip-if-larger --quality=80-100 "$$1"; \
+	    s=$$?; [ $$s -eq 0 ] || [ $$s -eq 98 ] || [ $$s -eq 99 ]' _ {}
 	touch $@
 
 preview: build
