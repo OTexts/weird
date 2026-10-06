@@ -197,7 +197,7 @@ Then the local median is given by
 $$
   m_t = \text{median}(y_{t-w}, \dots, y_{t+w}).
 $$
-This is also called a "moving median", a "running median" or a "rolling median".
+This is also called a **moving median**, a **running median** or a **rolling median**.
 Similarly, the local median absolute deviation (MAD) is given by
 $$
   a_t = \text{median}(|y_{t-w} - m_t|, \dots, |y_{t+w} - m_t|).
@@ -662,7 +662,7 @@ There are several possible explanations: restricted movements, especially of old
 Next we consider unusual series within a large collection of time series.
 
 Comparing whole time series directly is awkward, because the series can have very different scales and lengths, and two series with similar behaviour may be offset in time.
-Instead, we summarise each series by a vector of *features*: statistics computed from the series, such as the strength of trend and seasonality, autocorrelations, spectral entropy, and the size of level shifts [@icdm2015; @fpp3, Ch.\ 4].
+Instead, we summarise each series by a vector of **features**: statistics computed from the series, such as the strength of trend and seasonality, autocorrelations, spectral entropy, and the size of level shifts [@icdm2015; @fpp3, Ch.\ 4].
 Each series then becomes a single point in feature space, and finding a weird series becomes a multivariate anomaly detection problem, for which we can use any of the methods of the preceding chapters.
 Most of these features do not depend on the scale of the series, so a series is identified as anomalous because of its shape and dynamics, rather than its size.
 The choice of features determines what kind of "unusual" we can detect; a series that is unusual in some way that is not captured by any feature will not be deemed anomalous.
@@ -672,7 +672,7 @@ The PBS involves the Australian government subsidising certain pharmaceutical pr
 The data set contains monthly sales volumes of those products being subsidised, classified according to the Anatomical Therapeutic Chemical (ATC) classification system, by the type of government subsidy, and by whether the purchaser was in a concession group (such as pensioner, unemployed, etc.).
 There are `r NROW(attributes(tsibbledata::PBS)$key)` separate time series contained in the `PBS` data set.
 
-We compute all the features available in the `feasts` package for each series.
+We compute all the features available in the **`feasts`** package for each series.
 Because there are many features, and many of them are correlated with each other, we reduce them to the first two principal components (@sec-pca) after scaling each feature to have unit variance.
 
 ```{r}
@@ -878,7 +878,7 @@ For each $t = I,I + 1,\dots$, and for all series $i = 1,\dots,M$:
 To illustrate, let's apply this to the `pbs` data.
 Starting with $I = 36$ (3 years of data), we will fit ETS models to all available series [@fpp3, Ch.\ 8], and forecast one step ahead in each case.
 Then we repeat the exercise using 37 observations, then 38 observations, and so on.
-This is known as a "rolling origin forecast" because the forecast origin rolls forward by one period each iteration.
+This is known as a **rolling origin forecast** because the forecast origin rolls forward by one period each iteration.
 The process can be illustrated as in @fig-tscvplots.
 Two series start later than the others: L03 and A05 have their first non-zero values in December 1992 and November 2000, respectively.
 We only fit a model to a series once it has at least 36 observations, counting from its first non-zero value.

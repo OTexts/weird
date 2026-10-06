@@ -426,7 +426,7 @@ $$
 $$ {#eq-cov}
 However, it is sensitive to anomalies, and so is not suitable for our purposes.
 
-Many robust estimators of covariance have been proposed in the literature, but we will discuss only one, known as the "Minimum Covariance Determinant" (MCD) estimator [@Rousseeuw2003-ip;@fastmcd], which is implemented in the `covMcd()` function in the `robustbase` package [@robustbase].
+Many robust estimators of covariance have been proposed in the literature, but we will discuss only one, known as the **Minimum Covariance Determinant** (MCD) estimator [@Rousseeuw2003-ip;@fastmcd], which is implemented in the `covMcd()` function in the **`robustbase`** package [@robustbase].
 This estimator finds the subset of $h$ observations (where $n/2 < h \le n$) whose covariance matrix has the smallest determinant.
 The idea is that the subset of observations with the smallest covariance determinant is likely to be a subset of "good" observations, and so a covariance matrix computed from them will be robust to anomalies.
 If $H$ denotes this subset, the raw MCD estimate of the covariance matrix is
@@ -448,7 +448,7 @@ $$ {#eq-mcd}
 where $c_W$ is another correction factor.
 The `covMcd()` function returns $\bm{S}_{\text{MCD}}$ (as `cov`) along with the raw estimate $\bm{S}_H$ (as `raw.cov`).
 The subset size $h$ is set via the argument `alpha`, with $h \approx$ `alpha` $\times\, n$; the default `alpha = 0.5` gives the most robust estimate, allowing almost half the observations to be anomalies.
-The `mvscale()` and `kde_bandwidth()` functions in the `weird` package use `alpha = 0.9`, allowing up to 10% of the observations to be anomalies, which gives a more efficient estimate, and we will use the same value here.
+The `mvscale()` and `kde_bandwidth()` functions in the **`weird`** package use `alpha = 0.9`, allowing up to 10% of the observations to be anomalies, which gives a more efficient estimate, and we will use the same value here.
 
 To illustrate, we will construct a data set where we know the true distribution.
 We take the first two variables of the `n01` data set, $v_1$ and $v_2$, and let $y_1 = v_1$ and $y_2 = v_1 + v_2$.
@@ -566,7 +566,7 @@ They can be computed using the `mvscale()` function with the arguments `center =
 ### Robust multivariate $z$-scores
 
 When there may be anomalies in the data set, we can replace the mean by the pointwise median (i.e., the vector of medians for each variable), and estimate $\bm{\Sigma}$ using the robust covariance matrix $\bm{S}_{\text{MCD}}$ (@eq-mcd).
-The `mvscale()` function in the `weird` package will do this for us, by default.
+The `mvscale()` function in the **`weird`** package will do this for us, by default.
 
 Let's consider the `oldfaithful` data again, where waiting times are much longer than durations.
 @fig-scaling shows the data before and after scaling.
@@ -626,7 +626,7 @@ The number of clusters, $K$, must also be specified in advance, which can be dif
 ### Leader algorithm
 
 Rather than specify the number of clusters in advance, we can specify a maximum radius for each cluster, and then find clusters that satisfy this constraint.
-This is known as the leader algorithm [@Hartigan1975], and is a fast, incremental clustering method that can be used for large data sets.
+This is known as the **leader algorithm** [@Hartigan1975], and is a fast, incremental clustering method that can be used for large data sets.
 The only input required is $\delta$, the maximum distance from an observation to the leader of its cluster.
 The algorithm can be summarised as follows:
 
@@ -708,7 +708,7 @@ Border observations are then attached to any cluster containing a core observati
 If a border observation is within distance $\delta$ of core observations from more than one cluster, its assignment may be arbitrary or implementation-dependent.
 Noise observations are not assigned to any cluster.
 
-The DBSCAN algorithm is implemented in the `dbscan()` function in the `dbscan` package.
+The DBSCAN algorithm is implemented in the `dbscan()` function in the **`dbscan`** package.
 @fig-clustering-dbscan shows the result for the Old Faithful data set, using $\delta = 0.61$ and $M = 20$ (again, chosen after some experimentation).
 
 ```{r}
@@ -942,7 +942,7 @@ The merge distances are the MST edge weights in the order they are added to the 
 The graph structure is also related to topological data analysis (TDA), a collection of methods for summarising the shape of data.
 For example, connected components are known as 0-dimensional topological features in persistent homology.
 When two connected components merge, one is described as "dying" and the other as "persisting".
-The merge distance is called the "death diameter", and the bar plot of merge distances is known as a "barcode".
+The merge distance is called the **death diameter**, and the bar plot of merge distances is known as a **barcode**.
 Long bars in the barcode correspond to connected components that remain separate over a wide range of distance thresholds, which may include potential anomalies.
 For a general introduction to TDA, see @carlsson2021topological.
 

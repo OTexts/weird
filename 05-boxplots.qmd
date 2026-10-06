@@ -83,7 +83,7 @@ and the corresponding letter values are given by
   L_D & = `r yd(d[4])` = `r sprintf("%2.2f", lv[1,"LV"])` \qquad
       & U_D                                                         & = `r yd(d[4], upper = TRUE)` = `r sprintf("%2.2f", lv[7,"LV"])`
 \end{align*}
-We can compute the letter values using the `lvtable()` function from the `lvplot` package.
+We can compute the letter values using the `lvtable()` function from the **`lvplot`** package.
 
 ```{r}
 #| label: lettervalues
@@ -137,7 +137,7 @@ cricket_batting |>
 
 In Tukey's original version, the ends of the box were determined by the letter values corresponding to the fourths, and the middle line within the box showed the median.
 This is what is produced by the base R function `boxplot()`.
-In the `ggplot2` version of the boxplot shown here, the ends of the box are the quartiles computed using `type = 7`.
+In the **`ggplot2`** version of the boxplot shown here, the ends of the box are the quartiles computed using `type = 7`.
 
 Whichever variation is used, roughly half of all observations lie within the box.
 The length of the box is an estimate of the "interquartile range" (IQR).
@@ -334,7 +334,7 @@ The problem that boxplots have with large data sets was also addressed by @Hofma
 In these plots, each pair of letter values marks the boundaries of a box.
 The box bounded by the fourths is the same as the box of a boxplot; the additional boxes extend to successive letter values until the quantiles corresponding to the letter values can no longer be estimated sufficiently accurately from the available data.
 
-These can be produced using the `lvplot` package, as shown in @fig-cricketboxlv.
+These can be produced using the **`lvplot`** package, as shown in @fig-cricketboxlv.
 
 ```{r}
 #| label: fig-cricketboxlv
@@ -444,20 +444,20 @@ So only the middle box is shown, and the 10 observations outside it are all plot
 For multivariate data, there is no unique natural ordering of observations by size, so the concept of depth has to be thought about differently.
 It is still a measure of how centrally a point is located in a data set, but we need to think about what "central" means when there are multiple variables.
 
-There are numerous ways to define depth for multivariate data, nicely summarised in @Liu1999, and implemented in the [`depthR` package](https://cran.r-project.org/package=depthR) for R.
+There are numerous ways to define depth for multivariate data, nicely summarised in @Liu1999, and implemented in the [**`depthR`** package](https://cran.r-project.org/package=depthR) for R.
 Here, we will consider only the simplest and oldest of these, Tukey depth, which is the basis of the bagplot (@sec-bagplots).
 
 ### Tukey depth
 
 The first approach to this problem was (again) due to John Tukey [@Tukey75] who defined the depth of a point $\bm{z}$ in a data set $\{\bm{y}_1,\dots,\bm{y}_n\}$ as the smallest number of $\bm{y}_i$ contained in any halfspace that contains $\bm{z}$.
-This is often called the "Tukey depth" of the point.
+This is often called the **Tukey depth** of the point.
 (The point $\bm{z}$ does not have to be one of the observations.)
 
 For bivariate data, a halfspace is either of the two parts formed by splitting the plane with a straight line.
 A diagram will help illustrate the idea.
 Suppose we have the observations shown in @fig-tukeydepth.
 These are the first 10 observations from the first two variables of `n01`.
-The red line divides the plane into two sections which are called "halfspaces".
+The red line divides the plane into two sections which are called **halfspaces**.
 We are interested in the depth of the orange point (which is not one of the observations).
 
 ```{r}

@@ -13,6 +13,8 @@ $sidebar-fg: lighten($theme-gray, 10%);
 
 $font-family-sans-serif: "Fira Sans", sans-serif;
 $font-family-monospace: "Hack", monospace;
+// Inline code takes the weight of its context, so **`pkg`** renders bold
+$font-weight-monospace-inline: inherit;
 
 $h2-font-size: 1.5rem !default;
 $h3-font-size: 1.3rem !default;
@@ -229,6 +231,13 @@ pre code {
   background-color: $code-block-bg;
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
+}
+
+// Package names (**`pkg`**): bold monospace without the inline-code box.
+// Must outrank Quarto's `p code:not(.sourceCode)` (and li, td) rule.
+:is(p, li, td) strong > code:not(.sourceCode) {
+  background: none;
+  padding: 0;
 }
 
 div.sourceCode,

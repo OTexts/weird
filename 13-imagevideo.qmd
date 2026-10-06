@@ -113,7 +113,7 @@ The first two principal components explain `r round(cum_var[2])`% of the varianc
 So the images are not as close to a low-dimensional subspace as the air quality data of @sec-highdim, but the first few components still capture much of the structure.
 
 Each principal component direction $\bm{a}_j$ is itself a vector of `r sum(used)` pixel weights, and so it can be displayed as an image.
-@fig-eigen-images shows the first ten components, often called "eigen-images".
+@fig-eigen-images shows the first ten components, often called **eigen-images**.
 
 ```{r}
 #| label: fig-eigen-images

@@ -158,7 +158,7 @@ $$
 $$
 subject to the constraints that $\int b_2^2(x)dx = 1$ and $\int b_1(x)b_2(x)dx = 0$.
 And so on.
-The principal components $b_1(x), b_2(x), \dots$, are also called the "loadings", while the coefficients $\beta_{i1},\beta_{i2},\dots$ are called the "scores".
+The principal components $b_1(x), b_2(x), \dots$, are also called the **loadings**, while the coefficients $\beta_{i1},\beta_{i2},\dots$ are called the **scores**.
 
 If the functions are discretised on a fine grid over $x$, we can use regular principal component decomposition to get approximately the same results as functional principal components.
 
@@ -689,7 +689,7 @@ This illustrates an important feature of depth-based ranking: it can fail to dis
 Because French mortality has fallen more or less steadily across the study period, the most recent curves sit at one edge of the whole `r bd_n`-year sample and are therefore the least "enveloped" by the rest, even though their shape is not unusual.
 On the other hand, the 1854, 1870 and 1871 curves are unusual relative to the years around them, although only 1871 lies at the upper edge of the whole sample at most ages.
 
-Other types of functional depth are computed by `rainbow::fdepth()`, and the `fda.usc`, `fdaoutlier` and `mrfDepth` packages.
+Other types of functional depth are computed by `rainbow::fdepth()`, and the **`fda.usc`**, **`fdaoutlier`** and **`mrfDepth`** packages.
 
 ## Sun--Genton functional boxplot {#sec-sungenton-boxplot}
 
@@ -861,12 +861,12 @@ Unlike the depth boxplot fence of @fig-fbplot-sungenton, none of the low-mortali
 ## Magnitude-shape plot {#sec-ms-plot}
 
 A second way to separate magnitude and shape effects is the magnitude-shape plot of @Dai2018.
-For each curve, and at each point $x$ on the grid, they compute a *directional outlyingness*: a signed measure of how far, and in which direction, the curve departs from the centre of the distribution of values at that $x$.
+For each curve, and at each point $x$ on the grid, they compute a **directional outlyingness**: a signed measure of how far, and in which direction, the curve departs from the centre of the distribution of values at that $x$.
 Averaging this quantity over the domain gives a magnitude score (MO) for each curve, taking a value far from zero when a curve sits consistently on one side of the bulk of the data.
 The variation of the directional outlyingness over the domain gives a separate shape score (VO), which is large when a curve's departure from the centre changes direction or size as $x$ varies (as happens when a curve crosses others or has an unusual local pattern), even if its overall MO is modest.
 Plotting VO against MO for every curve gives the magnitude-shape plot; @Dai2018 then flag outliers using a robust distance in this two-dimensional (MO, VO) space, with a finite-sample correction due to @Hardin2005.
 
-These calculations are implemented in the `fdaoutlier` package, which we use here.
+These calculations are implemented in the **`fdaoutlier`** package, which we use here.
 
 ```{r}
 #| label: fig-ms-plot

@@ -136,7 +136,7 @@ $$
 $$
 We refer to a t random variable with $k$ degrees of freedom as $Y \sim \text{t}_k$.
 The t distribution is similar in shape to the standard Normal distribution, but has heavier tails.
-When $k = 1$, the t distribution is known as the "Cauchy" distribution (after the French mathematician Augustin-Louis Cauchy), which has undefined mean and variance.
+When $k = 1$, the t distribution is known as the **Cauchy** distribution (after the French mathematician Augustin-Louis Cauchy), which has undefined mean and variance.
 For $k = 2$, it has mean 0 and infinite variance.
 For $k > 2$, it has mean $0$ and variance $k/(k - 2)$.
 When $k \rightarrow \infty$, the t distribution converges to the standard Normal distribution.
@@ -684,7 +684,7 @@ where $d_n$ is a constant that depends on $n$ and is designed to scale $Q_n$ so 
 For large $n$, $d_n = 2.219$.
 While the IQR and MAD estimators are somewhat simpler and easier to understand, the $Q_n$ estimator has some useful properties [as discussed in @Rousseeuw1993-tq].
 
-All three of these robust estimators of the standard deviation can be computed using the `robustbase` package, with the functions `s_IQR()`, `s_mad()`, and `s_Qn()` respectively.
+All three of these robust estimators of the standard deviation can be computed using the **`robustbase`** package, with the functions `s_IQR()`, `s_mad()`, and `s_Qn()` respectively.
 
 ## Univariate kernel density estimation {#sec-kde}
 
@@ -1008,7 +1008,7 @@ For example, the Normal distribution is in the domain of attraction of the Gumbe
 
 If we take the negative of the random variables $Y_1,\dots,Y_n$, it becomes clear that a similar result holds for the minimum.
 
-These three families of distributions can be further combined into a single family by using the following cdf known as the Generalised Extreme Value (GEV) distribution,
+These three families of distributions can be further combined into a single family by using the following cdf known as the **Generalised Extreme Value** (GEV) distribution,
 $$
   G(z)
   = \exp\left\{ -\left[ 1 + \xi\Big(\frac{z - \mu_G}{\sigma_G} \Big) \right]^{-1/\xi} \right\},
@@ -1064,7 +1064,7 @@ c(
 ### The Generalised Pareto Distribution {-}
 
 The Peaks Over Threshold (POT) approach regards extremes as observations greater than a threshold $u$.
-The probability distribution of *exceedances* above a specified threshold $u$ can be expressed as the conditional distribution
+The probability distribution of **exceedances** above a specified threshold $u$ can be expressed as the conditional distribution
 $$
   H(y) = \Pr\left\{ Y \le u + y \mid Y > u \right\} = \frac{F(u + y) - F(u)}{1 - F(u)}.
 $$

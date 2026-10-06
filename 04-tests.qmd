@@ -862,7 +862,7 @@ where $y_{(1)} \le y_{(2)} \le \cdots \le y_{(n)}$ are the sorted observations.
 Raw spacings are not directly comparable across the sorted sample.
 Even for data from a single unimodal distribution, spacings tend to be small near the centre of the distribution, where observations are dense, and larger in the tails, where observations are sparse.
 
-Tukey's *gapping* scheme addresses this by weighting each gap according to its position in the ordered data.
+Tukey's **gapping** scheme addresses this by weighting each gap according to its position in the ordered data.
 Specifically, the gap between $y_{(i)}$ and $y_{(i+1)}$ is assigned weight
 $$
   a_i = i(n - i), \qquad i = 1, \ldots, n - 1,

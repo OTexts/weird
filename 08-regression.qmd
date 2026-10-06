@@ -8,7 +8,7 @@
 source("before-each-chapter.R")
 ```
 
-Regression methods arise when we want to find anomalies in a particular variable of interest (called the "response"), and we have a set of predictor variables that we think might be useful for predicting the response.
+Regression methods arise when we want to find anomalies in a particular variable of interest (called the **response**), and we have a set of predictor variables that we think might be useful for predicting the response.
 That is, we are interested in finding observations whose responses are anomalous *given their predictor values*.
 For example, we might want to find wines that are unusually expensive given their points score, or find houses that are unusually cheap given their size and location.
 We can use regression methods to identify such anomalies.
@@ -34,7 +34,7 @@ The fitted values (i.e., predicted values for the training data) are given by
 $$
   \hat{\bm{y}} = \bm{X}\hat{\bm{\beta}} = \bm{H}\bm{y},
 $$
-where $\bm{H} = \bm{X}(\bm{X}^\intercal\bm{X})^{-1}\bm{X}^\intercal$ is known as the "hat"-matrix because it creates the "y-hat" values $\hat{\bm{y}}$ from the data $\bm{y}$.
+where $\bm{H} = \bm{X}(\bm{X}^\intercal\bm{X})^{-1}\bm{X}^\intercal$ is known as the **hat matrix** because it creates the "y-hat" values $\hat{\bm{y}}$ from the data $\bm{y}$.
 
 The residuals (or prediction errors) from the model are the differences between what was observed and what was predicted, given by
 $$
@@ -47,7 +47,7 @@ $$
   h_i = \bm{x}_i^\intercal(\bm{X}^\intercal\bm{X})^{-1}\bm{x}_i,\qquad i = 1,\dots,n,
 $$ {#eq-leverage}
 take values between 0 and 1.
-These are known as the "leverage" values [@faraway2004linear, p. 69], and measure how much each observation influences the corresponding fitted value.
+These are known as the **leverage** values [@faraway2004linear, p. 69], and measure how much each observation influences the corresponding fitted value.
 High leverage values (close to 1) correspond to observations that can have a large influence on the estimated coefficients, and so leaving those observations out can lead to very different values for the fitted values and residuals.
 On the other hand, small leverage values (close to 0) correspond to observations that have little influence on the estimated coefficients, and so leaving those observations out will lead to similar values for the fitted values and residuals.
 Often high leverage values are those corresponding to anomalies in the predictor space (although not necessarily in the space of the response variable).
@@ -138,7 +138,7 @@ When this happens, the anomalous observation ends up with a smaller residual and
 This is known as **masking**, and occurs when the presence of anomalies distorts the fitted model enough that the anomalies are undetected.
 
 Robust regression methods address this by producing an estimate of $\bm{\beta}$ that remains stable even when a fraction of the observations are anomalous.
-For example, the *least trimmed squares* (LTS) estimator [@Rousseeuw2003-ip] minimises the sum of the $h$ smallest squared residuals,
+For example, the **least trimmed squares** (LTS) estimator [@Rousseeuw2003-ip] minimises the sum of the $h$ smallest squared residuals,
 $$
   \hat{\bm{\beta}}_{\text{LTS}}
   = \mathop{\arg\min}_{\bm{\beta}} \sum_{i=1}^{h} e_{(i)}^2,
@@ -150,7 +150,7 @@ Residuals from the LTS fit can then be used to identify anomalies, since the fit
 
 In R, `robustbase::ltsReg()` fits the LTS model using an efficient numerical algorithm [@robustbase].
 An alternative approach that achieves similar robustness at lower computational cost is the BACON algorithm, which we will discuss in @sec-bacon-reg.
-Other robust regression methods are also available in the `robustbase` package.
+Other robust regression methods are also available in the **`robustbase`** package.
 
 For now, we will continue to use the OLS approach, as it makes many calculations much easier, but be aware that some anomalies can be masked.
 
@@ -206,7 +206,7 @@ $$
 where $\hat\sigma^2$ is given by @eq-residual-variance.
 
 The corresponding standard deviations $\hat\sigma_{-i}$ are computed by `broom::augment()` and are returned in the column `.sigma`.
-Thus, the standardised LOO residuals (also known as "externally studentised residuals") are given by
+Thus, the standardised LOO residuals (also known as **externally studentised residuals**) are given by
 $$
   r_{-i} = \frac{e_i}{\hat\sigma_{-i} \sqrt{1 - h_i}}.
 $$
@@ -561,7 +561,7 @@ where $q$ denotes the probability of a batter not being dismissed in an innings,
 $$
   \log(q/(1 - q)) = g_1(\text{RPI}) + g_2(\text{Start}).
 $$ {#eq-gam-notouts}
-We can fit this model using the `mgcv` package, with the resulting estimates shown in @fig-gam-notouts.
+We can fit this model using the **`mgcv`** package, with the resulting estimates shown in @fig-gam-notouts.
 
 ```{r}
 #| label: notouts-gam

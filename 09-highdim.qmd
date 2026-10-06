@@ -133,7 +133,7 @@ This is the basis of principal component analysis, which we will discuss in @sec
 
 The "residual" from the projection is the difference between the original observation and its projection onto the line.
 So for an observation $\bm{y}_i$, the residual is $\bm{r}_i = \bm{y}_i - \bm{a} w_i$.
-The magnitude of the residual is a measure of how much of the variation in that observation is not captured by the projection, and is known as the "orthogonal distance".
+The magnitude of the residual is a measure of how much of the variation in that observation is not captured by the projection, and is known as the **orthogonal distance**.
 (The length of each orange line in @fig-proj-geometry is the orthogonal distance for the corresponding observation.)
 If the residual is large, it means that there are aspects of that observation that are not well represented by the projection direction $\bm{a}$.
 This is important for anomaly detection, because an observation that appears normal in one projection may have a large residual, indicating that it is an anomaly in another projection.
@@ -317,7 +317,7 @@ In both cases the residual is the part of the vector orthogonal to the subspace,
 A different choice of $\bm{A}$ would give a different 2D shadow of the data, potentially hiding some anomalies while revealing others.
 Rather than selecting a specific $\bm{A}$, a **tour** [@Asimov1985] moves continuously through many projections, playing them as an animation so that we can watch the data cloud change shape as the projection changes.
 
-A tour follows a sequence of target mapping matrices $\bm{A}_1, \bm{A}_2, \ldots$, smoothly interpolating between them following a *geodesic* path.
+A tour follows a sequence of target mapping matrices $\bm{A}_1, \bm{A}_2, \ldots$, smoothly interpolating between them following a geodesic path.
 That is, the interpolation follows the shortest path between two projections that keeps the columns of $\bm{A}$ orthonormal throughout, so every frame of the animation is itself a valid projection.
 
 How the target matrices are chosen distinguishes different types of tours.
@@ -329,7 +329,7 @@ How the target matrices are chosen distinguishes different types of tours.
   In the context of anomaly detection, a guided tour would use an index that measures anomalousness.
   A related idea is Stahel--Donoho outlyingness (@sec-stahel-donoho), which also searches over projections for those in which observations look extreme.
 
-@fig-grand-tour shows a grand tour of the 10 standardised air quality and meteorological variables from Aotizhongxin, generated using the `tourr` package [@tourr].
+@fig-grand-tour shows a grand tour of the 10 standardised air quality and meteorological variables from Aotizhongxin, generated using the **`tourr`** package [@tourr].
 
 ```{r}
 #| label: grand-tour
@@ -540,7 +540,7 @@ This illustrates the importance of considering both spaces when looking for anom
 
 ### Outlier map
 
-To explore outlying anomalies, we can look at the relationship between two different distances: the **score distance**, which measures how far an observation lies from the centre *within* the projection space, and the **orthogonal distance** (defined above), which measures how far it lies *from* the projection space.
+To explore outlying anomalies, we can look at the relationship between two different distances: the **score distance**, which measures how far an observation lies from the centre *within* the projection space, and the orthogonal distance (defined above), which measures how far it lies *from* the projection space.
 
 The **score distance** is the Mahalanobis distance (@sec-distances) of the projected observation from the centre of the projection subspace.
 For an observation $\bm{y}_i$ with scores $\bm{w}_i = \bm{A}^\intercal \bm{y}_i$, it is
@@ -560,7 +560,7 @@ az_aq_proj <- az_aq_proj |>
 ```
 
 We can plot the orthogonal distance against the score distance to explore the relationship between these two types of anomalies.
-This is known as an "outlier map" [@Hubert2005-qa].
+This is known as an **outlier map** [@Hubert2005-qa].
 
 ```{r}
 #| label: fig-odsdplot
@@ -646,7 +646,7 @@ For principal component projection, each column of $\bm{A}$ is found sequentiall
 If $\bm{\Sigma}$ is the $m \times m$ covariance matrix of the data $\bm{Y}$, then the first direction $\bm{a}_1$ maximises $\text{Var}(\bm{a}_1^\intercal \bm{y}) = \bm{a}_1^\intercal \bm{\Sigma} \bm{a}_1$ subject to $\|\bm{a}_1\| = 1$.
 The second direction $\bm{a}_2$ maximises $\text{Var}(\bm{a}_2^\intercal \bm{y}) = \bm{a}_2^\intercal \bm{\Sigma} \bm{a}_2$ subject to $\|\bm{a}_2\| = 1$ and $\bm{a}_2^\intercal \bm{a}_1 = 0$, and so on.
 
-This solution is equivalent to finding the eigenvectors of $\bm{\Sigma}$, and the resulting projection scores are called the principal component scores.
+This solution is equivalent to finding the eigenvectors of $\bm{\Sigma}$, and the resulting projection scores are called the **principal component scores**.
 The first $k$ eigenvectors of $\bm{\Sigma}$ form the columns of $\bm{A}$, so PCA simply chooses the orthonormal basis (@sec-projections) that captures the most variance.
 
 The covariance matrix of the scores is given by
@@ -1048,7 +1048,7 @@ Distance has become a *linear* function of the weights, which turns the search f
 We do not want to stretch all pairwise distances, only those relevant to anomaly detection.
 Two observations on opposite edges of the data cloud are far apart, but pulling them further apart reveals nothing about anomalies.
 DOBIN therefore restricts attention to pairs of near neighbours (@sec-nn): for each observation it forms the vectors $\bm{z}_{ij}$ to its nearest neighbours, and keeps only those pairs whose distance falls in the upper tail (by default, above the 95th percentile).
-The retained vectors $\{\bm{z}_\ell\}$ make up the *Y space*.
+The retained vectors $\{\bm{z}_\ell\}$ make up the **Y space**.
 Because an anomaly sits far from its neighbours, it contributes several of the largest vectors to this set, so the Y space magnifies the very observations we are trying to find.
 
 The first DOBIN direction is the unit vector $\bm{a}_1$ that makes these retained neighbour distances as large as possible on average; that is, it maximises $\sum_\ell \bm{a}^\intercal\bm{z}_\ell$ subject to $\|\bm{a}\| = 1$.
@@ -1160,7 +1160,7 @@ A handful of components from a basis built to expose anomalies is enough to surf
 All the projection methods so far have started from the data matrix $\bm{Y}$ and produced a low-dimensional set of coordinates.
 **Multidimensional scaling (MDS)** instead starts from the $n \times n$ matrix $\bm{D}$ of pairwise distances $d_{ij} = \|\bm{y}_i - \bm{y}_j\|$ between observations (@sec-distances), and looks for a configuration of points $\bm{w}_1, \dots, \bm{w}_n$ in a low-dimensional space, usually $k = 2$ or $3$ dimensions, whose distances $\|\bm{w}_i - \bm{w}_j\|$ reproduce the given $d_{ij}$ as closely as possible [@Borg2005; @Cox2001].
 The result is a "map" in which similar observations are placed close together and dissimilar observations far apart, much like reconstructing a map of cities from a table of the distances between them.
-More generally, the entries $d_{ij}$ need only be *dissimilarities*: measures of how different two observations are.
+More generally, the entries $d_{ij}$ need only be **dissimilarities**: measures of how different two observations are.
 Every distance is a dissimilarity, but a dissimilarity need not satisfy the triangle inequality, and we return to this extra generality when we discuss non-metric scaling below.
 
 Working from a matrix of distances, rather than directly from the data, is what distinguishes MDS from PCA.
@@ -1191,12 +1191,12 @@ Classical scaling is therefore PCA computed from the distance matrix instead of 
 ### Metric and non-metric scaling
 
 Classical scaling reproduces the distances through an eigendecomposition, but we can instead choose the configuration directly to minimise a measure of misfit.
-**Metric MDS** places the points so that the fitted distances $\|\bm{w}_i - \bm{w}_j\|$ match the input distances $d_{ij}$, minimising a loss function known as the *stress*,
+**Metric MDS** places the points so that the fitted distances $\|\bm{w}_i - \bm{w}_j\|$ match the input distances $d_{ij}$, minimising a loss function known as the **stress**,
 $$
   \text{Stress}
   = \sqrt{\frac{\sum_{i<j}\left( \|\bm{w}_i - \bm{w}_j\| - \hat{d}_{ij} \right)^2}{\sum_{i<j} \|\bm{w}_i - \bm{w}_j\|^2}},
 $$
-where the *disparities* $\hat{d}_{ij}$ are a fixed transformation of the input distances --- the identity, $\hat{d}_{ij} = d_{ij}$, in the simplest case.
+where the **disparities** $\hat{d}_{ij}$ are a fixed transformation of the input distances --- the identity, $\hat{d}_{ij} = d_{ij}$, in the simplest case.
 There is no closed-form solution, so the configuration is found by iterative optimisation, starting from the classical scaling solution.
 A common variant is the @Sammon1969 mapping, which weights each term by $1/d_{ij}$ so that small distances, describing the local structure, are reproduced more faithfully than large ones.
 
@@ -1403,7 +1403,7 @@ Setting $k = 1$ recovers the HDoutliers nearest-neighbour score; a larger $k$ gu
 
 Without the clustering step, stray is also faster than HDoutliers.
 It can use kd trees (@sec-nn) for the neighbour search (although the default is a brute-force search), and returns both an anomaly score and a binary classification.
-The weird package provides `stray_scores()` for the score and `stray_anomalies()` for the classification.
+The **`weird`** package provides `stray_scores()` for the score and `stray_anomalies()` for the classification.
 We will apply it to the same standardised air quality and meteorological variables from Aotizhongxin used previously.
 By default, stray first rescales each variable to the interval $[0,1]$ using its minimum and maximum, so our earlier standardisation by the mean and standard deviation has no effect on the scores; each variable is effectively scaled by its range.
 
@@ -1461,7 +1461,7 @@ An observation flagged across almost every combination and by every method is a 
 
 ### The `OutliersO3` package
 
-The O3 plot is implemented in the `OutliersO3` package for R [@Unwin2019].
+The O3 plot is implemented in the **`OutliersO3`** package for R [@Unwin2019].
 `O3prep()` takes the data, a range of combination sizes (up to `K` variables per combination), and one or more outlier-detection methods, and works out which observations are flagged as outliers for every combination of variables.
 Five methods are available, and we have already met all of them elsewhere in this book: FastPCS (@sec-fastpcs), mvBACON (@sec-bacon), adjOutlyingness (Stahel--Donoho outlyingness, @sec-stahel-donoho), DDC (@sec-ddc), and the MCD estimator (@sec-robust-cov).
 Because these methods are not directly comparable at a single shared tolerance level, `O3prep()` takes a separate tolerance argument for each one, and these usually need adjusting for the data set at hand to ensure that the methods flag broadly comparable numbers of anomalies overall.
@@ -1470,7 +1470,7 @@ The result is passed to `O3plotM()`, which displays how many methods flagged eac
 ### Air quality example
 
 Checking every combination of all 10 Aotizhongxin variables would mean examining $2^{10} - 1 = 1023$ combinations for each method, which is impractical to compute and to display together.
-Instead, we restrict attention to five variables that recurred throughout our earlier discussion --- `co`, `so2`, `pm2_5`, `pm10` and `dew_point` --- and compare all five methods available in `OutliersO3` across every combination of one to five of them.
+Instead, we restrict attention to five variables that recurred throughout our earlier discussion --- `co`, `so2`, `pm2_5`, `pm10` and `dew_point` --- and compare all five methods available in **`OutliersO3`** across every combination of one to five of them.
 
 ```{r}
 #| label: o3prep

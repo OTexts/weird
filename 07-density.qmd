@@ -16,7 +16,7 @@ Any density-based method of anomaly detection first requires that we have a dens
 This may be an assumed density, or estimated from the data; it may be a parametric function, or a nonparametric estimate; it may be a conditional density or a marginal density.
 Wherever it comes from, we will treat $f$ as an appropriate probability density function for the data set.
 When $\bm{y}_i$ takes values on a discrete space (such as the integers), then $f$ is a probability mass function, but we will call it a "density" for convenience when discussing methods that can apply to both discrete and continuous data.
-In many cases, $f(\bm{y}_i)$ is the estimated *likelihood* of the observation from a given model.
+In many cases, $f(\bm{y}_i)$ is the estimated likelihood of the observation from a given model.
 
 Note that some of the methods we discussed in @sec-distance-methods are often called "density-based" methods, including LOF (@sec-lof) and GLOSH (@sec-glosh).
 These methods use an *implicit* measure of density, based on the crowdedness of the neighbourhood of each observation.
@@ -25,10 +25,10 @@ In this chapter, we will only discuss methods that *explicitly* involve a densit
 ## Surprisals {#sec-surprisals}
 
 "Surprisal" is a term coined by American engineer Myron @Tribus1961 in the context of information theory.
-In the statistical literature it is better known as a "log score".
+In the statistical literature it is better known as a **log score**.
 But since we are considering anomaly detection, "surprisal" seems a more appropriate word to use here.
 
-The surprisal of an observation $\bm{y}_i$ is defined as
+The **surprisal** of an observation $\bm{y}_i$ is defined as
 $$
   s_i = -\log f(\bm{y}_i),
 $$ {#eq-surprisal}
@@ -36,7 +36,7 @@ measuring the surprise in seeing the observation.
 So it is a measure of how surprising (or anomalous) that observation is, given the density $f$.
 A large value of $s_i$ indicates that $\bm{y}_i$ is not a likely value, and so is a potential anomaly.
 On the other hand, typical values will have low surprisals.
-In information theory, the average surprisal is known as the entropy of a random variable\ [@Cover2006;@Stone2022], and provides a measure of uncertainty.
+In information theory, the average surprisal is known as the **entropy** of a random variable\ [@Cover2006;@Stone2022], and provides a measure of uncertainty.
 
 Although the term "surprisal" may not be in common use amongst statisticians and other data scientists, the underlying idea is widely used.
 For example, if $f$ is obtained from a model with parameters that need to be estimated from the data, then the sum of the surprisals is equal to minus the log likelihood of the data.
@@ -157,7 +157,7 @@ df |>
   )
 ```
 
-The `surprisals()` function takes values of the data $\bm{y}_i$ and returns values of $s_i$ (@eq-surprisal), where the assumed density $f$ can be provided as a distribution object from the `distributional` package.
+The `surprisals()` function takes values of the data $\bm{y}_i$ and returns values of $s_i$ (@eq-surprisal), where the assumed density $f$ can be provided as a distribution object from the **`distributional`** package.
 The values of $p_i$ in @eq-pi-density can be obtained using `surprisals_prob()`.
 
 ```{r}
@@ -318,7 +318,7 @@ The kernel density estimate at each observation is (@eq-mkde)
 $$
   f_i = \hat{f}(\bm{y}_i) = \frac{1}{n} \sum_{j=1}^n K_{\bm{H}}(\bm{y}_i - \bm{y}_j),
 $$ {#eq-kdescores}
-and so we define the "**KDE surprisal**" at each observation as
+and so we define the **KDE surprisal** at each observation as
 $$
   s_i = -\log(f_i).
 $$
@@ -363,7 +363,7 @@ The largest possible LOO KDE surprisal is infinite, occurring when there are no 
 
 ### The lookout algorithm
 
-The **"lookout" algorithm** (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2.
+The **lookout** algorithm (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2.
 It computes surprisal probabilities using a GPD approximation applied to the LOO KDE surprisals, where the bandwidth matrix is chosen using the "lookout" method (@eq-lookoutH).
 These probabilities can be calculated using the `surprisals_prob()` function with `loo = TRUE`, `approximation = "gpd"`, and `method = "lookout"`.
 
@@ -472,7 +472,7 @@ $$
 where $K$ is the number of components, the weights $\pi_k \ge 0$ sum to 1, and $\phi(\bm{y}; \bm{\mu}_k, \bm{\Sigma}_k)$ is the multivariate Normal density with mean $\bm{\mu}_k$ and covariance matrix $\bm{\Sigma}_k$.
 In fact, a KDE with a Gaussian kernel can be considered a Gaussian mixture model with a large number of equally-weighted components, each centred at an observation and with a common covariance matrix given by the bandwidth matrix.
 However, we can also fit a GMM with a smaller number of components, which may provide a more parsimonious model for the data.
-The `mclust` package provides a convenient way to fit GMMs to data.
+The **`mclust`** package provides a convenient way to fit GMMs to data.
 
 ```{r}
 #| label: gmm1
