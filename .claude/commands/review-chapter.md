@@ -94,6 +94,11 @@ Also update this skill to take account of any new issues you find when reviewing
 - A stated mechanism must produce the effect for the distribution actually used (e.g. "some coordinate lies in the tails" cannot explain the curse of dimensionality for Uniform data, which have no tails). A stated trade-off for a tuning parameter must point the right way given the mechanism just described; when a threshold changes between two analyses, give both values and a reason that follows.
 - Chapters 2 and 3 are background reference material and deliberately have no Summary section; don't flag that. Other chapters should have one.
 - A summary that groups methods ("these cannot distinguish X from Y") must not contradict a method's stated purpose earlier in the chapter. When an algorithm states a minimum training size, check the code applies it to every series (late-starting series may be scored after a few observations).
+- `weird::mvscale()` by default returns robust *multivariate* $z$-scores (rotated by the Cholesky factor of the MCD covariance), so its output columns `z1`, `z2`, ... are not the original variables: prose must not call this just "scaling", and neither prose nor guards may read `Z$z1` as the first variable. The Euclidean length of a row of the result is a robust Mahalanobis distance. Only `cov = NULL` gives per-variable robust $z$-scores.
+- A guard that checks a claim "for every method except X and Y" verifies nothing about X and Y; if the prose implies the excluded methods fail, check that too (ch13 said LOF missed the bags and trousers; it ranked them 2nd, 4th and 12th).
+- Explanations of *why* an observation is anomalous on a set of features ("covers far less of the image", "taller than wide") must be checked against the feature values relative to the reference group (median, robust $z$, max of the normal group), not inferred from the picture. Likewise "most of these are X" about a figure of top-ranked items: count X over exactly the items the figure shows.
+- An example cited for a computed period ("between frames 906 and 1011 ... (frames 900 and 951)") must fall inside that period; check every cited index against the inline range.
+- A summary sentence attributing two benefits to one cause ("the time order adds two things") must have both actually follow from that cause (a per-pixel median background uses the fixed camera, not the time order).
 - Ranges read off a heatmap or anomaly map (ages, years) should be computed from the fitted values, not estimated from the plot. Date ranges for a data set should be checked *after* the chapter's own cleaning (removing self-loops moved the UCI start from March to April). When a caption counts the splits of a fitted tree, the prose walk-through should cover all of them. When a figure computes several series but plots only some, the lead-in must name only what is plotted.
 
 **Clarity for 3rd year undergraduates**
@@ -105,6 +110,8 @@ Also update this skill to take account of any new issues you find when reviewing
 - Use precise terminology: in multivariate KDE the smoothing parameter is a "bandwidth matrix", not just "the bandwidth".
 - In an optimal-bandwidth (or similar) derivation, every quantity in the final formula must be given (e.g. $R(K)$ as well as $R(f'')$).
 - In chapters on the Normal distribution, avoid "normally" meaning "usually".
+
+- No royal "we": "we" is used only for author and reader together ("we can see that", steps of the worked analysis). Rewrite authorial announcements, definitions, choices and off-page data preparation without it ("This chapter describes ...", "This is called ...", "To illustrate ..., consider ...", "The data used here are ..."), following commit 080e591. When running `deslop`, don't turn passive authorial sentences into "we" sentences.
 
 **Spelling**
 - Use Australian spelling throughout. Check for spelling consistency.
