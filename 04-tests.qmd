@@ -489,7 +489,7 @@ stopifnot(nanomalies$Chauvenet == nanomalies$Peirce + c(0, 0, 0, 0, 2, 1))
 
 By the 1930s, the concept of hypothesis testing had been developed, and the t distribution had been discovered, and both were applied to the identification of anomalies using $z$-scores.
 Many tests were developed under different assumptions about the underlying distribution and what was assumed to be known [@Hawkins1980].
-We will mention just two of them here, as they are the most widely used.
+Only the two most widely used are described here.
 
 Egon Pearson and C Chandra Sekar proposed [@Pearson1936] that an observation be considered an anomaly if its $z$-score is larger than a critical value based on the t distribution.
 Later, this was modified by Frank Grubbs [@Grubbs1950] who proposed that anomalies be identified if $|z_i| > c_\alpha$ where

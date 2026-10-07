@@ -8,12 +8,12 @@
 source("before-each-chapter.R")
 ```
 
-In this book, we take a probabilistic perspective on anomaly detection.
+This book takes a probabilistic perspective on anomaly detection.
 That is, we are interested in the likelihood of each observation.
-So before we discuss any anomaly detection methods, we first need to discuss probability distributions.
+So before turning to anomaly detection methods, we first need to understand probability distributions.
 Some of this material (especially @sec-common) should be familiar to most readers, but is covered here as a refresher, and to introduce some notation that will be used in later chapters.
 
-We are interested in data obtained from a range of possible sample spaces in this book, but for now we will assume that all data are real numbers, and come from continuous probability distributions.
+This book considers data obtained from a range of possible sample spaces, but for now we will assume that all data are real numbers, and come from continuous probability distributions.
 Later we will consider other types of data, including discrete data, data that are functions, images, video, networks, text, or even probability distributions as data objects.
 But for the first half of the book, we will only deal with numerical data.
 
@@ -468,7 +468,7 @@ qbias |>
 ```
 
 The `type = 8` sample quantile gives much better results than the default `type = 7` method, especially when $p$ is close to 0 or 1.
-Consequently, we will always use `type = 8` when computing sample quantiles in the remainder of this book.
+Consequently, `type = 8` is used for all sample quantiles in the remainder of this book.
 
 ### Example: Test cricket batting averages {-}
 
@@ -701,9 +701,9 @@ $$
   \hat{f}(y) = \frac{1}{n} \sum_{i=1}^n K_h(y - y_i),
 $$ {#eq-kde}
 where $K_h$ is a "kernel" function and $h$ is a bandwidth to be determined.
-We will use kernel functions that are themselves probability density functions with mean 0 and standard deviation $h$.
+The kernel functions used here are themselves probability density functions with mean 0 and standard deviation $h$.
 Thus, a kernel density estimate is a mixture distribution with $n$ components, each of which is a kernel function centred at one of the observations.
-For example, the "Gaussian" kernel (which we will use in all examples) is $K_h(u) = \exp(-\frac12u^2/h^2)/(h\sqrt{2\pi})$, equal to the Normal density function with mean zero and standard deviation $h$.
+For example, the "Gaussian" kernel (which is used in all examples) is $K_h(u) = \exp(-\frac12u^2/h^2)/(h\sqrt{2\pi})$, equal to the Normal density function with mean zero and standard deviation $h$.
 
 ```{r}
 #| label: of2021
@@ -819,7 +819,7 @@ Because we want our results to be robust to outliers, it is usually better to re
 $$
   h = 1.059 Q_n n^{-1/5}.
 $$ {#eq-rnrr}
-We will call this the "robust normal reference rule"; it is implemented in the function `kde_bandwidth()` when `method = "robust"` (which is the default setting).
+This is called the "robust normal reference rule"; it is implemented in the function `kde_bandwidth()` when `method = "robust"` (which is the default setting).
 For the 10 observations in the example above, it gives $h = `r round(h, 1)`$, which is the value we used.
 
 This example using only 10 observations was purely to illustrate the method.

@@ -500,7 +500,7 @@ The functional HDR boxplot follows the same recipe, but uses the highest density
 
 @fig-pca-hdrboxplot shows the ordinary bivariate HDR boxplot (@sec-hdr-boxplots) of the first two principal component scores.
 Because of the unusual shape of the principal component scores, the resulting kernel density estimate is particularly sensitive to the bandwidth choice, and the resulting HDRs are broken into several disconnected pieces.
-After some experimentation, we chose the "scv" (smoothed cross-validation) bandwidth method.
+After some experimentation, the "scv" (smoothed cross-validation) bandwidth method was chosen.
 To roughly match the number of years flagged by the bagplot, we use a 93% coverage probability for the larger HDR.
 Thus, the dark region is the 50% HDR (containing about 50% of the years), the light region is the 93% HDR (containing about 93% of the years), and the points outside the 93% HDR are flagged as outliers, coloured by year to match the corresponding curves in @fig-fhdrboxplot below.
 
@@ -766,7 +766,7 @@ The war years, on the other hand, stand out on the second component, which captu
 
 While the Sun--Genton functional boxplot did not do well in this example, it can still be a useful tool for identifying unusual curves in other contexts, especially where the first two principal component scores do not capture the most interesting variation in the data.
 
-We coded the functional boxplot from scratch here, but versions are available in other packages including `fda::fbplot()`, `GET::fBoxplot()`, `fdaoutlier::functional_boxplot()` and `roahd::fbplot()`.
+The functional boxplot was coded from scratch here, but versions are available in other packages including `fda::fbplot()`, `GET::fBoxplot()`, `fdaoutlier::functional_boxplot()` and `roahd::fbplot()`.
 
 The next two sections look at ways of separating genuine shape anomalies from the kind of trend-driven magnitude effect that misled the depth boxplot here.
 

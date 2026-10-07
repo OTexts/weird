@@ -28,7 +28,7 @@ We start with the simplest, anomalous nodes within a single network, which needs
 Later, from @sec-network-sequence onwards, we turn to anomalous networks within a longer sequence, which additionally requires the time series tools of @sec-timeseries.
 
 Statistical methods have a long history of success in modelling temporal dependence, but they have been underused for network anomaly detection compared to purely graph-theoretic approaches [@Ranshous2015-kf].
-For the whole-network problem, we describe **oddnet**, a method due to @oddnet that fuses network analysis with time series modelling; the R package **`oddnet`** implements the algorithm.
+For the whole-network problem, this chapter describes **oddnet**, a method due to @oddnet that fuses network analysis with time series modelling; the R package **`oddnet`** implements the algorithm.
 We start, though, with the simpler problem of anomalous nodes.
 
 Before we begin, let's load the packages we will need and define a few functions that we will use.
@@ -299,7 +299,7 @@ as_tibble(senate_node_pca$scores) |>
   labs(x = "Component 1", y = "Component 2")
 ```
 
-We picked the 100th Congress somewhat arbitrarily here, just to illustrate the method.
+The 100th Congress was picked somewhat arbitrarily here, just to illustrate the method.
 But later in the chapter, in @sec-senate-network, we look for anomalies across the whole `r length(senate_congress)`-Congress sequence rather than within a single one, and find that the 100th Congress is flagged there too, as the single most unusual network in the entire sequence.
 That is consistent with these two bridging senators not being a fluke: the unusual collaboration visible at the level of individual senators here also shows up as an anomaly at the level of the whole network.
 

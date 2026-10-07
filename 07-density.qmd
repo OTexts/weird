@@ -18,9 +18,9 @@ Wherever it comes from, we will treat $f$ as an appropriate probability density 
 When $\bm{y}_i$ takes values on a discrete space (such as the integers), then $f$ is a probability mass function, but we will call it a "density" for convenience when discussing methods that can apply to both discrete and continuous data.
 In many cases, $f(\bm{y}_i)$ is the estimated likelihood of the observation from a given model.
 
-Note that some of the methods we discussed in @sec-distance-methods are often called "density-based" methods, including LOF (@sec-lof) and GLOSH (@sec-glosh).
+Note that some of the methods discussed in @sec-distance-methods are often called "density-based" methods, including LOF (@sec-lof) and GLOSH (@sec-glosh).
 These methods use an *implicit* measure of density, based on the crowdedness of the neighbourhood of each observation.
-In this chapter, we will only discuss methods that *explicitly* involve a density function.
+This chapter discusses only methods that *explicitly* involve a density function.
 
 ## Surprisals {#sec-surprisals}
 
@@ -44,7 +44,7 @@ Therefore, finding parameters that minimise the sum of the surprisals is equival
 
 Surprisals are also commonly used in forecasting and prediction problems (where they are called log scores) to assess whether an estimated distribution $f$ provides a good description of the future data values $y$\ [@Gneiting2014].
 In that context, the data are thought to be a reliable reflection of the underlying processes, and once the data are observed, the surprisal is used to assess how well the estimated distribution $f$ matches what actually happened.
-In this book, we are using surprisals in reverse: we assume $f$ is a good description of the underlying processes, and then we use the surprisals to identify observations that are unlikely to have come from that distribution.
+This book uses surprisals in reverse: $f$ is assumed to be a good description of the underlying processes, and the surprisals are then used to identify observations that are unlikely to have come from that distribution.
 
 Let's look at some specific examples.
 
@@ -318,7 +318,7 @@ The kernel density estimate at each observation is (@eq-mkde)
 $$
   f_i = \hat{f}(\bm{y}_i) = \frac{1}{n} \sum_{j=1}^n K_{\bm{H}}(\bm{y}_i - \bm{y}_j),
 $$ {#eq-kdescores}
-and so we define the **KDE surprisal** at each observation as
+and so the **KDE surprisal** at each observation is defined as
 $$
   s_i = -\log(f_i).
 $$
@@ -346,7 +346,7 @@ Any genuine anomalies may affect the estimated density, and then they may not ap
 Therefore, it is sometimes useful to consider the leave-one-out (LOO) estimate given by $f_{-i}$.
 That is, $f_{-i}$ is the density estimate using all observations other than the $i$th observation.
 Then an unusual observation can't influence the density estimate, giving us a better measure of how anomalous it really is.
-In this case, we will call the associated surprisal a "LOO surprisal", given by $s_{-i} = -\log f_{-i}(\bm{y}_i)$.
+In this case, the associated surprisal is called a "LOO surprisal", given by $s_{-i} = -\log f_{-i}(\bm{y}_i)$.
 
 ### LOO KDE surprisals
 

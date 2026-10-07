@@ -129,7 +129,7 @@ $$
 $$
 where $\bm{\Sigma}$ is the $2 \times 2$ covariance matrix of the two standardised variables.
 The variance is maximised when $\bm{a}$ is the leading eigenvector of $\bm{\Sigma}$; then the leading eigenvalue is the maximum variance.
-This is the basis of principal component analysis, which we will discuss in @sec-pca.
+This is the basis of principal component analysis, which is discussed in @sec-pca.
 
 The "residual" from the projection is the difference between the original observation and its projection onto the line.
 So for an observation $\bm{y}_i$, the residual is $\bm{r}_i = \bm{y}_i - \bm{a} w_i$.
@@ -231,7 +231,7 @@ $$
 The Aotizhongxin station data contain `r english::words(NCOL(Y))` variables.
 We can project this `r NCOL(Y)`-dimensional space onto a 2-dimensional subspace defined by a matrix $\bm{A}$ of size $`r NCOL(Y)` \times 2$ with orthonormal columns.
 The resulting 2D projection will capture some aspects of the joint structure, but not all.
-For example, suppose we choose the following mapping matrix $\bm{A}$, using a method that we will discuss later in @sec-dobin.
+For example, suppose we choose the following mapping matrix $\bm{A}$, using a method discussed later in @sec-dobin.
 
 ```{r}
 #| label: 10dto2d
@@ -644,7 +644,7 @@ The price is the opposite blind spot: because the measure relies on one-dimensio
 
 ## Principal component analysis {#sec-pca}
 
-So far, we haven't said where the mapping matrix $\bm{A}$ comes from.
+So far, nothing has been said about where the mapping matrix $\bm{A}$ comes from.
 By far the most common projection method is **principal component analysis (PCA)**, which finds the projection directions that capture the most variance in the data.
 The first principal component is the direction of maximum variance, the second is the direction of maximum variance orthogonal to the first, and so on.
 Then the lower-dimensional projection will contain as much of the variation of the original data as possible, given the number of dimensions in the projection.

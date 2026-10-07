@@ -12,7 +12,7 @@ rgl::setupKnitr()
 source("delta_neighbourhood.R")
 ```
 
-While we will cover anomaly detection in univariate data, most of the methods we will discuss are for multivariate data.
+While this book covers anomaly detection in univariate data, most of the methods it discusses are for multivariate data.
 We will therefore need to understand some basic concepts of multivariate probability distributions.
 
 ## Hiding in high-dimensional space {#sec-hiding}
@@ -403,7 +403,7 @@ Two of them will be particularly useful in this book.
 The first uses the HDRs of the previous section.
 Because $\Pr(\bm{Y} \in R_\alpha) = \Pr(f(\bm{Y}) \ge f_\alpha) = 1 - \alpha$, the threshold $f_\alpha$ is the $\alpha$ quantile of the univariate random variable $f(\bm{Y})$, the density evaluated at a random observation.
 So the boundary of $R_\alpha$ can be thought of as a multivariate quantile, and an observation lying outside $R_\alpha$ for some small value of $\alpha$ is in a region of low density.
-This idea is the basis of the surprisal approach to anomaly detection that we will develop in @sec-density-methods.
+This idea is the basis of the surprisal approach to anomaly detection that is developed in @sec-density-methods.
 
 For a multivariate Normal distribution, the density is a decreasing function of $(\bm{y} - \bm{\mu})^\intercal\bm{\Sigma}^{-1}(\bm{y} - \bm{\mu})$, so it follows from @eq-mvn-chisq that
 $$
@@ -415,7 +415,7 @@ That is, the HDRs of a multivariate Normal distribution are ellipsoids centred o
 
 HDRs require the density to be known, or estimated.
 The second approach, based on data depth, works directly with a sample of observations, and does not require a density.
-We will discuss this approach in @sec-depth.
+This approach is discussed in @sec-depth.
 
 ## Robust covariance estimation {#sec-robust-cov}
 
@@ -426,7 +426,7 @@ $$
 $$ {#eq-cov}
 However, it is sensitive to anomalies, and so is not suitable for our purposes.
 
-Many robust estimators of covariance have been proposed in the literature, but we will discuss only one, known as the **Minimum Covariance Determinant** (MCD) estimator [@Rousseeuw2003-ip;@fastmcd], which is implemented in the `covMcd()` function in the **`robustbase`** package [@robustbase].
+Many robust estimators of covariance have been proposed in the literature, but only one is discussed here, known as the **Minimum Covariance Determinant** (MCD) estimator [@Rousseeuw2003-ip;@fastmcd], which is implemented in the `covMcd()` function in the **`robustbase`** package [@robustbase].
 This estimator finds the subset of $h$ observations (where $n/2 < h \le n$) whose covariance matrix has the smallest determinant.
 The idea is that the subset of observations with the smallest covariance determinant is likely to be a subset of "good" observations, and so a covariance matrix computed from them will be robust to anomalies.
 If $H$ denotes this subset, the raw MCD estimate of the covariance matrix is
@@ -602,7 +602,7 @@ patchwork::wrap_plots(p1, p2, nrow = 1)
 Clustering methods group observations into distinct non-overlapping "clusters" based on their similarity.
 They are sometimes used for anomaly detection, as anomalies may form their own small clusters, or may appear as observations that do not belong to any cluster.
 Even if clustering is not used directly, some anomaly detection methods use tools based on clustering, and so we will need to understand some of the basic concepts.
-We will describe four of the most popular clustering methods: K-means clustering, the leader algorithm, DBSCAN, and hierarchical clustering.
+This section describes four of the most popular clustering methods: K-means clustering, the leader algorithm, DBSCAN, and hierarchical clustering.
 
 The methods differ in what information must be supplied in advance.
 K-means requires the number of clusters, $K$.
@@ -954,7 +954,7 @@ $$
   \hat{f}(\bm{y}) = \frac{1}{n} \sum_{i=1}^n K_{\bm{H}}(\bm{y} - \bm{y}_i),
 $$ {#eq-mkde}
 where $K_{\bm{H}}$ is a multivariate probability density with covariance matrix $\bm{H}$.
-In this book, we will use a multivariate Gaussian kernel given by
+This book uses a multivariate Gaussian kernel given by
 $$
   K_{\bm{H}}(\bm{u})
   = (2\pi)^{-m/2} |\bm{H}|^{-1/2} \exp \{-\textstyle\frac12 \bm{u}^\intercal\bm{H}^{-1}\bm{u} \}.
@@ -1078,7 +1078,7 @@ $$ {#eq-lookoutH}
 where $d_\gamma$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_{n-1}\}$ for a large value of $\gamma$; we use $\gamma = 0.98$, so that only about 2% of the merge distances are larger than $d_\gamma$.
 This bandwidth is matched to the spacing between neighbouring observations in the sparse parts of the data, where anomalies lie, rather than to the bulk of the data.
 It does not give a consistent estimate of the density as $n \rightarrow \infty$, but @lookout2 argue that consistency is not needed for anomaly detection, and show in simulations that it works well for that purpose.
-We call this the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-loo-surprisals.
+This is called the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-loo-surprisals.
 The `kde_bandwidth()` function will return this bandwidth when `method = "lookout"`.
 For univariate data, $h = d_\gamma Q_n$.
 

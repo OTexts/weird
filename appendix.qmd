@@ -37,7 +37,7 @@ $$
   \|\bm{v}\| = \sqrt{v_1^2 + v_2^2 + \cdots + v_n^2}.
 $$
 For a two-dimensional vector this is just Pythagoras' theorem, and in general it is known as the **Euclidean distance**.
-Note that the length of a vector (its magnitude) is a different idea from its dimension (its number of entries); we reserve $\|\bm{v}\|$ and the word *length* for the magnitude.
+Note that the length of a vector (its magnitude) is a different idea from its dimension (its number of entries); here, $\|\bm{v}\|$ and the word *length* are reserved for the magnitude.
 The length of a vector is always non-negative, and is zero if and only if the vector is the zero vector $\bm{0} = (0, \ldots, 0)^\intercal$.
 
 A vector with length one, $\|\bm{v}\| = 1$, is called a **unit vector**.

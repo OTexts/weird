@@ -149,7 +149,7 @@ This choice of $h$ gives a "breakdown point" of approximately 50%, meaning the e
 Residuals from the LTS fit can then be used to identify anomalies, since the fit is not drawn toward them.
 
 In R, `robustbase::ltsReg()` fits the LTS model using an efficient numerical algorithm [@robustbase].
-An alternative approach that achieves similar robustness at lower computational cost is the BACON algorithm, which we will discuss in @sec-bacon-reg.
+An alternative approach that achieves similar robustness at lower computational cost is the BACON algorithm, which is discussed in @sec-bacon-reg.
 Other robust regression methods are also available in the **`robustbase`** package.
 
 For now, we will continue to use the OLS approach, as it makes many calculations much easier, but be aware that some anomalies can be masked.
@@ -264,8 +264,8 @@ wine_aug |>
 Wines with large positive residuals are more expensive than expected for their points score, while wines with large negative residuals are cheaper than expected.
 
 Both distance-based and density-based methods can be applied to the standardised residuals (or standardised LOO residuals) to identify observations with unusual response values given the corresponding predictor values.
-In the next two sections, we will discuss using density-based surprisals to find anomalous residuals.
-Then in @sec-bacon-reg, we will discuss a variation of the distance-based BACON algorithm for regression.
+The next two sections discuss using density-based surprisals to find anomalous residuals.
+Then @sec-bacon-reg discusses a variation of the distance-based BACON algorithm for regression.
 The other methods described in @sec-distance-methods and @sec-density-methods can also be applied to residuals, although these applications are not discussed here.
 
 ## Linear regression surprisals {#sec-regression-log-scores}

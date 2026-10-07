@@ -151,7 +151,7 @@ This is commonly done in surveillance, when a time series is monitored in real t
 An anomaly in this context is an observation that is very different from what was forecast.
 Although only a single time series is shown in this plot, the idea easily extends to multivariate time series, where we look for something unusual occurring in the next time period across a set of time series.
 
-We will discuss each of these paradigms in turn.
+Each of these paradigms is discussed in turn.
 
 ## Weird times {#sec-weird-times}
 
@@ -413,7 +413,7 @@ stmf_scores
 ```
 
 At this point, we could identify a point as an anomaly if $|e_t|$ is greater than some threshold, as was done with the Hampel identifier.
-But we will use surprisals with probabilities calculated using a GPD, as it is a safer calculation making fewer assumptions about the distribution of the residuals.
+But surprisals with probabilities calculated using a GPD are used here instead, as this is a safer calculation making fewer assumptions about the distribution of the residuals.
 
 ```{r}
 #| label: stmf_scores2
@@ -852,7 +852,7 @@ The forecast "horizon" is given by $h$, denoting the number of time periods into
 Different forecasting methods use different conditioning information, and result in a different form of the forecast distribution.
 See @fpp3 for a detailed discussion of forecasting methods.
 
-Once we observe the value of $y_{t+h}$, we can calculate the corresponding surprisal probability in the same way as we discussed in @sec-surprisal-probabilities.
+Once we observe the value of $y_{t+h}$, we can calculate the corresponding surprisal probability in the same way as discussed in @sec-surprisal-probabilities.
 Because we are interested in real-time surveillance, we need only consider the one-step-ahead forecast density, $f(y_{t+1} \mid y_1, \dots, y_{t}, \bm{x}_t)$.
 We can then calculate the surprisal as
 $$
@@ -1212,12 +1212,12 @@ stopifnot(janfeb[["2008 Jan"]] < janfeb[["2007 Jan"]])
 Most months have between zero and three flagged series, consistent with the estimated value of $\pi$.
 The four months shown in orange in @fig-pbs-joint have many more flagged series than we would expect.
 Two are in December, at the time of the usual end-of-year spike, which occurs because patients stockpile medicines before the PBS safety-net thresholds reset at the start of each calendar year [@fpp3, Ch.\ 2]; in these months the size of the spike was unusual in many groups at once.
-We have no explanation for March 1999.
+There is no obvious explanation for March 1999.
 The most extreme month is February 2008, when 33 of the 84 groups were flagged.
 In that year, the usual fall in script volumes in February did not occur; total volume was about `r feb_growth`% higher than in February 2007.
 However, the combined volume for January and February 2008 was only about `r janfeb_growth`% higher than a year earlier, in line with previous years, and January 2008 was lower than January 2007.
 So it seems that some scripts that would normally have been recorded in January were recorded in February instead: a change in timing rather than in demand.
-We have not been able to find an administrative reason for this.
+No administrative reason for this has been found.
 An event like this is much easier to spot when looking across all series than in any single series.
 
 The independence assumption is unrealistic here, as the same events affect many series.
