@@ -2,7 +2,7 @@
 # http://changedetection.net (baseline category), downloaded via
 # https://www.kaggle.com/datasets/maamri95/cdnet2014
 # Usage: Rscript data/pets2006.R <path to dataset/baseline/PETS2006>
-# Frames 300-1200 (those with ground truth), every third frame, converted to greyscale
+# Frames 300-1200, every third frame, converted to greyscale
 # and downsampled from 720 x 576 to 120 x 96 by averaging 6 x 6 blocks.
 
 path <- commandArgs(trailingOnly = TRUE)[1]
@@ -21,21 +21,13 @@ read_frame <- function(i) {
   grey <- 0.299 * img[, , 1] + 0.587 * img[, , 2] + 0.114 * img[, , 3]
   c(round(255 * downsample(grey)))
 }
-# Ground truth: 255 = moving object, 0 = static, 50 = shadow, 170 = unknown
-read_truth <- function(i) {
-  gt <- png::readPNG(file.path(path, "groundtruth", sprintf("gt%06d.png", i)))
-  c(round(block^2 * downsample(round(255 * gt) == 255)))
-}
 
 pets2006 <- list(
   frame = frames,
   nrow = 576 / block,
   ncol = 720 / block,
   # One row per frame; pixels stored column by column (as in c(matrix))
-  pixels = t(sapply(frames, read_frame)),
-  # Number of ground-truth moving-object pixels in each 6 x 6 block (0 to 36)
-  truth = t(sapply(frames, read_truth))
+  pixels = t(sapply(frames, read_frame))
 )
 storage.mode(pets2006$pixels) <- "integer"
-storage.mode(pets2006$truth) <- "integer"
 saveRDS(pets2006, here::here("rds/pets2006.rds"))
