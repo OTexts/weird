@@ -41,8 +41,7 @@ $$
 Rather than label these using integers ($L_2,L_3,\dots$), Tukey proposed using letters ($L_F,L_E,L_D,\dots$) where $F =$ fourths, $E =$ eighths, $D =$ sixteenths, and so on.
 
 Because each depth is roughly half the previous depth, the lower letter values provide estimates of the quantiles with probabilities $p = \frac{1}{2},\frac14,\frac18,\dots$, while the upper letter values provide estimates of the quantiles with probabilities $p = \frac{1}{2},\frac34,\frac78,\dots$.
-@hoaglin1983letter [p.
-44] showed that $\hat{Q}(p)$ with `type = 8` gives approximately the same result as the corresponding letter value.
+@hoaglin1983letter [p.\ 44] showed that $\hat{Q}(p)$ with `type = 8` gives approximately the same result as the corresponding letter value.
 
 ```{r}
 #| label: battinglv
@@ -140,8 +139,8 @@ This is what is produced by the base R function `boxplot()`.
 In the **`ggplot2`** version of the boxplot shown here, the ends of the box are the quartiles computed using `type = 7`.
 
 Whichever variation is used, roughly half of all observations lie within the box.
-The length of the box is an estimate of the "interquartile range" (IQR).
-Any points more than 1.5 IQR outside the box are shown as separate points in the plot.
+The length of the box is an estimate of the interquartile range (IQR).
+The **fences** lie 1.5 IQR beyond each end of the box, and any points outside the fences are shown as separate points in the plot.
 The "whiskers" that extend out each side of the box show the range of the remaining points.
 
 Originally, Tukey proposed two levels of outliers --- those more than 1.5 IQR beyond the box were labelled "outside" values, while those more than 3 IQR beyond the box were labelled "far out" values.
@@ -222,7 +221,7 @@ tukey1 <- 2 * (1 - pnorm(q3 + 1.5 * iqr))
 tukey2 <- 2 * (1 - pnorm(q3 + 3 * iqr))
 ```
 
-Under Tukey's boxplot approach to identifying outliers, a **regular outlier** is more than 1.5 IQR beyond the quartiles, while an **extreme outlier** is more than 3 IQR beyond the quartiles.
+Under Tukey's boxplot approach to identifying outliers, a **regular outlier** (an "outside" value) is more than 1.5 IQR beyond the quartiles, while an **extreme outlier** (a "far out" value) is more than 3 IQR beyond the quartiles.
 For a Normal distribution, the probability of genuine observations lying beyond these thresholds is `r sprintf("%.4f",tukey1)` and `r sprintf("%.7f",tukey2)` respectively, so for large sample sizes, many spurious anomalies will be identified.
 Even with 1000 observations, Tukey's approach will find at least one spurious anomaly in a Normal distribution with probability `r 1 - (1-tukey1)^1000`.
 
@@ -269,7 +268,7 @@ tibble(n = exp(seq(log(3), log(1e6), l = 100))) |>
 
 Even with a huge sample size, the probability of identifying a spurious regular anomaly using this modified approach is less than 1/2, and it is almost impossible to identify a spurious extreme anomaly.
 
-Let's apply this approach to the six examples we introduced in @sec-examples.
+Let's apply this approach to the six examples introduced in @sec-examples.
 First we will write a short function to implement the idea.
 
 ```{r}
@@ -325,12 +324,12 @@ stopifnot(identical(c(n1, n2, n3, n4, n5, n6), c(1L, 273L, 1L, 1L, 23L, 13L)))
 ```
 
 This is an improvement on the original boxplot approach, and it finds the true anomaly in the `cricket_batting` data and one of the two anomalies in the `n01b` data.
-But it also identifies many false anomalies in the other data sets, especially those that are not Normally distributed.
+But it also identifies false anomalies in the other data sets: only one in the `n01` data, but many in those that are not Normally distributed.
 The assumption of Normality means that the method is not a good choice for most data sets.
 
 ## Letter-value plots {#sec-letter-value}
 
-The problem that boxplots have with large data sets was also addressed by @Hofmann2017-hz who introduced "letter-value" plots, a variation of boxplots that replaces the whiskers with a variable number of letter values.
+The problem that boxplots have with large data sets was also addressed by @Hofmann2017-hz who introduced **letter-value plots**, a variation of boxplots that replaces the whiskers with a variable number of letter values.
 In these plots, each pair of letter values marks the boundaries of a box.
 The box bounded by the fourths is the same as the box of a boxplot; the additional boxes extend to successive letter values until the quantiles corresponding to the letter values can no longer be estimated sufficiently accurately from the available data.
 
@@ -436,7 +435,7 @@ n01b |>
   labs(x = "")
 ```
 
-In this last example, because there are only 20 observations, there is not enough data to estimate the quantiles beyond the fourths.
+In this last example, because there are only 20 observations, there are not enough data to estimate the quantiles beyond the fourths.
 So only the middle box is shown, and the 10 observations outside it are all plotted individually.
 
 ## Multivariate data depth {#sec-depth}
@@ -445,7 +444,7 @@ For multivariate data, there is no unique natural ordering of observations by si
 It is still a measure of how centrally a point is located in a data set, but we need to think about what "central" means when there are multiple variables.
 
 There are numerous ways to define depth for multivariate data, nicely summarised in @Liu1999, and implemented in the [**`depthR`** package](https://cran.r-project.org/package=depthR) for R.
-Here, we will consider only the simplest and oldest of these, Tukey depth, which is the basis of the bagplot (@sec-bagplots).
+Only the simplest and oldest of these is considered here: Tukey depth, which is the basis of the bagplot (@sec-bagplots).
 
 ### Tukey depth
 
@@ -484,7 +483,7 @@ There are no dividing lines that would put the orange point in a halfspace on it
 So it has a Tukey depth of 2.
 
 The depth region $D_k$ is the set of all points $\bm{z}$ with Tukey depth at least $k$.
-These form a series of nested convex hulls where $D_{k+1} \subseteq D_k$.
+These form a series of nested convex polygons where $D_{k+1} \subseteq D_k$.
 The depth regions for our example are shown in @fig-depthregions.
 The blue region is depth 1, the orange region is depth 2, the pink region is depth 3, and the green region is depth 4.
 
@@ -549,7 +548,7 @@ The centre of gravity of this region is the yellow point in the middle.
 ## Bagplots {#sec-bagplots}
 
 The bagplot was proposed by @bagplot as a bivariate version of a boxplot, constructed using similar principles.
-Like a univariate boxplot, the bivariate bagplot has a central point (the depth median), an inner region (the "bag"), and an outer region (the "loop"), beyond which outliers are shown as individual points.
+Like a univariate boxplot, the bivariate bagplot has a central point (the depth median), an inner region (the **bag**), and an outer region (the **loop**), beyond which outliers are shown as individual points.
 
 To define the bag, we first find the smallest depth region $D_k$ containing at least $\lfloor n/2 \rfloor$ of the observations.
 Then the bag is linearly interpolated between $D_k$ and $D_{k+1}$, with the linear interpolation depending on the number of observations in each depth region.
@@ -609,7 +608,7 @@ oldfaithful |>
 
 The idea of depth regions and the depth median can be easily generalised to data with more than two dimensions [@rousseeuw1998computing].
 Consequently, it would be possible to define a higher-dimensional version of the bagplot, although it would be difficult to plot it in four or more dimensions.
-In any case, we will consider approaches to handle high-dimensional data in @sec-highdim.
+In any case, approaches for high-dimensional data are discussed in @sec-highdim.
 
 ## HDR boxplots {#sec-hdr-boxplots}
 
@@ -617,7 +616,7 @@ We can compute HDRs (@sec-hdr) from a kernel density estimate to find regions of
 
 Let's illustrate the idea with univariate data.
 In @sec-kde, we estimated the density of the duration of Old Faithful eruptions using a kernel density estimate, and plotted it in @fig-oldfaithful4.
-We can find the 50% and 99% HDRs of this density, which can then be used to form an "HDR boxplot" [@HDR96] as shown in @fig-hdr-faithful.
+We can find the 50% and 99% HDRs of this density, which can then be used to form an **HDR boxplot** [@HDR96] as shown in @fig-hdr-faithful.
 
 ```{r}
 #| label: fig-hdr-faithful
@@ -656,8 +655,8 @@ oldfaithful |>
 Points outside the 99% region are shown separately and jittered vertically to reduce overplotting.
 This type of boxplot has the advantage that it allows for multimodal distributions, and can identify "inliers" that occur in regions of low density between regions of high density.
 
-Of course, by definition, about 1% of points will lie outside the 99% region, so the points shown are not necessarily anomalies, just observations that occur in the lower probability regions of the space.
-By setting `show_anomalies = TRUE`, some of the points are highlighted as potential anomalies, using the LOO surprisal probabilities described in @sec-loo-surprisals.
+By definition, about 1% of points will lie outside the 99% region, so the points shown are not necessarily anomalies, just observations that occur in the lower probability regions of the space.
+By setting `show_anomalies = TRUE`, some of the points are highlighted as potential anomalies, based on how unlikely each observation is under a density estimate computed without it (@sec-loo-surprisals).
 
 The idea naturally extends to higher dimensions.
 @fig-hdr-faithful2 shows the bivariate HDR boxplot of the duration and waiting times for the Old Faithful data.
@@ -691,8 +690,8 @@ oldfaithful |>
 
 The plots in this chapter summarise a distribution by a series of nested central regions, and show the observations outside the outermost region individually.
 They differ in how "central" is defined.
-Boxplots and letter-value plots use univariate depth: a boxplot shows the median, a box bounded by the fourths (or quartiles), and fences 1.5 IQR beyond the box, while a letter-value plot adds further letter values (eighths, sixteenths, and so on) until the next one can no longer be estimated reliably, which makes it better suited to large data sets.
-Bagplots extend the boxplot to bivariate data using Tukey depth, with the depth median at the centre, a bag containing the deepest half of the observations, and a loop obtained by inflating the bag by a factor of 3.
+Boxplots and letter-value plots use univariate depth: a boxplot shows the median, a box bounded by the fourths (or quartiles), and whiskers extending to the most extreme observations within fences 1.5 IQR beyond the box, while a letter-value plot adds further letter values (eighths, sixteenths, and so on) until the next one can no longer be estimated reliably, which makes it better suited to large data sets.
+Bagplots extend the boxplot to bivariate data using Tukey depth, with the depth median at the centre, a bag containing the deepest half of the observations, and a loop enclosing the observations that lie within the bag inflated by a factor of 3.
 HDR boxplots define the regions by probability density instead, using highest density regions of a kernel density estimate.
 
 The points shown individually are not necessarily anomalies.

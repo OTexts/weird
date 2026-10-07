@@ -33,7 +33,7 @@ Whether we want to remove them or study them, we first need to find them.
 
 An anomaly is an observation that behaves differently from the bulk of the data.
 Anomalies are also called "outliers", "novelties", "deviants", "abnormalities" or "discordants".
-I prefer to use "anomalies" as it is a more general term than outliers, and it is more widely used than the other options.
+I prefer to use "anomalies" as it is a more general term than "outliers", and it is more widely used than the other options.
 
 An old definition due to @Barnett1978 states
 
@@ -52,7 +52,7 @@ However, it raises two immediate questions:
    This depends on the application, and the nature of the data.
    In practice, we will often have to estimate the distribution from the available observations, which leads to further complications.
    Even if we think we know the underlying distribution, we may be wrong.
-   So we will aim to use methods that reliably identify anomalies, even if the assumed distribution is mis-specified.
+   So this book aims to use methods that reliably identify anomalies, even if the assumed distribution is mis-specified.
 2. What is meant by "very low"?
    Again, it is application-dependent, and we will need to set an appropriate threshold probability for determining what we consider to be an anomaly.
 
@@ -80,8 +80,8 @@ There is a widespread myth that NASA did not discover the hole in the ozone laye
 This is not true, but the real story is also instructive [@Pukelsheim1990;@Christie2001;@christie2004data].
 
 The "ozone hole" refers to low levels of ozone in the atmosphere above Antarctica and surrounding areas.
-NASA has been collecting satellite data on Antarctic ozone levels using a Total Ozone Mapping Spectrometer (TOMS) since 1979, while British scientists have collected ozone data using ground sensors at the Halley Research Station, on the edge of the Brunt Ice Shelf in Antarctica, since 1957.
-@fig-halley shows average daily values from the NASA measurements in blue, and from the British observations in orange.
+NASA has been collecting satellite data on Antarctic ozone levels since 1979, initially using a Total Ozone Mapping Spectrometer (TOMS), while British scientists have collected ozone data using ground sensors at the Halley Research Station, on the edge of the Brunt Ice Shelf in Antarctica, since 1957.
+@fig-halley shows mean daily values for October from the NASA measurements in blue, and from the British observations in orange.
 There is a clear downward trend in the British data, especially from the late 1970s, which is confirmed with the NASA data.
 So why wasn't the "ozone hole" discovered until 1985?
 
@@ -222,8 +222,8 @@ It is possible, for example, that what a human labels as "anomalous" is not anom
 What is called "supervised anomaly detection" is actually a classification problem, where the aim is to mimic the human who labelled the training set.
 In that case, different tools are employed.
 
-In this book, we will only consider unsupervised problems.
-That is, we have no idea *a priori* what observations are anomalous, and there is no "right" answer when it comes to real data.
+This book considers only unsupervised problems.
+That is, we have no idea *a priori* which observations are anomalous, and there is no "right" answer when it comes to real data.
 
 ### Testing anomaly detection algorithms {-}
 
@@ -243,14 +243,14 @@ There are three solutions to this problem that are often employed when testing a
    However, it requires that the observations labelled anomalies are different in some way from the other observations (apart from their label).
 
 In this book, we will use data sets of each type when testing different anomaly detection methods.
-@sec-data discusses the main examples we will be using throughout the book.
+@sec-data describes the main data sets used in the chapters that follow.
 
 ## Spurious anomalies and undetected anomalies {#sec-spurious}
 
 **Spurious anomalies** occur when a non-anomalous observation is identified as anomalous, while **undetected anomalies** occur when an anomalous observation is not detected.
 Thus, when our purpose is anomaly detection, an undetected anomaly is a "false negative" while a spurious anomaly is a "false positive".
 We can only really be sure about which observations are spurious or undetected anomalies when the data are synthetic.
-However, in some real data examples, there are such extreme anomalies that we will proceed under the assumption that we know that these are true anomalies.
+However, some real data examples contain anomalies so extreme that they can safely be treated as true anomalies.
 
 In some applications, we will be less interested in detecting anomalies than in ranking observations according to their degree of "anomalousness".
 For example, we may have a limited team of human analysts who can investigate a few observations, and we want to make sure that they investigate the most anomalous observations.
@@ -258,7 +258,7 @@ Then it is important to compute an anomaly score, so we can rank the observation
 
 In fact, anomaly scores often underpin the algorithms that are used to detect anomalies.
 The algorithms compute a score for each observation, and then identify the observations with scores above some threshold as the anomalies.
-So we will often be talking about anomaly scores, even when we are really interested in detecting anomalies.
+So anomaly scores appear throughout this book, even where the aim is to detect anomalies.
 
 ## Data sets {#sec-data}
 
@@ -296,7 +296,7 @@ Recordings are incomplete, especially during the winter months when observers ma
 ### Firearm homicide and gun ownership {-}
 
 The `gun_deaths` data set contains data on gun ownership rates and firearm homicide rates for `r NROW(gun_deaths)` countries in 2017.
-The gun ownership rate is the number of guns per 100 people, while the firearm homicide rate is the number of firearm homicides per 100,000 people.
+The gun ownership rate is the number of guns owned by civilians per 100 people, while the firearm homicide rate is the number of firearm homicides per 100,000 people.
 
 ```{r}
 #| label: gundata
@@ -310,7 +310,7 @@ gun_deaths
 The `air_quality` data set contains hourly data on air quality from 12 monitoring stations in Beijing, China, collected between 1 March 2013 and 28 February 2017.
 The data set contains `r scales::comma(NROW(air_quality))` hourly observations of the concentration of various pollutants, including PM2.5 (particulate matter with diameter less than 2.5 microns), PM10 (particulate matter with diameter less than 10 microns), SO2 (sulphur dioxide), NO2 (nitrogen dioxide), CO (carbon monoxide), and O3 (ozone).
 The data set also includes several weather variables, including temperature, pressure, dew point, rainfall, wind direction and speed.
-Because it is a rather large data set, it does not come pre-loaded with the package, but can be obtained using the `fetch_air_quality()` function.
+Because it is a rather large data set, it does not come pre-loaded with the **`weird`** package, but can be obtained using the `fetch_air_quality()` function.
 
 ```{r}
 #| label: airquality0
@@ -352,7 +352,7 @@ wine_reviews
 
 The `n01` data set contains synthetic data on 10 variables, each generated independently from a Normal distribution with mean zero and variance one.
 So by definition, this data set contains no anomalies.
-We will add anomalies to the data when testing algorithms, in order to check that the algorithms can identify the artificial anomalies.
+Anomalies are added to these data in later chapters when testing algorithms, in order to check that the algorithms can identify the artificial anomalies.
 
 ```{r}
 #| label: n01
@@ -366,7 +366,7 @@ n01
 When there are no more than a few thousand observations, and only one or two variables, it is useful to start with simple plots that allow us to look at the observations directly with no processing or modelling that may hide what is going on.
 
 Let's start with some examples using only one or two variables.
-These examples will be revisited in the next couple of chapters as new anomaly detection tools and graphics are introduced.
+These examples will be revisited in later chapters as new anomaly detection tools and graphics are introduced.
 
 ### Example: Don Bradman's batting averages
 
@@ -398,7 +398,7 @@ cricket_batting |>
 ```
 
 The points are "jittered" vertically to reduce overplotting, and made slightly transparent to show where overplotting occurs.
-There is an obvious anomaly on the right of the plot; this point is Don Bradman who averaged `r scales::number(donave, 0.01)` over his career.
+There is an obvious anomaly on the right of the plot; this point is Don Bradman, who averaged `r scales::number(donave, 0.01)` over his career.
 Clearly, Don Bradman was much better than any of the other men and women who have played Test cricket.
 
 ### Example: Old Faithful eruption durations {-}
@@ -435,13 +435,13 @@ The majority of observations are between 200 and 300 seconds, with a smaller gro
 Few observations fall between 140 and 180 seconds.
 Those that do might be considered "inliers" --- anomalous points that lie within the range of the rest of the data but in regions of low density.
 
-The two clusters of observations characterise two eruption modes for the Old Faithful geyser: short durations (around 2 minutes in length) and long durations (between 3 and 5 minutes in length).
+The two clusters of observations characterise two eruption modes for the Old Faithful Geyser: short durations (around 2 minutes in length) and long durations (between 3 and 5 minutes in length).
 There was an earthquake in 1998 that changed the distribution of durations.
 Before 1998, the durations were more evenly split between the two clusters, but currently the long durations are much more common.
 
 The `oldfaithful` data set also contains the time between eruptions.
 For each row, `waiting` gives the time to the *following* eruption.
-This is used to predict when the next eruption will happen, based on the duration of the most recent eruption.
+The relationship between `duration` and `waiting` is used to predict when the next eruption will happen, based on the duration of the most recent eruption.
 
 ```{r}
 #| label: fig-oldfaithful3
@@ -453,8 +453,8 @@ oldfaithful |>
   labs(y = "Waiting time to next eruption (seconds)", x = "Duration (seconds)")
 ```
 
-In @fig-oldfaithful3, we have plotted the duration of each eruption and the waiting time to the next eruption.
-This shows some anomalies that occur due to the *combination* of the two variables, although they do not appear anomalous within the data on any one of the variables.
+@fig-oldfaithful3 shows the duration of each eruption and the waiting time to the next eruption.
+It reveals some anomalies that occur due to the *combination* of the two variables, although they do not appear anomalous within the data on any one of the variables.
 For example, there are two eruptions of 110--120 seconds, followed by waiting times of over 6000 seconds.
 Neither the waiting time nor the duration is unusual on its own, but the combination is anomalous.
 Similarly, there is one eruption of about 240 seconds, followed by a waiting time of about 3000 seconds.
@@ -484,7 +484,7 @@ This adds a small amount of random noise to the points variable, but not so much
 The price is shown on a log scale to allow all the points to be seen more clearly.
 
 Here the most interesting observations are the ones that have an unusual price given their points value.
-For example, the lowest priced wine above 95 points is a 2007 Syrah from the Rulo winery in the Columbia Valley, Washington.
+For example, the lowest-priced wine above 95 points is a 2007 Syrah from the Rulo winery in the Columbia Valley, Washington.
 It is an anomaly given its high points value and low price, although neither the price nor the points value is particularly unusual.
 There are also two very expensive wines that do not have a rating to match, with points values in the low 90s.
 These can also be considered anomalies.
@@ -508,7 +508,7 @@ As the number of dimensions increases, there are more ways for observations to b
 
 While strip plots and scatterplots are useful for finding anomalies in small- to moderate-sized data sets with one or two numerical variables, we will need alternative tools once we have three or more variables, or a large data set, or non-numerical data.
 
-We will consider the problem of high dimensions in @sec-highdim, while various types of non-numerical data are considered in the later chapters of the book.
+@sec-highdim considers the problem of high dimensions, while various types of non-numerical data are considered in the later chapters of the book.
 
 ### Example: Synthetic standard Normal data
 

@@ -13,23 +13,22 @@ Networks arise whenever we record relationships between things: friendships on s
 Almost all real networks change over time, as new nodes and edges appear, old ones disappear, and the overall structure evolves.
 An anomaly in this setting might be a fault in an infrastructure network, a fraudulent transaction, a sudden burst of activity around a real-world event, or an unusual realignment in a voting network.
 
-We will write a network as $\mathcal{G}$, with $n$ nodes labelled $1,\dots,n$.
+A network is written as $\mathcal{G}$, with $n$ nodes labelled $1,\dots,n$.
 In an **undirected** network, an edge simply records that two nodes are connected, so an edge between nodes $i$ and $j$ is the same as an edge between nodes $j$ and $i$.
 In a **directed** network, each edge has a direction, running from one node to another, such as from the sender of a message to its receiver.
 A convenient way to store a network is as an $n \times n$ **adjacency matrix** $\bm{A}$, where $a_{ij} = 1$ if there is an edge from node $i$ to node $j$, and $a_{ij} = 0$ otherwise.
 The adjacency matrix of an undirected network is symmetric, while that of a directed network need not be.
 Sometimes more than one edge can join the same pair of nodes (for example, when each message sent is recorded as an edge), and then $a_{ij}$ counts the number of edges from $i$ to $j$.
-We will see examples of both kinds of network in this chapter: the US Senate co-voting networks are undirected, while the UCI message networks are directed.
+This chapter uses examples of both kinds of network: the US Senate co-voting networks are undirected, while the UCI message networks are directed.
 
 Several kinds of anomaly can be of interest in a dynamic network: anomalous individual nodes, anomalous edges, anomalous subgraphs, or an anomalous network as a whole [@Akoglu2015].
 Following the definition of an anomaly used throughout this book, in each case we are looking for something with very low probability of occurring relative to an appropriate reference group: a node compared to the rest of its network, or a whole network compared to the rest of a sequence.
 This chapter covers two of these problems.
-We start with the simplest, anomalous nodes within a single network, which needs only the high-dimensional anomaly detection methods of @sec-highdim.
-Later, from @sec-network-sequence onwards, we turn to anomalous networks within a longer sequence, which additionally requires the time series tools of @sec-timeseries.
+The simpler problem, finding anomalous nodes within a single network, comes first; it needs only the high-dimensional anomaly detection methods of @sec-highdim.
+From @sec-network-sequence onwards, the chapter turns to anomalous networks within a longer sequence, which additionally requires the time series tools of @sec-timeseries.
 
 Statistical methods have a long history of success in modelling temporal dependence, but they have been underused for network anomaly detection compared to purely graph-theoretic approaches [@Ranshous2015-kf].
 For the whole-network problem, this chapter describes **oddnet**, a method due to @oddnet that fuses network analysis with time series modelling; the R package **`oddnet`** implements the algorithm.
-We start, though, with the simpler problem of anomalous nodes.
 
 Before we begin, let's load the packages we will need, and define a few functions for plotting.
 
@@ -138,7 +137,7 @@ senate_networks <- lapply(seq_along(senate_congress), \(i) {
 congress100 <- which(senate_congress == 100)
 ```
 
-As an illustration, we consider the 100th Congress (1987--1989).
+As an illustration, consider the 100th Congress (1987--1989).
 @fig-senate-100 shows this network, coloured by party.
 
 ```{r}
@@ -155,7 +154,7 @@ senate_networks[[congress100]] |>
   )
 ```
 
-For each senator, we compute six **`igraph`** features that describe their position in the co-voting network.
+For each senator (and the President), we compute six **`igraph`** features that describe their position in the co-voting network.
 
 **Degree** is simply the number of edges attached to a node, $d_i = \sum_{j} a_{ij}$ for an undirected network --- here, the number of other senators a given senator co-votes with sufficiently often to share an edge.
 It is the most basic measure of how connected a node is, but it says nothing about *where* those connections lead.
@@ -391,13 +390,13 @@ We now turn to a different question: instead of looking for unusual nodes within
 
 ## Anomalous networks within a sequence {#sec-network-sequence}
 
-We now turn to the second problem introduced at the start of the chapter: given a sequence of networks $\mathcal{G}_1, \mathcal{G}_2, \dots$ observed over time, is any one of them anomalous compared to the rest?
-Unlike the node-level problem, this requires modelling the temporal dependence between networks, which oddnet builds up in three steps: mapping each network to a feature vector, modelling each feature series over time, and finally reducing dimension and detecting anomalies in the resulting residuals.
+Suppose now that we observe a sequence of networks $\mathcal{G}_1, \mathcal{G}_2, \dots$ over time.
+Unlike the node-level problem, finding an anomalous network in the sequence requires modelling the temporal dependence between networks, which oddnet builds up in three steps: mapping each network to a feature vector, modelling each feature series over time, and finally reducing dimension and detecting anomalies in the resulting residuals.
 
 ### From networks to features
 
 The obvious way to compare two networks is to look at them.
-But networks resist direct comparison much more than numerical data does: two networks with a very different number of edges can look superficially similar when drawn, while two networks that look very different might have almost identical numbers of nodes, edges, and connected components.
+But networks resist direct comparison much more than numerical data do: two networks with a very different number of edges can look superficially similar when drawn, while two networks that look very different might have almost identical numbers of nodes, edges, and connected components.
 So instead, we compute a vector of numerical summary features from each network, and compare networks via their features.
 
 Let $f$ be a function mapping a network $\mathcal{G}$ to a vector of $m$ features, $\bm{x} = f(\mathcal{G}) \in \mathbb{R}^m$.
@@ -434,7 +433,7 @@ A node's **hub score** is high if it links to many good "authorities", and a nod
 They were originally developed to distinguish web pages that provide a good list of links (hubs) from pages that are themselves worth linking to (authorities).
 Writing $h_i$ for the hub score and $q_i$ for the authority score of node $i$, these ideas become $h_i \propto \sum_j a_{ij}q_j$ and $q_i \propto \sum_j a_{ji}h_j$.
 Substituting one into the other shows that the vector of hub scores is the leading eigenvector of $\bm{A}\bm{A}^\intercal$, and the vector of authority scores is the leading eigenvector of $\bm{A}^\intercal\bm{A}$.
-Degree, triangles, betweenness, PageRank and coreness each produce a whole distribution of values across the nodes of a network, so oddnet summarises each of them with a single number, the 99th percentile of that distribution, focusing on the most extreme node for each measure since anomaly detection is more concerned with unusual tails than with typical values.
+Degree, triangles, betweenness, PageRank and coreness each produce a whole distribution of values across the nodes of a network, so oddnet summarises each of them with a single number, the 99th percentile of that distribution, focusing on the most extreme nodes for each measure since anomaly detection is more concerned with unusual tails than with typical values.
 Closeness is summarised differently: oddnet records the proportion of nodes with closeness of at least 0.8.
 Since $c_i = 1\big/\sum_j \delta_{ij}$, and each distance is at least one, $c_i \ge 0.8$ only when node $i$ can reach exactly one other node (such as either node of an isolated pair), so this feature is usually zero for a well-connected network.
 The hub and authority scores are summarised differently again, using the largest eigenvalue of $\bm{A}\bm{A}^\intercal$ and of $\bm{A}^\intercal\bm{A}$ respectively, a property of the network as a whole rather than of any individual node.
@@ -549,7 +548,7 @@ oddnet uses a different robust PCA method to the ROBPCA algorithm of @sec-robpca
 This is the same function we used to reduce the node-level features in @sec-network-nodes.
 
 Second, the two-dimensional projection is searched for anomalies using the lookout algorithm from @sec-loo-surprisals, which computes leave-one-out kernel density surprisal probabilities.
-A network is flagged as anomalous if its surprisal probability, as estimated by lookout, falls below a threshold $\alpha$ (we use $\alpha = 0.05$ throughout this chapter, following @oddnet).
+A network is flagged as anomalous if its surprisal probability, as estimated by lookout, falls below a threshold $\alpha$ ($\alpha = 0.05$ is used throughout this chapter, following @oddnet).
 
 ### The oddnet algorithm
 
@@ -561,13 +560,14 @@ Any feature that is missing for every network, or that takes the same value for 
 **Step 2: Model each feature series.** Fit an ARIMA model to each of the remaining feature series in turn, and compute the residuals $\bm{e}_t$, as described in "Modelling temporal dependence" above.
 
 **Step 3: Reduce dimension.** Standardise each residual series using a trimmed mean and a trimmed standard deviation, which ignore the 0.5% of values in each tail, so that the anomalies we are looking for do not distort the scaling.
+With fewer than 200 networks, as in both examples below, 0.5% of the values is less than one observation, so the trimmed mean is just the ordinary mean, while the trimmed standard deviation still leaves out the largest and smallest squared deviations.
 Then project the standardised residual vectors onto two dimensions using robust PCA.
 
 **Step 4: Detect anomalies.** Apply the lookout algorithm to the two-dimensional projection, giving a surprisal probability for each network.
 
 This is implemented in the `anomalous_networks()` function, which takes a list of adjacency matrices and returns the estimated surprisal probabilities.
 Because these are computed from the residuals of the time series models, they are conditional on the history of each feature: a network is flagged when it is surprising given the networks that preceded it, which is why @oddnet call them conditional probabilities.
-We now apply it to the full sequence of Senate co-voting networks already introduced in @sec-network-nodes, extending the single-Congress analysis there to look for anomalies across the whole sequence.
+We now apply it to the full sequence of Senate co-voting networks.
 
 ## Example: US Senate co-voting networks {#sec-senate-network}
 
@@ -575,7 +575,8 @@ We already used one Congress from this data set, the 100th, to find anomalous in
 Now we ask a different question of the full `r length(senate_networks)`-Congress sequence: is any single Congress, as a whole network, unusual compared to the rest?
 
 @fig-senate-networks shows the co-voting network for four Congresses, coloured by party.
-After the earliest Congresses, the parties become clearly separated, from an almost undifferentiated network in the 40th Congress to two party blocs joined by few or no edges in the later ones (none at all in the 64th, and only a handful in the 113th).
+The 40th Congress is very sparse: most senators are isolated, and the largest connected group is small and mixes the two parties.
+In the later Congresses shown, each party forms its own bloc, but the links between the blocs vary: there are none at all in the 64th Congress and only a handful in the 113th, while in the 89th a few Republicans co-vote with many Democrats.
 
 ```{r}
 #| label: fig-senate-networks
@@ -640,7 +641,7 @@ stopifnot(most_anomalous == 100)
 ```{r}
 #| label: senate-zorinsky-check
 #| include: false
-#| dependson: [senate-oddnet, senate-node-features]
+#| dependson: [senate-oddnet, senate-node-anomaly]
 
 # The prose says that the 100th Congress is even more anomalous without Zorinsky
 z <- which(senate_node_features$name == "ZORINSKY, Edward")
@@ -705,7 +706,7 @@ uci_networks <- lapply(uci_dates, \(d) {
 ```
 
 The data also contain `r scales::comma(n_selfloops)` rows in which the sender and receiver are the same student, one for each student in the data set; these are not messages between students, so we have removed them.
-This gives `r length(uci_networks)` daily networks, ranging in size from a handful of active students on the first few days to several hundred during May, after which activity gradually tails off.
+This gives `r length(uci_networks)` daily networks, one for each day on which at least one message was sent (numbered in that order as day 1, day 2, and so on), ranging in size from a handful of active students on the first few days to several hundred during May, after which activity gradually tails off.
 @fig-uci-networks shows three of these daily networks, illustrating how sparse activity in the first few days (day 3) contrasts with much busier days (days 22 and 42).
 
 ```{r}
@@ -723,7 +724,7 @@ uci_gr <- function(i) {
 patchwork::wrap_plots(uci_gr(3), uci_gr(22), uci_gr(42), nrow = 1)
 ```
 
-Because the daily networks vary hugely in size, some features (such as the mean distance between nodes) are undefined on the smallest, sparsest days.
+Because the daily networks vary hugely in size, some features (the clustering coefficient and the assortativity) are undefined on the smallest, sparsest days.
 We set these missing features to zero before running oddnet.
 The proportion of isolated nodes is zero on every day, because students only appear in a daily network if they sent or received a message that day, and the vertex connectivity is also zero on every day.
 So oddnet drops these two features, leaving 18.
@@ -781,8 +782,8 @@ stopifnot(all(uci_constant == 0))
 Unlike the Senate network, which drifts slowly over decades, this network is driven by the rhythm of the academic calendar.
 The two most anomalous days are 19 April and 28 May.
 On 19 April, only the third day on which any messages were sent, the network suddenly grew from 2 to 16 students, early in the platform's initial rapid growth phase identified by @Panzarasa2009.
-Several of the other flagged dates cluster around 28 May, close to the end of that growth phase, and around 15 June (during the Spring final examinations) and 24 September (the first day of Fall instruction).
-The Senate and UCI examples illustrate quite different anomaly patterns: a slow structural realignment measured in decades, against short bursts of activity tied to a fixed calendar.
+Of the other `r english::words(length(uci_flagged) - 2)` flagged days, 22 and 29 May are close to 28 May, near the end of that growth phase, while 15 June fell during the Spring final examinations and 24 September was the first day of Fall instruction.
+The Senate and UCI examples illustrate quite different anomaly patterns: single Congresses that depart from a structure drifting slowly over decades, against short bursts of activity tied to a fixed calendar.
 
 ## Summary {#sec-network-summary}
 
@@ -798,7 +799,7 @@ Modelling the temporal dependence matters: a network may not stand out in its ra
 As with the time series features of @sec-weird-series, the choice of features determines which anomalies can be found.
 A change in a network that does not affect any of the features will not be detected; for example, if a Democrat and a Republican swapped all their co-voting partners, the network would be politically very unusual, but it would have exactly the same structure as before, so every one of the whole-network features would be unchanged.
 In terms of the adjacency matrix, swapping two nodes replaces $\bm{A}$ by $\bm{P}\bm{A}\bm{P}^\intercal$, where $\bm{P}$ is the permutation matrix that swaps the corresponding rows, and every feature computed by oddnet is unaffected by such permutations.
-We have also not considered anomalous edges or anomalous subgraphs.
+Anomalous edges and anomalous subgraphs have not been considered in this chapter.
 
 ### Further reading
 

@@ -58,8 +58,8 @@ hottest_day <- which.max(dongsi$max_temp)
 coldest_day <- which.min(dongsi$max_temp)
 ```
 
-As temperatures increase above 20 degrees Celsius, ozone levels tend to increase, although the hottest day over this period (`r dongsi$max_temp[hottest_day]` degrees on `r format(dongsi$date[hottest_day], "%d %B %Y")`) had a relatively moderate average ozone level of `r sprintf("%.1f", dongsi$o3[hottest_day])` $\mu g m^{-3}$ (micrograms per cubic metre).
-There are two clear anomalies in the ozone variable, with levels above 250 $\mu g m^{-3}$, which are much higher than the other observations (and perhaps recording errors).
+As temperatures increase above 20 degrees Celsius, ozone levels tend to increase, although the hottest day over this period (`r dongsi$max_temp[hottest_day]` degrees on `r format(dongsi$date[hottest_day], "%d %B %Y")`) had a relatively moderate average ozone level of `r sprintf("%.1f", dongsi$o3[hottest_day])` $\mu\text{g m}^{-3}$ (micrograms per cubic metre).
+There are two clear anomalies in the ozone variable, with levels above 250 $\mu\text{g m}^{-3}$, which are much higher than the other observations (and perhaps recording errors).
 There was also an unusually cold day on `r format(dongsi$date[coldest_day], "%d %B %Y")`, which had a maximum temperature of only `r dongsi$max_temp[coldest_day]` degrees.
 This is also a potential anomaly.
 
@@ -96,11 +96,11 @@ Other distance measures also exist, including $L_1$ (Manhattan), $L_p$ (Minkowsk
 The argument `method` in the `dist()` function specifies the type of distance to compute, with the default being Euclidean distance.
 
 A problem with all of these distances is that variables with large ranges dominate the calculation.
-For example, in the Dongsi air quality data, ozone levels range from 0 to over 500 $\mu g m^{-3}$, while maximum temperatures range from -14 to 41 degrees.
+For example, in the Dongsi air quality data, ozone levels range from 0 to over 500 $\mu\text{g m}^{-3}$, while maximum temperatures range from $-14$ to 41 degrees.
 So the distance between two observations will be dominated by the difference in ozone levels, and the difference in temperatures will have a smaller influence on the distance.
 Consequently, it is often preferable to scale the variables before computing distances, as discussed in @sec-scaling.
 
-We define the scaled observations as the robust multivariate $z$-scores, given by
+The scaled observations are defined as the robust multivariate $z$-scores, given by
 $$
   \bm{z}_i = \bm{U}(\bm{y}_i - \tilde{\bm{y}}),
 $$
@@ -197,7 +197,7 @@ The algorithm proceeds as follows:
 Several initialisation strategies are available.
 The default in `BACON()` is to compute the Mahalanobis distances from the full-data mean $\bar{\bm{y}}$ and covariance $\bm{S}$, and select the $s$ observations with the smallest distances.
 An alternative initialisation strategy is to compute distances from the univariate medians rather than the full-data mean.
-This is more robust to outliers, but the nominated outliers can change if the data are rotated or rescaled.
+This is more robust to outliers, but the nominated outliers can change if the data are rotated.
 Another strategy is to select $s$ observations at random.
 Because the initial subset is not anchored to the data centre, this can be more effective when the data are multimodal, but results may vary across runs.
 
@@ -280,7 +280,7 @@ Some algorithms only compute the pairwise distances of the $k$ nearest observati
 For some types of distances, efficient solutions are available using kd trees [@Bentley1975;@Arya1998] that find the $k$ nearest neighbours to each observation in $O(n\log(n))$ time.
 
 The calculation of $k$ nearest neighbours is useful for more than anomaly detection problems.
-It is also the basis of a popular classification method due to the Berkeley statisticians Evelyn Fix and Joe Hodges [@knn] which is often known as the **kNN algorithm**.
+It is also the basis of a popular classification method due to the Berkeley statisticians Evelyn Fix and Joe Hodges [@knn], which is often known as the **kNN algorithm**.
 
 Suppose we use the Dongsi air quality data to find observations that are neighbours in the (`o3`, `max_temp`) space.
 The **`dbscan`** package uses kd trees to quickly identify the $k$ nearest neighbours to each observation.
@@ -369,13 +369,13 @@ The local outlier factor, introduced in the next section, is designed to address
 
 ## Local outlier factors {#sec-lof}
 
-A popular way of using $k$-nearest neighbours for anomaly detection is via local outlier factors [@lof].
+A popular way of using $k$ nearest neighbours for anomaly detection is via local outlier factors (LOF) [@lof].
 This is designed to find observations that are unusual relative to their local neighbourhood, rather than anomalous relative to the global structure of the data.
 
 Suppose we write the distance between observations $\bm{y}_i$ and $\bm{y}_j$ as $\|\bm{y}_i - \bm{y}_j\|$, and let $d_{i,k}$ be the distance between observation $\bm{y}_i$ and its $k$-th nearest neighbour (as defined in @sec-knn-scores).
 
 Let $N_{i,k}$ be the set of $k$ nearest neighbours within $d_{i,k}$ of $\bm{y}_i$.
-(If there are multiple observations all exactly $d_{i,k}$ from $\bm{y}_i$, then $N_{i,k}$ may contain more than $k$ observations, but we will ignore that issue here.)
+(If there are multiple observations all exactly $d_{i,k}$ from $\bm{y}_i$, then $N_{i,k}$ may contain more than $k$ observations, but that issue is ignored here.)
 
 Note that an observation $\bm{y}_j$ may be within $N_{i,k}$ while $\bm{y}_i$ does not fall within $N_{j,k}$, as shown in @fig-njk.
 
@@ -442,7 +442,7 @@ df |>
   theme_void()
 ```
 
-Let $r_k(i,j) = \max(d_{j,k}, \|\bm{y}_i - \bm{y}_j\|)$ be the "reachability" of $\bm{y}_i$ from $\bm{y}_j$.
+Let $r_k(i,j) = \max(d_{j,k}, \|\bm{y}_i - \bm{y}_j\|)$ be the **reachability** of $\bm{y}_i$ from $\bm{y}_j$.
 Thus, $r_k(i,j)$ is the distance between observations $\bm{y}_i$ and $\bm{y}_j$ when they are far from each other, but is equal to $d_{j,k}$ if $\bm{y}_i$ is one of the $k$ nearest neighbours of $\bm{y}_j$.
 The reachability is a truncated variant of the usual Euclidean distance $\|\bm{y}_i - \bm{y}_j\|$ so that it is not less than $d_{j,k}$.
 
@@ -509,7 +509,7 @@ The local outlier factor has identified observations that are in low-density reg
 
 ## GLOSH scores {#sec-glosh}
 
-The **Global-Local Outlier Score from Hierarchies** (GLOSH) was proposed by @glosh as part of the HDBSCAN clustering framework.
+The **Global--Local Outlier Score from Hierarchies** (GLOSH) was proposed by @glosh as part of the HDBSCAN clustering framework.
 Like LOF, it measures how crowded each observation's neighbourhood is compared to surrounding neighbourhoods, but it does so by looking at a full hierarchy of clusters rather than just the immediate $k$ neighbours.
 The "global--local" label reflects the fact that each observation is compared to a reference chosen *locally* from its own cluster, while the resulting scores are normalised to a common scale that makes them comparable *globally* across the whole data set.
 
@@ -608,7 +608,8 @@ We have looked at three different scoring methods based on nearest neighbours, d
 ## Isolation forest {#sec-iforest}
 
 The methods discussed so far in this chapter all build their anomaly scores by measuring, in one way or another, how far each observation is from the bulk of the data.
-A conceptually different approach is to ask instead: *how easy is it to isolate this observation from the rest?* This is the idea behind the Isolation Forest algorithm of @Liu2008-dp.
+A conceptually different approach is to ask instead: *how easy is it to isolate this observation from the rest?*
+This is the idea behind the isolation forest algorithm of @Liu2008-dp.
 
 ### Isolation trees
 
@@ -621,7 +622,7 @@ Because anomalies are rare and have unusual attribute values, they are more like
 Non-anomalous observations, on the other hand, are usually surrounded by many similar neighbours and typically require more splits to be isolated.
 Thus, the number of splits required to isolate an observation can be used as a measure of its anomalousness: fewer splits indicate a more anomalous observation.
 
-To build an **isolation tree** (iTree), we recursively partition the data as follows:
+An **isolation tree** (iTree) is built by recursively partitioning the data as follows:
 
 1. Select a variable $v$ uniformly at random from all variables.
 2. Select a split value $\tau$ uniformly at random from the range of $v$ in the current sample.
@@ -629,7 +630,7 @@ To build an **isolation tree** (iTree), we recursively partition the data as fol
 4. Recursively apply Steps 1--3 on each child until either the node contains a single observation or a maximum tree height is reached.
    By default, the maximum tree height is set to $\lceil\log_2(n)\rceil$.
 
-Because we stop when a maximum tree height is reached, nodes that contain more than one observation when the recursion terminates are given an adjustment for the expected additional depth.
+Because the recursion stops when a maximum tree height is reached, nodes that still contain more than one observation at that point are given an adjustment for the expected additional depth.
 The **path length** $h(\bm{y})$ of an observation $\bm{y}$ is the number of splits required to isolate $\bm{y}$, plus any adjustment for an unfinished subtree.
 The path length is therefore inversely related to anomalousness.
 The expected path length is approximately
@@ -911,7 +912,7 @@ This removes the directional bias at the cost of a slight increase in computatio
 ### The `isotree` package
 
 The **`isotree`** package [@isotree] provides a fast, multi-threaded implementation of the original iForest and of several variants including EIF, SCiForest [@Liu2010] and Fair-Cut Forest [@Cortes2021], which use non-random splits aimed at finding clustered anomalies.
-The main interface is `isolation.forest()`, which returns a fitted model, and `predict()`, which scores new observations.
+The main functions are `isolation.forest()`, which returns a fitted model, and `predict()`, which scores new observations.
 
 The three most important parameters of `isolation.forest()` are:
 
@@ -947,7 +948,7 @@ These are highlighted in @fig-iforest-of.
 ```{r}
 #| label: fig-iforest-of
 #| fig-cap: >-
-#|   Isolation Forest anomaly scores for the Dongsi air quality data.
+#|   Isolation forest anomaly scores for the Dongsi air quality data.
 #|   Anomalies are shown as observations with scores above 0.6, which are highlighted in orange.
 #| code-fold: true
 #| dependson: iforest-of
@@ -982,19 +983,19 @@ Under this perspective, the observations are the rows of the data matrix, and th
 So an anomaly is a row that is far from other rows.
 That may be because of the values in one or more columns, or the unusual combination of values across columns.
 Almost all robust multivariate methods require at least half the observations to be non-anomalous, so that the main body of the data can be identified.
-But sometimes many rows (observations) each have a few contaminated cell values, and it is not possible to identify "normal" rows.
+But sometimes many rows (observations) each have a few contaminated cell values, leaving too few uncontaminated rows.
 In that case, it may be possible to identify the anomalous cells instead of the anomalous rows.
 This is the idea behind the "detect deviating cells" (DDC) algorithm of @Rousseeuw2016-wm.
 
 Suppose a fraction $\delta$ of cells are contaminated, and that the contaminated cells are randomly distributed across the data matrix.
-Then, on average, each row will have $\delta m$ contaminated cells.
+Then, on average, each row will have $m\delta$ contaminated cells.
 The expected fraction of contaminated rows is $1 - (1 - \delta)^m$, which is close to 1 when $m\delta$ is large.
 
 Rather than treating each row as a point, the DDC algorithm treats each cell in the data matrix as a point, and detects anomalous cells.
 It does this by checking whether each cell value is consistent with what would be predicted from the other variables in the same row (observation), following these steps.
 
 1. Non-numerical columns, and discrete columns taking only a few distinct values, are omitted.
-2. Optionally, numerical columns can be transformed to be closer to normality, for example by applying a log transformation to positive-valued columns.
+2. Optionally, numerical columns can be transformed to be closer to Normality, for example by applying a log transformation to positive-valued columns.
 3. All numerical columns are standardised using robust location and scale estimates.
 4. Cell values that are outliers in their column are flagged.
 5. Robust pairwise correlations are computed between all pairs of columns.

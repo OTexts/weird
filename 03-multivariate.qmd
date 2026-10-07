@@ -20,9 +20,9 @@ We will therefore need to understand some basic concepts of multivariate probabi
 When first thinking about multivariate probability distributions, it can take some time to develop an intuition for how they behave.
 One way to start developing this intuition is to plot data with increasing numbers of dimensions, starting with the univariate case.
 
-Let's take the `n01` data set, which contains 10 variables, each from independent standard Normal distributions.
-We will consider only the first three variables, but to make the example more interesting, we will consider cumulative sums of these variables.
-We will also add a couple of anomalies, and then see if we can find them using some data visualisations.
+Consider the `n01` data set, which contains 10 variables, each from independent standard Normal distributions.
+Only the first three variables are used here and, to make the example more interesting, they are replaced by their cumulative sums.
+A couple of anomalies are also added, and then we will see if we can find them using some data visualisations.
 
 ```{r}
 #| label: demo_data
@@ -109,7 +109,7 @@ rgl::plot3d(
 ```
 :::::
 
-3D scatterplot of the three variables, with anomalies shown in orange.
+Three-dimensional scatterplot of the three variables, with anomalies shown in orange.
 :::
 
 This second anomaly is not particularly unusual in any combination of two variables, but it is unusual in the combination of all three variables.
@@ -120,7 +120,7 @@ In other words, there are more places for anomalies to hide in higher dimensions
 
 ## The curse of dimensionality {#sec-curse}
 
-The "curse of dimensionality" refers to the increasing sparseness of space as the number of dimensions increases.
+The **curse of dimensionality** refers to the increasing sparseness of space as the number of dimensions increases.
 
 ### Points in the corners
 
@@ -400,7 +400,7 @@ Two of them will be particularly useful in this book.
 The first uses the HDRs of the previous section.
 Because $\Pr(\bm{Y} \in R_\alpha) = \Pr(f(\bm{Y}) \ge f_\alpha) = 1 - \alpha$, the threshold $f_\alpha$ is the $\alpha$ quantile of the univariate random variable $f(\bm{Y})$, the density evaluated at a random observation.
 So the boundary of $R_\alpha$ can be thought of as a multivariate quantile, and an observation lying outside $R_\alpha$ for some small value of $\alpha$ is in a region of low density.
-This idea is the basis of the surprisal approach to anomaly detection that is developed in @sec-density-methods.
+This idea is the basis of the density-based approach to anomaly detection that is developed in @sec-density-methods.
 
 For a multivariate Normal distribution, the density is a decreasing function of $(\bm{y} - \bm{\mu})^\intercal\bm{\Sigma}^{-1}(\bm{y} - \bm{\mu})$, so it follows from @eq-mvn-chisq that
 $$
@@ -423,7 +423,7 @@ $$
 $$ {#eq-cov}
 However, it is sensitive to anomalies, and so is not suitable for our purposes.
 
-Many robust estimators of covariance have been proposed in the literature, but only one is discussed here, known as the **Minimum Covariance Determinant** (MCD) estimator [@Rousseeuw2003-ip;@fastmcd], which is implemented in the `covMcd()` function in the **`robustbase`** package [@robustbase].
+Many robust estimators of covariance have been proposed in the literature, but only one is discussed here: the **Minimum Covariance Determinant** (MCD) estimator [@Rousseeuw2003-ip;@fastmcd], which is implemented in the `covMcd()` function in the **`robustbase`** package [@robustbase].
 This estimator finds the subset of $h$ observations (where $n/2 < h \le n$) whose covariance matrix has the smallest determinant.
 The idea is that the subset of observations with the smallest covariance determinant is likely to be a subset of "good" observations, and so a covariance matrix computed from them will be robust to anomalies.
 If $H$ denotes this subset, the raw MCD estimate of the covariance matrix is
@@ -445,12 +445,12 @@ $$ {#eq-mcd}
 where $c_W$ is another correction factor.
 The `covMcd()` function returns $\bm{S}_{\text{MCD}}$ (as `cov`) along with the raw estimate $\bm{S}_H$ (as `raw.cov`).
 The subset size $h$ is set via the argument `alpha`, with $h \approx$ `alpha` $\times\, n$; the default `alpha = 0.5` gives the most robust estimate, allowing almost half the observations to be anomalies.
-The `mvscale()` and `kde_bandwidth()` functions in the **`weird`** package use `alpha = 0.9`, allowing up to 10% of the observations to be anomalies, which gives a more efficient estimate, and we will use the same value here.
+The `mvscale()` and `kde_bandwidth()` functions in the **`weird`** package use `alpha = 0.9`, allowing up to 10% of the observations to be anomalies, which gives a more efficient estimate, and the same value is used here.
 
-To illustrate, we will construct a data set where we know the true distribution.
-We take the first two variables of the `n01` data set, $v_1$ and $v_2$, and let $y_1 = v_1$ and $y_2 = v_1 + v_2$.
+To illustrate, consider a data set whose true distribution is known.
+It uses the first two variables of the `n01` data set, $v_1$ and $v_2$, with $y_1 = v_1$ and $y_2 = v_1 + v_2$.
 Then $(y_1,y_2)$ has a bivariate Normal distribution with mean $(0,0)$ and covariance matrix $\bm{\Sigma} = \begin{bmatrix} 1 & 1 \\ 1 & 2 \end{bmatrix}$ (using the results for linear transformations in @sec-joint), so the correlation between $y_1$ and $y_2$ is $1/\sqrt{2} \approx 0.71$.
-We then replace the last 50 of the 1000 observations with a small cluster of anomalies centred at $(2,-2)$, constructed from two other variables in `n01`.
+The last 50 of the 1000 observations are then replaced with a small cluster of anomalies centred at $(2,-2)$, constructed from two other variables in `n01`.
 
 ```{r}
 #| label: mcd-data
@@ -558,7 +558,7 @@ Let $\bm{\Sigma}^{-1} = \bm{U}^\intercal \bm{U}$ be the Cholesky decomposition (
 Then the data can be scaled by $\bm{U}$, giving $\bm{z}_i = \bm{U} (\bm{y}_i - \bm{\mu})$, so that the covariance matrix of the scaled data is the identity matrix.
 This can be thought of as both scaling and rotating the data, so that the variables are uncorrelated with mean zero and unit variance.
 It is the multivariate equivalent of calculating $z$-scores.
-They can be computed using the `mvscale()` function with the arguments `center = mean` and `cov = stats::cov`.
+Multivariate $z$-scores can be computed using the `mvscale()` function with the arguments `center = mean` and `cov = stats::cov`.
 
 ### Robust multivariate $z$-scores
 
@@ -568,7 +568,7 @@ The `mvscale()` function in the **`weird`** package will do this for us, by defa
 Let's consider the `oldfaithful` data again, where waiting times are much longer than durations.
 @fig-scaling shows the data before and after scaling.
 The scaling has rotated the data a little, and the variables are now less correlated, and centred on zero.
-The right plot still appears to show some positive relationship between the variables, because the covariance matrix used for scaling was computed robustly, and so was largely based on the upper cluster of points.
+The right plot still appears to show some positive relationship between the variables, because the covariance matrix used for scaling was computed robustly, and so was based only on the upper cluster of points.
 
 ```{r}
 #| label: fig-scaling
@@ -634,12 +634,12 @@ The algorithm can be summarised as follows:
 
 Thus, each cluster is defined by a leader and the observations assigned to that leader.
 Every assigned observation is within $\delta$ of its leader, so two observations in the same leader cluster can be up to $2\delta$ apart from each other.
-The order of the data will obviously affect the resulting clusters, but the algorithm is very fast, and can be used as a first step in more complex clustering algorithms.
+The order of the data affects the resulting clusters, but the algorithm is very fast, and can be used as a first step in more complex clustering algorithms.
 The leader algorithm can also be useful for anomaly detection, because isolated observations tend to become singleton or small clusters rather than being forced into a large cluster.
 However, this should not be interpreted as full robustness: an early anomaly can become a leader, and the resulting clusters depend on the ordering of the observations.
 
 To compare K-means and the leader algorithm, we will apply them to the Old Faithful data set in @fig-clustering-off.
-First, the data are scaled (@sec-scaling) to prevent the waiting time variable from dominating the clustering.
+First, the data are converted to robust multivariate $z$-scores (@sec-scaling) to prevent the waiting time variable from dominating the clustering.
 Then K-means clustering is applied with $K = 2$, and the leader algorithm is applied with $\delta = 3.3$ (chosen after some experimentation).
 
 ```{r}
@@ -711,7 +711,7 @@ The DBSCAN algorithm is implemented in the `dbscan()` function in the **`dbscan`
 ```{r}
 #| label: fig-clustering-dbscan
 #| dependson: fig-clustering-off
-#| fig-cap: "DBSCAN clustering of the Old Faithful data set using robustly scaled variables, with noise observations shown in black."
+#| fig-cap: "DBSCAN clustering of the Old Faithful data set using robust multivariate $z$-scores, with noise observations shown in dark grey."
 
 dbscan_clusters <- dbscan::dbscan(of_scaled, eps = 0.61, minPts = 20)
 oldfaithful |>
@@ -819,7 +819,7 @@ As $\delta$ increases, more edges appear, and clusters merge together.
 When an edge connects two clusters that were previously separate, those two clusters merge into one larger cluster.
 Eventually, all clusters merge into a single cluster.
 
-Taking the small example of @fig-graph, we explore what happens as $\delta$ increases from 0.5 to 2.0.
+For the small example of @fig-graph, @fig-clusters shows what happens as $\delta$ increases from 0.5 to 2.0.
 With a small value of $\delta$, all points are disconnected, and the graph consists of eight vertices with no edges.
 As $\delta$ increases, more points are connected to each other, and eventually, the graph consists of a single connected component.
 
@@ -854,10 +854,9 @@ In single-linkage hierarchical clustering, we start with each observation as its
 The distance between two clusters when they merge is called the **merge distance**.
 For single-linkage clustering, the distance between two clusters is the minimum distance between any point in one cluster and any point in the other cluster.
 
-This is different from DBSCAN in three important ways.
+This is different from DBSCAN in two important ways.
 First, single-linkage hierarchical clustering does not distinguish between core, border and noise observations --- every observation belongs to some cluster at every stage, just as in K-means and the leader algorithm.
-Second, the result is not a single partition of the data, but a full hierarchy indexed by the merge distance.
-Third, rather than fixing $\delta$ in advance, hierarchical clustering records the complete sequence of partitions for all possible values of $\delta$.
+Second, rather than fixing $\delta$ in advance and returning a single partition of the data, hierarchical clustering records the complete sequence of partitions for all possible values of $\delta$, indexed by the merge distance.
 We can obtain a particular partition by cutting the hierarchy at a chosen merge distance, but the hierarchy itself shows how the clusters merge as $\delta$ increases.
 
 Other forms of hierarchical clustering use different measures of the distances between clusters.
@@ -928,8 +927,8 @@ data.frame(
 ```
 
 In the context of anomaly detection, observations or small groups that merge with the rest of the data only at large merge distances are potential anomalies.
-For example, in @fig-clusters, B and H form a small component that remains separate until a relatively large value of $\delta$, thus they are potential anomalies.
-By contrast, the other points merge together at smaller values of $\delta$, so they are less likely to be anomalies.
+For example, in @fig-dendrogram, B and H form a small cluster that merges with the rest of the data only at the largest merge distance, so they are potential anomalies.
+By contrast, the other points merge together at smaller distances, so they are less likely to be anomalies.
 
 #### Related ideas
 
@@ -973,7 +972,7 @@ H <- kde_bandwidth(of2021[, 1:2])
 
 To illustrate the idea, consider a simple bivariate example of 10 observations: the first 10 eruption durations from 2021 that are in the `oldfaithful` data set, along with the corresponding waiting times until the following eruption.
 These are shown in @fig-ofdw along with the contours of bivariate kernels placed over each observation.
-Here we have used a bivariate Gaussian kernel with bandwidth matrix given by $\bm{H} = \left[\begin{array}{rr}`r sprintf("%.f", H[1,1])` & `r sprintf("%.f", H[1,2])` \\ `r sprintf("%.f", H[2,1])` & `r sprintf("%.f", H[2,2])`\end{array}\right]$.
+Each kernel is a bivariate Gaussian density with bandwidth matrix $\bm{H} = \left[\begin{array}{rr}`r sprintf("%.f", H[1,1])` & `r sprintf("%.f", H[1,2])` \\ `r sprintf("%.f", H[2,1])` & `r sprintf("%.f", H[2,2])`\end{array}\right]$.
 
 ```{r}
 #| label: fig-ofdw
@@ -1003,7 +1002,7 @@ ggplot() +
 ```
 
 If we add the bivariate kernel functions as in @eq-mkde, we obtain the bivariate kernel density estimate shown in @fig-ofbivariate1.
-The contours shown correspond to the 10%, 20%, $\dots$, 90% highest density regions (HDRs) of the density estimate.
+The contours shown correspond to the 10%, 20%, $\dots$, 90% HDRs of the density estimate.
 
 ```{r}
 #| label: fig-ofbivariate1
@@ -1072,10 +1071,10 @@ Finally, we can set
 $$
   \bm{H} = d_\gamma^2\bm{S}_{\text{MCD}}
 $$ {#eq-lookoutH}
-where $d_\gamma$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_{n-1}\}$ for a large value of $\gamma$; we use $\gamma = 0.98$, so that only about 2% of the merge distances are larger than $d_\gamma$.
+where $d_\gamma$ is the sample quantile $\hat{Q}(\gamma)$ computed from $\{d_1,\dots,d_{n-1}\}$ for a large value of $\gamma$; `kde_bandwidth()` uses $\gamma = 0.98$, so that only about 2% of the merge distances are larger than $d_\gamma$.
 This bandwidth is matched to the spacing between neighbouring observations in the sparse parts of the data, where anomalies lie, rather than to the bulk of the data.
 It does not give a consistent estimate of the density as $n \rightarrow \infty$, but @lookout2 argue that consistency is not needed for anomaly detection, and show in simulations that it works well for that purpose.
-This is called the "lookout bandwidth", because it is the basis of the lookout anomaly detection algorithm described in @sec-loo-surprisals.
+This is called the **lookout bandwidth**, because it is the basis of the lookout anomaly detection algorithm described in @sec-loo-surprisals.
 The `kde_bandwidth()` function will return this bandwidth when `method = "lookout"`.
 For univariate data, $h = d_\gamma Q_n$.
 

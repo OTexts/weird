@@ -12,10 +12,10 @@ Anomalies are observations that are unlikely to have come from the same distribu
 One method to identify anomalies is to first estimate the probability distribution of the data, and then find observations that are improbable under that distribution.
 This is the approach taken by density-based methods, where anomalies are defined as observations with low probability.
 
-Any density-based method of anomaly detection first requires that we have a density estimate at each observation, which we will denote by $f(\bm{y}_i)$.
+Any density-based method of anomaly detection first requires a density estimate at each observation, denoted by $f(\bm{y}_i)$.
 This may be an assumed density, or estimated from the data; it may be a parametric function, or a nonparametric estimate; it may be a conditional density or a marginal density.
-Wherever it comes from, we will treat $f$ as an appropriate probability density function for the data set.
-When $\bm{y}_i$ takes values on a discrete space (such as the integers), then $f$ is a probability mass function, but we will call it a "density" for convenience when discussing methods that can apply to both discrete and continuous data.
+Wherever it comes from, $f$ is treated as an appropriate probability density function for the data set.
+When $\bm{y}_i$ takes values on a discrete space (such as the integers), then $f$ is a probability mass function, but it is still called a "density" for convenience when discussing methods that can apply to both discrete and continuous data.
 In many cases, $f(\bm{y}_i)$ is the estimated likelihood of the observation from a given model.
 
 Note that some of the methods discussed in @sec-distance-methods are often called "density-based" methods, including LOF (@sec-lof) and GLOSH (@sec-glosh).
@@ -91,7 +91,7 @@ When $\bm{\Sigma} = \bm{I}$, this is simply the sum of surprisals computed on ea
 
 ## Surprisal probabilities {#sec-surprisal-probabilities}
 
-The surprisal probability of an observation is the probability of observing a value that is at least as surprising as the observation, under the distribution $f$.
+The **surprisal probability** of an observation is the probability of observing a value that is at least as surprising as the observation, under the distribution $f$.
 This is easier to interpret than the surprisal itself, because it is on the familiar probability scale between 0 and 1.
 It also allows us to set a threshold for identifying anomalies in terms of a false positive rate.
 
@@ -109,7 +109,7 @@ where $𝟙(z)$ is an indicator function taking value 1 when $z$ is true and 0 o
 #| fig-cap: >-
 #|   A $\chi^2_5$ density function with one observation shown at $y_i$.
 #|   The shaded area shows where $f(y) < f(y_i)$, corresponding to $p_i$.
-#|   In this example, $p_i = 0.1$, so the region between the orange shaded segments is a 90% HDR.
+#|   In this example, $p_i = 0.1$, so the region between the orange shaded areas is a 90% HDR.
 #| echo: false
 
 den <- dist_chisq(5)
@@ -197,7 +197,7 @@ If $F$ is the distribution function corresponding to $f$, then $p_i = 2[1 - F(c 
 
 ## Approximate surprisal probabilities {#sec-approximate-surprisal-prob}
 
-If we do not know what the distribution of the data should be, or if we think our assumed distribution is incorrect for some reason, there are some ways to find approximate surprisal probabilities that can still be accurate even when the assumed distribution is not.
+If we do not know what the distribution of the data should be, or if we think our assumed distribution is incorrect for some reason, there are some ways to find approximate surprisal probabilities that can still be accurate even when the assumed distribution is wrong.
 
 ### Approximate GPD surprisal probabilities
 
@@ -206,7 +206,7 @@ It might be a poor estimate of the true density, or it might just be a density o
 Using this assumed density, we can compute the surprisals, $s_i = -\log f^*(\bm{y}_i)$.
 
 Then we can fit a Generalised Pareto Distribution (GPD) to the largest surprisals using the POT approach discussed in @sec-evt.
-Even when $f^*$ is incorrect or poorly estimated, the extreme surprisals will still approximately follow a Generalised Pareto Distribution.
+Even when $f^*$ is incorrect or poorly estimated, the extreme surprisals will still approximately follow a GPD.
 
 Let $\beta$ denote the tail probability used in the GPD threshold, and let $u$ denote the $(1 - \beta)$ sample quantile of the surprisal values.
 For example, $\beta = 0.1$ is a common choice, and then $u$ is the $90^{\text{th}}$ percentile of the $s_i$ values.
@@ -216,13 +216,13 @@ $$
 $$ {#eq-pi-gpd}
 where $\hat g$ denotes the estimated GPD density of the surprisals above $u$ (that is, the GPD fitted to the exceedances $s_i - u$, shifted to start at $u$).
 This approximation only gives us surprisal probabilities for the surprisals above the threshold $u$.
-For any $s_i \le u$, all we can say is that $\hat{p}_i \ge \beta$.
+For any $s_i \le u$, all we can say is that $p_i$ is at least about $\beta$, and `surprisals_prob()` returns $\hat{p}_i = \beta$ for these observations.
 
 @surprisals show that, under very general conditions on the true distribution $f$, this will lead to good estimates of the surprisal probabilities for the most extreme surprisal values (which correspond to the anomalies).
 That is, even if our assumed distribution $f^*$ is not correct, we can still fit a GPD to the largest surprisal values and use this to estimate the tail probabilities.
 
 The approach does require a relatively large number of surprisals to be available, in order to adequately estimate the GPD from the largest $100\beta$% of them.
-So we would normally need at least a few hundred observations to start with.
+So we would typically need at least a few hundred observations to start with.
 
 The `surprisals_prob()` function uses this GPD approximation (@eq-pi-gpd) when `approximation = "gpd"`.
 The argument `threshold_probability` is used to specify $\beta$, with the default value of 0.1.
@@ -234,7 +234,7 @@ That is, $\hat{p}_i = (n - \text{rank}(s_i) + 1)/n$, where $\text{rank}(s_i)$ is
 For large $n$, this provides a quick and convenient estimate of $p_i$.
 @surprisals show that this approach works well when the ordering of the largest surprisal values under $f$ and $f^*$ is similar, which should be the case when $f^*$ is a reasonable approximation to $f$.
 
-The `approximation` argument of `surprisals_prob()` can be set to `"rank"`, to specify that we want to use these rank-based surprisal probabilities.
+The `approximation` argument of `surprisals_prob()` can be set to `"rank"` to use these rank-based surprisal probabilities.
 
 ### Example: Standard Normal values
 
@@ -288,13 +288,13 @@ This is because the $\text{t}_4$ distribution has much heavier tails than the tr
 But `pt_gpd` and `pt_emp` are both reasonable estimates, despite being based on an incorrect distribution for computing the surprisals.
 In fact, `p_emp` and `pt_emp` are identical, because the ordering of the surprisals is unchanged despite the incorrect distribution being used.
 
-The various estimates are displayed in @fig-surprisal_prob for values of $y$ greater than 2.5, showing how the estimates (other than `pt`) are particularly accurate in the extreme tails, where we need them for anomaly detection.
+The various estimates are displayed in @fig-surprisal_prob for values of $y$ greater than 2.5, showing that the estimates (other than `pt`) are close to the true values in the tail, where we need them for anomaly detection.
 The rank estimates can never be smaller than $1/n$, so they overstate the probability of the most extreme observation, whereas the GPD estimates are not bounded below in this way.
 
 ```{r}
 #| label: fig-surprisal_prob
 #| dependson: surprisal_prob
-#| fig-cap: Surprisal probabilities estimated using the correct N(0,1) distribution and using an incorrect $\text{t}_4$ distribution.
+#| fig-cap: Surprisal probabilities for observations with $y > 2.5$, estimated using the correct N(0,1) distribution and using an incorrect $\text{t}_4$ distribution.
 #|   The GPD and rank estimates of surprisal probabilities are still accurate, even when the wrong distribution is used to compute the surprisal values.
 
 norm_prob |>
@@ -308,7 +308,7 @@ norm_prob |>
   geom_line()
 ```
 
-In summary, even when we don't know the distribution of the data, we can use some incorrect assumed distribution to compute the surprisals, and then apply either a GPD or the rank approximation to obtain good estimates of the surprisal probabilities.
+Even when we don't know the distribution of the data, we can use some incorrect assumed distribution to compute the surprisals, and then apply either a GPD or the rank approximation to obtain good estimates of the surprisal probabilities.
 
 ## KDE surprisals {#sec-kdesurprisals}
 
@@ -335,9 +335,9 @@ $$
   -\log(K_h(0)/n) = \log(nh\sqrt{2\pi}).
 $$
 
-Identifying anomalies using KDE surprisals is related to the "local outlier factor" method (@sec-lof).
+Identifying anomalies using KDE surprisals is related to the local outlier factor method (@sec-lof).
 However, the local outlier factor method is based on the ratio of the average density at the neighbours of a point to the density at the point itself, while the KDE surprisal method is based on the density at a point alone.
-This means that the KDE surprisal method is more likely to identify points in low density regions as anomalies.
+This means that the KDE surprisal method is more likely to identify points in low-density regions as anomalies, even when their neighbours are equally sparse.
 
 ## LOO surprisals {#sec-loo-surprisals}
 
@@ -346,7 +346,7 @@ Any genuine anomalies may affect the estimated density, and then they may not ap
 Therefore, it is sometimes useful to consider the leave-one-out (LOO) estimate given by $f_{-i}$.
 That is, $f_{-i}$ is the density estimate using all observations other than the $i$th observation.
 Then an unusual observation can't influence the density estimate, giving us a better measure of how anomalous it really is.
-In this case, the associated surprisal is called a "LOO surprisal", given by $s_{-i} = -\log f_{-i}(\bm{y}_i)$.
+In this case, the associated surprisal is called a **LOO surprisal**, given by $s_{-i} = -\log f_{-i}(\bm{y}_i)$.
 
 ### LOO KDE surprisals
 
@@ -359,18 +359,18 @@ $$ {#eq-loo-kde}
 where $f_i$ is the kernel density estimate from @eq-kdescores using all data, so that the leave-one-out KDE surprisal is $s_{-i} = -\log (f_{-i})$.
 Thus, we can compute the leave-one-out KDE surprisals without needing to re-estimate the density many times.
 
-The largest possible LOO KDE surprisal is infinite, occurring when there are no observations nearby, so that $nf_i = K_{\bm{H}}(\bm{0})$ and hence $f_{-i} = 0$ in @eq-loo-kde.
+The largest possible LOO KDE surprisal is infinite, occurring when there are no observations nearby, so that $nf_i = K_{\bm{H}}(\bm{0})$ (to numerical precision) and hence $f_{-i} = 0$ in @eq-loo-kde.
 
 ### The lookout algorithm
 
 The **lookout** algorithm (standing for Leave-One-Out Kernel density estimates for OUTlier detection) was proposed by @lookout, and later modified by @lookout2.
-It computes surprisal probabilities using a GPD approximation applied to the LOO KDE surprisals, where the bandwidth matrix is chosen using the "lookout" method (@eq-lookoutH).
+It computes surprisal probabilities using a GPD approximation applied to the LOO KDE surprisals, where the bandwidth matrix is the lookout bandwidth (@eq-lookoutH).
 These probabilities can be calculated using the `surprisals_prob()` function with `loo = TRUE`, `approximation = "gpd"`, and `method = "lookout"`.
 
 ## Example: Old Faithful eruption durations {#sec-oldfaithful-density}
 
 Let's apply the KDE surprisals method to the Old Faithful eruptions contained in the `oldfaithful` data set.
-We will use the LOO KDE surprisal probabilities to identify anomalies in the eruption durations (but using the default bandwidth selection, rather than the lookout method).
+We will use the LOO KDE surprisal probabilities to identify anomalies in the eruption durations (but using the default robust normal reference bandwidth, rather than the lookout bandwidth).
 
 ```{r}
 #| label: ofscores-kde
@@ -384,7 +384,7 @@ of_surprisals <- oldfaithful |>
 of_surprisals |> arrange(desc(loo_kde_surprisal))
 ```
 
-The three largest LOO surprisals correspond to the three spurious short durations.
+The three largest LOO surprisals correspond to the three erroneous short durations.
 The `prob` column contains the associated surprisal probabilities.
 
 If we omit the three extreme values, we obtain different results.

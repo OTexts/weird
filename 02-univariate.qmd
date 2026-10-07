@@ -14,7 +14,7 @@ So before turning to anomaly detection methods, we first need to understand prob
 Some of this material (especially @sec-common) should be familiar to most readers, but is covered here as a refresher, and to introduce some notation that will be used in later chapters.
 
 This book considers data obtained from a range of possible sample spaces, but for now we will assume that all data are real numbers, and come from continuous probability distributions.
-Later we will consider other types of data, including discrete data, data that are functions, images, video, networks, text, or even probability distributions as data objects.
+Later we will consider other types of data, including discrete data, data that are functions, images, video, networks, text, event logs, or even probability distributions as data objects.
 But for the first half of the book, we will only deal with numerical data.
 
 ## Common distributions {#sec-common}
@@ -23,7 +23,7 @@ Let $Y$ denote a continuous random variable taking values in $\mathbb{R}$ (the r
 $$
   F(y) = \Pr(Y \le y).
 $$
-This function is monotonically increasing in $y$, and takes values between 0 and 1.
+This function is non-decreasing in $y$, and takes values between 0 and 1.
 Because $Y$ is a continuous random variable, $F(y)$ is a continuous function of $y$.
 The probability density function (pdf) is defined as the derivative of the cdf, so $f(y) = F'(y)$, assuming the derivative exists at $y$.
 The pdf is non-negative, and integrates to 1.
@@ -76,7 +76,7 @@ $$
   = \frac{1}{\sigma\sqrt{2\pi}} \exp\left( -\frac{(y - \mu)^2}{2\sigma^2} \right).
 $$
 We refer to a Normal random variable with mean $\mu$ and variance $\sigma^2$ as $Y \sim \text{N}(\mu, \sigma^2)$.
-When $\mu = 0$ and $\sigma^2 = 1$, we call it the **standard Normal** distribution N(0,1), and denote the pdf as $\phi(y)$ and the cdf as $\Phi(y)$.
+When $\mu = 0$ and $\sigma^2 = 1$, it is called the **standard Normal** distribution N(0,1), and its pdf and cdf are denoted by $\phi(y)$ and $\Phi(y)$.
 
 Three Normal distributions are shown in @fig-normal.
 
@@ -146,7 +146,7 @@ Three t distributions are shown in @fig-t.
 ```{r}
 #| label: fig-t
 #| message: false
-#| fig-cap: Probability density functions for three $t$ distributions.
+#| fig-cap: Probability density functions for three t distributions.
 #|   As the degrees of freedom $k$ increases, the distribution converges to a N(0,1) distribution.
 
 dist_student_t(c(1, 5, 99)) |>
@@ -167,7 +167,7 @@ dist_student_t(c(1, 5, 99)) |>
 
 The $\Gamma$ (or **Gamma**) distribution is a generalisation of the $\chi^2$ distribution, and is used in many statistical models.
 There are several parameterisations.
-Here, we use the shape/rate parameterisation which uses the shape $\alpha$ and the rate $\beta$.
+The shape/rate parameterisation is used here, with shape $\alpha$ and rate $\beta$.
 The pdf is given by
 $$
   f(y; \alpha, \beta) = \frac{\beta^\alpha}{\Gamma(\alpha)} y^{\alpha-1}e^{-\beta y}.
@@ -274,7 +274,7 @@ where $\longrightarrow$ denotes convergence in distribution as $n \rightarrow \i
 This is a remarkable result as it does not require any assumptions about the underlying distribution of the random variables $Y_1,\dots,Y_n$, other than that they have finite mean and variance.
 It is also a useful result, as it allows us to use the Normal distribution to approximate the distribution of many statistics.
 
-For example, the sample mean (or average) is simply the sum of the observations divided by the sample size.
+For example, the sample mean (or average) is the sum of the observations divided by the sample size.
 So by the CLT, for a large sample size, the sample mean will have an approximately Normal distribution.
 That is, if the observations come from *any* distribution with finite mean $\mu$ and variance $\sigma^2$, then the sample mean will have approximately a $\text{N}(\mu, \sigma^2/n)$ distribution when $n$ is large.
 
@@ -299,9 +299,9 @@ $$
 If the sample is iid from a U(0,1) distribution, then for large $n$ the spacings are approximately iid Exponential random variables with mean $1/(n + 1)$, i.e., Exponential with rate $n + 1$, which we write as $\text{Exp}(n + 1)$.
 A spacing substantially larger than $1/(n + 1)$ therefore signals an unusually large gap at that location, which may indicate an anomalous observation.
 
-For other non-uniform distributions, raw spacings are difficult to compare across the distribution: where the density is high they tend to be small, and where the density is low they tend to be large.
-To put them on a common scale, we can apply the **probability integral transform** (@sec-pit).
-If the observations are iid from a continuous distribution $F$, then $u_i = F(y_{(i)})$ are distributed as uniform order statistics on $[0,1]$, and the above results apply to the transformed spacings $F(y_{(i+1)}) - F(y_{(i)})$.
+For non-Uniform distributions, raw spacings are difficult to compare across the distribution: where the density is high they tend to be small, and where the density is low they tend to be large.
+To put them on a common scale, we can apply the probability integral transform (@sec-pit).
+If the observations are iid from a continuous distribution $F$, then $u_i = F(y_{(i)})$ are distributed as the order statistics of a U(0,1) sample, and the above results apply to the transformed spacings $F(y_{(i+1)}) - F(y_{(i)})$.
 
 Methods based on this idea are discussed in @sec-gap-tests.
 
@@ -315,7 +315,7 @@ An example is shown in @fig-quantile.
 ```{r}
 #| label: fig-quantile
 #| fig-cap: The 0.8 quantile of a $\chi^2_5$ distribution is the value $Q(0.8) = 7.29$ such that $\Pr(Y \le 7.29) = 0.8$.
-#|   The shaded area is 0.8, and the probability of observing a value greater than 7.29 is 0.2.
+#|   The blue shaded area is 0.8, and the orange area (the probability of observing a value greater than 7.29) is 0.2.
 
 dist <- dist_chisq(5)
 q80 <- quantile(dist, p = 0.8)
@@ -354,7 +354,7 @@ The **deciles** are defined with $p = 0.1,0.2,\dots,0.9$, while the **percentile
 normal_iqr <- qnorm(0.75) - qnorm(0.25)
 ```
 
-The "interquartile range" (IQR) is the difference between the upper and lower quartiles.
+The **interquartile range** (IQR) is the difference between the upper and lower quartiles.
 It is a measure of the spread of the distribution, and is often used as a robust alternative to the standard deviation.
 For a Normal distribution, the IQR equals `r sprintf("%.3f", normal_iqr)` times the standard deviation (and hence the standard deviation is approximately `r sprintf("%.3f", 1/normal_iqr)` times the IQR).
 
@@ -362,7 +362,7 @@ The quantile functions for a standard Normal distribution, a $\text{t}_5$ distri
 
 ```{r}
 #| label: fig-quantile2
-#| fig-cap: Quantile function for a standard Normal distribution, a $\text{t}_5$ distribution, and a $\chi^2_5$ distribution.
+#| fig-cap: Quantile functions for a standard Normal distribution, a $\text{t}_5$ distribution, and a $\chi^2_5$ distribution.
 #| message: false
 
 p <- seq(0, 1, l = 501)
@@ -688,7 +688,7 @@ All three of these robust estimators of the standard deviation can be computed u
 
 ## Univariate kernel density estimation {#sec-kde}
 
-Unlike the examples discussed in @sec-common, we will not normally know what distribution our data come from, and they will almost never be from a standard parametric distribution such as a Normal, t, $\chi^2$ or Gamma distribution.
+Unlike the examples discussed in @sec-common, we will not usually know what distribution our data come from, and they will almost never be from a standard parametric distribution such as a Normal, t, $\chi^2$ or Gamma distribution.
 Instead, we will need to estimate the probability density function from the data.
 Kernel density estimation is the most popular method for nonparametric estimation of a probability density function.
 It is the basis of the density-based methods of @sec-density-methods, where anomalies are observations lying in regions of low estimated density.
@@ -700,7 +700,7 @@ The kernel density estimate [see @WJ1995] is given by
 $$
   \hat{f}(y) = \frac{1}{n} \sum_{i=1}^n K_h(y - y_i),
 $$ {#eq-kde}
-where $K_h$ is a "kernel" function and $h$ is a bandwidth to be determined.
+where $K_h$ is a **kernel** function and $h$ is a **bandwidth** to be determined.
 The kernel functions used here are themselves probability density functions with mean 0 and standard deviation $h$.
 Thus, a kernel density estimate is a mixture distribution with $n$ components, each of which is a kernel function centred at one of the observations.
 For example, the "Gaussian" kernel (which is used in all examples) is $K_h(u) = \exp(-\frac12u^2/h^2)/(h\sqrt{2\pi})$, equal to the Normal density function with mean zero and standard deviation $h$.
@@ -778,7 +778,7 @@ ggplot() +
   labs(x = "y = Duration (seconds)", y = "Density")
 ```
 
-We made two choices when producing this estimate: the value of $h$ and the type of kernel $K_h$.
+Producing this estimate involved two choices: the value of $h$ and the type of kernel $K_h$.
 If either was replaced with a different choice, the estimate would be different.
 For large data sets, it does not make much difference which kernel function is used.
 
@@ -808,9 +808,9 @@ of2021 |>
 
 When $h$ is too small, the density estimate is too rough, with many peaks and troughs.
 When $h$ is too large, the density estimate is too smooth and we fail to see any features in the data.
-A popular choice for $h$ is the "normal reference rule" [@Silverman1986, p. 45] given by
+A popular choice for $h$ is the **normal reference rule** [@Silverman1986, p. 45] given by
 $$
-  h = 1.059 s n^{-1/5}.
+  h = 1.059 s n^{-1/5},
 $$ {#eq-nrr}
 where $s$ is the sample standard deviation.
 This is implemented in the function `kde_bandwidth()` when `method = "normal"`.
@@ -819,10 +819,10 @@ Because we want our results to be robust to outliers, it is usually better to re
 $$
   h = 1.059 Q_n n^{-1/5}.
 $$ {#eq-rnrr}
-This is called the "robust normal reference rule"; it is implemented in the function `kde_bandwidth()` when `method = "robust"` (which is the default setting).
-For the 10 observations in the example above, it gives $h = `r round(h, 1)`$, which is the value we used.
+This is called the **robust normal reference rule**; it is implemented in the function `kde_bandwidth()` when `method = "robust"` (which is the default setting).
+For the ten observations in the example above, it gives $h = `r round(h, 1)`$, which is the value used in @fig-kde1.
 
-This example using only 10 observations was purely to illustrate the method.
+This example using only ten observations was purely to illustrate the method.
 Let's now compute a kernel density estimate for the full data set, shown in @fig-oldfaithful4.
 We will use the `dist_kde()` function, which uses the Gaussian kernel, and by default sets the bandwidth using the robust normal reference rule (@eq-rnrr) via the `kde_bandwidth()` function.
 
@@ -860,8 +860,8 @@ $$
   \text{E}\left[ (\hat{f}(y) - f(y))^2 \right] \approx \frac{1}{4}h^4[f''(y)]^2
                                                        + \frac{f(y)R(K)}{nh},
 $$ {#eq-mse}
-where $K = K_1$ is the kernel with $h = 1$ (so that $K_h(u) = K(u/h)/h$), and $R(K) = \int K^2(u)du$ is the "roughness" of the kernel function.
-An estimator is "consistent" if the MSE goes to zero as the sample size $n$ goes to infinity.
+where $K = K_1$ is the kernel with $h = 1$ (so that $K_h(u) = K(u/h)/h$), and $R(K) = \int K^2(u)du$ is the **roughness** of the kernel function.
+An estimator is **consistent** if it converges to the true value as the sample size $n$ goes to infinity, which happens when its MSE goes to zero.
 So @eq-kde gives a consistent estimator of the underlying density $f$ when both terms in @eq-mse go to zero.
 That is,
 $$
@@ -878,7 +878,7 @@ $$
                                                                + \frac{R(K)}{nh},
 $$ {#eq-mise}
 where $R(f'') = \int [f''(y)]^2 dy$ is the roughness of the second derivative of the underlying density.
-This gives us the average squared error over the whole range of $y$.
+This measures the expected squared error accumulated over the whole range of $y$.
 
 ### Bandwidth selection
 
@@ -907,7 +907,7 @@ $$ {#eq-nrd}
 Silverman's "rule-of-thumb" is similar, but it replaces 1.06 in @eq-nrd by 0.9, because Silverman argued that most densities are not as smooth as a Normal density, and so a smaller bandwidth is required.
 This is the default bandwidth used by `geom_density()` and `density()`.
 
-Another popular bandwidth choice is the "plug-in" bandwidth [@SJ91], obtained by replacing $R(f'')$ in @eq-opth by an estimate based on the data.
+Another popular bandwidth choice is the **plug-in** bandwidth [@SJ91], obtained by replacing $R(f'')$ in @eq-opth by an estimate based on the data.
 This is computed by `kde_bandwidth()` when `method = "plugin"`.
 For most data sets, this will give a smaller value than @eq-nrr.
 
@@ -922,7 +922,7 @@ This shows that larger bandwidths are required when $f(y)/[f''(y)]^2$ is relativ
 So bandwidths for anomaly detection tend to be larger than bandwidths for other purposes.
 
 The `kde_bandwidth()` function also offers `method = "scv"` (smoothed cross-validation), and `method = "lookout"`.
-We will defer a description of the lookout bandwidth until @sec-mvkde.
+The lookout bandwidth is described in @sec-mvkde.
 
 ### Highest kernel density regions
 
@@ -1003,7 +1003,7 @@ The three types of limits correspond to different forms of the tail behaviour of
 - When $F$ has heavy tails (such as polynomial decay), then $G$ is a Fréchet distribution.
   One example is when $F$ itself is a Fréchet distribution.
 
-We refer to $F$ as being in the "domain of attraction" of the corresponding limit distribution.
+$F$ is then said to be in the **domain of attraction** of the corresponding limit distribution.
 For example, the Normal distribution is in the domain of attraction of the Gumbel distribution.
 
 If we take the negative of the random variables $Y_1,\dots,Y_n$, it becomes clear that a similar result holds for the minimum.
@@ -1088,7 +1088,7 @@ The blue GPD uses the parameters obtained previously from the GEV estimate, whil
 #| fig-cap: >-
 #|   Conditional distribution of exceedances above 3 from N(0,1) draws.
 #|   Here we have simulated 100,000 values and only kept those above 3.
-#|   The density implied by the GEV distribution is shown in blue, and an estimated GPD distribution is shown in orange.
+#|   The density implied by the GEV distribution is shown in blue, and an estimated GPD is shown in orange.
 
 # Generate random normal data above 3 and fit GPD distribution
 df <- tibble(y = rnorm(1e5)) |> filter(y >= 3)
@@ -1118,7 +1118,7 @@ The GEV (blue) estimate should be more accurate because it is based on much more
 Another important result from EVT is Weissman's spacing theorem [@Weissman1978], which states that the spacings between the largest observations often behave asymptotically like independent Exponential random variables.
 
 Specifically, let $D_k = Y_{(k+1)} - Y_{(k)}$ denote the spacing between successive order statistics.
-If $F$ is in the domain of attraction of the Gumbel distribution, then, for fixed $r$, the upper spacings $D_{n-1}, D_{n-2}, \dots, D_{n-r}$ are asymptotically independent and approximately exponentially distributed, with $D_{k}$ having mean $a_n/(n - k)$.
+If $F$ is in the domain of attraction of the Gumbel distribution, then, for fixed $r$, the upper spacings $D_{n-1}, D_{n-2}, \dots, D_{n-r}$ are asymptotically independent and approximately Exponential, with $D_{k}$ having mean $a_n/(n - k)$.
 (Here $a_n$ is the same scaling constant that was used in the FTG theorem.)
 Equivalently, the scaled spacings $(n - k) D_k$, for $k = n - r, \dots, n - 1$, are approximately independent Exponential random variables with a common mean $a_n$.
 This is useful for anomaly detection because we do not need to know $F$, or $a_n$.
