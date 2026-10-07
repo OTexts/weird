@@ -26,7 +26,7 @@ book:
     - "13-imagevideo.qmd"
     - "14-text.qmd"
     - "15-distributions.qmd"
-    - "16-cybersecurity.qmd"
+    - "16-events.qmd"
     - "references.qmd"
   appendices:
     - "appendix.qmd"

@@ -1,0 +1,37 @@
+# Event and log data {#sec-events}
+
+::: {.content-hidden}
+PLAN (replaces the earlier "Network intrusions and fraud" chapter, Oct 2026)
+
+Organise by data type, like the other chapters, with cyber-security and fraud as
+the motivating examples. Generic methods applied to intrusion/fraud data would
+just repeat Chapters 6, 7 and 9, so focus on what is genuinely new:
+
+1. Event data as a data type: irregularly timestamped, marked event streams
+   (logins, connections, transactions), often with high-cardinality categorical
+   marks (user, host, port, merchant). Not covered by Chapter 10 (regular series),
+   Chapter 12 (graphs) or Chapter 14 (categorical). Point processes, inter-arrival
+   surprisals, burst detection.
+
+2. Entity-level baselines: "unusual for this user" rather than "unusual overall".
+   Peer group analysis (Bolton & Hand, 2001; review in Statistical Science, 2002).
+
+3. Combining weak evidence: attacks are often chains of individually normal events
+   (e.g., lateral movement). Combining p-values across events and entities; FDR
+   control over many entities; mid-p-values for discrete data (Heard,
+   Rubin-Delanchy, Turcotte, Adams), linking to surprisal probabilities with ties.
+
+4. Brief discussion only: delayed and biased labels (chargebacks; only flagged
+   cases get investigated), concept drift, and flawed benchmarks (McHugh, 2000, on
+   DARPA/KDD-99; Sommer & Paxson, 2010, "Outside the closed world").
+
+Candidate data: LANL authentication data (Kent, 2015), subsampled (~1 billion
+events in full).
+
+Material to place elsewhere:
+- Adversarial anomalies (attackers deliberately mimic typical behaviour, so low
+  surprisal does not imply benign; Wagner & Soto, 2002): paragraph in
+  @sec-spurious.
+- Base rates and alert budgets (Axelsson, 2000): ranking/precision-at-k framing in
+  Chapter 4 or the Chapter 7 summary.
+:::

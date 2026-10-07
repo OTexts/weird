@@ -187,7 +187,7 @@ However, many real data sets are more complex than this, and we will need to use
 
 @sec-highdim discusses methods for finding anomalies in high-dimensional data, where there are many variables (sometimes more variables than observations).
 
-The remaining chapters of the book discuss applications of these methods to different types of data, including time series (@sec-timeseries), functional data (@sec-functional), network data (@sec-network), image data (@sec-image), text and categorical data (@sec-text), data which are probability distributions (@sec-distributions), and data on cyber-security and fraud (@sec-cybersecurity).
+The remaining chapters of the book discuss applications of these methods to different types of data, including time series (@sec-timeseries), functional data (@sec-functional), network data (@sec-network), image data (@sec-image), text and categorical data (@sec-text), data which are probability distributions (@sec-distributions), and event and log data such as network intrusions and fraudulent transactions (@sec-events).
 
 ### Statistical vs machine learning approaches {-}
 
