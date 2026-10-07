@@ -624,23 +624,32 @@ The number of clusters, $K$, must also be specified in advance, which can be dif
 
 Rather than specify the number of clusters in advance, we can specify a maximum radius for each cluster, and then find clusters that satisfy this constraint.
 This is known as the **leader algorithm** [@Hartigan1975], and is a fast, incremental clustering method that can be used for large data sets.
-The only input required is $\delta$, the maximum distance from an observation to the leader of its cluster.
+The main input is $\delta$, the maximum distance from an observation to the leader of its cluster.
 The algorithm can be summarised as follows:
 
-1. Select an initial observation as the first **leader**.
+1. Select the first observation as the first **leader**.
 2. For each subsequent observation:
-   a. If the observation is within $\delta$ of any existing leader, assign it to the cluster of the nearest such leader.
-   b. If the observation is not within $\delta$ of any existing leader, it becomes a new leader for a new cluster.
+   a. If the observation is within $\delta$ of one or more existing leaders, assign it to the cluster of the nearest such leader.
+   b. If the observation is not within $\delta$ of any existing leader, make it the leader of a new cluster.
 
 Thus, each cluster is defined by a leader and the observations assigned to that leader.
-Every assigned observation is within $\delta$ of its leader, so two observations in the same leader cluster can be up to $2\delta$ apart from each other.
-The order of the data affects the resulting clusters, but the algorithm is very fast, and can be used as a first step in more complex clustering algorithms.
-The leader algorithm can also be useful for anomaly detection, because isolated observations tend to become singleton or small clusters rather than being forced into a large cluster.
-However, this should not be interpreted as full robustness: an early anomaly can become a leader, and the resulting clusters depend on the ordering of the observations.
+The leaders remain fixed throughout the algorithm: they are observations from the original data, not cluster centroids.
+Every assigned observation is within $\delta$ of its leader, so two observations in the same leader cluster can be up to $2\delta$ apart.
+The result depends on the order of the observations, since an observation that appears early in the data can become a leader and affect the assignment of all the observations that follow.
 
-To compare K-means and the leader algorithm, we will apply them to the Old Faithful data set in @fig-clustering-off.
-First, the data are converted to robust multivariate $z$-scores (@sec-scaling) to prevent the waiting time variable from dominating the clustering.
-Then K-means clustering is applied with $K = 2$, and the leader algorithm is applied with $\delta = 3.3$ (chosen after some experimentation).
+The leader algorithm is very fast because it makes only one pass through the data, although its speed also depends on how many leaders are created.
+It can be useful for anomaly detection because an isolated observation is not forced into a distant cluster: instead, it becomes the leader of a singleton or small cluster.
+However, this should not be interpreted as full robustness.
+An early anomaly can become a leader, and both the leaders and the resulting clusters depend on the ordering of the observations.
+
+The `leader()` function from the **`probout`** package implements this algorithm.
+The function uses a strict comparison, requiring the distance to be less than `radius`, rather than less than or equal to it; this distinction is unimportant for continuous data unless a distance is exactly equal to the threshold.
+By default, `leader()` scales each variable to the unit interval, but we use `scale = FALSE` below because the data have already been converted to robust multivariate $z$-scores.
+
+To compare K-means and the leader algorithm, we apply them to the Old Faithful data set in @fig-clustering-off.
+First, the data are converted to robust multivariate $z$-scores (@sec-scaling) to prevent the waiting-time variable from dominating the clustering.
+K-means clustering is then applied with $K = 2$, while the leader algorithm is applied with $\delta = 3.3$, chosen after some experimentation.
+The `leader()` function returns each cluster as a vector of observation indices, so these partitions are converted to a vector of cluster labels for plotting.
 
 ```{r}
 #| label: fig-clustering-off
@@ -653,12 +662,23 @@ set.seed(12345)
 of_scaled <- oldfaithful |>
   select(duration, waiting) |>
   mvscale()
+
 km_clusters <- kmeans(of_scaled, centers = 2, nstart = 20)
-leader_clusters <- leaderCluster::leaderCluster(of_scaled, radius = 3.3)
+
+leader_result <- probout::leader(
+  as.matrix(of_scaled),
+  radius = 3.3,
+  scale = FALSE
+)[[1]]
+leader_cluster <- integer(nrow(of_scaled))
+for (k in seq_along(leader_result$partitions)) {
+  leader_cluster[leader_result$partitions[[k]]] <- k
+}
+
 oldfaithful |>
   mutate(
     km_cluster = factor(km_clusters$cluster),
-    leader_cluster = factor(leader_clusters$cluster_id)
+    leader_cluster = factor(leader_cluster)
   ) |>
   tidyr::pivot_longer(
     cols = c(km_cluster, leader_cluster),
@@ -678,10 +698,10 @@ oldfaithful |>
   labs(x = "Duration (seconds)", y = "Waiting time (seconds)")
 ```
 
-Both methods identify the same two main clouds (with the cluster order reversed), but handle outlying points differently.
-K-means forces every observation into one of the $K = 2$ clusters, pulling the centroids slightly toward the outliers.
-The leader algorithm instead isolates some outlying points into small separate clusters because they fall outside $\delta$ of the existing leaders.
-If we increase $K$ in K-means to match the number of leader clusters, we get the main clouds splitting rather than the outliers separating.
+K-means forces every observation into one of the specified $K = 2$ clusters, so outlying observations can pull the cluster centroids towards themselves.
+The leader algorithm does not fix the number of clusters.
+An observation farther than $\delta$ from every existing leader starts a new cluster, allowing isolated observations to form singleton or small clusters rather than being absorbed into one of the main clusters.
+Conversely, increasing $K$ in K-means to match the number of leader clusters need not produce the same result: K-means may split the main clouds rather than separate the outlying observations.
 
 ### DBSCAN clustering
 

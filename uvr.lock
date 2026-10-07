@@ -2085,14 +2085,6 @@ checksum = "md5:4389f7decad5f4418c3288c7f6101adb"
 requires = ["rlang"]
 
 [[package]]
-name = "leaderCluster"
-version = "1.5.0"
-source = "cran"
-raw_version = "1.5"
-url = "https://cran.r-project.org/src/contrib/leaderCluster_1.5.tar.gz"
-checksum = "md5:c2341718cd71ca5c46d663c45fbf5a22"
-
-[[package]]
 name = "lifecycle"
 version = "1.0.5"
 source = "cran"
@@ -2720,6 +2712,19 @@ source = "cran"
 raw_version = "1.2.0"
 url = "https://cran.r-project.org/src/contrib/prettyunits_1.2.0.tar.gz"
 checksum = "md5:2e2db8105f214b80d3d4254b8aabb255"
+
+[[package]]
+name = "probout"
+version = "1.1.2"
+source = "cran"
+raw_version = "1.1.2"
+url = "https://cran.r-project.org/src/contrib/probout_1.1.2.tar.gz"
+checksum = "md5:9dd4227c7dafdac2ba683dad199a0a74"
+requires = [
+    "FNN",
+    "mclust",
+    "MASS",
+]
 
 [[package]]
 name = "processx"
