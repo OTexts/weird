@@ -1,6 +1,7 @@
 # Preface {.unnumbered}
 
-> This book is under development, and the table of contents may change.
+> This book is under development, and the last few chapters are incomplete.
+> If you find any errors, please report them on the [GitHub issues page](https://github.com/OTexts/weird/issues).
 
 This book is about tools and techniques for finding and understanding anomalies.
 It begins with some simple data sets containing only one variable, and builds up slowly to much more complicated data.
