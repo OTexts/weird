@@ -339,7 +339,7 @@ However, the same idea can be adapted by replacing the local median with a more 
 One such method is STL (Seasonal and Trend decomposition using Loess) due to @Cleveland1990, and extended by @mstl to handle multiple seasonal periods or series with no seasonality.
 
 We will apply this idea to find unusual observations in US weekly mortality data between 2015 and 2024, obtained from the @HMD.
-The following code reads the data, and wrangles it into a `tsibble` object (a special type of tibble designed for time series data).
+The data are read and wrangled into a `tsibble` object (a special type of tibble designed for time series data).
 
 ```{r}
 #| label: stmf
@@ -1074,7 +1074,6 @@ Now let's look at the A12 series that we started with, and consider the times wh
 
 ```{r}
 #| label: fig-pbs-a12-anomalies
-#| code-fold: false
 #| dependson: [ch10_functions, pbs, pbs_scores3]
 #| fig-cap: Surveillance anomalies identified over time for ATC group A12 (Mineral supplements).
 
@@ -1089,7 +1088,6 @@ After that, the model has learned to allow for large jumps in the series, so the
 
 ```{r}
 #| label: fig-pbs-n07-anomalies
-#| code-fold: false
 #| dependson: [ch10_functions, pbs, pbs_scores3]
 #| fig-cap: Surveillance anomalies identified over time for ATC group N07.
 
@@ -1101,7 +1099,6 @@ The next example, shown in @fig-pbs-r05-anomalies, shows less dramatic anomalies
 ```{r}
 #| label: fig-pbs-r05-anomalies
 #| dependson: [ch10_functions, pbs, pbs_scores3]
-#| code-fold: false
 #| fig-cap: Surveillance anomalies identified over time for ATC group R05.
 
 pbs_plot(pbs, pbs_anomalies, "R05")

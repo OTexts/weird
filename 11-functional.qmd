@@ -23,11 +23,17 @@ Comparing the curves over time, we see that the rates have steadily fallen for a
 The noticeable gap between the curves occurred after World War II due to the effective use of antibiotics, and widespread vaccinations for diphtheria, tetanus, whooping cough and tuberculosis, followed by polio in the late 1950s.
 
 ```{r}
-#| label: fig-fr-mortality
+#| label: fr-male
 #| code-fold: false
-#| fig-cap: French male mortality rates between 1816 and 1999.
 
 fr_male <- fr_mortality |> filter(Sex == "Male") |> select(-Sex)
+```
+
+```{r}
+#| label: fig-fr-mortality
+#| dependson: fr-male
+#| fig-cap: French male mortality rates between 1816 and 1999.
+
 fr_male |>
   ggplot() +
   aes(x = Age, y = Mortality, colour = Year, group = Year) +
@@ -72,7 +78,7 @@ In the following code, we use a smoothing method proposed by @HU07, which takes 
 
 ```{r}
 #| label: fr_smooth
-#| dependson: fig-fr-mortality
+#| dependson: fr-male
 #| message: false
 #| code-fold: false
 
@@ -87,7 +93,7 @@ fr_smooth <- fr_male |>
 
 ```{r}
 #| label: fig-fr-smooth
-#| dependson: [fig-fr-mortality, fr_smooth]
+#| dependson: [fr-male, fr_smooth]
 #| fig-cap: Smoothed French male mortality rates for 1999.
 
 fr_male |>
@@ -196,7 +202,6 @@ Instead of working in the `r NCOL(frmort_mat)`-dimensional space containing all 
 
 ```{r}
 #| echo: true
-#| code-fold: false
 #| message: false
 #| label: fig-pca-bases
 #| dependson: pca-bases
@@ -225,15 +230,20 @@ pca_bases |>
 #| echo: true
 #| code-fold: false
 #| message: false
-#| label: fig-pca-scores
+#| label: pca-scores
 #| dependson: pca-bases
-#| fig-cap: First three principal component scores for the French male mortality data.
 
 # Extract PCA scores
 pca_scores <- broom::augment(pca, frmort_wide[, "Year"]) |>
   select(-.rownames) |>
   rename_with(~ gsub("\\.fitted", "", .x))
-# Time series plot of scores
+```
+
+```{r}
+#| label: fig-pca-scores
+#| dependson: pca-scores
+#| fig-cap: First three principal component scores for the French male mortality data.
+
 pca_scores |>
   tidyr::pivot_longer(
     -Year,
@@ -255,7 +265,7 @@ The third component is more subtle, and reflects slow changes in mortality patte
 #| code-fold: false
 #| message: false
 #| label: fig-pca-scores2
-#| dependson: fig-pca-scores
+#| dependson: pca-scores
 #| fig-cap: Scatterplot of first three principal component scores for the French male mortality data.
 
 pca_scores |>
@@ -278,7 +288,7 @@ We restrict attention to the first two components here so the results can be sho
 #| echo: true
 #| code-fold: false
 #| label: fig-pca-outliers
-#| dependson: fig-pca-scores
+#| dependson: pca-scores
 #| fig-cap: First two principal component scores for the French male mortality data, with anomalous years (surprisal probability below 0.05) shown in orange.
 
 # Find outliers in the PCs
@@ -413,14 +423,19 @@ The bagplot's central point (the depth median of the scores) need not coincide w
 Each point corresponds to one year's mortality curve; the dark region is the bag, the light region is the loop, and any points beyond the loop are flagged as bivariate outliers, coloured by year to match the corresponding curves in @fig-fbagplot below.
 
 ```{r}
-#| label: fig-pca-bagplot
-#| dependson: fig-pca-scores
-#| code-fold: true
-#| fig-cap: Bagplot of the first two principal component scores of the French male mortality curves.
+#| label: pca-bagplot
+#| dependson: pca-scores
+#| code-fold: false
 
 bag <- aplpack::compute.bagplot(as.matrix(pca_scores[, c("PC1", "PC2")]))
 bagplot_outliers <- as.data.frame(bag$pxy.outlier) |>
   left_join(pca_scores, by = c("PC1", "PC2"))
+```
+
+```{r}
+#| label: fig-pca-bagplot
+#| dependson: pca-bagplot
+#| fig-cap: Bagplot of the first two principal component scores of the French male mortality curves.
 
 pca_scores |>
   gg_bagplot(PC1, PC2) +
@@ -434,11 +449,9 @@ Taking the pointwise range of the curves whose scores fall inside the bag, and s
 The following code identifies the curves contained in the bag and the loop, and those beyond that loop corresponding to the anomalies in @fig-pca-bagplot.
 
 ```{r}
-#| label: fig-fbagplot
-#| dependson: fig-pca-bagplot
-#| code-fold: true
-#| fig-cap: Functional bagplot of French male mortality.
-#|   The dark band shows the envelope of the bag (50% region), the light band shows the envelope of the loop; the solid curve is the observed curve closest to the bagplot's central point; the raw curves for years flagged as bagplot outliers are overlaid.
+#| label: fbagplot-envelopes
+#| dependson: pca-bagplot
+#| code-fold: false
 
 # Pointwise envelope of the actual (smoothed) curves for a set of years
 curve_envelope <- function(years) {
@@ -461,6 +474,14 @@ centre_point <- which.min(
 centre_curve <- fr_smooth |> filter(Year == pca_scores$Year[centre_point])
 outlier_curves <- fr_male |>
   filter(Year %in% bagplot_outliers$Year)
+```
+
+```{r}
+#| label: fig-fbagplot
+#| dependson: fbagplot-envelopes
+#| fig-cap: Functional bagplot of French male mortality.
+#|   The dark band shows the envelope of the bag (50% region), the light band shows the envelope of the loop; the solid curve is the observed curve closest to the bagplot's central point; the raw curves for years flagged as bagplot outliers are overlaid.
+
 bag_colors <- c("#00659e", "#5397BD", "#A7CADD")
 ggplot() +
   geom_ribbon(
@@ -505,9 +526,9 @@ To roughly match the number of years flagged by the bagplot, we use a 93% covera
 Thus, the dark region is the 50% HDR (containing about 50% of the years), the light region is the 93% HDR (containing about 93% of the years), and the points outside the 93% HDR are flagged as outliers, coloured by year to match the corresponding curves in @fig-fhdrboxplot below.
 
 ```{r}
-#| label: fig-pca-hdrboxplot
-#| dependson: fig-pca-scores
-#| fig-cap: HDR boxplot of the first two principal component scores of the French male mortality curves.
+#| label: pca-hdr-regions
+#| dependson: pca-scores
+#| code-fold: false
 
 hdr_labels <- pca_scores[, c("PC1", "PC2")] |>
   dist_kde(method = "scv") |>
@@ -522,6 +543,15 @@ pca_scores <- pca_scores |>
     hdr_cluster = hdr_labels$hdr_93
   )
 hdr_outliers <- pca_scores |> filter(hdr_region == "outlier")
+```
+
+Here, we have used `hdr_regions()` to classify each year's scores as either inside the 50% HDR, inside the 93% HDR but outside the 50% HDR, or outside the 93% HDR (and thus flagged as an outlier).
+
+```{r}
+#| label: fig-pca-hdrboxplot
+#| dependson: pca-hdr-regions
+#| fig-cap: HDR boxplot of the first two principal component scores of the French male mortality curves.
+
 pca_scores |>
   gg_hdrboxplot(PC1, PC2, prob = c(0.5, 0.93), method = "scv") +
   geom_point(
@@ -533,13 +563,11 @@ pca_scores |>
   guides(colour = "legend")
 ```
 
-Here, we have used `hdr_regions()` to classify each year's scores as either inside the 50% HDR, inside the 93% HDR but outside the 50% HDR, or outside the 93% HDR (and thus flagged as an outlier).
-
 All but one of the `r english::words(nrow(hdr_outliers))` years flagged as outliers have previously been identified as anomalous above (in @fig-pca-outliers, @fig-o3-pca or @fig-pca-bagplot); the exception, 1855, was not picked out by any of the earlier methods, but corresponds to a year during the Crimean War [@french_mortality].
 
 ```{r}
 #| label: hdr-consensus-check
-#| dependson: [fig-pca-hdrboxplot, fig-pca-bagplot, o3-summary]
+#| dependson: [pca-hdr-regions, pca-bagplot, o3-summary]
 #| include: false
 
 stopifnot(
@@ -558,7 +586,7 @@ Because the bivariate scores split into two separated clusters (@fig-pca-hdrboxp
 
 ```{r}
 #| label: fig-fhdrboxplot
-#| dependson: [fig-fbagplot, fig-pca-hdrboxplot, o3-summary]
+#| dependson: [fbagplot-envelopes, fig-fbagplot, pca-hdr-regions, o3-summary]
 #| fig-cap: Functional HDR boxplot of French male mortality.
 #|   The dark bands show the envelope of the 50% HDR, the light bands the 93% HDR; the raw curves for years flagged as outliers (falling outside the 93% HDR) are overlaid.
 
@@ -699,7 +727,7 @@ The central region is formed from the 50% deepest curves (those with MBD at or a
 
 ```{r}
 #| label: fig-fbplot-sungenton
-#| dependson: [mbd-build, fig-fbagplot]
+#| dependson: [mbd-build, fbagplot-envelopes, fig-fbagplot]
 #| fig-cap: Sun--Genton functional boxplot of the smoothed French male mortality curves.
 #|   The dark band shows the central 50% region, the light band the envelope of the curves not flagged as outliers; the solid curve is the deepest (most central) curve; the smoothed curves for the flagged outlier years are overlaid.
 
@@ -792,11 +820,9 @@ A curve with an unusual shape stands out from this pattern: its MBD falls notice
 The outliergram plots MEI against MBD along with this parabola, and flags as shape outliers those curves whose vertical distance below the parabola exceeds a boxplot-style fence (the third quartile of these distances, plus 1.5 times their interquartile range, by default).
 
 ```{r}
-#| label: fig-outliergram
+#| label: outliergram
 #| dependson: mbd-build
-#| code-fold: true
-#| fig-cap: Outliergram of the smoothed French male mortality curves.
-#|   The shaded region shows the theoretical MBD/MEI parabola down to the outlier fence; years beyond the fence are shown in orange.
+#| code-fold: false
 
 mei <- function(Y) {
   n <- NROW(Y)
@@ -818,6 +844,14 @@ mei_tbl <- mei_tbl |>
 # Shape outliers: distance below the parabola exceeds a boxplot-style fence
 fence <- quantile(mei_tbl$d, 0.75) + 1.5 * IQR(mei_tbl$d)
 og_outliers <- mei_tbl |> filter(d >= fence)
+```
+
+```{r}
+#| label: fig-outliergram
+#| dependson: outliergram
+#| fig-cap: Outliergram of the smoothed French male mortality curves.
+#|   The shaded region shows the theoretical MBD/MEI parabola down to the outlier fence; years beyond the fence are shown in orange.
+
 parabola <- tibble(MEI = seq(0, 1, length.out = 100)) |>
   mutate(MBD = mbd_bound(MEI), lower = MBD - fence)
 
@@ -847,7 +881,7 @@ These were all during World War II, and in each of them mortality at some ages w
 ```{r}
 #| label: outliergram-check
 #| include: false
-#| dependson: fig-outliergram
+#| dependson: outliergram
 
 # Years named in the text, and every curve on or below the parabola bound
 stopifnot(
@@ -869,11 +903,9 @@ Plotting VO against MO for every curve gives the magnitude-shape plot; @Dai2018 
 These calculations are implemented in the **`fdaoutlier`** package, which we use here.
 
 ```{r}
-#| label: fig-ms-plot
+#| label: ms-plot
 #| dependson: mbd-build
-#| code-fold: true
-#| fig-cap: Magnitude-shape plot of the smoothed French male mortality curves.
-#|   Years flagged as outliers are shown in orange.
+#| code-fold: false
 
 ms <- fdaoutlier::msplot(frmort_mat, seed = 1, plot = FALSE)
 ms_tbl <- tibble(
@@ -882,6 +914,13 @@ ms_tbl <- tibble(
   VO = ms$var_outlyingness
 )
 ms_outliers <- ms_tbl |> slice(ms$outliers)
+```
+
+```{r}
+#| label: fig-ms-plot
+#| dependson: ms-plot
+#| fig-cap: Magnitude-shape plot of the smoothed French male mortality curves.
+#|   Years flagged as outliers are shown in orange.
 
 ms_tbl |>
   ggplot(aes(x = MO, y = VO)) +
@@ -891,7 +930,7 @@ ms_tbl |>
 
 ```{r}
 #| label: ms-plot-groups
-#| dependson: fig-ms-plot
+#| dependson: ms-plot
 #| echo: false
 
 ms_recent <- ms_outliers |> filter(Year >= 1946) |> pull(Year) |> sort()

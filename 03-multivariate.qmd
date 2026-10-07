@@ -46,7 +46,6 @@ First, we can do a strip plot of each variable to visualise the data from a univ
 ```{r}
 #| label: fig-demo_strip
 #| dependson: demo_data
-#| code-fold: false
 #| fig-asp: 0.3
 #| fig-cap: Strip plots of each of the three variables, with anomalies shown in orange.
 
@@ -70,7 +69,6 @@ Now we will plot pairwise scatterplots of the three variables, giving the bivari
 #| label: fig-demo-pairs
 #| dependson: demo_data
 #| fig-cap: Pairwise scatterplots of the three variables, with anomalies shown in orange.
-#| code-fold: false
 #| warning: false
 #| message: false
 
@@ -101,7 +99,6 @@ See if you can find a viewpoint where the second anomaly is clearly separated fr
 ```{r}
 #| label: demo-rgl
 #| webgl: true
-#| code-fold: false
 #| cache: false
 
 rgl::plot3d(

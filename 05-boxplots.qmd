@@ -643,6 +643,7 @@ The HDR boxplot shown here can also be produced using the `gg_hdrboxplot()` func
 
 ```{r}
 #| label: fig-of-hdrboxplot
+#| code-fold: false
 #| fig-cap: "HDR boxplot of the duration of Old Faithful eruptions between 2017 and 2023."
 #| fig-asp: 0.2
 

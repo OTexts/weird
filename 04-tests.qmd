@@ -32,6 +32,7 @@ We will test the methods using six examples: two involving real data, and four i
 
 ```{r}
 #| label: fig-n01b
+#| code-fold: false
 #| fig-asp: 0.2
 #| fig-cap: "Eighteen observations from a N(0,1) distribution along with two anomalies."
 
@@ -887,11 +888,8 @@ If many gaps are inspected, the chance of at least one crossing the threshold ca
 The code below constructs a data frame of **gaps** between batter averages, and plots their scores in @fig-ws-gaps.
 
 ```{r}
-#| label: fig-ws-gaps
-#| fig-cap: >-
-#|   Tukey--Wainer--Schacht gap scores for cricket batting averages (batters with at least 20 innings).
-#|   Each point is plotted at the upper end of a gap, so the score shown at a batting average is for the gap between that batter and the next lower batting average.
-#|   The dashed line marks Tukey's exploratory threshold of 2.25.
+#| label: ws-gaps
+#| code-fold: false
 
 batters <- cricket_batting |>
   filter(Innings >= 20) |>
@@ -910,6 +908,15 @@ batting_gaps <- batters |>
     ws = weighted_gap / mean(weighted_gap, trim = 0.25, na.rm = TRUE)
   ) |>
   filter(!is.na(ws))
+```
+
+```{r}
+#| label: fig-ws-gaps
+#| dependson: ws-gaps
+#| fig-cap: >-
+#|   Tukey--Wainer--Schacht gap scores for cricket batting averages (batters with at least 20 innings).
+#|   Each point is plotted at the upper end of a gap, so the score shown at a batting average is for the gap between that batter and the next lower batting average.
+#|   The dashed line marks Tukey's exploratory threshold of 2.25.
 
 batting_gaps |>
   ggplot(aes(x = upper_average, y = ws)) +
@@ -923,7 +930,7 @@ Restricting attention to scores above the exploratory threshold of 2.25, we show
 ```{r}
 #| label: ws-top-gaps
 #| code-fold: false
-#| dependson: fig-ws-gaps
+#| dependson: ws-gaps
 
 batting_gaps |>
   filter(ws > 2.25) |>
@@ -937,7 +944,7 @@ This illustrates that the method detects separations, not individual anomalous o
 ```{r}
 #| label: ws-noise
 #| include: false
-#| dependson: fig-ws-gaps
+#| dependson: ws-gaps
 
 ws_flagged <- batting_gaps |> filter(ws > 2.25)
 bradman_gap <- batting_gaps |> filter(upper_player == "DG Bradman")
@@ -958,7 +965,7 @@ We found it above only because we sorted the flagged gaps by their raw size; the
 ```{r}
 #| label: check-second-batter
 #| include: false
-#| dependson: fig-ws-gaps
+#| dependson: ws-gaps
 
 # The prose names the batter below Bradman; fail if a data update changes this
 stopifnot(
@@ -993,7 +1000,7 @@ This makes the fit less sensitive to the possible outlier, but the resulting tes
 ```{r}
 #| label: gap-bt-test
 #| code-fold: false
-#| dependson: fig-ws-gaps
+#| dependson: ws-gaps
 
 mu_hat <- median(batters$Average)
 sigma_hat <- robustbase::s_mad(batters$Average)

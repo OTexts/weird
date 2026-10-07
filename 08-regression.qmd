@@ -324,21 +324,30 @@ wine_aug |>
   scale_colour_manual(values = c("#0072B2", "#D55E00", "#AAAAAA"))
 ```
 
-The LOO surprisals obtained from this model are shown in @fig-shiraz-regression-scores, using the same colours as @fig-shiraz-regression-density to indicate whether the observation is below, within, or above the 95% prediction interval.
+The LOO surprisals are computed from the standardised LOO residuals using the standard Normal density.
 
 ```{r}
-#| label: fig-shiraz-regression-scores
+#| label: shiraz-loo-surprisals
+#| code-fold: false
 #| dependson: fig-shiraz-regression-density
-#| fig-cap: Residuals and surprisals for the Shiraz data using a linear regression model.
-#|   Points are coloured to match the 95% prediction intervals in @fig-shiraz-regression-density.
-#| fig-height: 6
-#| fig-asp: 0.8
 
 wine_aug <- wine_aug |>
   mutate(
     std_loo_res = .resid / (.sigma * sqrt(1 - .hat)),
     loo_surprisals = -dnorm(std_loo_res, log = TRUE)
   )
+```
+
+They are shown in @fig-shiraz-regression-scores, using the same colours as @fig-shiraz-regression-density to indicate whether the observation is below, within, or above the 95% prediction interval.
+
+```{r}
+#| label: fig-shiraz-regression-scores
+#| dependson: shiraz-loo-surprisals
+#| fig-cap: Residuals and surprisals for the Shiraz data using a linear regression model.
+#|   Points are coloured to match the 95% prediction intervals in @fig-shiraz-regression-density.
+#| fig-height: 6
+#| fig-asp: 0.8
+
 wine_aug |>
   select(points, std_loo_res, loo_surprisals, location) |>
   tidyr::pivot_longer(
@@ -365,7 +374,7 @@ wine_aug |>
 ```{r}
 #| label: shiraz-regression-scores
 #| include: false
-#| dependson: fig-shiraz-regression-scores
+#| dependson: shiraz-loo-surprisals
 
 most_anomalous <- wine_aug |>
   filter(loo_surprisals > 17)
@@ -383,7 +392,7 @@ The largest LOO surprisal is for the most over-priced wine (under this model), a
 ```{r}
 #| label: shiraz-most-anomalous
 #| code-fold: false
-#| dependson: fig-shiraz-regression-scores
+#| dependson: shiraz-loo-surprisals
 
 wine_aug |>
   filter(loo_surprisals == max(loo_surprisals)) |>
@@ -396,7 +405,7 @@ Another good buy, at the higher quality end, is the 2007 Syrah from the Rulo win
 ```{r}
 #| label: shiraz-good-buy
 #| code-fold: false
-#| dependson: fig-shiraz-regression-scores
+#| dependson: shiraz-loo-surprisals
 
 wine_aug |>
   filter(points > 95) |>
@@ -413,7 +422,7 @@ We will compute the surprisal probabilities using the rank approximation (@sec-a
 ```{r}
 #| label: shiraz-surprisal-prob-manual
 #| code-fold: false
-#| dependson: fig-shiraz-regression-scores
+#| dependson: shiraz-loo-surprisals
 
 wine_aug |>
   mutate(
@@ -703,7 +712,7 @@ This initial size $s$ is set using the `m` argument of `robustX::BACON()` below.
 ```{r}
 #| label: shiraz-bacon
 #| code-fold: false
-#| dependson: ["fig-shiraz-regression-scores", "shiraz-surprisals"]
+#| dependson: ["shiraz-loo-surprisals", "shiraz-surprisals"]
 
 bacon_alpha <- 0.05
 bacon_wine <- robustX::BACON(

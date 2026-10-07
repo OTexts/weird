@@ -16,11 +16,8 @@ Throughout this chapter, the methods are illustrated using daily average ozone l
 The data are shown in @fig-dongsi.
 
 ```{r}
-#| label: fig-dongsi
+#| label: dongsi
 #| code-fold: false
-#| fig-cap: >-
-#|   Daily ozone and maximum temperature data from the Dongsi neighbourhood of Beijing, from March 2013 to February 2017.
-#|   Days with more than 2 missing hourly values in either variable are excluded.
 
 dongsi <- air_quality |>
   filter(station == "Dongsi") |>
@@ -34,6 +31,15 @@ dongsi <- air_quality |>
   ) |>
   filter(nmiss <= 2) |>
   select(-nmiss)
+```
+
+```{r}
+#| label: fig-dongsi
+#| dependson: dongsi
+#| fig-cap: >-
+#|   Daily ozone and maximum temperature data from the Dongsi neighbourhood of Beijing, from March 2013 to February 2017.
+#|   Days with more than 2 missing hourly values in either variable are excluded.
+
 dongsi |>
   ggplot(aes(x = max_temp, y = o3)) +
   geom_point() +
@@ -46,7 +52,7 @@ dongsi |>
 ```{r}
 #| label: hottest-day
 #| include: false
-#| dependson: fig-dongsi
+#| dependson: dongsi
 
 hottest_day <- which.max(dongsi$max_temp)
 coldest_day <- which.min(dongsi$max_temp)
@@ -78,7 +84,7 @@ Because the distances are symmetric, only the lower triangle of the matrix is co
 ```{r}
 #| label: dist-example
 #| code-fold: false
-#| dependson: fig-dongsi
+#| dependson: dongsi
 
 head(dongsi, 5)
 head(dongsi, 5) |>
@@ -114,7 +120,7 @@ The first five rows of the scaled data are shown, and the resulting distance mat
 ```{r}
 #| label: zscores
 #| code-fold: false
-#| dependson: fig-dongsi
+#| dependson: dongsi
 
 z <- dongsi |>
   select(-date) |>
@@ -232,7 +238,7 @@ The default initialisation strategy is used, which selects the $s = 4m = 4 \time
 ```{r}
 #| label: bacon-of
 #| code-fold: false
-#| dependson: fig-dongsi
+#| dependson: dongsi
 
 bacon <- dongsi |>
   select(-date) |>
@@ -639,7 +645,7 @@ The resulting tree is shown in @fig-iso-tree.
 ```{r}
 #| label: iso-tree
 #| code-fold: false
-#| dependson: fig-dongsi
+#| dependson: dongsi
 
 library(isotree)
 # Fit one tree with low max depth
@@ -922,7 +928,7 @@ The resulting anomaly scores are shown in @fig-iforest-of.
 ```{r}
 #| label: iforest-of
 #| code-fold: false
-#| dependson: [fig-dongsi, iso-tree]
+#| dependson: [dongsi, iso-tree]
 
 model_if <- dongsi |>
   select(max_temp, o3) |>

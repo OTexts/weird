@@ -31,10 +31,11 @@ Statistical methods have a long history of success in modelling temporal depende
 For the whole-network problem, this chapter describes **oddnet**, a method due to @oddnet that fuses network analysis with time series modelling; the R package **`oddnet`** implements the algorithm.
 We start, though, with the simpler problem of anomalous nodes.
 
-Before we begin, let's load the packages we will need and define a few functions that we will use.
+Before we begin, let's load the packages we will need, and define a few functions for plotting.
 
 ```{r}
 #| label: ch12_libraries
+#| code-fold: false
 #| message: false
 
 library(igraph)
@@ -43,6 +44,11 @@ library(oddnet)
 library(tsibble)
 library(fable)
 library(lubridate)
+```
+
+```{r}
+#| label: ch12_functions
+#| dependson: ch12_libraries
 
 # Colours for the party-coloured network plots, matching the conventional
 # US media scheme (Democrat = blue, Republican = red) rather than the book's
@@ -103,11 +109,10 @@ Because there is no time ordering among the nodes of a single network, we can go
 The US Senate co-voting network, described by @Lee2020, provides a natural setting to try this.
 Each node is a senator, and an edge connects two senators if they vote the same way (both yea or both nay) on at least 75% of the bills for which they were both present, across the 40th to 113th Congress (1867 to 2015).
 So each Congress gives an undirected network, with $a_{ij} = a_{ji} = 1$ if senators $i$ and $j$ co-vote at least 75% of the time, and $a_{ij} = 0$ otherwise.
-We use a processed copy of this data, saved as `data/senate_votes_edgelist.csv` (the co-voting edges for each Congress) and `data/senate_party.csv` (each senator's party).
+A processed copy of this data is saved as `data/senate_votes_edgelist.csv` (the co-voting edges for each Congress) and `data/senate_party.csv` (each senator's party).
 
 ```{r}
 #| label: senate-data
-#| code-fold: false
 
 senate_edges <- readr::read_csv(
   here::here("data/senate_votes_edgelist.csv"),
@@ -144,7 +149,7 @@ As an illustration, we consider the 100th Congress (1987--1989).
 
 ```{r}
 #| label: fig-senate-100
-#| dependson: [senate-data, ch12_libraries]
+#| dependson: [senate-data, ch12_libraries, ch12_functions]
 #| fig-cap: "US Senate co-voting network for the 100th Congress (1987--1989), coloured by party (blue = Democrat, red = Republican)."
 #| fig-asp: 0.5
 
@@ -496,7 +501,7 @@ After the earliest Congresses, the parties become clearly separated, from an alm
 
 ```{r}
 #| label: fig-senate-networks
-#| dependson: [senate-data, ch12_libraries]
+#| dependson: [senate-data, ch12_libraries, ch12_functions]
 #| fig-cap: "US Senate co-voting networks for the 40th, 64th, 89th and 113th Congresses, coloured by party (blue = Democrat, red = Republican)."
 #| fig-asp: 0.3
 
@@ -537,7 +542,7 @@ senate_probs |> dplyr::arrange(prob) |> head()
 
 ```{r}
 #| label: fig-senate-prob
-#| dependson: [senate-data, senate-oddnet, ch12_libraries]
+#| dependson: [senate-data, senate-oddnet, ch12_libraries, ch12_functions]
 #| fig-cap: >-
 #|   Surprisal probability of each US Senate co-voting network, from the 40th to the 113th Congress.
 #|   The dashed line shows the 0.05 threshold.
@@ -590,7 +595,7 @@ This gives `r length(uci_networks)` daily networks, ranging in size from a handf
 
 ```{r}
 #| label: fig-uci-networks
-#| dependson: [uci-data, ch12_libraries]
+#| dependson: [uci-data, ch12_libraries, ch12_functions]
 #| fig-cap: "UCI message networks for three days, showing how activity varies from sparse (day 3) to much busier (days 22 and 42)."
 #| fig-asp: 0.36
 
@@ -622,7 +627,7 @@ uci_flagged
 
 ```{r}
 #| label: fig-uci-prob
-#| dependson: [uci-data, uci-oddnet, ch12_libraries]
+#| dependson: [uci-data, uci-oddnet, ch12_libraries, ch12_functions]
 #| fig-cap: >-
 #|   Surprisal probability of each UCI daily message network, from April to October 2004.
 #|   The dashed line shows the 0.05 threshold.
