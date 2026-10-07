@@ -36,13 +36,12 @@ The original product photos have been converted to $28 \times 28$ greyscale imag
 
 The examples use the 1000 sneakers from the test set, together with 10 images from other classes: four ankle boots, three sandals, two bags and one pair of trousers.
 Some of these planted images are very different from a sneaker (the trousers and bags), while others are quite similar (the ankle boots), so we know at least some of the anomalies, and can see which methods find them.
-The data are stored in the tibble `fashion`, with one row per image, the original test set index `id`, the class `label`, a logical column `planted`, and a $1010 \times 784$ matrix column `pixels` of pixel intensities between 0 (white) and 255 (black).
+The **`weird`** package contains these data as the tibble `fashion`, with one row per image, the original test set index `id`, the class `label`, a logical column `planted`, and a $1010 \times 784$ matrix column `pixels` of pixel intensities between 0 (white) and 255 (black).
 
 ```{r}
 #| label: fashion
 #| code-fold: false
 
-fashion <- readRDS(here::here("rds/fashion.rds"))
 fashion
 ```
 
@@ -650,16 +649,18 @@ The PETS2006 video, from the CDnet 2014 change detection benchmark [@Wang2014], 
 For most of the video, a man stands near the glass wall at the back of the concourse with a bag, while other people walk past.
 He then puts the bag down, and eventually walks away, leaving it behind.
 
-The data used here are every third frame from frames 300 to 1200, converted to greyscale.
+The `fetch_pets2006()` function in the **`weird`** package downloads all 1200 frames of the video, converted to greyscale.
 To keep the data manageable, each frame has been reduced from $720 \times 576$ pixels to $120 \times 96$ pixels by averaging over blocks of $6 \times 6$ pixels.
-The data are stored in the list `pets2006`, with the frame numbers in `frame`, the frame height and width (in pixels) in `nrow` and `ncol`, and the pixel intensities (from 0 for black to 255 for white) in the matrix `pixels`, with one row per frame.
+The data are returned as a tibble, with the frame numbers in `frame` and the pixel intensities (from 0 for black to 255 for white) in the matrix column `pixels`, with one row per frame.
+The benchmark uses the first 299 frames to initialise background models, and evaluates methods on frames 300 to 1200, so we use the same frames here.
 
 ```{r}
 #| label: pets2006
 #| code-fold: false
 
-pets2006 <- readRDS(here::here("rds/pets2006.rds"))
-str(pets2006)
+pets2006 <- fetch_pets2006() |>
+  filter(frame >= 300)
+pets2006
 ```
 
 As with the Fashion-MNIST images, we rescale the intensities to lie between 0 and 1.
@@ -697,7 +698,7 @@ plot_frames <- function(values, titles, height = 96, width = 120, ...) {
     coord_equal() +
     theme_void()
 }
-shown <- match(c(450, 720, 900, 951, 1101, 1197), pets2006$frame)
+shown <- match(c(450, 735, 900, 951, 1101, 1197), pets2006$frame)
 plot_frames(V[shown, ], paste("Frame", pets2006$frame[shown]), ncol = 3) +
   scale_fill_gradient(low = "black", high = "white", guide = "none")
 ```
@@ -747,14 +748,23 @@ stopifnot(
   period2[1] > 900,
   period2[2] < 1050,
   # Many more frames above the cutoff than expected under a Normal model
-  sum(pets_frames$above_cutoff) > 3 * 0.025 * nrow(pets_frames)
+  sum(pets_frames$above_cutoff) > 3 * 0.025 * nrow(pets_frames),
+  # Frame 735 (shown in fig-pets-frames) is above the cutoff
+  735 %in% frames_above
+)
+# The first period contains a single run of frames below the cutoff
+gap1 <- setdiff(period1[1]:period1[2], frames_above)
+stopifnot(
+  length(gap1) > 10,
+  all(diff(gap1) == 1)
 )
 ```
 
 @fig-pets-od shows the orthogonal distance of each frame over time.
 The dashed line in @fig-pets-od is the orthogonal distance cutoff used in the outlier map (@sec-pca), so a frame above it would be classified as an orthogonal outlier or a bad leverage point.
 The cutoff is the 97.5% quantile under a Normal model, so we would expect only about `r round(0.025 * nrow(pets_frames))` of the `r nrow(pets_frames)` frames to lie above it by chance, but `r sum(pets_frames$above_cutoff)` do.
-These frames all fall in two periods: between frames `r period1[1]` and `r period1[2]`, when a person walks across the foreground close to the camera (frame 720 in @fig-pets-frames), and between frames `r period2[1]` and `r period2[2]`, when the man puts down his bag while two other people walk past in the foreground (frame 951; they are just coming into view in frame 900).
+These frames all fall in two periods: between frames `r period1[1]` and `r period1[2]`, when a person walks across the foreground close to the camera (frame 735 in @fig-pets-frames), and between frames `r period2[1]` and `r period2[2]`, when the man puts down his bag while two other people walk past in the foreground (frame 951; they are just coming into view in frame 900).
+In the middle of the first period, from frame `r min(gap1)` to frame `r max(gap1)`, the orthogonal distance dips below the cutoff while the person crosses the middle of the concourse.
 People in the foreground cover many more pixels than people at the back of the concourse, so they dominate the orthogonal distances.
 
 ```{r}
@@ -830,8 +840,8 @@ patchwork::wrap_plots(
 # background, and those pixels match the background in most frames
 last <- nrow(V)
 bag <- which(abs(resid[last, ]) > 0.1)
-bag_row <- (bag - 1) %% pets2006$nrow + 1
-bag_col <- (bag - 1) %/% pets2006$nrow + 1
+bag_row <- (bag - 1) %% 96 + 1
+bag_col <- (bag - 1) %/% 96 + 1
 stopifnot(
   between(length(bag), 10, 50),
   diff(range(bag_row)) < 10,

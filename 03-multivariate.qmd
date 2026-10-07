@@ -131,7 +131,7 @@ In 2 dimensions, the unit sphere is the circle with radius 1, sitting snugly wit
 
 ```{r}
 #| label: fig-curse2d
-#| fig-cap: 2000 simulated observations from two independent U(-1,1) distributions, with points within the unit circle shown in grey, and points outside the unit circle shown in orange.
+#| fig-cap: Two thousand simulated observations from two independent U(-1,1) distributions, with points within the unit circle shown in grey, and points outside the unit circle shown in orange.
 #| fig-height: 5
 #| fig-width: 5
 #| out-width: 70%
@@ -171,7 +171,7 @@ rgl::plot3d(df[, 1:3], size = 5, col = df$colour)
 ```
 :::::
 
-2000 simulated observations from three independent U(-1,1) distributions, with points within the unit sphere shown in grey, and points outside the unit sphere shown in orange.
+Two thousand simulated observations from three independent U(-1,1) distributions, with points within the unit sphere shown in grey, and points outside the unit sphere shown in orange.
 :::
 
 As the number of dimensions grows, it becomes increasingly likely that points will lie in the corners of the space.
@@ -206,7 +206,7 @@ For $m = 1$, the hypercube is an interval of length 1; for $m = 2$, it is a squa
 
 ```{r}
 #| label: fig-hypercube
-#| fig-cap: 2000 simulated observations from two independent U(-1,1) distributions, with the central square containing 50% of the observations.
+#| fig-cap: Two thousand simulated observations from two independent U(-1,1) distributions, with the central square containing 50% of the observations.
 #| fig-height: 5
 #| fig-width: 5
 #| out-width: 70%

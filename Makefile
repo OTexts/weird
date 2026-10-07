@@ -2,6 +2,7 @@ SHELL := /bin/bash
 
 qmd_files   := $(wildcard *.qmd)
 rds_files   := $(wildcard rds/*.rds)
+data_files  := $(wildcard data/*)
 shared_deps := weird.bib before-each-chapter.R apa-single-spaced.csl otexts.scss _quarto.yml htmlreplace.pl
 
 .PHONY: all preview build launch deploy clean update
@@ -14,7 +15,7 @@ update:
 
 build: _book/.built
 
-_book/.built: $(qmd_files) $(rds_files) $(shared_deps)
+_book/.built: $(qmd_files) $(rds_files) $(data_files) $(shared_deps)
 	source .uvr/activate && QUARTO_R=$$(dirname $$(command -v R)) quarto render --to html
 	perl -i htmlreplace.pl _book/*.html
 	# Reduce figures to 256 colours; pngquant leaves a file unchanged (exit 98/99)

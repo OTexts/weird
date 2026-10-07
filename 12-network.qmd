@@ -107,31 +107,25 @@ Each node becomes an observation, and measures of its centrality and its role in
 Because there is no time ordering among the nodes of a single network, we can go straight to dimension reduction and anomaly detection, without the time series modelling step used later in this chapter for sequences of networks.
 
 The US Senate co-voting network, described by @Lee2020, provides a natural setting to try this.
-Each node is a senator, and an edge connects two senators if they vote the same way (both yea or both nay) on at least 75% of the bills for which they were both present, across the 40th to 113th Congress (1867 to 2015).
-So each Congress gives an undirected network, with $a_{ij} = a_{ji} = 1$ if senators $i$ and $j$ co-vote at least 75% of the time, and $a_{ij} = 0$ otherwise.
-A processed copy of this data is saved as `data/senate_votes_edgelist.csv` (the co-voting edges for each Congress) and `data/senate_party.csv` (each senator's party).
+Each node is a senator, and an edge connects two senators if they vote the same way (both yea or both nay) on at least 80% of the bills for which they were both present, across the 40th to 113th Congress (1867 to 2015).
+From the 84th Congress (1955--1957) onwards, the President is also included as a node, with the President's announced positions on bills treated as votes.
+So each Congress gives an undirected network, with $a_{ij} = a_{ji} = 1$ if senators $i$ and $j$ co-vote at least 80% of the time, and $a_{ij} = 0$ otherwise.
+The **`weird`** package contains these data as two tibbles: `us_senate_edges` gives the co-voting edges for each Congress, and `us_senate_members` gives each senator's name, state and party, with senators numbered from 1 within each Congress.
+The following code turns them into a list of adjacency matrices, one for each Congress, along with a matching list of party labels.
 
 ```{r}
 #| label: senate-data
+#| code-fold: false
 
-senate_edges <- readr::read_csv(
-  here::here("data/senate_votes_edgelist.csv"),
-  col_names = c("congress", "from", "to"),
-  show_col_types = FALSE
-)
-senate_party_df <- readr::read_csv(
-  here::here("data/senate_party.csv"),
-  show_col_types = FALSE
-)
-senate_congress <- sort(unique(senate_party_df$congress))
+senate_congress <- sort(unique(us_senate_members$congress))
 senate_party <- lapply(senate_congress, \(cg) {
-  senate_party_df |>
+  us_senate_members |>
     dplyr::filter(congress == cg) |>
     dplyr::arrange(node) |>
     dplyr::pull(party)
 })
 senate_networks <- lapply(seq_along(senate_congress), \(i) {
-  edges <- senate_edges |>
+  edges <- us_senate_edges |>
     dplyr::filter(congress == senate_congress[i]) |>
     dplyr::select(from, to)
   gr <- graph_from_data_frame(
@@ -213,6 +207,10 @@ senate100_gr <- graph_from_adjacency_matrix(
   mode = "undirected"
 )
 senate_node_features <- tibble(
+  name = us_senate_members |>
+    filter(congress == 100) |>
+    arrange(node) |>
+    pull(name),
   party = senate_party[[congress100]],
   degree = degree(senate100_gr),
   betweenness = betweenness(senate100_gr),
@@ -236,7 +234,7 @@ As elsewhere in this book, we then reduce these six features to two dimensions w
 
 senate_node_pca <- pcaPP::PCAproj(
   senate_node_features |>
-    select(-party) |>
+    select(-name, -party) |>
     mvscale(center = mean, scale = sd, cov = NULL),
   k = 2,
   scale = NULL,
@@ -251,7 +249,10 @@ senate_node_features <- senate_node_features |>
       method = "lookout"
     )
   )
-senate_node_features |> arrange(prob) |> head(3)
+senate_node_features |>
+  arrange(prob) |>
+  select(name, party, degree, betweenness, prob) |>
+  head(5)
 ```
 
 ```{r}
@@ -261,6 +262,8 @@ senate_node_features |> arrange(prob) |> head(3)
 
 flagged <- senate_node_features |> filter(prob < 0.05)
 n_flagged <- NROW(flagged)
+# The printed table shows the five lowest probabilities
+stopifnot(n_flagged == 5)
 n_isolated <- sum(senate_node_features$degree == 0)
 top2_betweenness <- sort(senate_node_features$betweenness, decreasing = TRUE)[
   1:2
@@ -276,13 +279,75 @@ stopifnot(
   which.min(senate_node_features$prob) ==
     which.max(senate_node_features$betweenness)
 )
+# Names used in the prose
+by_betweenness <- senate_node_features |> arrange(desc(betweenness))
+stopifnot(
+  by_betweenness$name[1] == "ZORINSKY, Edward",
+  by_betweenness$name[2] == "MURKOWSKI, Frank Hughes",
+  setequal(
+    flagged$name[flagged$degree == 0],
+    c("ROTH, William Victor, Jr.", "EVANS, Daniel Jackson", "PROXMIRE, William")
+  ),
+  "KARNES, David Kemp" %in% senate_node_features$name
+)
+# Edges between the parties, and how many involve Zorinsky
+senate100_edges <- us_senate_edges |>
+  filter(congress == 100) |>
+  mutate(
+    cross = senate_party[[congress100]][from] != senate_party[[congress100]][to],
+    zorinsky = senate_node_features$name[from] == "ZORINSKY, Edward" |
+      senate_node_features$name[to] == "ZORINSKY, Edward"
+  )
+n_cross <- sum(senate100_edges$cross)
+n_cross_zorinsky <- sum(senate100_edges$cross & senate100_edges$zorinsky)
+# Murkowski's only cross-party edge is to Zorinsky; without Zorinsky his
+# betweenness drops and lookout no longer flags him
+murkowski <- senate_node_features$name == "MURKOWSKI, Frank Hughes"
+murkowski_edges <- senate100_edges |>
+  filter(cross, from == which(murkowski) | to == which(murkowski))
+noz <- senate_node_features$name != "ZORINSKY, Edward"
+noz_gr <- induced_subgraph(senate100_gr, which(noz))
+noz_features <- tibble(
+  degree = degree(noz_gr),
+  betweenness = betweenness(noz_gr),
+  closeness = closeness(noz_gr),
+  pagerank = page_rank(noz_gr)$vector,
+  transitivity = transitivity(noz_gr, type = "local", isolates = "zero"),
+  coreness = coreness(noz_gr)
+) |>
+  mutate(closeness = if_else(is.nan(closeness), 0, closeness))
+noz_pca <- pcaPP::PCAproj(
+  mvscale(noz_features, center = mean, scale = sd, cov = NULL),
+  k = 2,
+  scale = NULL,
+  center = NULL
+)
+noz_prob <- surprisals_prob(
+  as_tibble(noz_pca$scores),
+  loo = TRUE,
+  approximation = "gpd",
+  method = "lookout"
+)
+murkowski_btw <- senate_node_features$betweenness[murkowski]
+murkowski_btw_noz <- noz_features$betweenness[murkowski[noz]]
+stopifnot(
+  NROW(murkowski_edges) == 1,
+  all(murkowski_edges$zorinsky),
+  murkowski_btw_noz < murkowski_btw,
+  noz_prob[murkowski[noz]] >= 0.05
+)
 ```
 
-`r n_flagged` senators fall below the $\alpha = 0.05$ threshold used throughout this chapter, and they are of two kinds.
-By far the most anomalous, with a surprisal probability of `r sprintf("%.5f", min(senate_node_features$prob))`, is a Democrat with the highest betweenness centrality in the chamber, sitting on far more shortest paths between colleagues than anyone else.
-The Republican with the second-highest betweenness is also flagged.
+`r english::Words(n_flagged)` senators fall below the $\alpha = 0.05$ threshold used throughout this chapter, and they are of two kinds.
+By far the most anomalous, with a surprisal probability of `r sprintf("%.5f", min(senate_node_features$prob))`, is Edward Zorinsky, a Democrat from Nebraska with the highest betweenness centrality in the chamber, sitting on far more shortest paths between colleagues than anyone else.
+Frank Murkowski, a Republican from Alaska with the second-highest betweenness, is also flagged.
 A senator with high betweenness is one whose voting pattern regularly links senators who otherwise vote in separate blocs.
-The remaining `r english::words(n_isolated)` flagged senators are the isolated senators, who have no co-voting partners at all, so all their features except PageRank are zero.
+Zorinsky is a special case, though.
+He died in March 1987, two months into the Congress, and was replaced by David Karnes, so his edges are based only on the votes held before his death.
+He accounts for `r english::words(n_cross_zorinsky)` of the `r english::words(n_cross)` edges between the two parties.
+One of these links him to Murkowski, and it is Murkowski's only edge to a Democrat.
+Without Zorinsky, Murkowski's betweenness falls from `r round(murkowski_btw)` to `r round(murkowski_btw_noz)` and he is no longer flagged, so his anomaly is a by-product of Zorinsky's.
+The remaining `r english::words(n_isolated)` flagged senators, William Roth and Daniel Evans (both Republicans) and William Proxmire (a Democrat), are isolated: they have no co-voting partners at all, so all their features except PageRank are zero.
 
 @fig-senate-nodes shows the two-dimensional projection used for detection, with the flagged senators highlighted.
 They lie on the edges of the point cloud, although some unflagged senators are also far from the bulk of the chamber; lookout flags points in low-density regions, not simply those far from the centre.
@@ -292,13 +357,26 @@ They lie on the edges of the point cloud, although some unflagged senators are a
 #| dependson: senate-node-anomaly
 #| fig-cap: >-
 #|   Two-dimensional robust PCA projection of the node-level features for the 100th Congress.
-#|   Senators with a surprisal probability below 0.05 are shown in orange.
+#|   Senators with a surprisal probability below 0.05 are shown in orange and labelled.
 #|   The isolated senators have identical features, so they are plotted as a single point.
 
-as_tibble(senate_node_pca$scores) |>
-  mutate(flagged = senate_node_features$prob < 0.05) |>
+senate_node_scores <- as_tibble(senate_node_pca$scores) |>
+  mutate(
+    flagged = senate_node_features$prob < 0.05,
+    surname = stringr::str_to_title(sub(",.*", "", senate_node_features$name))
+  )
+# One label per point, so the isolated senators share a label
+senate_node_labels <- senate_node_scores |>
+  filter(flagged) |>
+  summarise(label = paste(surname, collapse = ", "), .by = c(Comp.1, Comp.2))
+senate_node_scores |>
   ggplot(aes(x = Comp.1, y = Comp.2, colour = flagged)) +
   geom_point() +
+  ggrepel::geom_text_repel(
+    data = senate_node_labels,
+    aes(label = label),
+    colour = "#D55E00"
+  ) +
   scale_colour_manual(values = c(`FALSE` = "#0072B2", `TRUE` = "#D55E00")) +
   guides(colour = "none") +
   labs(x = "Component 1", y = "Component 2")
@@ -306,7 +384,7 @@ as_tibble(senate_node_pca$scores) |>
 
 The 100th Congress was picked somewhat arbitrarily here, just to illustrate the method.
 But later in the chapter, in @sec-senate-network, we look for anomalies across the whole `r length(senate_congress)`-Congress sequence rather than within a single one, and find that the 100th Congress is flagged there too, as the single most unusual network in the entire sequence.
-That is consistent with these two bridging senators not being a fluke: the unusual collaboration visible at the level of individual senators here also shows up as an anomaly at the level of the whole network.
+That result does not depend on Zorinsky: as shown in @sec-senate-network, removing him from the 100th Congress makes it even more anomalous as a whole network.
 
 The same recipe --- compute node features with **`igraph`**, reduce their dimension, and apply lookout --- works for any single network, not just this one.
 We now turn to a different question: instead of looking for unusual nodes within one network, can we find an unusual network within a longer sequence?
@@ -559,9 +637,46 @@ most_anomalous <- senate_probs$congress[which.min(senate_probs$prob)]
 stopifnot(most_anomalous == 100)
 ```
 
+```{r}
+#| label: senate-zorinsky-check
+#| include: false
+#| dependson: [senate-oddnet, senate-node-features]
+
+# The prose says that the 100th Congress is even more anomalous without Zorinsky
+z <- which(senate_node_features$name == "ZORINSKY, Edward")
+senate_networks_noz <- senate_networks
+senate_networks_noz[[congress100]] <- senate_networks[[congress100]][-z, -z]
+senate_probs_noz <- anomalous_networks(
+  senate_networks_noz,
+  mode = "undirected"
+)$outlier_probability
+stopifnot(
+  which.min(senate_probs_noz) == congress100,
+  min(senate_probs_noz) < min(senate_probs$prob)
+)
+# The prose describes the cross-party edges: four involve Zorinsky,
+# three link Weicker to Democrats, and one links Stafford and Adams
+cross_edges <- us_senate_edges |>
+  filter(congress == 100) |>
+  mutate(
+    cross = senate_party[[congress100]][from] != senate_party[[congress100]][to],
+    from = senate_node_features$name[from],
+    to = senate_node_features$name[to]
+  ) |>
+  filter(cross)
+involves <- \(who) cross_edges$from == who | cross_edges$to == who
+stopifnot(
+  NROW(cross_edges) == 8,
+  sum(involves("ZORINSKY, Edward")) == 4,
+  sum(involves("WEICKER, Lowell Palmer, Jr.")) == 3,
+  sum(involves("STAFFORD, Robert Theodore") & involves("ADAMS, Brockman (Brock)")) == 1
+)
+```
+
 As anticipated in @sec-network-nodes, the `r scales::ordinal(most_anomalous)` Congress (1987--1989) stands out as by far the most anomalous, with a surprisal probability of `r sprintf("%.4f", min(senate_probs$prob))`.
 Compared with its neighbours, this Congress had many more co-voting edges (@fig-senate-edges), and a few edges between the parties where the 99th and 101st Congresses had none.
-This is consistent with the high-betweenness senators found at the node level in @sec-network-nodes.
+Half of these cross-party edges involve Zorinsky, whose short term was discussed in @sec-network-nodes; the others link the Republican Lowell Weicker to three Democrats, and the Republican Robert Stafford to the Democrat Brock Adams.
+Removing Zorinsky from the 100th Congress makes it even more anomalous, with a surprisal probability of `r sprintf("%.4f", min(senate_probs_noz))`, so the result is not an artefact of his short term.
 The 100th Congress is also the top anomaly in the Laplacian-based analysis of @Huang2020, but their sequence is a different Senate network, based on bill co-sponsorship rather than co-voting and covering only the 97th to 108th Congresses.
 Of the `r english::words(sum(senate_probs$prob < 0.05))` Congresses below the $\alpha = 0.05$ threshold, the next most anomalous is the 43rd Congress (1873--1875), with a surprisal probability of `r sprintf("%.4f", senate_probs$prob[senate_probs$congress == 43])`.
 This Congress sat during the Panic of 1873, a severe economic depression that was known as "the Great Depression" until the 1929 crash claimed the name --- a period of considerable political instability that plausibly disrupted the usual voting coalitions.

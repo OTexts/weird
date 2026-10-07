@@ -339,28 +339,17 @@ However, the same idea can be adapted by replacing the local median with a more 
 One such method is STL (Seasonal and Trend decomposition using Loess) due to @Cleveland1990, and extended by @mstl to handle multiple seasonal periods or series with no seasonality.
 
 We will apply this idea to find unusual observations in US weekly mortality data between 2015 and 2024, obtained from the @HMD.
-The data are read and wrangled into a `tsibble` object (a special type of tibble designed for time series data).
+The `us_mortality` data set in the **`weird`** package contains weekly deaths and death rates by sex and age group.
+We use the death rates for both sexes combined, in five age groups, up to the end of 2024, and convert them to a `tsibble` object (a special type of tibble designed for time series data).
 
 ```{r}
 #| label: stmf
 
-us_stmf <- "https://github.com/OTexts/weird/raw/main/data/USAstmfout.csv" |>
-  read.csv(header = TRUE) |>
-  # Create time index varaible
+us_stmf <- us_mortality |>
+  filter(Sex == "Total", Age != "Total", Year < 2025) |>
+  # Create time index variable
   mutate(Week = yearweek(paste0(Year, "-W", Week))) |>
-  # Consider only data to 2024, sexes combined, and omit last week due to reporting delays
-  filter(Week < yearweek("2025 W01"), Sex == "b", Week < max(Week) - 1) |>
-  # Fix column names
-  select(Week, `X0.14.1`:`X85..1`) |>
-  rename(
-    "0-14" = `X0.14.1`,
-    "15-64" = `X15.64.1`,
-    "65-74" = `X65.74.1`,
-    "75-84" = `X75.84.1`,
-    "85+" = `X85..1`,
-  ) |>
-  # Create a tsibble object
-  tidyr::pivot_longer(-Week, names_to = "Age group", values_to = "Mortality") |>
+  select(Week, `Age group` = Age, Mortality) |>
   as_tsibble(index = Week, key = `Age group`)
 ```
 

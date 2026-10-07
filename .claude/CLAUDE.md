@@ -34,7 +34,7 @@ This reads `uvr.toml`/`uvr.lock` and installs packages into a project-local envi
 - `before-each-chapter.R` — Sourced at the start of every chapter via `_quarto.yml`. Sets random seed (1967), loads the `weird` package, configures knitr chunk defaults, sets ggplot2 themes (Okabe-Ito discrete palette, Viridis continuous), and defines a `cache()` helper that saves/loads `.rds` files from `rds/`.
 
 ### Caching
-Long-running R computations use the `cache(expr, "name")` helper defined in `before-each-chapter.R`. Results are stored as `rds/<name>.rds`. Quarto's built-in chunk caching (`cache: true`) is also used; cache directories end in `_cache/` and are git-ignored.
+Long-running R computations use the `cache(expr, "name")` helper defined in `before-each-chapter.R`. Results are stored as `rds/<name>.rds`. `rds/` is only for caches. Data sets used in the book belong in the `weird` package (as package data, or a `fetch_*()` function for large data such as `fetch_pets2006()`). The only exception is `data/halley_toms_ozone.txt` (ch1), which is published at `https://OTexts.com/weird/data/` (see `resources` in `_quarto.yml`), read from that URL (not via `here::here()`), and listed under `other-links` in the chapter's YAML front matter so it appears in the sidebar. Quarto's built-in chunk caching (`cache: true`) is also used; cache directories end in `_cache/` and are git-ignored.
 
 ### Post-Processing
 After `quarto render`, `htmlreplace.pl` modifies the generated HTML to remove author attributions, reformat author styling, add Amazon affiliate tags to book links, and transform bibliography reference links.

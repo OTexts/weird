@@ -1,3 +1,11 @@
+---
+format:
+  html:
+    other-links:
+      - text: "halley_toms_ozone.txt"
+        href: https://OTexts.com/weird/data/halley_toms_ozone.txt
+---
+
 # Introduction {#sec-intro}
 
 ```{r}
@@ -89,7 +97,10 @@ So why wasn't the "ozone hole" discovered until 1985?
 #| message: false
 #| fig-height: 3
 
-tmp <- readr::read_csv(here::here("data/halley_toms_ozone.txt"), skip = 2) |>
+tmp <- readr::read_csv(
+  "https://OTexts.com/weird/data/halley_toms_ozone.txt",
+  skip = 2
+) |>
   rename(
     Year = "#   year",
     Instrument = "instrument",

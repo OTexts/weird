@@ -946,7 +946,7 @@ The resulting estimate is shown in @fig-of-hdr, along with the roughly 10% of ob
 ```{r}
 #| label: fig-of-hdr
 #| dependson: fig-oldfaithful4
-#| fig-cap: 90% highest density region for the `oldfaithful` data set.
+#| fig-cap: The 90% highest density region for the `oldfaithful` data set.
 
 of_density |>
   gg_density(
