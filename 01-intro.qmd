@@ -293,18 +293,6 @@ This has been converted to seconds to give the `duration` variable.
 The `waiting` variable is the time to the next eruption, again in seconds.
 Recordings are incomplete, especially during the winter months when observers may not be present.
 
-### Firearm homicide and gun ownership {-}
-
-The `gun_deaths` data set contains data on gun ownership rates and firearm homicide rates for `r NROW(gun_deaths)` countries in 2017.
-The gun ownership rate is the number of guns owned by civilians per 100 people, while the firearm homicide rate is the number of firearm homicides per 100,000 people.
-
-```{r}
-#| label: gundata
-#| code-fold: false
-
-gun_deaths
-```
-
 ### Air quality in Beijing {-}
 
 The `air_quality` data set contains hourly data on air quality from 12 monitoring stations in Beijing, China, collected between 1 March 2013 and 28 February 2017.

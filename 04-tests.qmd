@@ -996,6 +996,7 @@ $$
 In practice, $F$ is unknown.
 The example below uses a robustly fitted Normal distribution, with the median and MAD as estimates of location and scale.
 This makes the fit less sensitive to the possible outlier, but the resulting test is still only an approximate parametric test.
+The MAD is used rather than $Q_n$ (@sec-robust-univariate) because the test is very sensitive to the scale estimate: with the slightly smaller $Q_n$, the gap below Bradman is no longer significant.
 
 ```{r}
 #| label: gap-bt-test
@@ -1021,6 +1022,23 @@ batting_gaps |>
     spacing,
     p_value
   )
+```
+
+```{r}
+#| label: gap-qn-check
+#| include: false
+#| dependson: gap-bt-test
+
+# The prose says Qn is smaller than the MAD here, and that with Qn the gap below Bradman is not significant
+sigma_qn <- robustbase::s_Qn(batters$Average)
+qn_gaps <- batting_gaps |>
+  mutate(
+    t = (nrow(batters) + 1) *
+      (pnorm(upper_average, mu_hat, sigma_qn) - pnorm(lower_average, mu_hat, sigma_qn)) -
+      log(nrow(batting_gaps)),
+    p_value = 1 - exp(-exp(-t))
+  )
+stopifnot(sigma_qn < sigma_hat, all(qn_gaps$p_value >= 0.05))
 ```
 
 Only the gap below Bradman's average has a $p$-value below 0.05, suggesting that this gap is too large to be consistent with all batters coming from a single fitted Normal distribution.

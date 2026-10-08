@@ -216,7 +216,7 @@ where $\chi^2_{m,1-\alpha/n}$ is the $(1 - \alpha/n)$ quantile of the chi-square
   c_{nm} & = 1 + \frac{m + 1}{n - m} + \frac{2}{n - 1 - 3m} \\
   c_{hr} & = \max\{0, (h - r)/(h + r)\},
 \end{align*}
-$h = \lfloor(n + m + 1)/2\rfloor$, and $r$ is the number of observations in the current basic subset $B$.
+$h = (n + m + 1)/2$, and $r$ is the number of observations in the current basic subset $B$.
 The correction factor $c_{nmr}$ inflates the threshold when the current basic subset of size $r$ is small relative to the target size $h$.
 This is because a small basic subset selected for being close to the data centre will have artificially compressed spread, so the Mahalanobis distances computed from it need to be inflated to something closer to what they would be from a full clean sample.
 As $r$ grows towards $h$, $c_{hr} \to 0$.
@@ -234,6 +234,7 @@ We apply `robustX::BACON()` to the Dongsi air quality data.
 Because the Mahalanobis distance is used in the algorithm, there is no need to scale the data first.
 (The robust MCD covariance estimate we have been using is different from the standard covariance estimate used by BACON, but it shouldn't make much difference once the outliers have been excluded from the basic subset.)
 The default initialisation strategy is used, which selects the $s = 4m = 4 \times 2 = 8$ observations with the smallest Mahalanobis distances from the full-data mean and covariance.
+The printed output below refers to this initial size $s$ as `m`, the name of the corresponding argument of `robustX::BACON()`.
 
 ```{r}
 #| label: bacon-of
@@ -284,7 +285,7 @@ It is also the basis of a popular classification method due to the Berkeley stat
 
 Suppose we use the Dongsi air quality data to find observations that are neighbours in the (`o3`, `max_temp`) space.
 The **`dbscan`** package uses kd trees to quickly identify the $k$ nearest neighbours to each observation.
-We will use the scaled data `z` computed in @sec-distances to find the 5 nearest neighbours to each observation.
+We will use the scaled data `z` computed in @sec-distances to find the five nearest neighbours to each observation.
 
 ```{r}
 #| label: knn
@@ -594,7 +595,18 @@ dongsi_glosh |>
   guides(colour = "none")
 ```
 
-@fig-ofglosh shows a pattern similar to that in @fig-knn-scores.
+@fig-ofglosh highlights the same observations as the kNN anomaly scores in @fig-knn-scores.
+
+```{r}
+#| label: glosh-knn-check
+#| include: false
+#| dependson: [fig-knn-scores, fig-ofglosh]
+
+stopifnot(identical(
+  dongsi_glosh$date[dongsi_glosh$glosh > quantile(dongsi_glosh$glosh, 0.995)] |> sort(),
+  dongsi_knn$date[dongsi_knn$score > quantile(dongsi_knn$score, 0.995)] |> sort()
+))
+```
 
 We have looked at three different scoring methods based on nearest neighbours, designed to identify anomalies in slightly different ways.
 
@@ -885,7 +897,7 @@ That is, the path length for a given observation can vary widely across differen
 To address this, we can create many iTrees, each formed with a different random partition (and possibly using random subsets of the data).
 This ensemble of iTrees is known as an **isolation forest** or iForest.
 Let $T$ be the number of trees in the ensemble, and $\psi$ be the size of the random subsample used to build each tree.
-@Liu2008-dp found that $T = 100$ trees and $\psi = 256$ observations per subsample are usually sufficient, although the defaults in the **`isotree`** package are to use $T = 500$, and $\psi = \min(n, 10^4)$.
+@Liu2008-dp found that $T = 100$ trees and $\psi = 256$ observations per subsample are usually sufficient, although the defaults in the **`isotree`** package are to use $T = 500$ and $\psi = \min(n, 10^4)$.
 Thus, the full training set is used for each tree, unless there are more than 10,000 observations.
 The path length for an observation is then averaged across all trees in the ensemble, giving a more stable estimate of anomalousness.
 
@@ -911,7 +923,7 @@ This removes the directional bias at the cost of a slight increase in computatio
 
 ### The `isotree` package
 
-The **`isotree`** package [@isotree] provides a fast, multi-threaded implementation of the original iForest and of several variants including EIF, SCiForest [@Liu2010] and Fair-Cut Forest [@Cortes2021], which use non-random splits aimed at finding clustered anomalies.
+The **`isotree`** package [@isotree] provides a fast, multi-threaded implementation of the original iForest and of several variants including EIF, SCiForest [@Liu2010] and Fair-Cut Forest [@Cortes2021], which choose each split using a gain criterion rather than purely at random, with the aim of finding clustered anomalies.
 The main functions are `isolation.forest()`, which returns a fitted model, and `predict()`, which scores new observations.
 
 The three most important parameters of `isolation.forest()` are:
@@ -1057,7 +1069,7 @@ The DDC algorithm identifies many anomalous cells in the data, particularly duri
 - 1870: Franco-Prussian War
 - 1871: Repression of the 'Commune de Paris'
 - 1914--1918: World War I
-- 1940--1944: World War II
+- 1940 and 1943--1944: World War II
 
 Mortality rates are often also high in the year after a war, as soldiers return home with injuries and illnesses.
 The Spanish flu pandemic of 1918--1919 is evident in the plot, with higher than usual mortality rates for a wider age range than the wars.

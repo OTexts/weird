@@ -45,7 +45,7 @@ Y <- az_aq |>
 Y
 ```
 
-We omit `rainfall`, which is zero in `r round(100 * mean(az_aq$rainfall == 0))`% of the hours.
+The `rainfall` variable is omitted, as it is zero in `r round(100 * mean(az_aq$rainfall == 0))`% of the hours.
 A variable that is almost always zero causes problems for several of the methods in this chapter: robust measures of scale are zero in the direction of that variable, so every hour with rain looks infinitely anomalous, while after standardising, the few wet hours lie so far from the rest that they dominate any distance-based method.
 It is better to find anomalies in rainfall separately, and to consider the other variables without rainfall.
 
@@ -136,7 +136,7 @@ So for an observation $\bm{y}_i$, the residual is $\bm{r}_i = \bm{y}_i - \bm{a} 
 The magnitude of the residual is a measure of how much of the variation in that observation is not captured by the projection, and is known as the **orthogonal distance**.
 (The length of each orange line in @fig-proj-geometry is the orthogonal distance for the corresponding observation.)
 If the residual is large, it means that there are aspects of that observation that are not well represented by the projection direction $\bm{a}$.
-This is important for anomaly detection, because an observation that appears normal in one projection may have a large residual, indicating that it is an anomaly in another projection.
+This is important for anomaly detection, because an observation that appears typical in one projection may have a large residual, indicating that it is an anomaly in another projection.
 
 ### Projecting from 3 to 2 dimensions
 
@@ -189,7 +189,7 @@ Y |>
 ### General projections
 
 A projection from $m$ variables onto a $k$-dimensional subspace is defined by an $m \times k$ **mapping matrix** $\bm{A}$ where $\bm{A}^\intercal\bm{A} = \bm{I}_k$.
-In other words, the columns of $\bm{A}$ are "orthonormal": each column is a unit vector, and all columns are mutually orthogonal (i.e., $\bm{a}_i^\intercal\bm{a}_j = 0$ for any two distinct columns $i$ and $j$).
+In other words, the columns of $\bm{A}$ are "orthonormal": each column is a unit vector, and all columns are mutually orthogonal (i.e., $\bm{a}_j^\intercal\bm{a}_\ell = 0$ for any two distinct columns $j$ and $\ell$).
 The columns of $\bm{A}$ define the projection directions, and they form a **basis** for the $k$-dimensional subspace: i.e., any point in the subspace is a unique linear combination of them.
 The projection of $\bm{y}_i$ is the $k$-vector of scores
 $$
@@ -673,7 +673,7 @@ It is possible to calculate up to $k = \min(n - 1, m)$ principal components, but
 ### Air quality example
 
 For the 10 air quality and meteorological variables from Aotizhongxin, the 10 principal components can be computed using `prcomp()`, or using `rrcov::PcaClassic()`.
-We will use the latter, because it will make it easier to compare with other methods.
+The latter is used here, because it makes comparison with other methods easier.
 
 ```{r}
 #| label: pca
@@ -757,10 +757,10 @@ In the same way, a high-score-distance point here is a good leverage point if it
 
 If the data were from a multivariate Normal distribution, then the squared score distances would approximately follow a chi-squared distribution with $k$ degrees of freedom.
 While we almost never believe that real data come from a multivariate Normal distribution, this provides a useful reference point for understanding the geometry of the score distances, and for setting a cutoff to classify points.
-We flag an observation as a high leverage point if $\text{SD}_i$ is larger than the square root of the 97.5% quantile of the chi-squared distribution with $k$ degrees of freedom.
+An observation is flagged as a high leverage point if $\text{SD}_i$ is larger than the square root of the 97.5% quantile of the chi-squared distribution with $k$ degrees of freedom.
 So under a Normal model, we would expect about 2.5% of the observations to have large score distances and be flagged as leverage points.
 
-The distribution of orthogonal distances is more complicated, but $\text{OD}_i^{2/3}$ is approximately Normal [@Hubert2005-qa], so a common approach is to flag an observation as having a large orthogonal distance if $\text{OD}_i^{2/3}$ is greater than the 97.5% quantile of a Normal distribution whose mean and standard deviation are estimated robustly (using the median and MAD of the $\text{OD}_i^{2/3}$ values).
+The distribution of orthogonal distances is more complicated, but $\text{OD}_i^{2/3}$ is approximately Normal [@Hubert2005-qa], so an observation is flagged as having a large orthogonal distance if $\text{OD}_i^{2/3}$ is greater than the 97.5% quantile of a Normal distribution with the same mean and standard deviation as the $\text{OD}_i^{2/3}$ values.
 So again, about 2.5% of the observations would be expected to have large orthogonal distances under a Normal model.
 
 When combined with the outlier map shown above, these cutoffs partition the observations into the four types described in the table.
@@ -883,7 +883,9 @@ Because the projection directions are estimated from the bulk of the data rather
 
 ### Air quality example
 
-This is implemented in the `rrcov::PcaHubert()` function, which chooses four dimensions for the Aotizhongxin data, and gives the loadings shown below.
+This is implemented in the `rrcov::PcaHubert()` function.
+When there are few variables relative to the number of observations (as here, with only 10 variables), `PcaHubert()` by default skips the first two stages, and takes the eigenvectors of the MCD covariance matrix of all the variables; setting `mcd = FALSE` forces the full three-stage algorithm.
+For the Aotizhongxin data, it chooses four dimensions, and gives the loadings shown below.
 
 ```{r}
 #| label: robpca
@@ -908,6 +910,8 @@ biplot_projection(pca_robpca, alpha = 0.2)
 ```
 
 @fig-pca-outliermap2 shows the outlier maps for the Aotizhongxin data using the ROBPCA algorithm.
+Here `mcd = FALSE` forces the full three-stage algorithm, and `skew = TRUE` uses the skewness-adjusted outlyingness of @sec-stahel-donoho in Stage 2.
+With `skew = TRUE`, the score distance is also replaced by the adjusted outlyingness of the scores, and both cutoffs come from a boxplot rule adjusted for skewness, rather than from the Normal-based quantiles described above.
 
 ```{r}
 #| label: pca-outliermap2-code
@@ -949,7 +953,7 @@ patchwork::wrap_plots(
 ```{r}
 #| label: robpca-maps-check
 #| include: false
-#| dependson: fig-pca-outliermap2
+#| dependson: [fig-pca-outliermap2, robpca, pca]
 
 rob_bad <- lapply(rob, function(p) p@sd > p@cutoff.sd & p@od > p@cutoff.od)
 i320 <- which(az_aq$day == 3 & az_aq$hour == 20)
@@ -989,8 +993,8 @@ By contrast, in the classical PCA with four components (@fig-pca-outliermaps), t
 
 ### Combining components with orthogonal distances
 
-If we take the four components found by ROBPCA, and add in the orthogonal distances as a fifth dimension, then we can apply a distance-based anomaly detection method to find the most anomalous observations in this 5D space.
-For example, we can use an Isolation Forest to find the top 10 most anomalous observations.
+If we take the four components found by ROBPCA, and add in the orthogonal distances as a fifth dimension, then we can apply any anomaly detection method to find the most anomalous observations in this 5D space.
+For example, we can use an isolation forest (@sec-iforest) to find the top 10 most anomalous observations.
 
 ```{r}
 #| label: robpca-iso
@@ -1311,7 +1315,7 @@ Also, rather than identify the clean subset using the Stahel--Donoho outlyingnes
 The idea is that a clean group of observations should stay packed together no matter which direction we view it from, whereas a subset that mixes in outlying anomalies will look stretched out from at least some viewpoints.
 FastPCS turns this into a score.
 It examines many one-dimensional projections of the data, and along each one it identifies the $h$ observations that fall closest together.
-A candidate subset earns a good score on that projection when its own members largely coincide with this tightest group, and a poor score when many of its members instead lie spread out along the fringes.
+A candidate subset earns a good score on that projection when its own members are nearly as tightly packed as this tightest group, and a poor score when many of its members instead lie spread out along the fringes.
 Averaging over many directions measures how consistently cohesive the candidate subset is: the score is small only when the subset stays compact across the widest range of viewpoints.
 The subset that minimises this is the "projection congruent subset", and it is taken to be the clean data.
 
@@ -1382,7 +1386,7 @@ When there are very many observations, computing all $n(n - 1)/2$ pairwise dista
 Because a whole cluster of nearby anomalies is represented by a single leader, this also lets the method flag clusters of anomalies, not just isolated points.
 
 The other distinguishing feature of HDoutliers is that it applies extreme value theory (@sec-evt) to determine when a nearest-neighbour distance is "unusually large".
-After sorting the nearest-neighbour distances, the gaps between the largest of them are, by Weissman's spacing theorem, approximately independent exponential random variables whenever the underlying distribution is in the domain of attraction of the Gumbel distribution.
+After sorting the nearest-neighbour distances, the gaps between the largest of them are, by Weissman's spacing theorem, approximately independent Exponential random variables whenever the underlying distribution is in the domain of attraction of the Gumbel distribution.
 HDoutliers therefore takes the smallest half of the distances to be typical, fits an Exponential distribution to the upper-tail spacings of that typical set, and sets the threshold at its upper $1 - \alpha$ point.
 It then works upwards through the remaining distances one at a time: each candidate that exceeds the current threshold is flagged as an anomaly, while each one that does not is absorbed into the typical set and the threshold re-estimated.
 Because the cutoff is a quantile of a fitted distribution, $\alpha$ is the probability that each typical observation tested is wrongly flagged.
@@ -1518,7 +1522,7 @@ Even with comparable totals, the methods do not all flag the same observations, 
 #| fig-asp: 0.5
 #| fig-cap: >-
 #|   O3 plot comparing five outlier-detection methods --- FastPCS, mvBACON, Stahel--Donoho outlyingness (adjOut), DDC and MCD --- across all combinations of one to five of five key air quality variables (`co`, `so2`, `pm2_5`, `pm10`, `dew_point`) at Aotizhongxin.
-#|   Rows are variable combinations, grouped by the number of variables used (separated by dashed lines); the grey cells at left show which variables are included in each combination.
+#|   Rows are variable combinations, grouped by the number of variables used (separated by dotted lines); the grey cells at left show which variables are included in each combination.
 #|   Columns are observations, sorted by how often they are flagged; colour shows how many of the five methods flag that observation for that combination, from light blue (one method) through darker blue-grey (two or three methods) and orange (four methods) to red (all five methods).
 
 o3_plots$gO3

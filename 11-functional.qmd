@@ -51,7 +51,7 @@ There are about 10--15 years when the mortality rate for 20--40 year olds is muc
 These are the war years.
 Any anomaly detection method for functional data should identify these years as unusual.
 
-We will denote the functional data as $y_i(x)$.
+The functional data are denoted by $y_i(x)$.
 Here, $i$ is a discrete index over all observations, and $x$ is the continuous variable over which each function is defined.
 For the mortality data, $y_{i}(x)$ represents the mortality rate for age $x$ in year $i$.
 
@@ -155,14 +155,14 @@ $$
 $$
 and the first principal component, $b_1(x)$, is the function that minimises
 $$
-  \sum_{i=1}^n \int \big[y_i(x) - b_0(x) - \beta_{i1}b_1(x)\big]^2 dx
+  \sum_{i=1}^n \int \big[y_i(x) - b_0(x) - \beta_{i1}b_1(x)\big]^2\,dx
 $$
-subject to the constraint that $\int b_1^2(x)dx = 1$.
+subject to the constraint that $\int b_1^2(x)\,dx = 1$.
 The second principal component, $b_2(x)$, is the function that minimises
 $$
-  \sum_{i=1}^n \int \big[y_i(x) - b_0(x) - \beta_{i1}b_1(x) - \beta_{i2}b_2(x)\big]^2 dx
+  \sum_{i=1}^n \int \big[y_i(x) - b_0(x) - \beta_{i1}b_1(x) - \beta_{i2}b_2(x)\big]^2\,dx
 $$
-subject to the constraints that $\int b_2^2(x)dx = 1$ and $\int b_1(x)b_2(x)dx = 0$.
+subject to the constraints that $\int b_2^2(x)\,dx = 1$ and $\int b_1(x)b_2(x)\,dx = 0$.
 And so on.
 The principal components $b_1(x), b_2(x), \dots$, are also called the **loadings**, while the coefficients $\beta_{i1},\beta_{i2},\dots$ are called the **scores**.
 
@@ -256,7 +256,7 @@ pca_scores |>
 ```
 
 @fig-pca-scores shows how the three component scores evolve over time.
-Other than sharp dips during the two world wars and a few earlier crisis years (notably 1854 and 1870--1871), the first component score increases steadily and fairly smoothly across the study period, reflecting the long-run, near-continuous decline in mortality at all ages.
+Other than sharp dips during the two world wars and a few earlier crisis years (notably the cholera years 1832, 1849 and 1854--1855 [@Bourdelais1987], and 1870--1871), the first component score increases steadily and fairly smoothly across the study period, reflecting the long-run, near-continuous decline in mortality at all ages.
 The second component score sits close to zero for most years but spikes sharply during 1914--1918 and 1940--1945, capturing the additional mortality among young French men during the two world wars.
 The third component is more subtle, and reflects slow changes in mortality patterns over time, rather than the sharp spikes seen in the second component.
 
@@ -266,7 +266,7 @@ The third component is more subtle, and reflects slow changes in mortality patte
 #| message: false
 #| label: fig-pca-scores2
 #| dependson: pca-scores
-#| fig-cap: Scatterplot of first three principal component scores for the French male mortality data.
+#| fig-cap: Scatterplot matrix of the first three principal component scores for the French male mortality data.
 
 pca_scores |>
   select(-Year) |>
@@ -420,7 +420,7 @@ So the inner region of the functional bagplot is bounded by the curves whose sco
 The bagplot's central point (the depth median of the scores) need not coincide with any observed point, so the "median curve" is instead taken to be the observed curve whose scores are closest (in Euclidean distance) to that central point.
 
 @fig-pca-bagplot shows the ordinary bivariate bagplot (@sec-bagplots) of the first two principal component scores.
-Each point corresponds to one year's mortality curve; the dark region is the bag, the light region is the loop, and any points beyond the loop are flagged as bivariate outliers, coloured by year to match the corresponding curves in @fig-fbagplot below.
+Each point corresponds to one year's mortality curve; the dark region is the bag, the light region is the loop, and any points beyond the loop are flagged as bivariate outliers, coloured by year to match the corresponding curves in @fig-fbagplot.
 
 ```{r}
 #| label: pca-bagplot
@@ -522,8 +522,8 @@ The functional HDR boxplot follows the same recipe, but uses the highest density
 @fig-pca-hdrboxplot shows the ordinary bivariate HDR boxplot (@sec-hdr-boxplots) of the first two principal component scores.
 Because of the unusual shape of the principal component scores, the resulting kernel density estimate is particularly sensitive to the bandwidth choice, and the resulting HDRs are broken into several disconnected pieces.
 After some experimentation, the "scv" (smoothed cross-validation) bandwidth method was chosen.
-To roughly match the number of years flagged by the bagplot, we use a 93% coverage probability for the larger HDR.
-Thus, the dark region is the 50% HDR (containing about 50% of the years), the light region is the 93% HDR (containing about 93% of the years), and the points outside the 93% HDR are flagged as outliers, coloured by year to match the corresponding curves in @fig-fhdrboxplot below.
+To roughly match the number of years flagged by the bagplot, a 93% coverage probability is used for the larger HDR.
+Thus, the dark region is the 50% HDR (containing about 50% of the years), the light region is the 93% HDR (containing about 93% of the years), and the points outside the 93% HDR are flagged as outliers, coloured by year to match the corresponding curves in @fig-fhdrboxplot.
 
 ```{r}
 #| label: pca-hdr-regions
@@ -889,6 +889,7 @@ stopifnot(
   all(mei_tbl$d > -1e-10)
 )
 ```
+
 More shape anomalies would be identified if we reduced the fence multiplier from 1.5.
 Unlike the depth boxplot fence of @fig-fbplot-sungenton, none of the low-mortality recent years are flagged, because their low MBD is entirely explained by their extreme MEI --- they sit at one end of the rank ordering, but they do not deviate from the shape that curves at that end of the ranking are expected to have.
 
@@ -951,7 +952,8 @@ These methods find curves whose scores sit apart from the rest, so they detect c
 A gradual trend over time becomes a continuous path through the score space, rather than a set of isolated points, so these methods are not easily misled by curves at the end of a trend.
 
 The second group works directly with the curves, via functional depth (such as the modified band depth) or directional outlyingness, leading to the functional boxplot and the magnitude-shape plot.
-These measures are dominated by how far a curve lies from the centre of the sample. The functional boxplot cannot distinguish a curve with a genuinely unusual shape from one that lies at one extreme of the sample, such as the last curve of a long, gradual trend; the magnitude-shape plot separates the two effects visually, but its outlier rule uses both scores, so curves at the end of a trend are still flagged.
+These measures are dominated by how far a curve lies from the centre of the sample.
+The functional boxplot cannot distinguish a curve with a genuinely unusual shape from one that lies at one extreme of the sample, such as the last curve of a long, gradual trend; the magnitude-shape plot separates the two effects visually, but its outlier rule uses both scores, so curves at the end of a trend are still flagged.
 The outliergram addresses this by comparing a curve's modified band depth with its rank position (via the modified epigraph index), so that curves which are poorly enveloped only because they are extreme are not flagged, while curves with unusual shapes are.
 
 No single method is more "correct" than the others.

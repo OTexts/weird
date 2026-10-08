@@ -11,9 +11,8 @@ source("before-each-chapter.R")
 Regression methods arise when we want to find anomalies in a particular variable of interest (called the **response**), and we have a set of predictor variables that we think might be useful for predicting the response.
 That is, we are interested in finding observations whose responses are anomalous *given their predictor values*.
 For example, we might want to find wines that are unusually expensive given their points score, or find houses that are unusually cheap given their size and location.
-We can use regression methods to identify such anomalies.
 
-We will denote the response by $y_i$ and its predictor vector by $\bm{x}_i$.
+The response is denoted by $y_i$ and its predictor vector by $\bm{x}_i$.
 
 ## Linear regression {#sec-ols}
 
@@ -84,7 +83,7 @@ broom::glance(fit_wine)
 
 The fitted model can be written as
 $$
-  \log(\text{Price}) = `r sprintf("%.3f",coef(fit_wine)[1])` + `r sprintf("%.3f",coef(fit_wine)[2])` \times \text{Points} + \varepsilon
+  \log(\text{Price}) = `r sprintf("%.3f",coef(fit_wine)[1])` + `r sprintf("%.3f",coef(fit_wine)[2])` \times \text{Points} + \varepsilon,
 $$
 where $\varepsilon$ is a random error term with mean zero and variance $`r sprintf("%.3f",sigma(fit_wine))`^2$.
 
@@ -343,7 +342,7 @@ They are shown in @fig-shiraz-regression-scores, using the same colours as @fig-
 ```{r}
 #| label: fig-shiraz-regression-scores
 #| dependson: shiraz-loo-surprisals
-#| fig-cap: Residuals and surprisals for the Shiraz data using a linear regression model.
+#| fig-cap: Standardised LOO residuals and LOO surprisals for the Shiraz data using a linear regression model.
 #|   Points are coloured to match the 95% prediction intervals in @fig-shiraz-regression-density.
 #| fig-height: 6
 #| fig-asp: 0.8
@@ -480,7 +479,16 @@ if (NROW(shiraz_surprise) != 8L) {
 
 This shows the value of computing surprisal probabilities on the conditional distribution.
 The eight observations are not simply those with the highest prices, but those whose price is anomalous given their points values.
-There are three wines with prices above \$300 that are not identified as anomalous, because they have corresponding high points values.
+There are three wines with prices above \$300 that are not identified as anomalous, because their prices are less extreme given their points values (their surprisal probabilities lie between 0.002 and 0.003).
+
+```{r}
+#| label: shiraz-expensive-check
+#| include: false
+#| dependson: shiraz-surprisals
+
+expensive_missed <- shiraz |> filter(price > 300, prob >= 0.002)
+stopifnot(NROW(expensive_missed) == 3L, all(expensive_missed$prob < 0.003))
+```
 
 ## GAM surprisals {#sec-gam-surprisals}
 
@@ -514,10 +522,10 @@ The data set contains results from `r sum(df_no$Innings)` innings, of which `r s
 So the overall proportion of not-outs is $`r sum(df_no[["NotOuts"]])` / `r sum(df_no[["Innings"]])` = `r sprintf("%.3f", p)`$.
 
 Players who bat first in the batting order are more likely to be dismissed than those who bat last, simply because there is more time for them to be dismissed.
-Unfortunately the data set does not include information about the position in which each player normally batted, so we can't use batting order directly.
+Unfortunately the data set does not include information about the position in which each player usually batted, so we can't use batting order directly.
 However, the best batters tend to bat early in the order, leaving the most unskilled batters (who are usually specialist bowlers) to bat last.
 A measure of a batter's skill is the number of runs they scored per innings (RPI), also known as the uncensored batting average.
-This is slightly different from the conventional batting average, which is the total number of runs scored divided by the number of times a batter has been dismissed.^[We use the uncensored batting average so that it is not directly affected by the number of not-outs for each batter, which is the response variable in our fitted model.]
+This is slightly different from the conventional batting average, which is the total number of runs scored divided by the number of times a batter has been dismissed.^[The uncensored batting average is used here so that it is not directly affected by the number of not-outs for each batter, which is the response variable in the fitted model.]
 
 @fig-notouts shows the proportion of not-outs for each batter, plotted against their RPI.
 The relationship turns out to be slightly U-shaped, due to two different mechanisms.
@@ -599,7 +607,7 @@ gratia::draw(fit_notouts)
 As expected, the probability of being not out decreases as the RPI increases to about 30, and then increases again for the very best batters.
 The confidence interval on the curve is very wide after about 50, as there are very few batters with RPIs that high.
 The probability of being not out also increases as the year of debut increases, until about 1975, and then decreases again.
-This is likely due to the introduction of limited overs cricket in the 1970s, which changed the style of play in Test cricket, and batters have since become more aggressive.
+This is likely due to the introduction of limited-overs cricket in the 1970s, which changed the style of play in Test cricket, and batters have since become more aggressive.
 
 Now we can use the fitted model to compute the surprisals from the Binomial distribution, and find the most anomalous batters.
 Unfortunately, there is not a convenient way to compute LOO surprisals for GAM models, so we will only consider regular surprisals in this example.
@@ -628,7 +636,7 @@ Shaun Pollock was a bowling all-rounder and a capable batter in the lower order,
 The next most anomalous result is for New Zealander Trent Boult, a specialist bowler who batted last, who for a while was Test cricket's leading run-scorer in that position, showing an unusual flair for entertaining batting.
 He had `r notouts_aug$NotOuts[2]` not-outs in `r notouts_aug$Innings[2]` innings, compared to the expected number of not-outs of $`r notouts_aug[["Innings"]][2]` \times `r sprintf("%.3f", notouts_aug[[".fitted"]][2])` = `r sprintf("%.1f", notouts_aug[[".fitted"]][2]*notouts_aug[["Innings"]][2])`$.
 
-Neither of these batters has an exceptional proportion of not-outs on its own (`r english::words(sum(df_no$Innings >= 20 & df_no$prop_no > notouts_aug$prop_no[2]))` batters with at least 20 innings have a higher proportion than Boult), but they become anomalous once their RPI and year of debut are taken into account.
+Neither batter's proportion of not-outs is exceptional by itself (`r english::words(sum(df_no$Innings >= 20 & df_no$prop_no > notouts_aug$prop_no[2]))` batters with at least 20 innings have a higher proportion than Boult), but they become anomalous once their RPI and year of debut are taken into account.
 Because we have used a statistical model, we have been able to account for the particular features of this data set, such as the discrete nature of the data, and the changing variance, to identify observations that are anomalous in the context of the model.
 
 ## BACON algorithm for linear regression {#sec-bacon-reg}
@@ -648,11 +656,10 @@ $$
   = (r - p)^{-1}\sum_{i \in B}(y_i - \bm{x}_i^\intercal\hat{\bm{\beta}}_B)^2
 $$
 be the corresponding estimate of residual variance.
-We also define
+The leverage of observation $i$ with respect to the basic subset $B$ is
 $$
-  h_i(B) = \bm{x}_i^\intercal(\bm{X}_B^\intercal\bm{X}_B)^{-1}\bm{x}_i
+  h_i(B) = \bm{x}_i^\intercal(\bm{X}_B^\intercal\bm{X}_B)^{-1}\bm{x}_i.
 $$
-as the leverage of observation $i$ with respect to the basic subset $B$.
 The regression discrepancy for observation $i$ is the absolute scaled residual or prediction error
 $$
   |t_i(B)| = \begin{cases}
@@ -766,7 +773,15 @@ These are almost identical to those identified by the linear regression surprisa
 
 To see the effect of the anomalies on the fitted regression relationship, we refit the least-squares model using only the final BACON basic subset.
 This gives the regression line shown in @fig-shiraz-bacon that is obtained after omitting the nominated regression outliers.
-The two lines are almost identical because the nominated outliers are a tiny fraction of the `r NROW(wine_bacon)` observations, and none of them has high leverage.
+The two lines are almost identical because the nominated outliers are a tiny fraction of the `r NROW(wine_bacon)` observations, and none of them has high leverage (no observation in this data set has a leverage value above 0.003).
+
+```{r}
+#| label: shiraz-leverage-check
+#| include: false
+#| dependson: shiraz-bacon
+
+stopifnot(max(wine_bacon$.hat) < 0.003)
+```
 
 ```{r}
 #| label: shiraz-bacon-fit

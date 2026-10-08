@@ -178,16 +178,13 @@ requires = [
 
 [[package]]
 name = "MortalityLaws"
-version = "2.2.0"
+version = "3.0.0"
 source = "cran"
-raw_version = "2.2.0"
-url = "https://cran.r-project.org/src/contrib/MortalityLaws_2.2.0.tar.gz"
-checksum = "md5:b71719e6390cffd191ea254fd5f6e156"
+raw_version = "3.0.0"
+url = "https://cran.r-project.org/src/contrib/MortalityLaws_3.0.0.tar.gz"
+checksum = "md5:e522e293c3c17a08adc8f87d626767f2"
 requires = [
-    "RCurl",
     "pbapply",
-    "tidyr",
-    "rvest",
     "httr",
 ]
 
@@ -2574,11 +2571,11 @@ checksum = "md5:5a7e1d9183bf7dd782d3c96539314717"
 
 [[package]]
 name = "pcaPP"
-version = "2.0.5"
+version = "2.0.7"
 source = "cran"
-raw_version = "2.0-5"
-url = "https://cran.r-project.org/src/contrib/pcaPP_2.0-5.tar.gz"
-checksum = "md5:95cc41c08f1c0909a6ddc7d9b2429e43"
+raw_version = "2.0-7"
+url = "https://cran.r-project.org/src/contrib/pcaPP_2.0-7.tar.gz"
+checksum = "md5:fb46d195fb5f0573cf2b8a0ea4bbe4dd"
 requires = ["mvtnorm"]
 
 [[package]]
@@ -3965,8 +3962,8 @@ checksum = "md5:b5603af0a2d1b62511f85f5574c747a8"
 name = "weird"
 version = "3.1.0-4.9000"
 source = "github"
-url = "https://api.github.com/repos/robjhyndman/weird/tarball/5558a81a80ae25edf4e11d415eb2261fb738aec6"
-checksum = "git:5558a81a80ae25edf4e11d415eb2261fb738aec6"
+url = "https://api.github.com/repos/robjhyndman/weird/tarball/6a111b01133dacb5c1463eaef507668c7ae1ccb2"
+checksum = "git:6a111b01133dacb5c1463eaef507668c7ae1ccb2"
 requires = [
     "aplpack",
     "broom",

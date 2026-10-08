@@ -87,7 +87,7 @@ plot_images(
 
 The first strategy is to project the images onto a few principal components, and then look for anomalies among the component scores and in the parts of the images that the components fail to reconstruct.
 
-First, we rescale the intensities to lie between 0 and 1, and drop the pixels that are white in every image (all on the edges, mostly in the corners), as they carry no information.
+First, we rescale the intensities to lie between 0 and 1, and drop the pixels that are white in every image (mostly in the corners), as they carry no information.
 We do not standardise each pixel, because all pixels are measured on the same scale, and standardising would inflate the noise in the nearly white pixels near the edges of the images.
 
 ```{r}
@@ -275,7 +275,7 @@ The scores live in a 10-dimensional space, so we can also apply any of the multi
 The function below computes seven of them for a matrix `W`, with larger values indicating more anomalous observations in every case.
 Following @sec-robpca, the isolation forest is applied to the scores together with the orthogonal distances.
 We use 10 nearest neighbours for the kNN, LOF and GLOSH scores, rather than the 20 used in @sec-distance-methods.
-The same function is used on the image features in @sec-image-features, and with 20 neighbours HDBSCAN finds no clusters among the features, in which case GLOSH gives every observation a score of 1.
+The smaller value is needed because the same function is used on the image features in @sec-image-features, where with 20 neighbours HDBSCAN finds no clusters, and GLOSH then gives every observation a score of 1.
 
 ```{r}
 #| label: fashion-methods
@@ -538,7 +538,7 @@ features <- lapply(seq_len(nrow(fashion)), \(i) {
 features
 ```
 
-The width of almost every sneaker is the full 28 pixels, which is why we use the aspect ratio rather than the height and width separately: a variable that takes the same value for most images has a robust scale of zero, which breaks the robust scaling.
+Nearly 90% of the sneakers span the full width of 28 pixels, which is why we use the aspect ratio rather than the height and width separately: a variable that takes the same value for most images has a robust scale of zero, which breaks the robust scaling.
 We compute robust multivariate $z$-scores of the features using `mvscale()` (@sec-scaling), and then apply the same methods as before, along with the robust Mahalanobis distance, which is the length of each vector of robust $z$-scores.
 
 ```{r}
@@ -587,6 +587,11 @@ stopifnot(
   all(features$area[idx(c(3153, 9822, 3311))] > max(features$area[sneaker])),
   all(features$aspect[idx(c(2181, 9968, 1537))] < max(features$aspect[sneaker]))
 )
+# Nearly 90% of the sneakers span the full width of the image
+width <- apply(fashion$pixels / 255 > 0.1, 1, \(x) {
+  sum(colSums(matrix(x, 28, 28, byrow = TRUE)) > 0)
+})
+stopifnot(between(mean(width[sneaker] == 28), 0.85, 0.9))
 # Unplanted images in the top 10 of each method, as shown in fig-feature-top
 methods <- setdiff(names(feature_ranks), c("id", "label", "planted"))
 top_unplanted <- lapply(methods, \(x) {
@@ -761,8 +766,8 @@ stopifnot(
 ```
 
 @fig-pets-od shows the orthogonal distance of each frame over time.
-The dashed line in @fig-pets-od is the orthogonal distance cutoff used in the outlier map (@sec-pca), so a frame above it would be classified as an orthogonal outlier or a bad leverage point.
-The cutoff is the 97.5% quantile under a Normal model, so we would expect only about `r round(0.025 * nrow(pets_frames))` of the `r nrow(pets_frames)` frames to lie above it by chance, but `r sum(pets_frames$above_cutoff)` do.
+The dashed line is the orthogonal distance cutoff used in the outlier map (@sec-pca), so a frame above it would be classified as an orthogonal outlier or a bad leverage point.
+The cutoff is the 97.5% quantile of a Normal approximation to the distribution of $\text{OD}^{2/3}$, so we would expect only about `r round(0.025 * nrow(pets_frames))` of the `r nrow(pets_frames)` frames to lie above it by chance, but `r sum(pets_frames$above_cutoff)` do.
 These frames all fall in two periods: between frames `r period1[1]` and `r period1[2]`, when a person walks across the foreground close to the camera (frame 735 in @fig-pets-frames), and between frames `r period2[1]` and `r period2[2]`, when the man puts down his bag while two other people walk past in the foreground (frame 951; they are just coming into view in frame 900).
 In the middle of the first period, from frame `r min(gap1)` to frame `r max(gap1)`, the orthogonal distance dips below the cutoff while the person crosses the middle of the concourse.
 People in the foreground cover many more pixels than people at the back of the concourse, so they dominate the orthogonal distances.
@@ -866,7 +871,7 @@ Robust PCA gives components that describe the bulk of the images rather than bei
 
 An alternative approach is to compute a small number of interpretable features from each image, scale them robustly, and apply the same multivariate methods to the features.
 Features can only reveal the kinds of anomaly they were designed to measure, but the anomalies they find are easy to explain.
-Principal components require no such choices, but the anomalies they find are harder to interpret.
+Principal components need no features to be chosen in advance, but the anomalies they find are harder to interpret.
 The two approaches tend to find different anomalies, so it is worth using both.
 
 A video is a collection of images (frames) with a time order, so the methods for images apply directly to videos, with each frame treated as an observation.
