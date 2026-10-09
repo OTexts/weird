@@ -36,6 +36,7 @@ book:
     border: false
     background: light
   sidebar:
+    id: book
     background: "#cccccc"
     style: "docked"
   favicon: favicon.ico

@@ -1,0 +1,8 @@
+---
+title: "404 Error: File not found"
+sidebar: book
+---
+
+![](figs/oops.png){fig-alt="A yellow diamond-shaped road sign reading \"OOPS!\""}
+
+Sorry, that page doesn't seem to be here.
