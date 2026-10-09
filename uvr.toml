@@ -293,6 +293,7 @@ xml2 = "*"
 xmlparsedata = "*"
 yaml = "*"
 zoo = "*"
+tidytext = "*"
 
 [dependencies.oddnet]
 git = "sevvandi/oddnet"

@@ -85,7 +85,7 @@ time; gutenbergr only in data-raw):
 
 - road_deaths package data (BITRE ARDD, 1989-2025)
 - `description` column restored in wine_reviews
-- Oz texts, or just per-chunk word counts (smaller, build-safe)
+- fetch_oz_books(): paragraphs of 29 Oz books (Baum 14, Thompson 15)
 
 New book dependencies: tidytext (FactoMineR already installed).
 :::

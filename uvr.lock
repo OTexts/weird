@@ -1,4 +1,4 @@
-manifest_fingerprint = "sha256:03820a60394c400c2aaa0a6674d78fb8156d29f67c417b37d53dbb2925c0f0db"
+manifest_fingerprint = "sha256:87a1515ad79ed22d66f97d526ae1b284f842ee5940d2e9d1fa6fb30304b63214"
 
 [r]
 version = "4.6.1"
@@ -364,6 +364,14 @@ source = "cran"
 raw_version = "0.2.2"
 url = "https://cran.r-project.org/src/contrib/S7_0.2.2.tar.gz"
 checksum = "md5:6a40d3eae470be0f06a03737b9391269"
+
+[[package]]
+name = "SnowballC"
+version = "0.7.1"
+source = "cran"
+raw_version = "0.7.1"
+url = "https://cran.r-project.org/src/contrib/SnowballC_0.7.1.tar.gz"
+checksum = "md5:c95c904382d30d7256d1fa710f9327f0"
 
 [[package]]
 name = "SparseM"
@@ -1905,6 +1913,14 @@ source = "cran"
 raw_version = "1.0.14"
 url = "https://cran.r-project.org/src/contrib/iterators_1.0.14.tar.gz"
 checksum = "md5:e1d875f0ddec6834dd33e56c4f04a706"
+
+[[package]]
+name = "janeaustenr"
+version = "1.0.0"
+source = "cran"
+raw_version = "1.0.0"
+url = "https://cran.r-project.org/src/contrib/janeaustenr_1.0.0.tar.gz"
+checksum = "md5:1e7274a698306174dd9c405b4043ec71"
 
 [[package]]
 name = "janitor"
@@ -3614,6 +3630,28 @@ requires = [
 ]
 
 [[package]]
+name = "tidytext"
+version = "0.4.3"
+source = "cran"
+raw_version = "0.4.3"
+url = "https://cran.r-project.org/src/contrib/tidytext_0.4.3.tar.gz"
+checksum = "md5:1222c829ecc174afa3bc9c2667333c66"
+requires = [
+    "cli",
+    "dplyr",
+    "generics",
+    "janeaustenr",
+    "lifecycle",
+    "Matrix",
+    "purrr",
+    "rlang",
+    "stringr",
+    "tibble",
+    "tokenizers",
+    "vctrs",
+]
+
+[[package]]
 name = "tidytuesdayR"
 version = "1.3.3"
 source = "cran"
@@ -3713,6 +3751,20 @@ checksum = "md5:3d6bf7a901c21e534e01d524f386a473"
 requires = [
     "igraph",
     "survival",
+]
+
+[[package]]
+name = "tokenizers"
+version = "0.3.0"
+source = "cran"
+raw_version = "0.3.0"
+url = "https://cran.r-project.org/src/contrib/tokenizers_0.3.0.tar.gz"
+checksum = "md5:e7a81fcced577b3fc0fbcead6fac22f1"
+requires = [
+    "stringi",
+    "Rcpp",
+    "SnowballC",
+    "Rcpp",
 ]
 
 [[package]]
@@ -3964,8 +4016,8 @@ checksum = "md5:b5603af0a2d1b62511f85f5574c747a8"
 name = "weird"
 version = "3.1.0-4.9000"
 source = "github"
-url = "https://api.github.com/repos/robjhyndman/weird/tarball/f49f036ab26887e78b2f1e71f5f8c260f0eba4b7"
-checksum = "git:f49f036ab26887e78b2f1e71f5f8c260f0eba4b7"
+url = "https://api.github.com/repos/robjhyndman/weird/tarball/565c3df7543a22087975acd0d14ddf5ef0b6325d"
+checksum = "git:565c3df7543a22087975acd0d14ddf5ef0b6325d"
 requires = [
     "aplpack",
     "broom",
