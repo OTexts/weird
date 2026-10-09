@@ -1,1 +1,91 @@
 # Categorical and textual data {#sec-text}
+
+::: {.content-hidden}
+PLAN (Oct 2026)
+
+Keep the book's probabilistic framing throughout: anomalies in categorical data
+have high surprisal -log p(x); anomalous documents have high surprisal under a
+language model, or low density in a feature space; authorship verification is a
+one-class problem (is this text surprising given the author's known work?).
+
+1. Anomalies in categorical data
+   - One variable: surprisal -log p(x); surprisal probability = sum of p over
+     categories no more probable than the observed one. Handles many rare
+     categories (each individually rare) and ties (discrete surprisal
+     probabilities). Smoothing for unseen categories.
+   - Several variables: the full joint table is sparse. Independence model
+     (AVF-style scores); pairwise/conditional surprisals -log p(x_j | x_-j) for
+     "common values, rare combination"; Chow-Liu trees / Bayesian networks as a
+     pointer only.
+   - Anomalous cells in a contingency table: standardised residuals from a
+     log-linear independence model (a different question from anomalous rows;
+     leads into CA).
+   - Example: BITRE Australian Road Deaths Database (CC BY): state, road user,
+     crash type, speed limit, day/time, age, remoteness. Also used in section 3.
+
+2. Correspondence analysis
+   - CA of a two-way table: row profiles, chi-squared distance, inertia.
+     Anomalous rows are profiles far from the centroid / with large contribution
+     to inertia. Biplot (link to ch9).
+   - Example: wine country x variety (which countries have unusual variety
+     profiles). CA, MCA and FAMD all via FactoMineR.
+   - MCA for many categorical variables: numerical coordinates, then ch6/ch9
+     methods. Explains the CA step in HDoutliers.
+   - NOTE: highdim.qmd (HDoutliers) already says "correspondence analysis" before
+     this chapter defines it. Replace with a plain-words description plus a
+     forward section reference.
+
+3. Mixed numerical and categorical data
+   - Factorise the density: f(y, x) = f(y | x) p(x), so surprisals add;
+     f(y | x) from the ch8 regression machinery with categorical predictors.
+   - Distance-based alternatives: Gower distance with kNN/LOF/stray (ch6); FAMD
+     (FactoMineR) as the mixed-data analogue of PCA/MCA.
+   - Examples: wine_reviews (price given points, variety, country), extending the
+     ch1 Shiraz example; road deaths.
+
+4. From text to numbers (brief)
+   - Tokens, document-term matrix, tf-idf, function vs content words, using
+     tidytext (Silge & Robinson, Text Mining with R).
+
+5. Feature-based anomalies in text
+   - Document features: length, type-token ratio, word and sentence length,
+     punctuation, sentiment, readability, out-of-vocabulary share. Then HDR /
+     stray / LOF on the feature matrix (parallels the ch13 features strategy).
+   - Example: wine review descriptions. Needs the original `description` column
+     (dropped by fetch_wine_reviews()) restored in the weird package, giving one
+     data set with numerical, categorical and text variables. Natural target:
+     reviews whose wording disagrees with their points.
+
+6. Language-model surprisals
+   - Unigram / n-gram models give each document a surprisal; perplexity =
+     exp(mean surprisal). Show which words drive a document's score.
+   - Topic models (LDA) for unusual topic mixtures; document embeddings + PCA
+     (link to ch9).
+   - Example: wine review descriptions (same data as section 5).
+   - Discussion: detectors of machine-generated text (DetectGPT, Binoculars) flag
+     text that is too predictable, i.e. unusually LOW surprisal.
+
+7. Was this text written by someone else?
+   - Stylometric features: frequencies of the most common function words
+     (Mosteller & Wallace). Burrows' Delta is a Manhattan distance on
+     standardised frequencies (link to ch6).
+   - Authorship verification as one-class anomaly detection: split the author's
+     known works into chunks, model the distribution of their feature vectors,
+     score the questioned text, calibrate by leaving one chunk out. Brief mention
+     of unmasking (Koppel & Schler, 2004) and the imposters method.
+   - Example: The Royal Book of Oz (1921), credited to L. Frank Baum but written
+     by Ruth Plumly Thompson (Binongo, 2003, Chance). Gutenberg #30537; Baum's
+     14 Oz books and several later Thompson Oz books are also on Gutenberg (the
+     latter as a check).
+
+Out of scope: sequences of categorical events (log codes) belong in events.qmd.
+
+Data for the weird package (book must not download from Gutenberg at build
+time; gutenbergr only in data-raw):
+
+- road_deaths package data (BITRE ARDD, 1989-2025)
+- `description` column restored in wine_reviews
+- Oz texts, or just per-chunk word counts (smaller, build-safe)
+
+New book dependencies: tidytext (FactoMineR already installed).
+:::
