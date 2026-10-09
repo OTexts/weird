@@ -38,7 +38,7 @@ book:
   sidebar:
     background: "#cccccc"
     style: "docked"
-  favicon: "https://otexts.com/favicon.ico"
+  favicon: favicon.ico
 
 published-title: "Last updated"
 date-format: "DD MMMM YYYY"
