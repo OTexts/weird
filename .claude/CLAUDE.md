@@ -17,7 +17,7 @@ make deploy    # rsync _book/ to production server (OTexts SSH)
 
 To render and view a single chapter quickly, use Quarto directly:
 ```bash
-source .uvr/activate && quarto render 02-univariate.qmd --to html
+source .uvr/activate && quarto render univariate.qmd --to html
 ```
 
 R packages are managed via [uvr](https://github.com/nbafrank/uvr), not `renv`. After cloning, restore dependencies with:
