@@ -1,3 +1,5 @@
+manifest_fingerprint = "sha256:03820a60394c400c2aaa0a6674d78fb8156d29f67c417b37d53dbb2925c0f0db"
+
 [r]
 version = "4.6.1"
 
@@ -730,11 +732,11 @@ checksum = "md5:2bef795e76ac307edc87b9bcd91709e8"
 
 [[package]]
 name = "colorspace"
-version = "2.1.3"
+version = "2.1.4"
 source = "cran"
-raw_version = "2.1-3"
-url = "https://cran.r-project.org/src/contrib/colorspace_2.1-3.tar.gz"
-checksum = "md5:44beb9a1ff66bf35b44663b4fa7ef2ae"
+raw_version = "2.1-4"
+url = "https://cran.r-project.org/src/contrib/colorspace_2.1-4.tar.gz"
+checksum = "md5:2b2d367a454e47b574db3839fd550e36"
 
 [[package]]
 name = "commonmark"
@@ -3082,11 +3084,11 @@ checksum = "md5:55edadf34bf9065e60c7570e82bc4b16"
 
 [[package]]
 name = "roxygen2"
-version = "8.1.0"
+version = "8.1.1"
 source = "cran"
-raw_version = "8.1.0"
-url = "https://cran.r-project.org/src/contrib/roxygen2_8.1.0.tar.gz"
-checksum = "md5:db68d5c2c7cff5bf6c7db0069507a465"
+raw_version = "8.1.1"
+url = "https://cran.r-project.org/src/contrib/roxygen2_8.1.1.tar.gz"
+checksum = "md5:9c8666c36cdff91561fa7176dae67c98"
 requires = [
     "brew",
     "cli",
@@ -3962,8 +3964,8 @@ checksum = "md5:b5603af0a2d1b62511f85f5574c747a8"
 name = "weird"
 version = "3.1.0-4.9000"
 source = "github"
-url = "https://api.github.com/repos/robjhyndman/weird/tarball/6a111b01133dacb5c1463eaef507668c7ae1ccb2"
-checksum = "git:6a111b01133dacb5c1463eaef507668c7ae1ccb2"
+url = "https://api.github.com/repos/robjhyndman/weird/tarball/f49f036ab26887e78b2f1e71f5f8c260f0eba4b7"
+checksum = "git:f49f036ab26887e78b2f1e71f5f8c260f0eba4b7"
 requires = [
     "aplpack",
     "broom",
