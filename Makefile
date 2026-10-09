@@ -3,7 +3,7 @@ SHELL := /bin/bash
 qmd_files   := $(wildcard *.qmd)
 rds_files   := $(wildcard rds/*.rds)
 data_files  := $(wildcard data/*)
-shared_deps := weird.bib before-each-chapter.R apa-single-spaced.csl otexts.scss _quarto.yml htmlreplace.pl
+shared_deps := weird.bib before-each-chapter.R goatcounter.html apa-single-spaced.csl otexts.scss _quarto.yml htmlreplace.pl
 
 .PHONY: all preview build launch deploy clean update
 
