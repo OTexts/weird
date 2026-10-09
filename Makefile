@@ -30,7 +30,7 @@ preview: build
 
 deploy: build
 	cp .htaccess _book
-	rsync -zrvce 'ssh -p 18765' _book/ u192-zw4zvui1lqsb@ssh.otexts.com:www/otexts.com/public_html/weird
+	rsync -zrvce 'ssh -p 18765' --delete _book/ u192-zw4zvui1lqsb@ssh.otexts.com:www/otexts.com/public_html/weird
 
 clean:
 	rm -rf _book _freeze *_cache *_files
