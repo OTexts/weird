@@ -68,7 +68,7 @@ format:
         - otexts.scss
     toc-title: "Sections"
     fontsize: 1.125rem
-    linestretch: 1.5
+    linestretch: 1.6
     mainfont: "Libron, Georgia, serif"
     html-math-method: katex
     code-link: false

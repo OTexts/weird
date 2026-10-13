@@ -24,6 +24,8 @@ $h5-font-size: 0.9rem !default;
 $code-block-bg: #f2f2f2;
 $code-block-border-left: #aaaaaa;
 $code-color: $body-color;
+// Pale theme tint shared by blockquotes and the current-section TOC pill
+$theme-tint: lighten($theme-main, 50%);
 
 $callout-color-tip: $theme-orange;
 
@@ -254,7 +256,7 @@ blockquote {
   quotes: none;
   text-shadow: none;
   color: darken($theme-gray, 80%) !important;
-  background: lighten($theme-main, 50%) !important;
+  background: $theme-tint !important;
   padding: 7px 20px 7px 20px;
   margin: 1.5em 0;
   border-radius: 5px;
@@ -327,7 +329,8 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   background-color: $theme-main !important;
 }
 
-// Section TOC: rounded pills, tinted on hover, solid for the current section.
+// Section TOC: rounded pills, lightly tinted on hover; the current section
+// uses $theme-tint with darker text (a solid pill looked too heavy).
 // No bold when active: the wider text would rewrap and shift the list on scroll
 nav[role="doc-toc"] .nav-link {
   display: block;
@@ -340,15 +343,15 @@ nav[role="doc-toc"] .nav-link {
 }
 
 nav[role="doc-toc"] .nav-link:hover {
-  background-color: rgba($theme-main, 0.12);
+  background-color: rgba($theme-main, 0.06);
   color: $theme-main !important;
 }
 
 nav[role="doc-toc"] .nav-link.active,
 .sidebar nav[role="doc-toc"] ul > li > a.active,
 .sidebar nav[role="doc-toc"] ul > li > ul > li > a.active {
-  background-color: $theme-main;
-  color: #fff !important;
+  background-color: $theme-tint;
+  color: mix($theme-main, black, 75%) !important;
   border-left: none !important;
 }
 
