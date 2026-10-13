@@ -223,6 +223,19 @@ pre code {
   border-radius: 5px;
 }
 
+// Printed chunk output: the code-block grey, without the left border, so it
+// is set apart from the text but still distinct from the code above it
+:is(.cell-output-stdout, .cell-output-stderr) pre {
+  background-color: $code-block-bg;
+  border-radius: 5px;
+  padding: 0.4em 0.6em;
+}
+
+// Code comments: the kate grey (#898887) is too faint on $code-block-bg.
+pre code span.co {
+  color: #6e6e6e; // lightest grey with 4.5:1 contrast (WCAG AA)
+}
+
 // Package names (**`pkg`**): bold monospace without the inline-code box.
 // Must outrank Quarto's `p code:not(.sourceCode)` (and li, td) rule.
 :is(p, li, td) strong > code:not(.sourceCode) {

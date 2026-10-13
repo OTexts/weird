@@ -3,7 +3,7 @@ library(weird)
 # library(patchwork)
 
 knitr::opts_chunk$set(
-  comment = "#>",
+  comment = "",
   dev = "ragg_png",
   out.width = "100%",
   out.extra = 'loading="lazy"',
