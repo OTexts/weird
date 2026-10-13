@@ -67,7 +67,7 @@ format:
         - cosmo
         - otexts.scss
     toc-title: "Sections"
-    fontsize: 1rem
+    fontsize: 1.125rem
     linestretch: 1.5
     mainfont: "Libron, Georgia, serif"
     html-math-method: katex

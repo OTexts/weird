@@ -16,9 +16,9 @@ $font-family-monospace: "Hack", monospace;
 // Inline code takes the weight of its context, so **`pkg`** renders bold
 $font-weight-monospace-inline: inherit;
 
-$h2-font-size: 1.5rem !default;
-$h3-font-size: 1.3rem !default;
-$h4-font-size: 1.1rem !default;
+$h2-font-size: 1.4rem !default;
+$h3-font-size: 1.2rem !default;
+$h4-font-size: 1rem !default;
 $h5-font-size: 0.9rem !default;
 
 $code-block-bg: #f2f2f2;
@@ -62,30 +62,67 @@ $callout-color-tip: $theme-orange;
 // Fira Sans (OFL, via Fontsource), self-hosted in fonts/; the browser only
 // downloads the latin-ext files when a page uses those characters
 $fira-subsets: (
-  "latin": (U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD),
-  "latin-ext": (U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF),
+  "latin": (
+    U+0000-00FF,
+    U+0131,
+    U+0152-0153,
+    U+02BB-02BC,
+    U+02C6,
+    U+02DA,
+    U+02DC,
+    U+0304,
+    U+0308,
+    U+0329,
+    U+2000-206F,
+    U+20AC,
+    U+2122,
+    U+2191,
+    U+2193,
+    U+2212,
+    U+2215,
+    U+FEFF,
+    U+FFFD,
+  ),
+  "latin-ext": (
+    U+0100-02BA,
+    U+02BD-02C5,
+    U+02C7-02CC,
+    U+02CE-02D7,
+    U+02DD-02FF,
+    U+0304,
+    U+0308,
+    U+0329,
+    U+1D00-1DBF,
+    U+1E00-1E9F,
+    U+1EF2-1EFF,
+    U+2020,
+    U+20A0-20AB,
+    U+20AD-20C0,
+    U+2113,
+    U+2C60-2C7F,
+    U+A720-A7FF,
+  ),
 );
+// 600 (SemiBold, upright only) is for headings
 @each $subset, $range in $fira-subsets {
-  @each $weight in (400, 700) {
-    @each $style in (normal, italic) {
-      @font-face {
-        font-family: "Fira Sans";
-        src: url("fonts/fira-sans-#{$subset}-#{$weight}-#{$style}.woff2") format("woff2");
-        font-weight: $weight;
-        font-style: $style;
-        font-display: swap;
-        unicode-range: $range;
-      }
+  @each $weight, $style in (400, normal), (400, italic), (600, normal),
+    (700, normal), (700, italic)
+  {
+    @font-face {
+      font-family: "Fira Sans";
+      src: url("fonts/fira-sans-#{$subset}-#{$weight}-#{$style}.woff2")
+        format("woff2");
+      font-weight: $weight;
+      font-style: $style;
+      font-display: swap;
+      unicode-range: $range;
     }
   }
 }
 
 // Hack (MIT / Bitstream Vera), self-hosted in fonts/
-@each $file, $weight, $style in
-  ("regular", 400, normal),
-  ("bold", 700, normal),
-  ("italic", 400, italic),
-  ("bolditalic", 700, italic)
+@each $file, $weight, $style in ("regular", 400, normal), ("bold", 700, normal),
+  ("italic", 400, italic), ("bolditalic", 700, italic)
 {
   @font-face {
     font-family: "Hack";
@@ -101,12 +138,12 @@ h2,
 h3 {
   color: $theme-main;
   font-family: $font-family-sans-serif;
-  font-weight: bold;
+  font-weight: 600;
 }
 
 h1,
 h2 {
-  border-bottom: 2px solid $theme-main;
+  border-bottom: 1px solid rgba($theme-main, 0.6);
   margin-top: 60px !important;
   margin-bottom: 30px !important;
 }
@@ -115,7 +152,7 @@ h4,
 h5 {
   color: $body-color;
   font-family: $font-family-sans-serif;
-  font-weight: bold;
+  font-weight: 600;
 }
 
 .header-section-number {
@@ -259,7 +296,7 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
 }
 
 .sidebar-navigation .sidebar-item {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   line-height: 1.2;
   margin-top: 0.3em;
   margin-bottom: 0em;
@@ -275,6 +312,8 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   padding-left: 0 !important;
   text-indent: 0 !important;
   font-weight: bold;
+  font-size: 1.2rem;
+  line-height: 1.5rem;
 }
 
 .sidebar-title > a:hover {
@@ -288,24 +327,29 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   background-color: $theme-main !important;
 }
 
+// Section TOC: rounded pills, tinted on hover, solid for the current section.
+// No bold when active: the wider text would rewrap and shift the list on scroll
+nav[role="doc-toc"] .nav-link {
+  display: block;
+  border-radius: 15px;
+  padding: 2px 10px;
+  margin-bottom: 3px;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+nav[role="doc-toc"] .nav-link:hover {
+  background-color: rgba($theme-main, 0.12);
+  color: $theme-main !important;
+}
+
+nav[role="doc-toc"] .nav-link.active,
+.sidebar nav[role="doc-toc"] ul > li > a.active,
 .sidebar nav[role="doc-toc"] ul > li > ul > li > a.active {
-  color: saturate($theme-main, 60%) !important;
-  border-left: 2px solid saturate($theme-main, 60%) !important;
-}
-
-.sidebar nav[role="doc-toc"] ul > li > a.active {
-  color: saturate($theme-main, 60%) !important;
-  border-left: 1px solid saturate($theme-main, 60%) !important;
-}
-
-.sidebar nav[role="doc-toc"] a:hover {
-  color: saturate($theme-main, 60%) !important;
-  background-color: lighten($theme-gray, 50%);
-}
-
-.sidebar nav[role="doc-toc"] ul > li > a:hover,
-.sidebar nav[role="doc-toc"] ul > li > ul > li > a:hover {
-  color: saturate($theme-main, 60%) !important;
+  background-color: $theme-main;
+  color: #fff !important;
+  border-left: none !important;
 }
 
 .sidebar-navigation {
