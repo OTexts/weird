@@ -304,6 +304,13 @@ nav[role="doc-toc"] .nav-link.active,
   border-left: none !important;
 }
 
+// Code in headings (e.g. `quantile()`): monospace only, no box
+:is(h1, h2, h3, h4, h5, h6) code,
+:is(h1, h2, h3, h4, h5, h6) code span {
+  background: none;
+  padding: 0;
+}
+
 #quarto-sidebar .menu-text {
   display: flex;
 }
