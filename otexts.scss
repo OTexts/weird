@@ -131,7 +131,7 @@ $fira-subsets: (
 
 h1,
 h2 {
-  border-bottom: 1px solid rgba($theme-main, 0.6);
+  border-bottom: 1px solid rgba($headings-color, 0.6);
   margin-top: 60px !important;
   margin-bottom: 30px !important;
 }
@@ -142,7 +142,7 @@ h5 {
 }
 
 .header-section-number {
-  color: $theme-main;
+  color: $headings-color;
 }
 
 dt {
@@ -158,7 +158,7 @@ dd {
 .quarto-title-meta,
 .quarto-title-meta-author {
   font-family: $font-family-sans-serif;
-  color: $theme-main;
+  color: $headings-color;
 }
 
 .table-caption,
