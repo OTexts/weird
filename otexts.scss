@@ -4,15 +4,25 @@ $theme-gray: #ebebeb;
 $theme-yellow: #f4ba02;
 $theme-orange: #f49b02;
 
-$body-bg: lighten($theme-gray, 20%);
+$body-bg: white;
 $body-color: darken($theme-gray, 70%);
 $link-color: $theme-main;
+$link-hover-color: saturate($theme-main, 40%);
+$toc-color: $theme-main;
+$link-decoration: none;
+// Links take the weight of their context, so bold text stays bold
+$link-weight: inherit;
 $primary: $theme-main;
 $sidebar-bg: $theme-main;
-$sidebar-fg: lighten($theme-gray, 10%);
+$sidebar-fg: white;
+$sidebar-hover-color: $theme-orange;
+$sidebar-active-color: $theme-yellow;
 
 $font-family-sans-serif: "Fira Sans", sans-serif;
 $font-family-monospace: "Hack", monospace;
+$headings-font-family: $font-family-sans-serif;
+$headings-font-weight: 600;
+$headings-color: $theme-main;
 // Inline code takes the weight of its context, so **`pkg`** renders bold
 $font-weight-monospace-inline: inherit;
 
@@ -24,6 +34,7 @@ $h5-font-size: 0.9rem !default;
 $code-block-bg: #f2f2f2;
 $code-block-border-left: #aaaaaa;
 $code-color: $body-color;
+$code-block-color: $body-color;
 // Pale theme tint shared by blockquotes and the current-section TOC pill
 $theme-tint: lighten($theme-main, 50%);
 
@@ -32,33 +43,16 @@ $callout-color-tip: $theme-orange;
 /*-- scss:rules --*/
 
 // Libron (OFL), self-hosted in fonts/
-@font-face {
-  font-family: "Libron";
-  src: url("fonts/Libron-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Libron";
-  src: url("fonts/Libron-Italic.woff2") format("woff2");
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Libron";
-  src: url("fonts/Libron-Bold.woff2") format("woff2");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Libron";
-  src: url("fonts/Libron-BoldItalic.woff2") format("woff2");
-  font-weight: 700;
-  font-style: italic;
-  font-display: swap;
+@each $file, $weight, $style in ("Regular", 400, normal), ("Italic", 400, italic),
+  ("Bold", 700, normal), ("BoldItalic", 700, italic)
+{
+  @font-face {
+    font-family: "Libron";
+    src: url("fonts/Libron-#{$file}.woff2") format("woff2");
+    font-weight: $weight;
+    font-style: $style;
+    font-display: swap;
+  }
 }
 
 // Fira Sans (OFL, via Fontsource), self-hosted in fonts/; the browser only
@@ -136,14 +130,6 @@ $fira-subsets: (
 }
 
 h1,
-h2,
-h3 {
-  color: $theme-main;
-  font-family: $font-family-sans-serif;
-  font-weight: 600;
-}
-
-h1,
 h2 {
   border-bottom: 1px solid rgba($theme-main, 0.6);
   margin-top: 60px !important;
@@ -153,22 +139,10 @@ h2 {
 h4,
 h5 {
   color: $body-color;
-  font-family: $font-family-sans-serif;
-  font-weight: 600;
 }
 
 .header-section-number {
   color: $theme-main;
-}
-
-a {
-  color: $theme-main;
-  text-decoration: none;
-  font-weight: inherit;
-}
-
-a:hover {
-  color: saturate($theme-main, 40%);
 }
 
 dt {
@@ -181,32 +155,17 @@ dd {
   padding-left: 20px;
 }
 
-.quarto-title-banner {
-  background-color: lighten($theme-gray, 20%) !important;
-  color: $theme-main;
-  font-family: $font-family-sans-serif;
-}
-
 .quarto-title-meta,
 .quarto-title-meta-author {
   font-family: $font-family-sans-serif;
   color: $theme-main;
 }
 
-.quarto-title-banner,
-.quarto-secondary-nav h1 {
-  border-bottom: 0px;
-  color: $theme-main;
-}
-
-.panel-caption,
-.figure-caption,
-.subfigure-caption,
 .table-caption,
 figcaption.quarto-float-caption,
 caption {
   font-family: $font-family-sans-serif;
-  color: darken($theme-gray, 70%);
+  color: $body-color;
   background-color: $theme-gray;
   padding-left: 20px;
   text-align: left;
@@ -217,7 +176,7 @@ caption {
 }
 
 table {
-  background: lighten($theme-gray, 50%);
+  background: white;
   margin: 2em 0;
   border: 1px solid lighten($theme-main, 50%);
 }
@@ -227,14 +186,9 @@ table th {
   border: 1px;
   font-size: 0.9rem;
   height: 12px;
-  line-height: 1.2;
   text-shadow: none;
   padding: 8px 12px !important;
   line-height: 1.4 !important;
-}
-
-.table > :not(caption) > * > * {
-  background-color: lighten($theme-main, 40%);
 }
 
 th {
@@ -244,7 +198,7 @@ th {
 }
 
 td {
-  background-color: lighten($theme-gray, 60%) !important;
+  background-color: white !important;
 }
 
 .stub-column td:first-child {
@@ -257,19 +211,16 @@ blockquote {
   text-shadow: none;
   color: darken($theme-gray, 80%) !important;
   background: $theme-tint !important;
-  padding: 7px 20px 7px 20px;
+  padding: 7px 20px;
   margin: 1.5em 0;
   border-radius: 5px;
-  -moz-border-radius: 5px;
-  -webkit-border-radius: 5px;
   border-left: 4px solid $theme-main !important;
 }
 
 pre code {
   color: $body-color !important;
   background-color: $code-block-bg;
-  -moz-border-radius: 5px;
-  -webkit-border-radius: 5px;
+  border-radius: 5px;
 }
 
 // Package names (**`pkg`**): bold monospace without the inline-code box.
@@ -279,20 +230,13 @@ pre code {
   padding: 0;
 }
 
-div.sourceCode,
-div.sourceCode pre.sourceCode {
-  color: $body-color;
-}
-
-.quarto-page-breadcrumbs .breadcrumb-item + .breadcrumb-item,
 .quarto-page-breadcrumbs .breadcrumb-item {
   font-family: $font-family-sans-serif;
 }
 
 div.sidebar.sidebar-navigation.rollup.quarto-sidebar-toggle-contents,
 nav.sidebar.sidebar-navigation:not(.rollup) {
-  background-color: $theme-main !important;
-  color: lighten($theme-gray, 50%) !important;
+  color: $sidebar-fg;
   font-family: $font-family-sans-serif;
   line-height: 1.2;
 }
@@ -306,7 +250,7 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
 
 .sidebar {
   font-family: $font-family-sans-serif;
-  background-color: lighten($theme-gray, 50%);
+  background-color: white;
   color: $theme-main;
 }
 
@@ -319,14 +263,7 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
 }
 
 .sidebar-title > a:hover {
-  color: $theme-orange !important;
-}
-
-.sidebar-navigation,
-.sidebar-item {
-  font-family: "Fira Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  color: lighten($theme-gray, 50%);
-  background-color: $theme-main !important;
+  color: $sidebar-hover-color;
 }
 
 // Section TOC: rounded pills, lightly tinted on hover; the current section
@@ -344,7 +281,6 @@ nav[role="doc-toc"] .nav-link {
 
 nav[role="doc-toc"] .nav-link:hover {
   background-color: rgba($theme-main, 0.06);
-  color: $theme-main !important;
 }
 
 nav[role="doc-toc"] .nav-link.active,
@@ -355,28 +291,18 @@ nav[role="doc-toc"] .nav-link.active,
   border-left: none !important;
 }
 
-.sidebar-navigation {
-  background-color: $theme-main !important;
-}
-
-.sidebar-navigation,
-.sidebar-item a {
-  color: lighten($theme-gray, 50%) !important;
-}
-
 #quarto-sidebar .menu-text {
   display: flex;
 }
 
 #quarto-sidebar .chapter-number {
+  color: inherit;
   display: block;
   width: 1.5em;
   text-align: right;
 }
 
 #quarto-sidebar .chapter-title {
-  color: inherit !important;
-  background-color: inherit !important;
   display: block;
   padding-left: 8px;
   text-indent: -2px;
@@ -385,20 +311,6 @@ nav[role="doc-toc"] .nav-link.active,
 
 #toc-title {
   font-weight: bold;
-}
-
-.sidebar-item .chapter-number {
-  color: inherit !important;
-  background-color: inherit !important;
-}
-
-.sidebar-navigation,
-.sidebar-item a.active {
-  color: $theme-yellow !important;
-}
-
-.sidebar-item a:hover {
-  color: $theme-orange !important;
 }
 
 .page-navigation a:hover {
@@ -414,6 +326,10 @@ nav[role="doc-toc"] .nav-link.active,
 .nav-page-text {
   font-family: $font-family-sans-serif;
   min-height: 1em;
+}
+
+.nav-footer a:hover {
+  color: $link-hover-color;
 }
 
 button {
