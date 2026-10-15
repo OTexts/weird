@@ -221,6 +221,7 @@ Then the tail of the surprisals depends on how large $y_i^2$ can get:
 - $\xi > 0$ if the data are $\text{t}_4$, because occasional very large observations give very large surprisals.
 
 The GPD includes all three cases, and $\xi$ is estimated from the largest surprisals, so we don't need to know in advance which case applies.
+@surprisals give the precise conditions under which this works, and show that it leads to good estimates of the surprisal probabilities for the largest surprisals, which are the ones that matter for anomaly detection.
 
 Let $\beta$ denote the tail probability used in the GPD threshold, and let $u$ denote the $(1 - \beta)$ sample quantile of the surprisal values.
 For example, $\beta = 0.1$ is a common choice, and then $u$ is the $90^{\text{th}}$ percentile of the $s_i$ values.
@@ -232,8 +233,139 @@ where $\hat g$ denotes the estimated GPD density of the surprisals above $u$ (th
 This approximation only gives us surprisal probabilities for the surprisals above the threshold $u$.
 For any $s_i \le u$, all we can say is that $p_i$ is at least about $\beta$, and `surprisals_prob()` returns $\hat{p}_i = \beta$ for these observations.
 
-@surprisals give the precise conditions, and show that this will lead to good estimates of the surprisal probabilities for the most extreme surprisal values (which correspond to the anomalies).
-That is, even if our assumed distribution $f^*$ is not correct, we can still fit a GPD to the largest surprisal values and use this to estimate the tail probabilities.
+@fig-gpd-approx illustrates the calculation, using surprisals computed from 1000 N(0,1) observations with an incorrect $\text{t}_4$ density.
+The top panel shows all the surprisals, with the largest 10% (those above $u$) highlighted.
+The bottom panel shows only these largest surprisals, along with the fitted GPD density multiplied by $\beta$.
+The multiplication is needed because these surprisals are only 10% of the total, so the bars in the bottom panel have total area $\beta = 0.1$ rather than 1.
+The shaded area to the right of $s_i$ is the estimated surprisal probability $\hat{p}_i$.
+
+```{r}
+#| label: fig-gpd-approx
+#| echo: false
+#| fig-asp: 0.9
+#| fig-cap: >-
+#|   Approximate GPD surprisal probabilities, with $\beta = 0.1$.
+#|   Top: histogram of the surprisals of 1000 N(0,1) observations, computed using a $\text{t}_4$ density.
+#|   The largest 10% of surprisals, above the threshold $u$, are shown in orange.
+#|   Bottom: the surprisals above $u$, along with the fitted GPD density multiplied by $\beta$.
+#|   The shaded area to the right of the surprisal $s_i$ is the estimated surprisal probability $\hat{p}_i$.
+
+gpd_s <- surprisals(n01$v1, distribution = dist_student_t(4))
+gpd_beta <- 0.1
+# Threshold and GPD fit computed in the same way as surprisals_prob()
+gpd_u <- unname(quantile(gpd_s, prob = 1 - gpd_beta, type = 8))
+gpd_fit <- evd::fpot(gpd_s, threshold = gpd_u, std.err = FALSE)$estimate
+# Observation with the 10th largest surprisal
+gpd_si <- sort(gpd_s, decreasing = TRUE)[10]
+gpd_pi <- gpd_beta *
+  evd::pgpd(
+    gpd_si,
+    loc = gpd_u,
+    scale = gpd_fit["scale"],
+    shape = gpd_fit["shape"],
+    lower.tail = FALSE
+  )
+# beta times the GPD density (which is zero at u itself, so start just above it)
+gpd_den <- tibble(
+  s = sort(c(seq(gpd_u + 1e-6, max(gpd_s) + 0.2, length.out = 301), gpd_si)),
+  density = gpd_beta *
+    evd::dgpd(
+      s,
+      loc = gpd_u,
+      scale = gpd_fit["scale"],
+      shape = gpd_fit["shape"]
+    )
+)
+binwidth <- 0.1
+gpd_hist <- function(data) {
+  geom_histogram(
+    data = data,
+    aes(
+      x = s,
+      y = after_stat(count) / (length(gpd_s) * binwidth),
+      fill = s > gpd_u
+    ),
+    binwidth = binwidth,
+    boundary = gpd_u
+  )
+}
+# Orange for the largest surprisals, in both panels
+gpd_fill <- scale_fill_manual(
+  values = c(`FALSE` = "grey70", `TRUE` = "#D55E00"),
+  guide = "none"
+)
+tex <- function(x) latex2exp::TeX(x, output = "character")
+# Label u and s_i on the x-axis, along with some round numbers
+x_axis <- function(breaks, labels) {
+  scale_x_continuous(
+    breaks = breaks,
+    labels = latex2exp::TeX(labels),
+    minor_breaks = NULL
+  )
+}
+p_all <- ggplot() +
+  gpd_hist(tibble(s = gpd_s)) +
+  geom_vline(xintercept = gpd_u, linetype = "dashed") +
+  x_axis(c(1:5, gpd_u), c(1:5, "$u$")) +
+  gpd_fill +
+  labs(x = "Surprisal", y = "Density", title = "All surprisals")
+p_tail <- ggplot() +
+  gpd_hist(tibble(s = gpd_s[gpd_s > gpd_u])) +
+  geom_area(
+    data = gpd_den |> filter(s >= gpd_si),
+    aes(x = s, y = density),
+    fill = "#0072B2",
+    alpha = 0.5
+  ) +
+  geom_line(data = gpd_den, aes(x = s, y = density), colour = "#0072B2") +
+  geom_vline(xintercept = gpd_u, linetype = "dashed") +
+  annotate(
+    "segment",
+    x = gpd_si,
+    xend = gpd_si,
+    y = 0,
+    yend = max(gpd_den$density[gpd_den$s == gpd_si]),
+    colour = "#0072B2"
+  ) +
+  x_axis(c(3:5, gpd_u, gpd_si), c(3:5, "$u$", "$s_i$")) +
+  annotate(
+    "text",
+    x = gpd_si + 0.25,
+    y = 2.5 * gpd_pi,
+    label = tex("$\\hat{p}_i$"),
+    parse = TRUE,
+    hjust = 0,
+    colour = "#0072B2"
+  ) +
+  annotate(
+    "text",
+    x = gpd_u + 0.15,
+    y = max(gpd_den$density),
+    label = tex("$\\beta \\hat{g}(s)$"),
+    parse = TRUE,
+    hjust = 0,
+    colour = "#0072B2"
+  ) +
+  gpd_fill +
+  labs(x = "Surprisal", y = "Density", title = "Surprisals above the threshold")
+patchwork::wrap_plots(p_all, p_tail, ncol = 1)
+```
+
+```{r}
+#| label: check_gpd_approx
+#| include: false
+#| dependson: fig-gpd-approx
+
+# The figure's GPD calculation must match surprisals_prob()
+stopifnot(isTRUE(all.equal(
+  unname(gpd_pi),
+  surprisals_prob(
+    n01$v1,
+    distribution = dist_student_t(4),
+    approximation = "gpd"
+  )[gpd_s == gpd_si]
+)))
+```
 
 The approach does require a relatively large number of surprisals to be available, in order to adequately estimate the GPD from the largest $100\beta$% of them.
 So we would typically need at least a few hundred observations to start with.
@@ -322,7 +454,75 @@ norm_prob |>
   geom_line()
 ```
 
-Even when we don't know the distribution of the data, we can use some incorrect assumed distribution to compute the surprisals, and then apply either a GPD or the rank approximation to obtain good estimates of the surprisal probabilities.
+### Example: $\text{t}_4$ values
+
+In the previous example, the incorrect density had heavier tails than the data, so the errors made observations look less anomalous than they really were.
+The opposite mistake is more serious: if the assumed density has lighter tails than the data, then ordinary observations will look anomalous.
+
+To see this, consider 1000 values generated from a $\text{t}_4$ distribution, and compute their surprisals using an N(0,1) density.
+
+```{r}
+#| label: surprisal_prob_t4
+#| code-fold: false
+
+set.seed(1)
+t4_prob <- tibble(
+  y = rt(1000, df = 4),
+  p = surprisals_prob(y, distribution = dist_student_t(4)),
+  pn = surprisals_prob(y, distribution = dist_normal()),
+  pn_gpd = surprisals_prob(
+    y,
+    distribution = dist_normal(),
+    approximation = "gpd"
+  ),
+  pn_emp = surprisals_prob(
+    y,
+    distribution = dist_normal(),
+    approximation = "rank"
+  )
+)
+t4_prob |> arrange(p)
+```
+
+```{r}
+#| label: check_t4_prob
+#| include: false
+#| dependson: surprisal_prob_t4
+
+# The prose says pn flags many more observations than the true p,
+# while the GPD and rank estimates flag about as many
+n_flag <- colSums(select(t4_prob, -y) < 0.01)
+stopifnot(
+  n_flag["pn"] > 3 * n_flag["p"],
+  abs(n_flag["pn_gpd"] - n_flag["p"]) <= 6,
+  abs(n_flag["pn_emp"] - n_flag["p"]) <= 6
+)
+```
+
+Now the true values are in column `p`, computed using the $\text{t}_4$ density.
+The probabilities in `pn`, computed using the N(0,1) density, are far too small.
+Using a threshold of 0.01, `pn` would flag `r n_flag["pn"]` observations as anomalies, compared to `r n_flag["p"]` using the true probabilities.
+The GPD and rank estimates are much closer to the true values, flagging `r n_flag["pn_gpd"]` and `r n_flag["pn_emp"]` observations respectively.
+@fig-surprisal_prob_t4 shows the estimates for values of $y$ greater than 2.5.
+
+```{r}
+#| label: fig-surprisal_prob_t4
+#| dependson: surprisal_prob_t4
+#| fig-cap: Surprisal probabilities for $\text{t}_4$ observations with $y > 2.5$, estimated using the correct $\text{t}_4$ distribution and using an incorrect N(0,1) distribution.
+#|   The probabilities computed directly from the N(0,1) distribution are far too small, but the GPD and rank estimates are much closer to the true values.
+
+t4_prob |>
+  filter(y > 2.5) |>
+  tidyr::pivot_longer(
+    p:pn_emp,
+    names_to = "Estimate",
+    values_to = "Probability"
+  ) |>
+  ggplot(aes(x = y, y = Probability, col = Estimate)) +
+  geom_line()
+```
+
+To summarise, even when we don't know the distribution of the data, we can use some incorrect assumed distribution to compute the surprisals, and then apply either a GPD or the rank approximation to obtain good estimates of the surprisal probabilities.
 
 ## KDE surprisals {#sec-kdesurprisals}
 
