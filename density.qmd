@@ -202,11 +202,25 @@ If we do not know what the distribution of the data should be, or if we think ou
 ### Approximate GPD surprisal probabilities
 
 Let $f^*$ denote the assumed (and possibly incorrect) density function.
-It might be a poor estimate of the true density, or it might just be a density on the same sample space as the data.
+For example, it might be a poor estimate of the true density.
 Using this assumed density, we can compute the surprisals, $s_i = -\log f^*(\bm{y}_i)$.
 
 Then we can fit a Generalised Pareto Distribution (GPD) to the largest surprisals using the POT approach discussed in @sec-evt.
-Even when $f^*$ is incorrect or poorly estimated, the extreme surprisals will still approximately follow a GPD.
+This can work even when $f^*$ is incorrect or poorly estimated.
+
+Why should this work?
+The POT result in @sec-evt says that, for almost any continuous distribution, the values above a high threshold approximately follow a GPD.
+Here the GPD is fitted to the surprisals, not to the data, so the result needs to hold only for the surprisals.
+Using the wrong density $f^*$ changes the surprisal values, but in most cases the largest surprisals still follow a GPD.
+What $f^*$ and the data affect is the shape parameter $\xi$ in @eq-POT, which describes how quickly the upper tail of the surprisals dies away.
+For example, suppose $f^*$ is the N(0,1) density, so that $s_i = \frac12 y_i^2 + \frac12\log(2\pi)$ (@sec-surprisals).
+Then the tail of the surprisals depends on how large $y_i^2$ can get:
+
+- $\xi < 0$ if the data are Uniform on $[-1, 1]$, because the surprisals can be no larger than $\frac12 + \frac12\log(2\pi)$.
+- $\xi = 0$ if the data are N(0,1), because $y_i^2$ has a $\chi^2_1$ distribution, whose tail decays exponentially.
+- $\xi > 0$ if the data are $\text{t}_4$, because occasional very large observations give very large surprisals.
+
+The GPD includes all three cases, and $\xi$ is estimated from the largest surprisals, so we don't need to know in advance which case applies.
 
 Let $\beta$ denote the tail probability used in the GPD threshold, and let $u$ denote the $(1 - \beta)$ sample quantile of the surprisal values.
 For example, $\beta = 0.1$ is a common choice, and then $u$ is the $90^{\text{th}}$ percentile of the $s_i$ values.
@@ -218,7 +232,7 @@ where $\hat g$ denotes the estimated GPD density of the surprisals above $u$ (th
 This approximation only gives us surprisal probabilities for the surprisals above the threshold $u$.
 For any $s_i \le u$, all we can say is that $p_i$ is at least about $\beta$, and `surprisals_prob()` returns $\hat{p}_i = \beta$ for these observations.
 
-@surprisals show that, under very general conditions on the true distribution $f$, this will lead to good estimates of the surprisal probabilities for the most extreme surprisal values (which correspond to the anomalies).
+@surprisals give the precise conditions, and show that this will lead to good estimates of the surprisal probabilities for the most extreme surprisal values (which correspond to the anomalies).
 That is, even if our assumed distribution $f^*$ is not correct, we can still fit a GPD to the largest surprisal values and use this to estimate the tail probabilities.
 
 The approach does require a relatively large number of surprisals to be available, in order to adequately estimate the GPD from the largest $100\beta$% of them.
