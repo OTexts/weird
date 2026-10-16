@@ -63,7 +63,7 @@ The U(0,1) distribution is shown in @fig-uniform.
 
 dist_uniform(0, 1) |>
   gg_density() +
-  labs(x = "y", y = "Probability Density Function: f(y)")
+  labs(x = tex("$y$"), y = tex("Probability Density Function: $f(y)$"))
 ```
 
 ### Normal (Gaussian) distribution
@@ -87,7 +87,7 @@ Three Normal distributions are shown in @fig-normal.
 
 dist_normal(c(0, 0, 1), c(1, 2, 1)) |>
   gg_density() +
-  labs(x = "y", y = "Probability Density Function: f(y)")
+  labs(x = tex("$y$"), y = tex("Probability Density Function: $f(y)$"))
 ```
 
 ### $\chi^2$ distribution
@@ -113,13 +113,13 @@ Three $\chi^2$ distributions are shown in @fig-chisq.
 
 dist_chisq(c(1, 2, 5)) |>
   gg_density() +
-  labs(x = "y", y = "Probability Density Function: f(y)") +
+  labs(x = tex("$y$"), y = tex("Probability Density Function: $f(y)$")) +
   coord_cartesian(ylim = c(0, 1)) +
   scale_colour_discrete(
     labels = c(
-      latex2exp::TeX("$\\chi^{~2}_{~~1}$"),
-      latex2exp::TeX("$\\chi^{~2}_{~~2}$"),
-      latex2exp::TeX("$\\chi^{~2}_{~~5}$")
+      tex("$\\chi^2_1$"),
+      tex("$\\chi^2_2$"),
+      tex("$\\chi^2_5$")
     )
   )
 ```
@@ -152,12 +152,12 @@ Three t distributions are shown in @fig-t.
 dist_student_t(c(1, 5, 99)) |>
   gg_density(ngrid = 10001) +
   coord_cartesian(xlim = c(-8, 8)) +
-  labs(x = "y", y = "Probability Density Function: f(y)") +
+  labs(x = tex("$y$"), y = tex("Probability Density Function: $f(y)$")) +
   scale_colour_discrete(
     labels = c(
-      latex2exp::TeX("$t_{~1}$"),
-      latex2exp::TeX("$t_{~5}$"),
-      latex2exp::TeX("$t_{~99}$")
+      tex("$t_{1}$"),
+      tex("$t_{5}$"),
+      tex("$t_{99}$")
     )
   ) +
   theme(legend.text = element_text(hjust = 0))
@@ -187,7 +187,7 @@ Three $\Gamma$ distributions are shown in @fig-gamma.
 
 dist_gamma(c(1, 1, 2), c(1, 2, 1)) |>
   gg_density() +
-  labs(x = "y", y = "Probability Density Function: f(y)")
+  labs(x = tex("$y$"), y = tex("Probability Density Function: $f(y)$"))
 ```
 
 ### Mixture distributions
@@ -233,7 +233,7 @@ density_df(c(d1, d2, dmix)) |>
   ) |>
   ggplot(aes(x = x, y = density)) +
   geom_line(aes(col = distribution, linetype = !mixture)) +
-  labs(x = "y", y = "Probability Density Function: f(y)") +
+  labs(x = tex("$y$"), y = tex("Probability Density Function: $f(y)$")) +
   theme(legend.position = "none")
 ```
 
@@ -328,11 +328,20 @@ x5 |>
   geom_line() +
   geom_area(data = x5 |> filter(x < q80), fill = "#0072B2") +
   geom_area(data = x5 |> filter(x >= q80), fill = "#D55E00") +
-  labs(x = "y", y = "Probability Density Function: f(y)") +
+  labs(x = tex("$y$"), y = tex("Probability Density Function: $f(y)$")) +
   scale_x_continuous(
     breaks = c(seq(0, 20, by = 5), q80),
-    labels = c(seq(0, 20, by = 5), paste0(round(q80, 2), "\nQ(0.8)")),
+    labels = c(seq(0, 20, by = 5), round(q80, 2)),
     minor_breaks = NULL
+  ) +
+  annotate(
+    "text",
+    x = q80 + 0.2,
+    y = unlist(density(dist, at = q80)) + 0.004,
+    label = tex("$Q(0.8)$", output = "character"),
+    parse = TRUE,
+    family = "BookMath",
+    hjust = 0
   ) +
   geom_label(
     data = tibble(x = c(4, 10), y = 0.01),
@@ -373,12 +382,12 @@ c(dist_normal(0, 1), dist_student_t(5), dist_chisq(5)) |>
   tidyr::pivot_longer(-p, names_to = "Distribution", values_to = "Q") |>
   ggplot(aes(x = p, y = Q, col = Distribution)) +
   geom_line() +
-  labs(x = "p", y = "Quantile function: Q(p)") +
+  labs(x = tex("$p$"), y = tex("Quantile function: $Q(p)$")) +
   scale_colour_discrete(
     labels = c(
-      latex2exp::TeX("N(0,1)"),
-      latex2exp::TeX("$t_{~5}$"),
-      latex2exp::TeX("$\\chi^{~2}_{~~5}$")
+      tex("N(0,1)"),
+      tex("$t_{5}$"),
+      tex("$\\chi^2_5$")
     )
   ) +
   theme(legend.text = element_text(hjust = 0))
@@ -458,12 +467,13 @@ qbias |>
     data = qbias |> filter(n == 1000)
   ) +
   labs(
-    x = "Probability p",
+    x = tex("Probability $p$"),
     y = "Bias of sample quantile",
   ) +
+  scale_linetype_discrete(labels = tex(c("$n = 100$", "$n = 1000$"))) +
   guides(
-    linetype = guide_legend(title = "Sample size"),
-    col = guide_legend(title = "Quantile method")
+    linetype = guide_legend(title = "Sample size", order = 1),
+    col = guide_legend(title = "Quantile method", order = 2)
   )
 ```
 
@@ -511,7 +521,7 @@ batave |>
     sec.axis = dup_axis(
       name = "",
       breaks = Qs,
-      labels = latex2exp::TeX(sprintf("\\hat{Q}(%2.2f)", p))
+      labels = tex(sprintf("$\\hat{Q}(%2.2f)$", p))
     )
   ) +
   labs(y = "", x = "Career batting average")
@@ -562,7 +572,7 @@ interval1 <- quantile(dist, p = c(0.05, 0.95)) |> unlist()
 interval2 <- hdr(dist, size = 90) |> unlist()
 falpha <- density(dist, at = interval2[1])
 gg_density(dist) +
-  labs(x = "y", y = "Probability Density Function: f(y)") +
+  labs(x = tex("$y$"), y = tex("Probability Density Function: $f(y)$")) +
   geom_line(
     data = tibble(x = interval1),
     aes(x = x, y = -0.002),
@@ -591,7 +601,7 @@ gg_density(dist) +
   scale_y_continuous(
     breaks = c(seq(0, 0.15, by = 0.05), falpha),
     minor_breaks = NULL,
-    labels = latex2exp::TeX(c(seq(0, 0.15, by = 0.05), "$f_\\alpha$")),
+    labels = tex(c(seq(0, 0.15, by = 0.05), "$f_\\alpha$")),
   )
 ```
 
@@ -615,7 +625,7 @@ hdrinterval1 <- interval2[c("lower1", "upper1")]
 hdrinterval2 <- interval2[c("lower2", "upper2")]
 falpha <- density(dist, at = hdrinterval2[1])
 p <- gg_density(dist) +
-  labs(x = "y", y = "Probability Density Function: f(y)") +
+  labs(x = tex("$y$"), y = tex("Probability Density Function: $f(y)$")) +
   geom_line(
     data = tibble(x = interval1),
     aes(x = x, y = -0.0028),
@@ -648,7 +658,7 @@ p +
   scale_y_continuous(
     breaks = c(seq(0, 0.2, by = 0.1), falpha),
     minor_breaks = NULL,
-    labels = latex2exp::TeX(c(
+    labels = tex(c(
       seq(0, 0.2, by = 0.1),
       "$f_\\alpha$"
     )),
@@ -748,7 +758,7 @@ ggplot() +
     length = unit(0.06, "npc"),
     sides = "b"
   ) +
-  labs(x = "y = Duration (seconds)", y = latex2exp::TeX("$K_h(y - y_i)/n$"))
+  labs(x = tex("$y$ = Duration (seconds)"), y = tex("$K_h(y - y_i)/n$"))
 ```
 
 The vertical ticks show the location of the ten observations, while the grey lines show $\frac{1}{n}K_h(y - y_i)$ for $i = 1,\dots,n$.
@@ -775,7 +785,7 @@ ggplot() +
     linewidth = 1
   ) +
   geom_density(data = of2021, mapping = aes(x = duration), bw = h) +
-  labs(x = "y = Duration (seconds)", y = "Density")
+  labs(x = tex("$y$ = Duration (seconds)"), y = "Density")
 ```
 
 Producing this estimate involved two choices: the value of $h$ and the type of kernel $K_h$.
@@ -798,12 +808,18 @@ of2021 |>
   geom_density(bw = 5, col = "#D55E00") +
   geom_density(bw = 15, col = "#0072B2") +
   geom_density(bw = 40, col = "#009E73") +
-  labs(x = "y = Duration (seconds)", y = "Density") +
+  labs(x = tex("$y$ = Duration (seconds)"), y = "Density") +
   xlim(120, 320) +
   ylim(0, 0.019) +
-  geom_label(x = 260, y = 0.018, label = "h = 5", col = "#D55E00") +
-  geom_label(x = 275, y = 0.01, label = "h = 15", col = "#0072B2") +
-  geom_label(x = 320, y = 0.004, label = "h = 40", col = "#009E73")
+  annotate(
+    "label",
+    x = c(260, 275, 320),
+    y = c(0.018, 0.01, 0.004),
+    label = tex(c("$h = 5$", "$h = 15$", "$h = 40$"), output = "character"),
+    parse = TRUE,
+    family = "BookMath",
+    col = c("#D55E00", "#0072B2", "#009E73")
+  )
 ```
 
 When $h$ is too small, the density estimate is too rough, with many peaks and troughs.

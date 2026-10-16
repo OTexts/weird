@@ -151,12 +151,12 @@ rbind(v, c(A %*% v)) |>
     "text",
     x = c(1, 3.0),
     y = c(-0.1, 1.1),
-    label = c("bolditalic(v)", "bolditalic(Av)"),
+    label = tex(c("$\\bm{v}$", "$\\bm{A}\\bm{v}$"), output = "character"),
     parse = TRUE,
     col = discrete_colours[1:2],
-    family = "serif"
+    family = "BookMath"
   ) +
-  labs(x = "x", y = "y") +
+  labs(x = tex("$x$"), y = tex("$y$")) +
   scale_y_continuous(breaks = seq(0, 1, by = 0.5), minor_breaks = NULL) +
   coord_equal()
 ```

@@ -125,7 +125,7 @@ palpha <- 0.1
 df |>
   ggplot(aes(x = y, y = fy)) +
   geom_line() +
-  labs(x = "y", y = "Probability Density Function: f(y)") +
+  labs(x = tex("$y$"), y = tex("Probability Density Function: $f(y)$")) +
   geom_hline(aes(yintercept = falpha), col = "#D55E00", linetype = "dashed") +
   geom_polygon(
     fill = "#D55E00",
@@ -147,12 +147,12 @@ df |>
   ) +
   scale_x_continuous(
     breaks = c(seq(0, 15, by = 5), hdr[2]),
-    labels = latex2exp::TeX(c(seq(0, 15, by = 5), "$y_i$")),
+    labels = tex(c(seq(0, 15, by = 5), "$y_i$")),
     minor_breaks = NULL
   ) +
   scale_y_continuous(
     breaks = c(seq(0, 0.15, by = 0.05), falpha),
-    labels = latex2exp::TeX(c(seq(0, 0.15, by = 0.05), "$f(y_i)$")),
+    labels = tex(c(seq(0, 0.15, by = 0.05), "$f(y_i)$")),
     minor_breaks = NULL
   )
 ```
@@ -294,12 +294,11 @@ gpd_fill <- scale_fill_manual(
   values = c(`FALSE` = "grey70", `TRUE` = "#D55E00"),
   guide = "none"
 )
-tex <- function(x) latex2exp::TeX(x, output = "character")
 # Label u and s_i on the x-axis, along with some round numbers
 x_axis <- function(breaks, labels) {
   scale_x_continuous(
     breaks = breaks,
-    labels = latex2exp::TeX(labels),
+    labels = tex(labels),
     minor_breaks = NULL
   )
 }
@@ -332,8 +331,9 @@ p_tail <- ggplot() +
     "text",
     x = gpd_si + 0.25,
     y = 2.5 * gpd_pi,
-    label = tex("$\\hat{p}_i$"),
+    label = tex("$\\hat{p}_i$", output = "character"),
     parse = TRUE,
+    family = "BookMath",
     hjust = 0,
     colour = "#0072B2"
   ) +
@@ -341,8 +341,9 @@ p_tail <- ggplot() +
     "text",
     x = gpd_u + 0.15,
     y = max(gpd_den$density),
-    label = tex("$\\beta \\hat{g}(s)$"),
+    label = tex("$\\beta \\hat{g}(s)$", output = "character"),
     parse = TRUE,
+    family = "BookMath",
     hjust = 0,
     colour = "#0072B2"
   ) +

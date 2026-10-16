@@ -33,7 +33,13 @@ options(
   ggplot2.discrete.colour = discrete_colours,
   ggplot2.discrete.fill = discrete_colours
 )
-ggplot2::theme_update(text = element_text(family = "Fira Sans"))
+# Plot text in Fira Sans, as for headings in the book. BookMath is Fira Sans
+# with maths faces added (see tex-labels.R), so theme text can show tex() labels.
+source(here::here("tex-labels.R"))
+ggplot2::theme_update(
+  text = element_text(family = "BookMath"),
+  geom = element_geom(family = "Fira Sans")
+)
 
 # Avoid some conflicts
 conflicted::conflict_prefer("select", "dplyr")

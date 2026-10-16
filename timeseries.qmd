@@ -906,9 +906,10 @@ tscv_plot(.init = 8, .step = 1, h = 1) +
     "text",
     x = 9,
     y = 0,
-    label = "h = 1",
+    label = tex("$h = 1$", output = "character"),
+    parse = TRUE,
     colour = "#c14b14",
-    family = "Fira Sans"
+    family = "BookMath"
   )
 ```
 
