@@ -1474,17 +1474,17 @@ Feature-based methods for streaming time series data are discussed by @Talagala2
 
 ## Summary {#sec-timeseries-summary}
 
-We have considered three ways that time series can be weird.
-To find weird times in historical data, we first remove the signal (trend, seasonality, and other structure) from the series, using a moving median in the Hampel identifier, or an STL decomposition.
-The standardised residuals can then be treated as approximately independent observations, and analysed using the surprisal probabilities of @sec-density-methods.
-Very large anomalies can distort the estimated signal nearby, so that neighbouring observations appear anomalous in the opposite direction; such apparent anomalies should be checked before they are interpreted.
-When there are many related series, we can either analyse each series separately, or combine the series using principal components to find periods that are unusual across all series.
+The three approaches in this chapter share a common idea: an observation, or a whole series, is anomalous if it has a small surprisal probability under a density $f$ that describes typical behaviour.
+The approaches differ only in the choice of $f$.
+When $f$ might be wrong, fitting a GPD to the largest surprisals gives approximate probabilities that are less sensitive to that choice.
 
-To find weird series within a collection, we summarise each series by a vector of features, and look for anomalies in the resulting feature space.
-This turns the problem into one of multivariate anomaly detection, so any of the methods from earlier chapters can be used.
-Anomalous series often reflect data problems, such as series consisting mostly of zeros, rather than interesting behaviour, but that is exactly the sort of thing we want to find before modelling a large collection of series.
-
-In surveillance, we compute surprisal probabilities from one-step forecast distributions, refitting the model as each new observation arrives.
-Because the model is updated, a sudden change in level is flagged when it first happens, but the model gradually adapts to the "new normal".
-The forecast distributions produced by the models are often too narrow, so many more observations will be flagged than the nominal probability threshold implies.
-Counting the number of series flagged in each month gives a simple way to detect events that affect many series at once.
+- **Weird times**: the signal (trend, seasonality, and other structure) is first removed from the series, using a moving median (as in the Hampel identifier) or an STL decomposition, and $f$ is the distribution of the remaining residuals.
+  Very large anomalies can distort the estimated signal nearby, so that neighbouring observations appear anomalous in the opposite direction; such apparent anomalies should be checked before they are interpreted.
+  When there are many related series, we can either analyse each series separately, or combine them using principal components to find periods that are unusual across all series.
+- **Weird series**: each series is summarised by a vector of features, so a weird series is an anomaly in feature space.
+  Then $f$ can be a kernel density estimate of the features, or of their first few principal components, although any of the multivariate methods of earlier chapters could also be used.
+  Anomalous series often reveal data problems, such as series that are mostly zeros; these are worth finding before modelling a large collection of series.
+- **Surveillance**: $f$ is the one-step forecast distribution.
+  Because the model is refitted as each new observation arrives, a sudden change in level is flagged when it first happens, and the new level then becomes the "new normal".
+  If the forecast distributions are correct, the surprisal probabilities are uniformly distributed on (0,1), so a threshold $\alpha$ gives a false-alarm rate of $\alpha$ per series in each time period.
+  To detect events that affect many series at once, we count the number of series flagged in each time period, and compute the surprisal probability of that count under a binomial distribution.

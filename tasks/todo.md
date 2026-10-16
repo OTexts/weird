@@ -395,4 +395,4 @@ Pitch everything at undergraduate level (tasks/lessons.md, 2026-10-16). Maths in
 - [-] Dropped (2026-10-16): PC plot (fig-weirdseries_pca, l.711): add KDE HDR contours (ch7 recommends HDR displays)
 - [-] Dropped (2026-10-16): Consider `method = "lookout"` in the KDE surprisals (l.728), to use ch7's lookout bandwidth; same three series flagged (checked against the talk's targets)
 - [x] Hampel identifier (l.192): static figure for one series (e.g. males aged 25) with the band m_t +/- k a_t/0.6745 and flagged points; currently equations only
-- [ ] Summary (l.1243): open with the unifying idea: all three settings use surprisal probabilities, with f the density of residuals from the signal (weird times), the KDE of the features (weird series), or the one-step forecast density (surveillance); the GPD keeps p approximately right when f is wrong
+- [x] Summary (l.1243): open with the unifying idea: all three settings use surprisal probabilities, with f the density of residuals from the signal (weird times), the KDE of the features (weird series), or the one-step forecast density (surveillance); the GPD keeps p approximately right when f is wrong
