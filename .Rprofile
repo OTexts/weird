@@ -1,7 +1,6 @@
 options(
   repos = c(CRAN = "https://packagemanager.posit.co/cran/__linux__/resolute/latest")
 )
-options(renv.config.dependencies.limit = 1e5)
 
 # >>> uvr >>>
 local({
