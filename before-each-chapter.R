@@ -38,6 +38,9 @@ options(
 source(here::here("tex-labels.R"))
 ggplot2::theme_update(
   text = element_text(family = "BookMath"),
+  # Tick labels a little larger than the default rel(0.8), so maths in them
+  # (e.g. u, s_i) isn't dwarfed by the digits; still smaller than axis titles
+  axis.text = element_text(size = rel(0.9)),
   geom = element_geom(family = "Fira Sans")
 )
 
