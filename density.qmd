@@ -109,11 +109,11 @@ where $𝟙(z)$ is an indicator function taking value 1 when $z$ is true and 0 o
 #| fig-cap: >-
 #|   A $\chi^2_5$ density function with one observation shown at $y_i$.
 #|   The shaded area shows where $f(y) < f(y_i)$, corresponding to $p_i$.
-#|   In this example, $p_i = 0.1$, so the region between the orange shaded areas is a 90% HDR.
+#|   In this example, $p_i = 0.05$, so the region between the orange shaded areas is a 95% HDR.
 #| echo: false
 
 den <- dist_chisq(5)
-hdr <- hdr(den, size = 90) |> unlist() %>% `[`(c("lower", "upper"))
+hdr <- hdr(den, size = 95) |> unlist() %>% `[`(c("lower", "upper"))
 falpha <- density(den, at = hdr["lower"])
 df <- tibble(
   y = seq(0, 15, l = 501),
