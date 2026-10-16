@@ -9,43 +9,45 @@ This is "That's Weird! Anomaly Detection using R", an open-source textbook by Ro
 ## Build Commands
 
 ```bash
-make build     # Render all .qmd files to HTML via quarto, then post-process with the extension's htmlreplace.pl (default target)
+make build     # Render all .qmd files to HTML, then run post-render.R (default target)
 make preview   # Build, then launch a live Quarto preview in the browser
 make clean     # Remove _book/, _freeze/, *_cache/, *_files/
 make deploy    # rsync _book/ to production server (OTexts SSH)
 ```
 
-To render and view a single chapter quickly, use Quarto directly:
+To render a single chapter:
 ```bash
 source .uvr/activate && quarto render univariate.qmd --to otexts-html
 ```
+Use `--to otexts-html`: `--to html` silently drops the book's styling.
 
-R packages are managed via [uvr](https://github.com/nbafrank/uvr), not `renv`. After cloning, restore dependencies with:
-```bash
-uvr sync
-```
-This reads `uvr.toml`/`uvr.lock` and installs packages into a project-local environment at `.uvr/`, which the Makefile sources automatically via `.uvr/activate`.
+R packages are managed with [uvr](https://github.com/nbafrank/uvr), not `renv`: `uvr sync` installs `uvr.toml`/`uvr.lock` into `.uvr/`, which the Makefile activates.
 
 ## Architecture
 
-### Source Files
-- `*.qmd` — Book chapters in Quarto Markdown (R code + prose). Chapters 1–13 have substantial content; chapters 14–16 are stubs.
-- `_quarto.yml` — Master configuration: chapter order, bibliography (`weird.bib`), execution settings. The HTML format is `otexts-html`, from the OTexts Quarto extension.
-- `_extensions/OTexts/otexts/` — The shared OTexts format ([OTexts/quarto-otexts](https://github.com/OTexts/quarto-otexts)), also used by fpp3 and fpppy: Cosmo + `otexts.scss`, the web fonts, `apa-single-spaced.csl`, GoatCounter, and `htmlreplace.pl`. Don't edit it here: change the quarto-otexts repo, then run `quarto update OTexts/quarto-otexts`. Render with `--to otexts-html` (`--to html` silently drops the styling), and put chapter-level options at the top level of the front matter (e.g. `other-links:`), not under `format: html:`. The format also sets the figure and knitr chunk defaults (7.5in wide, `fig-asp: 0.618`, 150 dpi, `ragg_png`, 100% width, lazy loading, `comment: ""`); override them in YAML, not with `knitr::opts_chunk$set()`. weird uses the format's default colours, so it has no book SCSS file.
-- `before-each-chapter.R` — Sourced by the setup chunk at the start of every chapter. Sets random seed (1967), loads the `weird` package, calls `otexts::setup_book()`, defines `discrete_colours` (used by some chunks), and loads the cached `wine_reviews` and `air_quality` data.
-- The **otexts** R package ([OTexts/otexts](https://github.com/OTexts/otexts), in `uvr.toml`) holds the R setup shared with the other OTexts books. `setup_book()` registers the "BookMath" font family (Fira Sans for text, KaTeX fonts for maths), sets printing options and the viridis/Okabe-Ito colour scales, sets the ggplot2 theme, prefers dplyr's `select()` and `filter()`, and defines `TeX()` as `otexts::tex()` (a restyled `latex2exp::TeX()` so maths in plots matches the KaTeX maths in the text) and `theme_void()` as `otexts::theme_book_void()`. Chunks call `TeX()` and `theme_void()`, so readers can run the same code with `library(latex2exp)` (the preface tells them to) and plain ggplot2. Don't change this setup here: change the otexts package, then `uvr update otexts`. Keep the visible code working with plain `latex2exp::TeX()`: write vectors as `\textbf{v}` (not `\bm{v}`, which latex2exp doesn't support; `tex()` sets `\textbf` in bold italic), and wrap `TeX(c(...))` in `unname()` when it is passed directly as `labels` to a discrete scale (latex2exp returns names, which ggplot2 4 matches to breaks). Theme text and text layers default to BookMath (`element_geom(family = )`, plus `update_geom_defaults()` for text, label, the ggrepel geoms and ggraph edge labels, which ignore the theme), and `theme_void()` is redefined with `base_family = "BookMath"` (plain `theme_void()` sets family `""`, which ragg draws in the system sans font, Noto Sans, not Fira Sans), so don't add `family = "BookMath"` to chunks; text layers with `fontface = "bold"` or `"italic"` need `family = "Fira Sans"`, as those BookMath faces are KaTeX fonts. Needs Fira Sans installed; the KaTeX fonts, scaled up by 1.2 so their x-height matches Fira Sans, are in the otexts package. Write maths in plot labels (axis titles, legends, annotations) with `TeX()`, e.g. `TeX("Sample size ($n$)")`, not as plain text.
+- `*.qmd` — Chapters in Quarto Markdown. Chapters 1–13 have substantial content; 14–16 are stubs. Put chapter-level options at the top level of the front matter (e.g. `other-links:`), not under `format: html:`, which the `otexts-html` format ignores.
+- `_quarto.yml` — Chapter order, bibliography (`weird.bib`), execution settings, and the `otexts-html` format.
+- `_extensions/OTexts/otexts/` — The shared OTexts Quarto format ([OTexts/quarto-otexts](https://github.com/OTexts/quarto-otexts)): theme, web fonts, CSL, figure and knitr chunk defaults, and `htmlreplace.pl`. Change it in that repo, then run `quarto update OTexts/quarto-otexts`. Override figure defaults in YAML, not with `knitr::opts_chunk$set()`.
+- **otexts** R package ([OTexts/otexts](https://github.com/OTexts/otexts)) — R setup shared with the other OTexts books. Change it in that repo, then run `uvr update otexts`.
+- `before-each-chapter.R` — Sourced at the start of every chapter: sets the seed, loads **weird**, calls `otexts::setup_book()` (fonts, options, colour scales, ggplot2 theme, `TeX()` and `theme_void()`), and defines `discrete_colours` and the cached `wine_reviews` and `air_quality` data.
+- `post-render.R` — Calls `otexts::post_render()`, which tidies the HTML with `htmlreplace.pl` and compresses the figures with pngquant (which must be installed).
+- **weird** R package — The book's own package, demonstrated throughout.
 
-### Caching
-Long-running R computations use the `cache(expr, "name")` helper from the otexts package. Results are stored as `rds/<name>.rds`. `rds/` is only for caches. Data sets used in the book belong in the `weird` package (as package data, or a `fetch_*()` function for large data such as `fetch_pets2006()`). The only exception is `data/halley_toms_ozone.txt` (ch1), which is published at `https://OTexts.com/weird/data/` (see `resources` in `_quarto.yml`), read from that URL (not via `here::here()`), and listed under `other-links` in the chapter's YAML front matter so it appears in the sidebar. Quarto's built-in chunk caching (`cache: true`) is also used; cache directories end in `_cache/` and are git-ignored. With `freeze: auto` as well, a change to plot styling in `before-each-chapter.R` or the otexts package only reaches every figure after `make clean && make build`.
+## Plots
 
-### Post-Processing
-After `quarto render`, `post-render.R` calls `otexts::post_render()`, which runs the extension's `htmlreplace.pl` on the HTML and then compresses the figures with pngquant (which must be installed). `htmlreplace.pl` modifies the generated HTML to remove author attributions, reformat author styling, add Amazon affiliate tags to book links, and transform bibliography reference links.
+- Write maths in plot labels (axis titles, legends, annotations) with `TeX()`, e.g. `TeX("Sample size ($n$)")`. In the book `TeX()` is `otexts::tex()`, which sets maths in the KaTeX fonts; readers run the same code with `latex2exp::TeX()` (the preface tells them to), so it must work with that too:
+  - write vectors as `\textbf{v}`, not `\bm{v}`, which latex2exp doesn't support;
+  - wrap `TeX(c(...))` in `unname()` when it is passed directly as `labels` to a discrete scale, as ggplot2 matches named labels to breaks.
+- Plot text is in the "BookMath" family (Fira Sans, which must be installed, with KaTeX maths faces), including text layers and `theme_void()`, so don't add `family = "BookMath"` to chunks. Text layers with `fontface = "bold"` or `"italic"` need `family = "Fira Sans"`, as those BookMath faces are KaTeX fonts.
 
-### R Package: `weird`
-The book's own R package (`weird`, v2.0.0+) is the primary tool demonstrated throughout. It is listed as a dependency in `uvr.toml`/`uvr.lock` and loaded in every chapter via `before-each-chapter.R`.
+## Caching
+
+- `cache(expr, "name")` (from otexts) saves long computations as `rds/<name>.rds`. `rds/` is only for caches.
+- Data sets belong in the **weird** package (as package data, or a `fetch_*()` function for large data such as `fetch_pets2006()`). The only exception is `data/halley_toms_ozone.txt` (ch1), which is published at `https://OTexts.com/weird/data/` (see `resources` in `_quarto.yml`), read from that URL, and listed under `other-links` in the chapter's front matter.
+- Chunks are also cached by knitr (`*_cache/`) and frozen (`freeze: auto`), so a change to plot styling (in the otexts package or format) only reaches every figure after `make clean && make build`.
 
 ## Code Style
 
 - R formatting follows `air.toml`: 90-character line width, 2-space indentation.
-- The RStudio project (`weird.Rproj`) uses 2-space indents, UTF-8 encoding, Australian English spell-check.
-- Conflict resolution: `dplyr::select` and `dplyr::filter` are explicitly preferred over any masked versions (set in `before-each-chapter.R`).
+- Australian English spelling.
+- `select()` and `filter()` are dplyr's (set by `setup_book()`).
