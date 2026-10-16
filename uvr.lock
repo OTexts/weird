@@ -823,11 +823,11 @@ requires = [
 
 [[package]]
 name = "curl"
-version = "8.0.0"
+version = "8.1.0"
 source = "cran"
-raw_version = "8.0.0"
-url = "https://cran.r-project.org/src/contrib/curl_8.0.0.tar.gz"
-checksum = "md5:11e42cdbfa575a081e5bf9a710ee76bd"
+raw_version = "8.1.0"
+url = "https://cran.r-project.org/src/contrib/curl_8.1.0.tar.gz"
+checksum = "md5:196b1c5e8adafec4b5bb9123864b52b4"
 
 [[package]]
 name = "data.table"
@@ -1195,11 +1195,11 @@ requires = [
 
 [[package]]
 name = "fields"
-version = "17.3.0"
+version = "18.0.0"
 source = "cran"
-raw_version = "17.3"
-url = "https://cran.r-project.org/src/contrib/fields_17.3.tar.gz"
-checksum = "md5:61d38fbd696c1cc5d99ae25b8ea7c66e"
+raw_version = "18.0"
+url = "https://cran.r-project.org/src/contrib/fields_18.0.tar.gz"
+checksum = "md5:e709ac0d3f815a854f86c35cf8b7b3e9"
 requires = [
     "spam",
     "viridisLite",
@@ -1495,11 +1495,11 @@ requires = [
 
 [[package]]
 name = "ggtime"
-version = "1.0.0"
+version = "1.1.0"
 source = "cran"
-raw_version = "1.0.0"
-url = "https://cran.r-project.org/src/contrib/ggtime_1.0.0.tar.gz"
-checksum = "md5:58cd495855c4c7df8292a27ddd169ae4"
+raw_version = "1.1.0"
+url = "https://cran.r-project.org/src/contrib/ggtime_1.1.0.tar.gz"
+checksum = "md5:ef0c88015f69d297216cef2bb17616f7"
 requires = [
     "ggplot2",
     "gtable",
@@ -1509,7 +1509,6 @@ requires = [
     "tsibble",
     "fabletools",
     "dplyr",
-    "lubridate",
     "tidyr",
     "vctrs",
     "cli",
@@ -2375,11 +2374,11 @@ requires = ["nanonext"]
 
 [[package]]
 name = "mixtime"
-version = "0.3.0"
+version = "0.4.0"
 source = "cran"
-raw_version = "0.3.0"
-url = "https://cran.r-project.org/src/contrib/mixtime_0.3.0.tar.gz"
-checksum = "md5:4bb553cc6134ee15feaf0ed0c5a717fc"
+raw_version = "0.4.0"
+url = "https://cran.r-project.org/src/contrib/mixtime_0.4.0.tar.gz"
+checksum = "md5:e82c8ae7098ee9e6be1696357c7fad1a"
 requires = [
     "lifecycle",
     "vctrs",
@@ -3277,11 +3276,11 @@ requires = [
 
 [[package]]
 name = "sp"
-version = "2.2.3"
+version = "2.2.4"
 source = "cran"
-raw_version = "2.2-3"
-url = "https://cran.r-project.org/src/contrib/sp_2.2-3.tar.gz"
-checksum = "md5:727d54966fbfdd2a644748a1a733f483"
+raw_version = "2.2-4"
+url = "https://cran.r-project.org/src/contrib/sp_2.2-4.tar.gz"
+checksum = "md5:5485b51e22935da8e8f43c3cb35afe0d"
 requires = ["lattice"]
 
 [[package]]
@@ -3903,11 +3902,11 @@ requires = [
 
 [[package]]
 name = "vecvec"
-version = "1.3.0"
+version = "1.4.0"
 source = "cran"
-raw_version = "1.3.0"
-url = "https://cran.r-project.org/src/contrib/vecvec_1.3.0.tar.gz"
-checksum = "md5:83f391e8e8c91397e0bd8214756af05e"
+raw_version = "1.4.0"
+url = "https://cran.r-project.org/src/contrib/vecvec_1.4.0.tar.gz"
+checksum = "md5:6aa8c1e7c7e865040f1f66c81d0a897a"
 requires = [
     "cli",
     "rlang",
@@ -4016,8 +4015,8 @@ checksum = "md5:b5603af0a2d1b62511f85f5574c747a8"
 name = "weird"
 version = "3.1.0-4.9000"
 source = "github"
-url = "https://api.github.com/repos/robjhyndman/weird/tarball/565c3df7543a22087975acd0d14ddf5ef0b6325d"
-checksum = "git:565c3df7543a22087975acd0d14ddf5ef0b6325d"
+url = "https://api.github.com/repos/robjhyndman/weird/tarball/468806426eb857721af0db5e7a80100d3ed03485"
+checksum = "git:468806426eb857721af0db5e7a80100d3ed03485"
 requires = [
     "aplpack",
     "broom",
@@ -4045,11 +4044,11 @@ checksum = "md5:121bf3699aadb9d1b47d648964b934f8"
 
 [[package]]
 name = "xfun"
-version = "0.61.0"
+version = "0.62.0"
 source = "cran"
-raw_version = "0.61"
-url = "https://cran.r-project.org/src/contrib/xfun_0.61.tar.gz"
-checksum = "md5:70130070c686204fb71dbf20c6c871ac"
+raw_version = "0.62"
+url = "https://cran.r-project.org/src/contrib/xfun_0.62.tar.gz"
+checksum = "md5:93bc01d797fcdf1e4014998e4c248bd7"
 
 [[package]]
 name = "xml2"
