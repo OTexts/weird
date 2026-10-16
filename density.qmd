@@ -177,6 +177,8 @@ So if we label points as anomalous when $p_i < \alpha$, we will have a false pos
 This approach allows for anomalies to occur anywhere in the distribution, not just in the tails.
 For example, anomalies may lie between modes in a multimodal distribution, or in otherwise low-density regions of the distribution.
 The surprisal approach converts the problem of working with a potentially complicated distribution into a problem of working with a simple univariate distribution on the surprisal scale, where large values correspond to anomalies.
+If $\bm{Y}$ has density $f$, its surprisal $S = -\log f(\bm{Y})$ is a univariate random variable, and @eq-pi-density says that $p_i = \Pr(S \ge s_i)$.
+So an anomaly is an observation whose surprisal lies far in the upper tail of the distribution of $S$, which is why extreme value theory is useful for estimating surprisal probabilities (@sec-approximate-surprisal-prob).
 
 ### Connection to highest density regions
 
@@ -221,6 +223,7 @@ Then the tail of the surprisals depends on how large $y_i^2$ can get:
 - $\xi > 0$ if the data are $\text{t}_4$, because occasional very large observations give very large surprisals.
 
 The GPD includes all three cases, and $\xi$ is estimated from the largest surprisals, so we don't need to know in advance which case applies.
+In effect, the estimated probabilities depend on where each surprisal lies among the others, so $f^*$ only needs to put the most extreme observations in roughly the right order.
 @surprisals give the precise conditions under which this works, and show that it leads to good estimates of the surprisal probabilities for the largest surprisals, which are the ones that matter for anomaly detection.
 
 Let $\beta$ denote the tail probability used in the GPD threshold, and let $u$ denote the $(1 - \beta)$ sample quantile of the surprisal values.
