@@ -386,13 +386,13 @@ fig-width 14, so their text displays at ~57% of the usual size; their per-observ
 
 ## Ch11 (time series, timeseries.qmd): changes suggested by the UConn talk (2026-10-16)
 Pitch everything at undergraduate level (tasks/lessons.md, 2026-10-16). Maths in plot labels via tex().
-- [ ] Surveillance p-values, in "The surveillance algorithm" (l.850), not only in "Surveillance across several series":
+- [x] Surveillance p-values, in "The surveillance algorithm" (l.850), not only in "Surveillance across several series":
   - [x] If the forecast distribution is correct, the p-values are uniform on (0,1) (PIT, @sec-pit); move the sentence at l.1133 here and refer back to it
   - [x] So a threshold alpha gives a false-alarm rate of alpha per series per month; use this to justify the 1-in-1000 threshold at l.1075 (84 series x 0.001 is about one false alarm a year across all series)
   - [x] ETS forecasts are Gaussian, so p is a two-sided z-test on the one-step forecast error; link to "Connection to z-scores" in ch7
 - [x] Heatmap of all surveillance p-values (ATC group x month) before "Surveillance across several series" (l.1122); events hitting many groups (Feb 2008) show as vertical stripes
-- [ ] Weird series (l.672): show what a feature is before the PCA, e.g. scatterplot of trend strength vs seasonal strength for the PBS series
-- [ ] PC plot (fig-weirdseries_pca, l.711): add KDE HDR contours (ch7 recommends HDR displays)
-- [ ] Consider `method = "lookout"` in the KDE surprisals (l.728), to use ch7's lookout bandwidth; same three series flagged (checked against the talk's targets)
-- [ ] Hampel identifier (l.192): static figure for one series (e.g. males aged 25) with the band m_t +/- k a_t/0.6745 and flagged points; currently equations only
+- [x] Weird series (l.672): show what a feature is before the PCA, e.g. scatterplot of trend strength vs seasonal strength for the PBS series
+- [-] Dropped (2026-10-16): PC plot (fig-weirdseries_pca, l.711): add KDE HDR contours (ch7 recommends HDR displays)
+- [-] Dropped (2026-10-16): Consider `method = "lookout"` in the KDE surprisals (l.728), to use ch7's lookout bandwidth; same three series flagged (checked against the talk's targets)
+- [x] Hampel identifier (l.192): static figure for one series (e.g. males aged 25) with the band m_t +/- k a_t/0.6745 and flagged points; currently equations only
 - [ ] Summary (l.1243): open with the unifying idea: all three settings use surprisal probabilities, with f the density of residuals from the signal (weird times), the KDE of the features (weird series), or the one-step forecast density (surveillance); the GPD keeps p approximately right when f is wrong
