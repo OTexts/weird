@@ -886,6 +886,12 @@ For each $t = I,I + 1,\dots$, and for all series $i = 1,\dots,M$, where $M$ is t
 - Fit a time series model to the series $y_{i,1},\dots,y_{i,t}$, and estimate the one-step forecast density, $f_{i,t+1}(y \mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$.
 - Compute the surprisal: $s_{i,t+1} = -\log f_{i,t+1}(y_{i,t+1} \mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$, and the surprisal probability $p_{i,t+1} = \Pr(S \ge s_{i,t+1})$, where $S = -\log f_{i,t+1}(Y \mid y_{i,1},\dots,y_{i,t}, \bm{x}_t)$ is the surprisal of a random variable $Y$ drawn from the forecast distribution.
 
+If the forecast distribution is the true distribution of the next observation, then the surprisal probabilities are uniformly distributed on (0,1), by the probability integral transform (@sec-pit) applied to the surprisals.
+So if we flag observations with $p_{i,t+1} < \alpha$, each series gives a false alarm with probability $\alpha$ in each time period, and with $M$ series we expect about $M\alpha$ false alarms per period.
+
+Many forecasting models, including the ETS models used below, have Normal forecast distributions.
+Then the observations with the largest surprisals are those furthest from the forecast mean, so $p_{i,t+1}$ is just the p-value of a two-sided $z$-test applied to the one-step forecast error (see @sec-surprisal-probabilities).
+
 ### A first iteration
 
 To illustrate, let's apply this to the `pbs` data.
@@ -1074,6 +1080,7 @@ pbs_scores <- compute_pbs_scores(pbs) |>
 ```
 
 We will identify as anomalies any observations with a surprisal probability less than 1 in 1000.
+With 84 series observed monthly, this would give about one false alarm a year across all the series, if the forecast distributions were correct.
 
 ```{r}
 #| label: pbs_scores3
@@ -1083,6 +1090,8 @@ We will identify as anomalies any observations with a surprisal probability less
 pbs_anomalies <- pbs_scores |> filter(prob < 0.001)
 pbs_anomalies
 ```
+
+There are `r NROW(pbs_anomalies)` anomalies, far more than the `r round(0.001 * sum(!is.na(pbs_scores$prob)))` false alarms we would expect from `r format(sum(!is.na(pbs_scores$prob)), big.mark = ",")` surprisal probabilities if the forecast distributions were correct, so most of them are likely to be real anomalies rather than false alarms.
 
 Now let's look at the A12 series that we started with, and consider the times when anomalies occur, as shown in @fig-pbs-a12-anomalies.
 
@@ -1120,6 +1129,49 @@ pbs_plot(pbs, pbs_anomalies, "R05")
 
 The first anomaly in 1994 has an unusually large peak compared to the preceding years; the next two, in December 1997 and January 1998, precede an unusually low trough compared to the previous years; and the final two in 2004 coincide with a disruption to the seasonal pattern in that year.
 
+@fig-pbs-heatmap shows the surprisal probabilities for all `r n_distinct(pbs_scores$ATC2[!is.na(pbs_scores$prob)])` ATC groups at once, with one row for each group and one column for each month.
+Most cells are grey, but some months have many flagged groups, which show up as vertical stripes; the clearest is February 2008.
+These are events that affect many series at once, which we consider in the next section.
+
+```{r}
+#| label: fig-pbs-heatmap
+#| dependson: realpbsloop
+#| fig-cap: Surprisal probabilities of the one-step forecasts for each ATC group and month.
+#|   Rows are labelled by the first letter of the ATC code, which gives the anatomical main group.
+#|   Blank cells are months before a group has a one-step forecast.
+
+groups <- sort(unique(pbs_scores$ATC2))
+# Label the first group of each anatomical main group (first letter of ATC2)
+first <- which(!duplicated(substr(groups, 1, 1)))
+pbs_scores |>
+  as_tibble() |>
+  filter(!is.na(prob)) |>
+  mutate(
+    row = match(ATC2, groups),
+    level = cut(prob, c(0, 0.001, 0.01, 1), right = FALSE, include.lowest = TRUE)
+  ) |>
+  ggplot(aes(x = as.Date(Month), y = row, fill = level)) +
+  # Months differ in length, so fix the tile width to avoid gaps between them
+  geom_tile(width = 31) +
+  scale_fill_manual(
+    values = c("#D55E00", "#E69F00", "grey85"),
+    labels = tex(c("$p < 0.001$", "$0.001 \\leq p < 0.01$", "$p \\geq 0.01$")),
+    name = NULL
+  ) +
+  scale_x_date(date_breaks = "2 years", date_labels = "%Y", expand = c(0, 0)) +
+  scale_y_reverse(
+    breaks = first,
+    labels = substr(groups[first], 1, 1),
+    expand = c(0, 0)
+  ) +
+  labs(x = "Month", y = "ATC group") +
+  theme(
+    panel.grid = element_blank(),
+    panel.background = element_rect(fill = "white"),
+    legend.position = "top"
+  )
+```
+
 ### Surveillance across several series
 
 So far, we have monitored each series separately.
@@ -1130,11 +1182,17 @@ One simple way to monitor all the series jointly is to count the number of serie
 Let $M_t$ be the number of series for which a surprisal probability is available at time $t$, and let $N_t$ be the number of these with surprisal probability below 0.001.
 Here $M_t = 82$ until November 1995, $M_t = 83$ from December 1995, when the L03 group first has a one-step forecast, and $M_t = 84$ from November 2003, when the A05 group does.
 If the series were independent, and each observation had the same probability $\pi$ of being flagged, then $N_t$ would have a Binomial$(M_t,\pi)$ distribution, and the probability of seeing at least as many flagged series as the observed number $n_t$ would be $\Pr(N_t \ge n_t)$.
+This is just a surprisal probability, computed for the count $n_t$ under the binomial distribution rather than for an individual observation.^[Once $n_t$ is a few above the expected count $M_t\pi$, every count that is no more likely than $n_t$ is at least as large as $n_t$, so $\Pr(N_t \ge n_t)$ is the probability of a count at least as surprising as $n_t$.]
+We flag a month as anomalous if this probability is below 0.001.
 
-If each forecast distribution were the true distribution of the next observation, the surprisal probabilities would be uniformly distributed on (0,1) (by the probability integral transform, @sec-pit, applied to the surprisals), and so each observation would be flagged with probability $\pi = 0.001$.
-But the ETS forecast distributions are too narrow for these data, and `r sprintf("%.1f", 100 * mean(pbs_scores$prob < 0.001, na.rm = TRUE))`% of all observations have surprisal probabilities below 0.001.
-So we estimate $\pi$ in real time, using the proportion of flagged observations in all previous months.
+If each forecast distribution were the true distribution of the next observation, the surprisal probabilities would be uniformly distributed on (0,1), as explained earlier, and so each observation would be flagged with probability $\pi = 0.001$.
+But `r sprintf("%.1f", 100 * mean(pbs_scores$prob < 0.001, na.rm = TRUE))`% of all observations have surprisal probabilities below 0.001, because of real anomalies, or forecast distributions that are too narrow, or both.
+What matters here is whether a month has more flagged series than usual, so we estimate $\pi$ in real time, using the proportion of flagged observations in all previous months.
 To give a reasonable estimate of $\pi$ at the start, we only compute the joint probabilities after the first 12 months of surprisal probabilities are available.
+
+The independence assumption is also unrealistic here, as the same events affect many series.
+Dependence between series makes large values of $N_t$ more likely than the Binomial distribution suggests, so the probabilities computed this way are too small.
+They are still useful for ranking months by how unusual they are, and in practice the threshold for flagging a month may need to be set using experience of how often the system raises an alarm.
 
 ```{r}
 #| label: pbs_joint
@@ -1167,6 +1225,16 @@ stopifnot(
     c("1997 Dec", "1999 Mar", "2001 Dec", "2008 Feb")
   ),
   pbs_joint |> filter(Month == yearmonth("2008 Feb")) |> pull(n) == 33,
+  # The prose says Pr(N >= n) is the binomial surprisal probability of n
+  # for the flagged months
+  pbs_joint |>
+    filter(prob < 0.001) |>
+    rowwise() |>
+    mutate(
+      d = list(dbinom(0:M, M, pi)),
+      surp = sum(d[d <= dbinom(n, M, pi) * (1 + 1e-10)])
+    ) |>
+    with(isTRUE(all.equal(prob, surp))),
   identical(
     pbs_joint |>
       group_by(M) |>
@@ -1230,10 +1298,6 @@ However, the combined volume for January and February 2008 was only about `r jan
 So it seems that some scripts that would usually have been recorded in January were recorded in February instead: a change in timing rather than in demand.
 No administrative reason for this has been found.
 An event like this is much easier to spot when looking across all series than in any single series.
-
-The independence assumption is unrealistic here, as the same events affect many series.
-Dependence between series makes large values of $N_t$ more likely than the Binomial distribution suggests, so the probabilities computed this way are too small.
-They are still useful for ranking months by how unusual they are, and in practice the threshold may need to be set using experience of how often the system raises an alarm.
 
 ### Feature-based surveillance
 
