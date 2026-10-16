@@ -9,10 +9,14 @@
 #   italic     KaTeX_Math Italic      variables and lower-case Greek
 #   bolditalic KaTeX_Math BoldItalic  vectors, as \bm{v} in the text
 # tex() converts LaTeX to plotmath with latex2exp::TeX(), then puts each part
-# of the maths in the right face. Use it in place of latex2exp::TeX().
-# BookMath is the family for theme text (before-each-chapter.R); text layers
-# that show maths need family = "BookMath". Don't use BookMath for bold or
-# italic text, as those faces are KaTeX fonts.
+# of the maths in the right face. The chunks call TeX(), which is defined at
+# the end of this file as tex(), so readers can run the same code with
+# latex2exp::TeX() and get the same labels in default fonts. Write vectors in
+# plot labels as \textbf{v}, which plain TeX() sets in bold; tex() sets them in
+# bold italic, as \bm{v} in the text.
+# BookMath is the family for theme text and text layers (before-each-chapter.R).
+# Don't use it for bold or italic text, as those faces are KaTeX fonts: text
+# layers with fontface = "bold" need family = "Fira Sans".
 #
 # The KaTeX fonts are copies scaled up by 1.2 to match Fira Sans, in
 # plot-fonts/ (see make_plot_fonts.py there). Fira Sans must be installed.
@@ -142,7 +146,10 @@ tex <- function(input, output = c("expression", "character")) {
   # Unnamed, as ggplot2 matches named scale labels to breaks by name
   plotmath <- unname(latex2exp::TeX(
     input,
-    user_defined = list("\\bm" = "bolditalic($arg1)"),
+    user_defined = list(
+      "\\bm" = "bolditalic($arg1)",
+      "\\textbf" = "bolditalic($arg1)"
+    ),
     output = "character"
   ))
   exprs <- lapply(plotmath, function(s) {
@@ -154,3 +161,6 @@ tex <- function(input, output = c("expression", "character")) {
     as.expression(exprs)
   }
 }
+
+# The chunks call TeX(), so the code shown also runs with latex2exp::TeX()
+TeX <- tex

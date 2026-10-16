@@ -30,6 +30,7 @@ library(weird)
 ```
 
 This loads the relevant data sets, and various other packages needed to reproduce the examples.
+For some of the plots, you will also need to load the **`latex2exp`** package.
 
 &nbsp;<br>
 

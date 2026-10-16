@@ -191,7 +191,7 @@ tibble(m = seq(10)) |>
   mutate(outside = 100 * (1 - (pi^(m / 2) / (2^m * gamma(m / 2 + 1))))) |>
   ggplot(aes(x = m, y = outside)) +
   geom_line() +
-  labs(x = tex("Dimensions ($m$)"), y = "Percentage of points outside unit sphere") +
+  labs(x = TeX("Dimensions ($m$)"), y = "Percentage of points outside unit sphere") +
   scale_x_continuous(breaks = seq(10), minor_breaks = NULL)
 ```
 
@@ -237,7 +237,7 @@ tibble(m = seq(20)) |>
   geom_line() +
   geom_point() +
   labs(
-    x = tex("Dimensions ($m$)"),
+    x = TeX("Dimensions ($m$)"),
     y = "Side length of hypercube containing 50% of points"
   ) +
   scale_x_continuous(breaks = seq(2, 20, by = 2), minor_breaks = NULL) +
@@ -354,9 +354,9 @@ Sigma <- matrix(c(1, 0.5, 0.5, 1), 2, 2)
 distributional::dist_multivariate_normal(list(mu), list(Sigma)) |>
   gg_density(hdr = "fill") +
   labs(
-    x = tex("$y_1$"),
-    y = tex("$y_2$"),
-    title = tex("Contours of $f(y_1,y_2)$")
+    x = TeX("$y_1$"),
+    y = TeX("$y_2$"),
+    title = TeX("Contours of $f(y_1,y_2)$")
   )
 ```
 
@@ -382,9 +382,9 @@ mixture_density <- dist_mixture(
 mixture_plot <- mixture_density |>
   gg_density(hdr = "fill") +
   labs(
-    x = tex("$y_1$"),
-    y = tex("$y_2$"),
-    title = tex("Contours of $f(y_1,y_2)$")
+    x = TeX("$y_1$"),
+    y = TeX("$y_2$"),
+    title = TeX("Contours of $f(y_1,y_2)$")
   )
 mixture_plot
 ```
@@ -503,8 +503,8 @@ mcd_df |>
   geom_point(data = ~ filter(.x, anomaly), colour = "black", alpha = 0.6) +
   geom_path(data = ellipses, aes(colour = method), linewidth = 0.8) +
   labs(
-    x = tex("$y_1$"),
-    y = tex("$y_2$"),
+    x = TeX("$y_1$"),
+    y = TeX("$y_2$"),
     colour = ""
   )
 ```
@@ -589,8 +589,8 @@ p2 <- mvscale(oldfaithful, warning = FALSE) |>
   geom_point(alpha = 0.2) +
   labs(
     title = "Scaled data",
-    x = tex("$z_1$"),
-    y = tex("$z_2$")
+    x = TeX("$z_1$"),
+    y = TeX("$z_2$")
   )
 patchwork::wrap_plots(p1, p2, nrow = 1)
 ```
@@ -865,7 +865,7 @@ for (i in seq_along(prox)) {
       nudge_x = -0.1,
       nudge_y = 0.1
     ) +
-    labs(subtitle = tex(sprintf("$\\delta$ = %.1f", prox[i]))) +
+    labs(subtitle = TeX(sprintf("$\\delta$ = %.1f", prox[i]))) +
     coord_cartesian(xlim = c(-2.5, 2.5), ylim = c(-2.5, 2.5), ratio = 1)
 }
 patchwork::wrap_plots(p, nrow = 2)
@@ -1188,9 +1188,9 @@ plot2 <- df |>
     fill = "#4c93bb"
   ) +
   labs(
-    x = tex("$y_1$"),
-    y = tex("$y_2$"),
-    title = tex("Conditional densities: $f(y_1|y_2)$")
+    x = TeX("$y_1$"),
+    y = TeX("$y_2$"),
+    title = TeX("Conditional densities: $f(y_1|y_2)$")
   ) +
   scale_y_continuous(minor_breaks = NULL, breaks = y2_slice) +
   coord_cartesian(xlim = c(-2.6, 5.5), ylim = c(-2.6, 3.6))

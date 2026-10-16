@@ -63,8 +63,8 @@ c(t3 = dist_student_t(3), X4 = dist_chisq(4), N01 = dist_normal()) |>
   scale_colour_discrete(
     breaks = c("t3", "X4", "N01"),
     labels = c(
-      tex("$t_{3}$"),
-      tex("$\\chi^2_4$"),
+      TeX("$t_{3}$"),
+      TeX("$\\chi^2_4$"),
       "N(0,1)"
     )
   ) +
@@ -274,7 +274,7 @@ labels <- zspuriousdf |>
   group_by(c) |>
   filter(abs(pmax - 0.75) == min(abs(pmax - 0.75))) |>
   slice(1) |>
-  mutate(label = tex(sprintf("$c = %.1f$", c), output = "character"))
+  mutate(label = TeX(sprintf("$c = %.1f$", c), output = "character"))
 zspuriousdf |>
   ggplot(aes(x = n, y = pmax, group = c, col = factor(c))) +
   geom_line() +
@@ -285,13 +285,12 @@ zspuriousdf |>
   ) +
   labs(
     y = "Probability of at least one spurious anomaly",
-    x = tex("Sample size ($n$)")
+    x = TeX("Sample size ($n$)")
   ) +
   geom_label(
     aes(x = n * 0.9, y = 0.78, label = label, hjust = "right"),
     data = labels,
-    parse = TRUE,
-    family = "BookMath"
+    parse = TRUE
   ) +
   guides(col = "none") +
   theme(axis.text.x = element_text(size = 8)) +
@@ -331,7 +330,7 @@ zspurious2df |>
   )) +
   geom_line() +
   labs(
-    x = tex("$n$ (sample size)"),
+    x = TeX("$n$ (sample size)"),
     y = "Probability of at least one spurious anomaly"
   ) +
   scale_x_log10(
@@ -341,13 +340,13 @@ zspurious2df |>
   ) +
   labs(
     y = "Probability of at least one spurious anomaly",
-    x = tex("Sample size ($n$)")
+    x = TeX("Sample size ($n$)")
   ) +
   scale_colour_discrete(
     breaks = c("t(3)", "Chi-squared(4)", "Normal"),
     labels = c(
-      tex("$t_{3}$"),
-      tex("$\\chi^2_4$"),
+      TeX("$t_{3}$"),
+      TeX("$\\chi^2_4$"),
       "N(0,1)"
     )
   ) +
@@ -393,7 +392,7 @@ tibble(n = n, c = threshold) |>
     labels = sprintf("%d", breaks),
     minor_breaks = NULL
   ) +
-  labs(x = tex("$n$ (sample size)"), y = "c (threshold)") +
+  labs(x = TeX("$n$ (sample size)"), y = "c (threshold)") +
   geom_label(aes(x = 1500, y = 3.95, label = "Peirce criterion")) +
   geom_label(
     aes(x = 2600, y = 3.4, label = "Chauvenet criterion"),
@@ -529,7 +528,7 @@ df |>
     labels = sprintf("%d", breaks),
     minor_breaks = NULL
   ) +
-  labs(x = tex("$n$ (sample size)"), y = tex("$c_{\\alpha}$ (threshold)")) +
+  labs(x = TeX("$n$ (sample size)"), y = TeX("$c_{\\alpha}$ (threshold)")) +
   guides(col = "none") +
   geom_label(
     aes(x = x, y = y, col = col, label = label, hjust = "left"),
@@ -560,7 +559,7 @@ pzscoredf |>
   geom_hline(aes(yintercept = 0.05), col = "grey") +
   geom_line() +
   labs(
-    x = tex("$n$ (sample size)"),
+    x = TeX("$n$ (sample size)"),
     y = "Probability of at least one spurious anomaly"
   ) +
   scale_y_continuous(
@@ -574,7 +573,7 @@ pzscoredf |>
   ) +
   labs(
     y = "Probability of at least one spurious anomaly",
-    x = tex("Sample size ($n$)")
+    x = TeX("Sample size ($n$)")
   ) +
   guides(col = "none") +
   theme(axis.text.x = element_text(size = 8)) +
@@ -627,7 +626,7 @@ pgrubbsdf |>
   geom_hline(aes(yintercept = 0.05), col = "grey") +
   geom_line() +
   labs(
-    x = tex("$n$ (sample size)"),
+    x = TeX("$n$ (sample size)"),
     y = "Probability of at least one spurious anomaly"
   ) +
   scale_x_log10(
@@ -638,14 +637,14 @@ pgrubbsdf |>
   ) +
   labs(
     y = "Probability of at least one spurious anomaly",
-    x = tex("Sample size ($n$)")
+    x = TeX("Sample size ($n$)")
   ) +
   theme(axis.text.x = element_text(size = 8)) +
   scale_colour_discrete(
     breaks = c("t(3)", "Chi-squared(4)", "Normal"),
     labels = c(
-      tex("$t_{3}$"),
-      tex("$\\chi^2_4$"),
+      TeX("$t_{3}$"),
+      TeX("$\\chi^2_4$"),
       "N(0,1)"
     )
   ) +
@@ -783,13 +782,13 @@ dixondf |>
   ) +
   labs(
     y = "Probability of at least one spurious anomaly",
-    x = tex("Sample size ($n$)")
+    x = TeX("Sample size ($n$)")
   ) +
   scale_colour_discrete(
     breaks = c("t(3)", "Chi-squared(4)", "Normal"),
     labels = c(
-      tex("$t_{3}$"),
-      tex("$\\chi^2_4$"),
+      TeX("$t_{3}$"),
+      TeX("$\\chi^2_4$"),
       "N(0,1)"
     )
   ) +

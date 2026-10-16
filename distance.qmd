@@ -45,7 +45,7 @@ dongsi |>
   geom_point() +
   labs(
     x = "Maximum temperature (degrees C)",
-    y = tex("Ozone level ($\\mu$g m$^{-3}$)")
+    y = TeX("Ozone level ($\\mu$g m$^{-3}$)")
   )
 ```
 
@@ -408,18 +408,16 @@ df |>
     "text",
     x = df$x[chosen] + 0.3,
     y = df$y[chosen] + 0.3,
-    label = tex(paste0("$\\bm{y}_", 1:2, "$"), output = "character"),
+    label = TeX(paste0("$\\textbf{y}_", 1:2, "$"), output = "character"),
     parse = TRUE,
-    family = "BookMath",
     col = discrete_colours[1:2]
   ) +
   annotate(
     "text",
     x = c(-0.5, 3.6),
     y = c(4.2, 6),
-    label = tex(paste0("$N_{", 1:2, ",5}$"), output = "character"),
+    label = TeX(paste0("$N_{", 1:2, ",5}$"), output = "character"),
     parse = TRUE,
-    family = "BookMath",
     col = discrete_colours[1:2]
   ) +
   geom_segment(
@@ -432,9 +430,8 @@ df |>
     "text",
     x = c(4.7, 7),
     y = c(-0.8, 4.1),
-    label = tex(paste0("$d_{", 1:2, ",5}$"), output = "character"),
+    label = TeX(paste0("$d_{", 1:2, ",5}$"), output = "character"),
     parse = TRUE,
-    family = "BookMath",
     col = discrete_colours[1:2]
   ) +
   coord_fixed(xlim = c(-4, 8.5), ylim = range(df$y)) +
@@ -850,6 +847,7 @@ ggplot() +
     colour = "white",
     fill = "#9aa0a6",
     label.r = unit(1.2, "mm"),
+    family = "Fira Sans",
     fontface = "bold"
   ) +
   geom_segment(
@@ -864,6 +862,7 @@ ggplot() +
     size = 3,
     fill = "#2c3e7bdd",
     colour = "white",
+    family = "Fira Sans",
     fontface = "bold",
     label.padding = unit(1.2, "mm"),
     label.r = unit(1, "mm"),

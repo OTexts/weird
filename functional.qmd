@@ -217,7 +217,7 @@ pca_bases |>
   ggplot() +
   aes(x = Age, y = value, group = Basis, colour = Basis) +
   geom_line() +
-  labs(y = tex("$b_j(x)$"), x = tex("Age ($x$)"))
+  labs(y = TeX("$b_j(x)$"), x = TeX("Age ($x$)"))
 ```
 
 @fig-pca-bases shows the first three empirical basis functions.
@@ -252,7 +252,7 @@ pca_scores |>
   ) |>
   ggplot(aes(x = Year, y = value)) +
   geom_line(aes(colour = PC)) +
-  labs(y = tex("$\\beta_{ij}$"), x = "Year")
+  labs(y = TeX("$\\beta_{ij}$"), x = "Year")
 ```
 
 @fig-pca-scores shows how the three component scores evolve over time.

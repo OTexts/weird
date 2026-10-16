@@ -913,10 +913,9 @@ tscv_plot(.init = 8, .step = 1, h = 1) +
     "text",
     x = 9,
     y = 0,
-    label = tex("$h = 1$", output = "character"),
+    label = TeX("$h = 1$", output = "character"),
     parse = TRUE,
-    colour = "#c14b14",
-    family = "BookMath"
+    colour = "#c14b14"
   )
 ```
 
@@ -1155,7 +1154,7 @@ pbs_scores |>
   geom_tile(width = 31) +
   scale_fill_manual(
     values = c("#D55E00", "#E69F00", "grey85"),
-    labels = tex(c("$p < 0.001$", "$0.001 \\leq p < 0.01$", "$p \\geq 0.01$")),
+    labels = unname(TeX(c("$p < 0.001$", "$0.001 \\leq p < 0.01$", "$p \\geq 0.01$"))),
     name = NULL
   ) +
   scale_x_date(date_breaks = "2 years", date_labels = "%Y", expand = c(0, 0)) +
