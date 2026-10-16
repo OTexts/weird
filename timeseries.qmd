@@ -781,7 +781,8 @@ PBS |>
   semi_join(missing, by = c("Concession", "Type", "ATC2")) |>
   autoplot(Scripts) +
   facet_grid(vars(Concession, Type, ATC2), scales = "free_y") +
-  labs(title = "Time series with missing features")
+  labs(title = "Time series with missing features") +
+  theme(panel.spacing = unit(1, "lines"))
 ```
 
 Similarly, one of these series contains only zeros apart from in one month.

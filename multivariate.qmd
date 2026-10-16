@@ -79,7 +79,8 @@ GGally::ggpairs(
     mapping = aes(colour = df$anomaly)
   )
 ) +
-  scale_colour_manual(values = c("#999999", "#D55E00"))
+  scale_colour_manual(values = c("#999999", "#D55E00")) +
+  theme(panel.spacing = unit(1, "lines"))
 ```
 
 This shows that there are positive relationships between the variables, with the strongest between `V2` and `V3`.
