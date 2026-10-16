@@ -71,3 +71,8 @@
 - **A drop-in replacement must match the original's output exactly, attributes included.** My `tex()` returned a named expression where `latex2exp::TeX()` returns an unnamed one; ggplot2 4 matches named scale labels to breaks by name, so every legend using `tex()` silently fell back to the raw factor levels. Before swapping a function in book-wide, compare `str()`/`attributes()` of old and new output on the actual call sites, and diff the figures, not just the labels in isolation.
 - **When fixing a bug in a value's attributes, trace every place the attribute can come from.** I removed `setNames()` from `tex()` but `latex2exp::TeX(output = "character")` also returns names, which `lapply()` carried through; the linetype legend in ch2 kept showing raw breaks. Fix at the source (`unname()` the input) and add an assertion (`is.null(names(tex(...)))`) rather than removing one visible cause.
 - **Never label an unnumbered section.** `_quarto.yml` has `number-depth: 2`, so `###` headings have no number, but `@sec-` references to them still render as "Section 7.2.2", a number the reader can't find. Cross-reference only `#` and `##` headings: cite the enclosing `##` section, or name the `###` heading in words ("as explained earlier"). Check a heading's level before adding `{#sec-...}`.
+
+## 2026-10-16
+
+- **Check a font claim by pixels, not by eye.** I (and the figure reviewers) reported fig-tukeydepth and others as "not Fira Sans" from glyph shapes; the knitr output was pixel-identical to a direct BookMath render. Before calling a font wrong, render the same plot with the family set explicitly and `compare -metric AE` the two.
+

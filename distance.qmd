@@ -731,6 +731,7 @@ ggraph(g, layout = "tree") +
   geom_node_label(
     aes(label = label, fill = terminal),
     colour = "white",
+    family = "Fira Sans",
     fontface = "bold",
     size = 3.2,
     label.r = unit(2, "mm"),

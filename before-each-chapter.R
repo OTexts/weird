@@ -36,9 +36,19 @@ ggplot2::theme_update(
   axis.text = element_text(size = rel(0.9)),
   geom = element_geom(family = "BookMath")
 )
-# Also set on the geoms, as a complete theme such as theme_void() resets geom
+# Also set on the geoms, as a complete theme such as theme_void() resets geom.
+# The ggrepel and ggraph text geoms ignore the theme, defaulting to family "",
+# which ragg sets in the system sans font (not Fira Sans).
 ggplot2::update_geom_defaults("text", list(family = "BookMath"))
 ggplot2::update_geom_defaults("label", list(family = "BookMath"))
+ggplot2::update_geom_defaults(ggrepel::GeomTextRepel, list(family = "BookMath"))
+ggplot2::update_geom_defaults(ggrepel::GeomLabelRepel, list(family = "BookMath"))
+ggplot2::update_geom_defaults(ggraph::GeomEdgePath, list(family = "BookMath"))
+# theme_void() sets theme text in family "", so it is redefined with BookMath.
+# The chunks call theme_void(), so readers can run the same code.
+theme_void <- function(..., base_family = "BookMath") {
+  ggplot2::theme_void(..., base_family = base_family)
+}
 
 # Avoid some conflicts
 conflicted::conflict_prefer("select", "dplyr")
