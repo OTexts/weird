@@ -151,7 +151,10 @@ rbind(v, c(A %*% v)) |>
     "text",
     x = c(1, 3.0),
     y = c(-0.1, 1.1),
-    label = TeX(c("$\\textbf{v}$", "$\\textbf{A}\\textbf{v}$"), output = "character"),
+    label = TeX(
+      c("$\\textbf{v}$", "$\\textbf{A}\\textbf{v}$"),
+      output = "character"
+    ),
     parse = TRUE,
     col = discrete_colours[1:2]
   ) +

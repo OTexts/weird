@@ -360,7 +360,9 @@ stopifnot(
 )
 # The sandals other than the high-heeled one are in no top 20
 stopifnot(all(
-  as.matrix(pca_ranks |> filter(id %in% c(9422, 3961)) |> select(-c(id, label, planted))) >
+  as.matrix(
+    pca_ranks |> filter(id %in% c(9422, 3961)) |> select(-c(id, label, planted))
+  ) >
     20
 ))
 # Overlap of top 10s: score distance, kNN, GLOSH, isolation forest and Stahel-Donoho
@@ -370,13 +372,22 @@ top10 <- sapply(
   \(x) pca_ranks$id[order(pca_ranks[[x]])[1:10]]
 )
 overlap <- function(a, b) length(intersect(top10[, a], top10[, b]))
-agree <- c("Score distance", "kNN", "GLOSH", "Isolation forest", "Stahel-Donoho")
+agree <- c(
+  "Score distance",
+  "kNN",
+  "GLOSH",
+  "Isolation forest",
+  "Stahel-Donoho"
+)
 stopifnot(
   all(combn(agree, 2, \(x) overlap(x[1], x[2])) >= 5),
   overlap("kNN", "GLOSH") == 10,
-  all(sapply(c("LOF", "GMM surprisal"), \(a) {
-    sapply(setdiff(colnames(top10), a), \(b) overlap(a, b))
-  }) <= 4)
+  all(
+    sapply(c("LOF", "GMM surprisal"), \(a) {
+      sapply(setdiff(colnames(top10), a), \(b) overlap(a, b))
+    }) <=
+      4
+  )
 )
 # Only the trousers and one bag are in the LOF top 10
 lof_top <- pca_ranks |> filter(planted, LOF <= 10)
@@ -576,7 +587,9 @@ stopifnot(
 # Robust z-scores of each feature, relative to the sneakers
 # (Z is rotated by mvscale(), so its columns are not the features themselves)
 sneaker <- !fashion$planted
-rz <- sapply(features, \(x) (x - median(x[sneaker])) / robustbase::s_Qn(x[sneaker]))
+rz <- sapply(features, \(x) {
+  (x - median(x[sneaker])) / robustbase::s_Qn(x[sneaker])
+})
 # Trousers and high-heeled sandal taller than wide, unlike any sneaker;
 # bags and ankle boot 3311 cover more of the image than any sneaker;
 # the other ankle boots are no taller than the tallest sneaker

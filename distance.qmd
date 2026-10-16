@@ -599,8 +599,10 @@ dongsi_glosh |>
 #| dependson: [fig-knn-scores, fig-ofglosh]
 
 stopifnot(identical(
-  dongsi_glosh$date[dongsi_glosh$glosh > quantile(dongsi_glosh$glosh, 0.995)] |> sort(),
-  dongsi_knn$date[dongsi_knn$score > quantile(dongsi_knn$score, 0.995)] |> sort()
+  dongsi_glosh$date[dongsi_glosh$glosh > quantile(dongsi_glosh$glosh, 0.995)] |>
+    sort(),
+  dongsi_knn$date[dongsi_knn$score > quantile(dongsi_knn$score, 0.995)] |>
+    sort()
 ))
 ```
 
@@ -616,8 +618,7 @@ We have looked at three different scoring methods based on nearest neighbours, d
 ## Isolation forest {#sec-iforest}
 
 The methods discussed so far in this chapter all build their anomaly scores by measuring, in one way or another, how far each observation is from the bulk of the data.
-A conceptually different approach is to ask instead: *how easy is it to isolate this observation from the rest?*
-This is the idea behind the isolation forest algorithm of @Liu2008-dp.
+A conceptually different approach is to ask instead: *how easy is it to isolate this observation from the rest?* This is the idea behind the isolation forest algorithm of @Liu2008-dp.
 
 ### Isolation trees
 

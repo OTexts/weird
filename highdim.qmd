@@ -359,17 +359,29 @@ tourr::render(
   height = 900
 )
 # Encode the frames as an H.264 video at 10 frames per second
-system2("ffmpeg", c(
-  "-y", "-loglevel", "error", "-framerate", "10",
-  "-i", file.path(frames_dir, "frame%03d.png"),
-  "-c:v", "libx264", "-pix_fmt", "yuv420p", "-movflags", "+faststart",
-  "gifs/highdim-grand-tour.mp4"
-))
+system2(
+  "ffmpeg",
+  c(
+    "-y",
+    "-loglevel",
+    "error",
+    "-framerate",
+    "10",
+    "-i",
+    file.path(frames_dir, "frame%03d.png"),
+    "-c:v",
+    "libx264",
+    "-pix_fmt",
+    "yuv420p",
+    "-movflags",
+    "+faststart",
+    "gifs/highdim-grand-tour.mp4"
+  )
+)
 unlink(frames_dir, recursive = TRUE)
 ```
 
 ::: {#fig-grand-tour}
-
 ```{=html}
 <video src="gifs/highdim-grand-tour.mp4" autoplay loop muted playsinline
   style="width: 70%; display: block; margin: auto;"></video>
@@ -377,7 +389,6 @@ unlink(frames_dir, recursive = TRUE)
 
 A grand tour of the 10 standardised air quality and meteorological variables at Aotizhongxin.
 Each frame is a different 2-dimensional projection of the data, with axis labels showing the (abbreviated) contribution of each variable to that projection.
-
 :::
 
 As the tour rotates through different projections, the bulk of the data remains near the centre, but individual points move in and out of the data cloud.

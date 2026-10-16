@@ -192,7 +192,7 @@ To illustrate, we will consider two such approaches, but many more are possible 
 ### Hampel identifier
 
 The Hampel identifier is due to a proposal of Frank Hampel [@Davies1993], and is designed to identify anomalies in a time series based on whether an observation is very different from the neighbouring observations.
-Suppose we define neighbourhoods comprising observations within $w$ time periods of time $t$, so each window contains $2w+1$ observations.
+Suppose we define neighbourhoods comprising observations within $w$ time periods of time $t$, so each window contains $2w + 1$ observations.
 Then the local median is given by
 $$
   m_t = \text{median}(y_{t-w}, \dots, y_{t+w}).
@@ -485,7 +485,11 @@ score_stl <- function(data) {
     )
 }
 jan20 <- function(x) {
-  x |> filter(`Age group` %in% c("75-84", "85+"), Week %in% yearweek(c("2020 W03", "2020 W04")))
+  x |>
+    filter(
+      `Age group` %in% c("75-84", "85+"),
+      Week %in% yearweek(c("2020 W03", "2020 W04"))
+    )
 }
 fit_full <- us_stmf |> model(STL(Mortality)) |> components() |> as_tibble()
 fit_pre <- us_stmf |>
@@ -508,11 +512,17 @@ stopifnot(
     low_mortality$Week[low_mortality$Week >= yearweek("2021 W01")],
     yearweek(c("2021 W13", "2021 W15", "2021 W15"))
   ),
-  all(jan20(score_stl(us_stmf |> filter(Week <= yearweek("2020 W10"))))$prob > 0.02),
+  all(
+    jan20(score_stl(us_stmf |> filter(Week <= yearweek("2020 W10"))))$prob >
+      0.02
+  ),
   trend_w03(fit_full) > trend_w03(fit_pre) * 1.05,
   all(sapply(c("75-84", "85+"), function(age) {
     sapply(c("03", "04"), function(wk) {
-      abs(rate(age, paste0("2020 W", wk)) / rate(age, paste0("2019 W", wk)) - 1) < 0.03
+      abs(
+        rate(age, paste0("2020 W", wk)) / rate(age, paste0("2019 W", wk)) - 1
+      ) <
+        0.03
     })
   }))
 )
@@ -544,8 +554,17 @@ stopifnot(
   ),
   setequal(wave_groups("2020 W49", "2021 W03"), c("65-74", "75-84", "85+")),
   setequal(wave_groups("2021 W33", "2021 W39"), c("15-64", "65-74")),
-  setequal(wave_groups("2022 W02", "2022 W05"), c("15-64", "65-74", "75-84", "85+")),
-  mean(stmf_scores$`Age group`[stmf_scores$Week >= yearweek("2022 W02") & stmf_scores$e > 0] %in% c("65-74", "75-84", "85+")) > 0.8,
+  setequal(
+    wave_groups("2022 W02", "2022 W05"),
+    c("15-64", "65-74", "75-84", "85+")
+  ),
+  mean(
+    stmf_scores$`Age group`[
+      stmf_scores$Week >= yearweek("2022 W02") & stmf_scores$e > 0
+    ] %in%
+      c("65-74", "75-84", "85+")
+  ) >
+    0.8,
   all(
     high$Week >= yearweek("2020 W14") &
       high$Week <= yearweek("2020 W18") |
@@ -1147,14 +1166,23 @@ pbs_scores |>
   filter(!is.na(prob)) |>
   mutate(
     row = match(ATC2, groups),
-    level = cut(prob, c(0, 0.001, 0.01, 1), right = FALSE, include.lowest = TRUE)
+    level = cut(
+      prob,
+      c(0, 0.001, 0.01, 1),
+      right = FALSE,
+      include.lowest = TRUE
+    )
   ) |>
   ggplot(aes(x = as.Date(Month), y = row, fill = level)) +
   # Months differ in length, so fix the tile width to avoid gaps between them
   geom_tile(width = 31) +
   scale_fill_manual(
     values = c("#D55E00", "#E69F00", "grey85"),
-    labels = unname(TeX(c("$p < 0.001$", "$0.001 \\leq p < 0.01$", "$p \\geq 0.01$"))),
+    labels = unname(TeX(c(
+      "$p < 0.001$",
+      "$0.001 \\leq p < 0.01$",
+      "$p \\geq 0.01$"
+    ))),
     name = NULL
   ) +
   scale_x_date(date_breaks = "2 years", date_labels = "%Y", expand = c(0, 0)) +

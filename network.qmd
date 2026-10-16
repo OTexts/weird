@@ -293,7 +293,8 @@ stopifnot(
 senate100_edges <- us_senate_edges |>
   filter(congress == 100) |>
   mutate(
-    cross = senate_party[[congress100]][from] != senate_party[[congress100]][to],
+    cross = senate_party[[congress100]][from] !=
+      senate_party[[congress100]][to],
     zorinsky = senate_node_features$name[from] == "ZORINSKY, Edward" |
       senate_node_features$name[to] == "ZORINSKY, Edward"
   )
@@ -660,7 +661,8 @@ stopifnot(
 cross_edges <- us_senate_edges |>
   filter(congress == 100) |>
   mutate(
-    cross = senate_party[[congress100]][from] != senate_party[[congress100]][to],
+    cross = senate_party[[congress100]][from] !=
+      senate_party[[congress100]][to],
     from = senate_node_features$name[from],
     to = senate_node_features$name[to]
   ) |>
@@ -670,7 +672,10 @@ stopifnot(
   NROW(cross_edges) == 8,
   sum(involves("ZORINSKY, Edward")) == 4,
   sum(involves("WEICKER, Lowell Palmer, Jr.")) == 3,
-  sum(involves("STAFFORD, Robert Theodore") & involves("ADAMS, Brockman (Brock)")) == 1
+  sum(
+    involves("STAFFORD, Robert Theodore") & involves("ADAMS, Brockman (Brock)")
+  ) ==
+    1
 )
 ```
 

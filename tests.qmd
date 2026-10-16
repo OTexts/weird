@@ -1035,7 +1035,8 @@ sigma_qn <- robustbase::s_Qn(batters$Average)
 qn_gaps <- batting_gaps |>
   mutate(
     t = (nrow(batters) + 1) *
-      (pnorm(upper_average, mu_hat, sigma_qn) - pnorm(lower_average, mu_hat, sigma_qn)) -
+      (pnorm(upper_average, mu_hat, sigma_qn) -
+        pnorm(lower_average, mu_hat, sigma_qn)) -
       log(nrow(batting_gaps)),
     p_value = 1 - exp(-exp(-t))
   )

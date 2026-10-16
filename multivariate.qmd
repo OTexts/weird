@@ -191,7 +191,10 @@ tibble(m = seq(10)) |>
   mutate(outside = 100 * (1 - (pi^(m / 2) / (2^m * gamma(m / 2 + 1))))) |>
   ggplot(aes(x = m, y = outside)) +
   geom_line() +
-  labs(x = TeX("Dimensions ($m$)"), y = "Percentage of points outside unit sphere") +
+  labs(
+    x = TeX("Dimensions ($m$)"),
+    y = "Percentage of points outside unit sphere"
+  ) +
   scale_x_continuous(breaks = seq(10), minor_breaks = NULL)
 ```
 

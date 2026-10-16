@@ -641,10 +641,11 @@ We have already seen this with multivariate numeric data (@sec-depth); now we wi
 Given a sample of curves $y_1(x),\dots,y_n(x)$, a depth measure assigns each curve $y_i$ a value between 0 and 1 describing how central it is within the sample: curves near the middle of the distribution receive high depth, while unusual curves receive low depth.
 Curves can then be ranked from the deepest (most typical) to the shallowest (most unusual), giving an ordering analogous to ranking univariate observations from the median outward.
 
-One of the simplest depths is the band depth: it counts how often a curve $y_i$ lies completely within the "band" traced out by every possible group of $k$ curves in the sample (usually $k=2$, so the bands are formed by pairs of curves), so that curves often enveloped by others are deep, while curves that stick out --- even briefly --- have low depth.
-With $k=2$, the band depth of $y_i$ is the proportion of pairs of curves whose band contains it:
+One of the simplest depths is the band depth: it counts how often a curve $y_i$ lies completely within the "band" traced out by every possible group of $k$ curves in the sample (usually $k = 2$, so the bands are formed by pairs of curves), so that curves often enveloped by others are deep, while curves that stick out --- even briefly --- have low depth.
+With $k = 2$, the band depth of $y_i$ is the proportion of pairs of curves whose band contains it:
 $$
-  \text{BD}(y_i) = \binom{n}{2}^{-1} \sum_{1 \le u < v \le n} 𝟙\Big(\min\{y_u(x), y_v(x)\} \le y_i(x) \le \max\{y_u(x), y_v(x)\} \text{ for all } x\Big),
+  \text{BD}(y_i)
+  = \binom{n}{2}^{-1} \sum_{1 \le u<v \le n} 𝟙\Big(\min\{y_u(x), y_v(x)\} \le y_i(x) \le \max\{y_u(x), y_v(x)\} \text{ for all } x\Big),
 $$
 where $𝟙(\cdot)$ is the indicator function, taking value 1 when its argument is true and 0 otherwise.
 Looking at @fig-fr-mortality, we would expect that some of the most recent years, which have low mortality at almost every age, would be shallow; the war years would also be shallow, since they have high mortality at ages 20--40 that is not seen in other years.
@@ -676,7 +677,8 @@ However, curves that cross each other are rarely contained entirely within a ban
 For the French mortality curves, `r bd_min_n` of the `r bd_n` curves lie entirely within none of the bands except those they help to form, and so share the smallest possible band depth.
 In practice, to address this problem, the band depth is usually replaced by the modified band depth (MBD), which instead measures the proportion of the domain $x$ over which $y_i(x)$ lies within each band, averaged over all bands [@LopezPintado2009]:
 $$
-  \text{MBD}(y_i) = \binom{n}{2}^{-1} \sum_{1 \le u < v \le n} \frac{1}{|\mathcal{X}|} \int_{\mathcal{X}} 𝟙\Big(\min\{y_u(x), y_v(x)\} \le y_i(x) \le \max\{y_u(x), y_v(x)\}\Big)\,dx,
+  \text{MBD}(y_i)
+  = \binom{n}{2}^{-1} \sum_{1 \le u<v \le n} \frac{1}{|\mathcal{X}|} \int_{\mathcal{X}} 𝟙\Big(\min\{y_u(x), y_v(x)\} \le y_i(x) \le \max\{y_u(x), y_v(x)\}\Big)\,dx,
 $$
 where $\mathcal{X}$ is the domain of the curves and $|\mathcal{X}|$ is its length.
 In practice, the integral is replaced by an average over the grid of ages at which the curves are evaluated, which is what the `mbd()` function below computes.
@@ -806,7 +808,8 @@ The outliergram of @Arribas-Gil2014-ll separates these two effects by comparing 
 Whereas MBD measures how often a curve is enveloped by bands formed from pairs of curves, MEI measures a curve's rank position: it is close to 1 for a curve lying below almost every other curve across almost the whole domain, close to 0 for a curve lying above almost every other curve, and around 0.5 for a curve in the middle of the pack.
 It is the proportion of the domain on which $y_i$ lies on or below each curve, averaged over all $n$ curves (including $y_i$ itself):
 $$
-  \text{MEI}(y_i) = \frac{1}{n} \sum_{u=1}^{n} \frac{1}{|\mathcal{X}|} \int_{\mathcal{X}} 𝟙\big(y_i(x) \le y_u(x)\big)\,dx.
+  \text{MEI}(y_i)
+  = \frac{1}{n} \sum_{u=1}^{n} \frac{1}{|\mathcal{X}|} \int_{\mathcal{X}} 𝟙\big(y_i(x) \le y_u(x)\big)\,dx.
 $$
 So MEI captures a curve's overall level relative to the rest of the sample, in much the same way that the first principal component score did in @sec-basis-functions, while MBD captures how well-enveloped it is.
 
@@ -814,7 +817,9 @@ For most collections of curves, curves with an extreme MEI (very close to 0 or 1
 In fact, there is a well-defined upper bound on MBD as a function of MEI, tracing out a parabola [@Arribas-Gil2014-ll]:
 $$
   \text{MBD}(y_i) \le a_0 + a_1\,\text{MEI}(y_i) + a_2\,\text{MEI}(y_i)^2,
-  \qquad\text{where } a_0 = -\frac{2}{n(n-1)},\quad a_1 = \frac{2(n+1)}{n-1},\quad a_2 = -\frac{2n}{n-1}.
+  \qquad
+  \text{where } a_0 = -\frac{2}{n(n - 1)},
+  \quad a_1 = \frac{2(n + 1)}{n - 1},\quad a_2 = -\frac{2n}{n - 1}.
 $$
 A curve with an unusual shape stands out from this pattern: its MBD falls noticeably *below* the parabola for its MEI value, meaning it is even less enveloped than curves with a similar rank would typically be.
 The outliergram plots MEI against MBD along with this parabola, and flags as shape outliers those curves whose vertical distance below the parabola exceeds a boxplot-style fence (the third quartile of these distances, plus 1.5 times their interquartile range, by default).
