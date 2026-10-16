@@ -80,6 +80,15 @@ library(broom)
 library(tsibbledata)
 ```
 
+```{r}
+#| label: pbs-data
+#| include: false
+
+PBS <- PBS |>
+  update_tsibble(key = c(Concession, Type, ATC2)) |>
+  select(-ATC1)
+```
+
 ## Time series anomaly detection paradigms {#sec-ts-paradigms}
 
 Time series data are observations that are collected over time.
@@ -767,28 +776,94 @@ The PBS involves the Australian government subsidising certain pharmaceutical pr
 The data set contains monthly sales volumes of those products being subsidised, classified according to the Anatomical Therapeutic Chemical (ATC) classification system, by the type of government subsidy, and by whether the purchaser was in a concession group (such as pensioner, unemployed, etc.).
 There are `r NROW(attributes(tsibbledata::PBS)$key)` separate time series contained in the `PBS` data set.
 
-We compute all the features available in the **`feasts`** package for each series.
-Because there are many features, and many of them are correlated with each other, we reduce them to the first two principal components (@sec-pca) after scaling each feature to have unit variance.
+Three series, chosen at random, are shown in @fig-pbs-sample.
+The two "Safety net" series count scripts dispensed under the PBS safety net, which applies once a patient's spending in a calendar year passes a threshold; so they rise through each year and drop sharply in January, when the threshold resets.
+The other series has a strong trend, with a jump in 2002, but little seasonality.
+The series are on very different scales, from a few hundred scripts a month to more than 100,000.
 
 ```{r}
-#| label: weirdseries
+#| label: fig-pbs-sample
+#| dependson: pbs-data
+#| code-fold: false
+#| fig-cap: Three randomly selected series from the PBS data.
+
+set.seed(1967)
+pbs_sample <- PBS |>
+  as_tibble() |>
+  distinct(Concession, Type, ATC2) |>
+  slice_sample(n = 3)
+PBS |>
+  semi_join(pbs_sample, by = c("Concession", "Type", "ATC2")) |>
+  autoplot(Scripts) +
+  facet_grid(vars(Concession, Type, ATC2), scales = "free_y") +
+  guides(colour = "none")
+```
+
+```{r}
+#| label: check_pbs_sample
+#| include: false
+#| dependson: fig-pbs-sample
+
+# The prose describes two safety net series (M01, M03) and H01 co-payments
+stopifnot(
+  setequal(pbs_sample$ATC2, c("H01", "M01", "M03")),
+  sum(pbs_sample$Type == "Safety net") == 2,
+  pbs_sample$Type[pbs_sample$ATC2 == "H01"] == "Co-payments"
+)
+```
+
+For each of the `r NROW(attributes(tsibbledata::PBS)$key)` series, we compute all the features available in the **`feasts`** package.
+
+```{r}
+#| label: weirdseries_features
 #| message: false
 #| warning: false
 #| code-fold: false
+#| dependson: pbs-data
 
 # Compute features
 PBS_feat <- PBS |>
   features(Scripts, feature_set(pkgs = "feasts"))
 # Keep series with no missing features
 PBS_feat_nomissing <- PBS_feat |> na.omit()
+PBS_feat_nomissing
+```
+
+This gives `r sum(sapply(PBS_feat, is.numeric))` features for each series.
+The `r english::words(nrow(PBS_feat) - nrow(PBS_feat_nomissing))` series for which some features are missing are omitted for now; we return to them below.
+@fig-pbs-features shows four of the features: the strength of the trend and of the seasonality (each between 0 and 1), the spectral entropy (close to 1 for a series with no predictable pattern), and the first autocorrelation coefficient.
+Most series have strong trend and seasonality, spectral entropy well below 1, and high autocorrelation.
+A few series are at the opposite extreme on all four features, behaving almost like white noise.
+
+```{r}
+#| label: fig-pbs-features
+#| dependson: weirdseries_features
+#| message: false
+#| code-fold: false
+#| fig-cap: Pairwise scatterplots of four of the features computed for the PBS series.
+
+PBS_feat_nomissing |>
+  select(trend_strength, seasonal_strength_year, spectral_entropy, acf1) |>
+  GGally::ggpairs(
+    columnLabels = c("Trend", "Seasonality", "Spectral entropy", "ACF1"),
+    lower = list(continuous = GGally::wrap("points", size = 0.6, alpha = 0.5))
+  )
+```
+
+With `r sum(sapply(PBS_feat, is.numeric))` features, plots like this cannot show all the information.
+We reduce them to the first two principal components (@sec-pca) after scaling each feature to have unit variance.
+
+```{r}
+#| label: weirdseries
+#| dependson: weirdseries_features
+#| code-fold: false
+
 # Compute principal components
 PBS_prcomp <- PBS_feat_nomissing |>
-  select(-Concession, -Type, -ATC1, -ATC2) |>
+  select(where(is.numeric)) |>
   prcomp(scale = TRUE, rank = 2) |>
   augment(PBS_feat_nomissing)
 ```
-
-This gives `r ncol(PBS_feat) - 4` features for each series.
 
 ```{r}
 #| label: fig-weirdseries_pca
@@ -852,7 +927,7 @@ The three series we omitted may also be unusual, so let's plot them as well in @
 ```{r}
 #| label: fig-pbs_missing
 #| message: false
-#| dependson: weirdseries
+#| dependson: weirdseries_features
 #| code-fold: false
 #| fig-cap: The series for which some features were missing.
 
@@ -885,6 +960,7 @@ The resulting data set contains `r n_distinct(PBS$ATC2)` separate time series, o
 ```{r}
 #| label: pbs
 #| code-fold: false
+#| dependson: pbs-data
 
 pbs <- PBS |>
   arrange(ATC2, Month) |>
