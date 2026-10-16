@@ -3,7 +3,7 @@ SHELL := /bin/bash
 qmd_files   := $(wildcard *.qmd)
 rds_files   := $(wildcard rds/*.rds)
 data_files  := $(wildcard data/*)
-shared_deps := weird.bib before-each-chapter.R tex-labels.R $(wildcard plot-fonts/*.ttf) $(wildcard _extensions/OTexts/otexts/*) _quarto.yml post-render.R
+shared_deps := weird.bib before-each-chapter.R $(wildcard _extensions/OTexts/otexts/*) _quarto.yml post-render.R
 
 .PHONY: all preview build launch deploy clean update
 

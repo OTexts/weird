@@ -300,3 +300,6 @@ git = "sevvandi/oddnet"
 
 [dependencies.weird]
 git = "robjhyndman/weird"
+
+[dependencies.otexts]
+git = "OTexts/otexts"

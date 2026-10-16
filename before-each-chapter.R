@@ -2,68 +2,16 @@ set.seed(1967)
 library(weird)
 # library(patchwork)
 
-# Figure and chunk defaults are set by the otexts format (_extensions/)
+# Figure and chunk defaults are set by the otexts format (_extensions/).
+# The rest of the setup shared by the OTexts books is in the otexts package:
+# plot fonts (BookMath for TeX() labels), printing options, viridis and
+# Okabe-Ito colour scales, the ggplot2 theme, dplyr preferred for select() and
+# filter(), and TeX() and theme_void() defined so chunks can call them.
+library(otexts)
+setup_book()
 
-# Set some defaults
-# Colours to be viridis for continuous scales and Okabe for discrete scales
-discrete_colours <- c(
-  "#D55E00",
-  "#0072B2",
-  "#009E73",
-  "#CC79A7",
-  "#E69F00",
-  "#56B4E9",
-  "#F0E442"
-)
-html <- TRUE
-options(
-  digits = 4,
-  width = 58 + html * 30,
-  pillar.width = 58 + html * 30,
-  ggplot2.continuous.colour = "viridis",
-  ggplot2.continuous.fill = "viridis",
-  ggplot2.discrete.colour = discrete_colours,
-  ggplot2.discrete.fill = discrete_colours
-)
-# Plot text in Fira Sans, as for headings in the book. BookMath is Fira Sans
-# with maths faces added (see tex-labels.R), so theme text and text layers can
-# show TeX() labels.
-source(here::here("tex-labels.R"))
-ggplot2::theme_update(
-  text = element_text(family = "BookMath"),
-  # Tick labels a little larger than the default rel(0.8), so maths in them
-  # (e.g. u, s_i) isn't dwarfed by the digits; still smaller than axis titles
-  axis.text = element_text(size = rel(0.9)),
-  geom = element_geom(family = "BookMath")
-)
-# Also set on the geoms, as a complete theme such as theme_void() resets geom.
-# The ggrepel and ggraph text geoms ignore the theme, defaulting to family "",
-# which ragg sets in the system sans font (not Fira Sans).
-ggplot2::update_geom_defaults("text", list(family = "BookMath"))
-ggplot2::update_geom_defaults("label", list(family = "BookMath"))
-ggplot2::update_geom_defaults(ggrepel::GeomTextRepel, list(family = "BookMath"))
-ggplot2::update_geom_defaults(ggrepel::GeomLabelRepel, list(family = "BookMath"))
-ggplot2::update_geom_defaults(ggraph::GeomEdgePath, list(family = "BookMath"))
-# theme_void() sets theme text in family "", so it is redefined with BookMath.
-# The chunks call theme_void(), so readers can run the same code.
-theme_void <- function(..., base_family = "BookMath") {
-  ggplot2::theme_void(..., base_family = base_family)
-}
+# The Okabe-Ito colours of the discrete scales, used by some chunks
+discrete_colours <- book_colours()
 
-# Avoid some conflicts
-conflicted::conflict_prefer("select", "dplyr")
-conflicted::conflict_prefer("filter", "dplyr")
-
-# Simple cache function
-cache <- function(command, name) {
-  file <- here::here(paste0("rds/", name, ".rds"))
-  if (fs::file_exists(file)) {
-    object <- readRDS(file)
-  } else {
-    object <- command
-    saveRDS(object, file)
-  }
-  return(object)
-}
 wine_reviews <- fetch_wine_reviews() |> cache("wine_reviews")
 air_quality <- fetch_air_quality() |> cache("air_quality")

@@ -1,11 +1,11 @@
-manifest_fingerprint = "sha256:87a1515ad79ed22d66f97d526ae1b284f842ee5940d2e9d1fa6fb30304b63214"
+manifest_fingerprint = "sha256:eddc94457d556ab67b78f4434bc1feaa7a4b9680d5ddde6e0e18cce625144df6"
 
 [r]
 version = "4.6.1"
 
 [[package]]
 name = "BH"
-version = "1.90.0-4.1"
+version = "1.90.0-4.4.1"
 source = "cran"
 raw_version = "1.90.0-1"
 url = "https://cran.r-project.org/src/contrib/BH_1.90.0-1.tar.gz"
@@ -79,7 +79,7 @@ requires = [
 
 [[package]]
 name = "FNN"
-version = "1.1.4-4.1"
+version = "1.1.4-4.4.1"
 source = "cran"
 raw_version = "1.1.4.1"
 url = "https://cran.r-project.org/src/contrib/FNN_1.1.4.1.tar.gz"
@@ -280,7 +280,7 @@ checksum = "md5:9b687595bbe02a7e43fc195ba33f065c"
 
 [[package]]
 name = "RCurl"
-version = "1.98.1-4.20"
+version = "1.98.1-4.4.20"
 source = "cran"
 raw_version = "1.98-1.20"
 url = "https://cran.r-project.org/src/contrib/RCurl_1.98-1.20.tar.gz"
@@ -297,7 +297,7 @@ checksum = "md5:353d35176db9c570705a0a324c06fdca"
 
 [[package]]
 name = "RcppArmadillo"
-version = "15.6.0-4.1"
+version = "15.6.0-4.4.1"
 source = "cran"
 raw_version = "15.6.0-1"
 url = "https://cran.r-project.org/src/contrib/RcppArmadillo_15.6.0-1.tar.gz"
@@ -309,7 +309,7 @@ requires = [
 
 [[package]]
 name = "RcppEigen"
-version = "0.3.4-4.0.2"
+version = "0.3.4-4.4.0.2"
 source = "cran"
 raw_version = "0.3.4.0.2"
 url = "https://cran.r-project.org/src/contrib/RcppEigen_0.3.4.0.2.tar.gz"
@@ -321,7 +321,7 @@ requires = [
 
 [[package]]
 name = "RcppEnsmallen"
-version = "0.3.11-4.0.1"
+version = "0.3.11-4.4.0.1"
 source = "cran"
 raw_version = "0.3.11.0.1"
 url = "https://cran.r-project.org/src/contrib/RcppEnsmallen_0.3.11.0.1.tar.gz"
@@ -401,7 +401,7 @@ requires = [
 
 [[package]]
 name = "XML"
-version = "3.99.0-4.25"
+version = "3.99.0-4.4.25"
 source = "cran"
 raw_version = "3.99-0.25"
 url = "https://cran.r-project.org/src/contrib/XML_3.99-0.25.tar.gz"
@@ -703,7 +703,7 @@ checksum = "md5:e3618a0611ca2dfbc6475975a163ab6a"
 
 [[package]]
 name = "cobs"
-version = "1.3.9-4.1"
+version = "1.3.9-4.4.1"
 source = "cran"
 raw_version = "1.3-9-1"
 url = "https://cran.r-project.org/src/contrib/cobs_1.3-9-1.tar.gz"
@@ -715,7 +715,7 @@ requires = [
 
 [[package]]
 name = "coda"
-version = "0.19.4-4.1"
+version = "0.19.4-4.4.1"
 source = "cran"
 raw_version = "0.19-4.1"
 url = "https://cran.r-project.org/src/contrib/coda_0.19-4.1.tar.gz"
@@ -811,7 +811,7 @@ requires = [
 
 [[package]]
 name = "cubature"
-version = "2.1.4-4.1"
+version = "2.1.4-4.4.1"
 source = "cran"
 raw_version = "2.1.4-1"
 url = "https://cran.r-project.org/src/contrib/cubature_2.1.4-1.tar.gz"
@@ -831,7 +831,7 @@ checksum = "md5:196b1c5e8adafec4b5bb9123864b52b4"
 
 [[package]]
 name = "data.table"
-version = "1.18.6-4.1"
+version = "1.18.6-4.4.1"
 source = "cran"
 raw_version = "1.18.6.1"
 url = "https://cran.r-project.org/src/contrib/data.table_1.18.6.1.tar.gz"
@@ -1078,7 +1078,7 @@ checksum = "md5:64d96fee3845fd96d1eafaba37adf00e"
 
 [[package]]
 name = "evd"
-version = "2.3.7-4.1"
+version = "2.3.7-4.4.1"
 source = "cran"
 raw_version = "2.3-7.1"
 url = "https://cran.r-project.org/src/contrib/evd_2.3-7.1.tar.gz"
@@ -1893,7 +1893,7 @@ requires = [
 
 [[package]]
 name = "isotree"
-version = "0.6.1-4.5"
+version = "0.6.1-4.4.5"
 source = "cran"
 raw_version = "0.6.1-5"
 url = "https://cran.r-project.org/src/contrib/isotree_0.6.1-5.tar.gz"
@@ -2207,7 +2207,7 @@ checksum = "md5:163acadfcb3c04eb0889bc6e13484ca4"
 
 [[package]]
 name = "lpSolveAPI"
-version = "5.5.2-4.0.17.15"
+version = "5.5.2-4.4.0.17.15"
 source = "cran"
 raw_version = "5.5.2.0-17.15"
 url = "https://cran.r-project.org/src/contrib/lpSolveAPI_5.5.2.0-17.15.tar.gz"
@@ -2240,7 +2240,7 @@ requires = [
 
 [[package]]
 name = "magic"
-version = "1.6.1-4.1"
+version = "1.6.1-4.4.1"
 source = "cran"
 raw_version = "1.6-1-1"
 url = "https://cran.r-project.org/src/contrib/magic_1.6-1-1.tar.gz"
@@ -2293,7 +2293,7 @@ checksum = "md5:ae1ec76c6ab0ac5750b700951adbad9a"
 
 [[package]]
 name = "memisc"
-version = "0.99.31-4.8.3"
+version = "0.99.31-4.4.8.3"
 source = "cran"
 raw_version = "0.99.31.8.3"
 url = "https://cran.r-project.org/src/contrib/memisc_0.99.31.8.3.tar.gz"
@@ -2393,7 +2393,7 @@ requires = [
 
 [[package]]
 name = "mlpack"
-version = "4.8.0-4.1"
+version = "4.8.0-4.4.1"
 source = "cran"
 raw_version = "4.8.0-1"
 url = "https://cran.r-project.org/src/contrib/mlpack_4.8.0-1.tar.gz"
@@ -2521,7 +2521,7 @@ requires = [
 
 [[package]]
 name = "numDeriv"
-version = "2016.8.1-4.1"
+version = "2016.8.1-4.4.1"
 source = "cran"
 raw_version = "2016.8-1.1"
 url = "https://cran.r-project.org/src/contrib/numDeriv_2016.8-1.1.tar.gz"
@@ -2529,7 +2529,7 @@ checksum = "md5:f894081f6d73822a362f156e849c9657"
 
 [[package]]
 name = "oddnet"
-version = "0.1.1-4.2"
+version = "0.1.1-4.4.2"
 source = "github"
 url = "https://api.github.com/repos/sevvandi/oddnet/tarball/0868e0ccc17887573e3bf10155f52266f79c8b11"
 checksum = "git:0868e0ccc17887573e3bf10155f52266f79c8b11"
@@ -2562,6 +2562,20 @@ source = "cran"
 raw_version = "0.2.0"
 url = "https://cran.r-project.org/src/contrib/otel_0.2.0.tar.gz"
 checksum = "md5:cecd0f434a6327dcf5ca0bc2da494d06"
+
+[[package]]
+name = "otexts"
+version = "0.1.0"
+source = "github"
+url = "https://api.github.com/repos/OTexts/otexts/tarball/52ab6534d7224ed74418a7afd43f27e55dcc17c0"
+checksum = "git:52ab6534d7224ed74418a7afd43f27e55dcc17c0"
+requires = [
+    "ggplot2",
+    "here",
+    "latex2exp",
+    "rlang",
+    "systemfonts",
+]
 
 [[package]]
 name = "patchwork"
@@ -2910,7 +2924,7 @@ requires = [
 
 [[package]]
 name = "readxl"
-version = "1.5.0-4.1"
+version = "1.5.0-4.4.1"
 source = "cran"
 raw_version = "1.5.0.1"
 url = "https://cran.r-project.org/src/contrib/readxl_1.5.0.1.tar.gz"
@@ -3039,7 +3053,7 @@ checksum = "md5:738640893af3f49a19096baf6ad11342"
 
 [[package]]
 name = "rlist"
-version = "0.4.6-4.2"
+version = "0.4.6-4.4.2"
 source = "cran"
 raw_version = "0.4.6.2"
 url = "https://cran.r-project.org/src/contrib/rlist_0.4.6.2.tar.gz"
@@ -3091,7 +3105,7 @@ requires = ["DEoptimR"]
 
 [[package]]
 name = "rootSolve"
-version = "1.8.2-4.4"
+version = "1.8.2-4.4.4"
 source = "cran"
 raw_version = "1.8.2.4"
 url = "https://cran.r-project.org/src/contrib/rootSolve_1.8.2.4.tar.gz"
@@ -3221,7 +3235,7 @@ checksum = "md5:0d1b7caa41af627124796a22d3141f12"
 
 [[package]]
 name = "shape"
-version = "1.4.6-4.1"
+version = "1.4.6-4.4.1"
 source = "cran"
 raw_version = "1.4.6.1"
 url = "https://cran.r-project.org/src/contrib/shape_1.4.6.1.tar.gz"
@@ -3244,7 +3258,7 @@ requires = [
 
 [[package]]
 name = "sm"
-version = "2.2.6-4.0"
+version = "2.2.6-4.4.0"
 source = "cran"
 raw_version = "2.2-6.0"
 url = "https://cran.r-project.org/src/contrib/sm_2.2-6.0.tar.gz"
@@ -4013,7 +4027,7 @@ checksum = "md5:b5603af0a2d1b62511f85f5574c747a8"
 
 [[package]]
 name = "weird"
-version = "3.1.0-4.9000"
+version = "3.1.0-4.4.9000"
 source = "github"
 url = "https://api.github.com/repos/robjhyndman/weird/tarball/468806426eb857721af0db5e7a80100d3ed03485"
 checksum = "git:468806426eb857721af0db5e7a80100d3ed03485"
