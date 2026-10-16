@@ -213,6 +213,70 @@ A related idea is the Hampel filter, where each anomaly is replaced by the local
 
 The threshold is often set under the assumption of a Normal distribution, for which the MAD is equal to 0.6745 times the standard deviation.
 So it is common to set $\tau = k/0.6745$ where $k$ is the number of standard deviations permitted before an observation is considered an outlier.
+Then an observation is an anomaly if it lies outside the band $m_t \pm k a_t/0.6745$.
+
+```{r}
+#| label: fig-hampel_m25
+#| code-fold: true
+#| fig-cap: !expr sprintf("Mortality rates of French males aged 25, from %d to %d, with the moving median (blue line) and the band $m_t \\pm 3a_t/0.6745$ (shaded), using $w = 7$. Points outside the band (orange) are identified as anomalies by the Hampel identifier with $k = 3$.", min(fr_mortality$Year), max(fr_mortality$Year))
+
+w <- 7
+fr_m25 <- fr_mortality |>
+  filter(Sex == "Male", Age == 25) |>
+  arrange(Year)
+y <- fr_m25$Mortality
+n <- length(y)
+# Moving median and moving MAD (not defined within w of either end)
+m <- stats::runmed(y, 2 * w + 1, endrule = "keep")
+a <- rep(NA_real_, n)
+for (i in (w + 1):(n - w)) {
+  a[i] <- median(abs(y[(i - w):(i + w)] - m[i]))
+}
+fr_m25 <- fr_m25 |>
+  mutate(
+    m = m,
+    lower = m - 3 * a / 0.6745,
+    upper = m + 3 * a / 0.6745,
+    anomaly = hampel_anomalies(Mortality, bandwidth = w, k = 3)
+  )
+fr_m25 |>
+  ggplot(aes(x = Year)) +
+  geom_ribbon(
+    data = fr_m25 |> filter(!is.na(lower)),
+    aes(ymin = lower, ymax = upper),
+    fill = "#0072B2",
+    alpha = 0.2
+  ) +
+  geom_line(aes(y = Mortality)) +
+  geom_line(aes(y = m), colour = "#0072B2") +
+  geom_point(
+    data = fr_m25 |> filter(anomaly),
+    aes(y = Mortality),
+    colour = "#D55E00"
+  ) +
+  labs(y = "Mortality rate")
+```
+
+```{r}
+#| label: check_hampel_m25
+#| include: false
+#| dependson: fig-hampel_m25
+
+# The flagged points are exactly those outside the band, and the prose names
+# the war years among them
+stopifnot(
+  identical(
+    fr_m25$anomaly,
+    with(fr_m25, !is.na(lower) & (Mortality < lower | Mortality > upper))
+  ),
+  all(c(1870, 1871, 1914:1919, 1940) %in% fr_m25$Year[fr_m25$anomaly])
+)
+```
+
+@fig-hampel_m25 shows the result for French males aged 25, using $w = 7$ and $k = 3$.
+The band is narrow when the series is smooth, and wide when it varies a lot, because $a_t$ measures the local variation.
+The anomalies include the Franco-Prussian war (1870--1871), and both world wars.
+
 Because we apply the rule repeatedly over the length of a time series, we need to be careful of the problem of multiple comparisons, where the probability of a false positive overall is much larger than the probability of a false positive for each individual test.
 However, it is not straightforward to adjust the probabilities because the tests are not independent, and the dependence between them is determined by the window half-width $w$ and the characteristics of the time series.
 The `hampel_anomalies()` function implements this algorithm.
