@@ -1,3 +1,25 @@
+# Figure text after the 7.5in width change (2026-10-16)
+
+Layout
+- [x] tests: fig-zscoretests, fig-pzscoretests (Chauvenet label clipped), fig-zspurious (10000 clipped)
+- [x] boxplots: fig-probanomaly (log ticks run together), fig-lvplots1, fig-cricketboxlv (legend taller than figure)
+- [x] timeseries: fig-pbs-features ("1.000.00"), fig-hampel_fr (year labels under points)
+- [x] network: fig-senate-nodes (Murkowski on a point)
+- [x] highdim: fig-pca-outliermaps, fig-pca-outliermap2 (legend covers x titles)
+- [x] imagevideo: fig-fashion (titles clipped)
+- [x] distance: fig-iso-tree (Split 1 clipped, title flush left)
+
+Fonts
+- [x] ggrepel geoms default to family "" -> update_geom_defaults() for text_repel/label_repel
+- [x] theme_void() resets text family to "" -> mask with base_family = "BookMath" (as TeX)
+- [x] ggraph edge labels default to family "" -> update_geom_defaults(GeomEdgePath)
+- [x] fig-iso-tree bold node labels in BookMath bold (KaTeX serif) -> family = "Fira Sans"
+- [x] make clean && make build; recheck every changed figure
+
+## Review
+
+All 168 figures rebuilt after `make clean`; 23 differ from the deployed build: the 16 targeted, plus 7 whose repel labels or theme_void() titles moved from Noto Sans to Fira Sans. All 23 checked by eye. The fonts were never set by the otexts extension, which only styles the HTML; plot fonts come from before-each-chapter.R. The reviewers' other font reports (fig-bagplot, fig-tukeydepth, fig-proj-10dto2d, ...) were false: the knitr output is pixel-identical to a direct BookMath render. Registering "sans" with systemfonts doesn't help, as ragg resolves family "" through fontconfig. Not changed: fig-o3-pca and fig-o3plot (14in, crowded labels, last label clipped), which were already like this.
+
 # Reader-reproducible plot maths: show TeX(), run tex() (2026-10-16)
 
 - [x] tex-labels.R: `TeX <- tex` alias; treat `\textbf{}` as bold italic (vectors) so labels work with plain latex2exp

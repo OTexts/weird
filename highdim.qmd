@@ -820,7 +820,11 @@ outlier_map(PcaClassic(Y, k = 4))
 
 maps <- lapply(1:4, function(k) outlier_map(PcaClassic(Y, k)))
 # Extract one shared legend from a panel containing all four categories
-g <- ggplotGrob(maps[[2]] + theme(legend.title = element_blank()))
+g <- ggplotGrob(
+  maps[[2]] +
+    guides(colour = guide_legend(nrow = 1)) +
+    theme(legend.title = element_blank())
+)
 legend <- g$grobs[[which(g$layout$name == "guide-box-bottom")]]
 # Drop the per-panel legends and place the shared one across the bottom
 patchwork::wrap_plots(
@@ -830,7 +834,7 @@ patchwork::wrap_plots(
   maps[[4]],
   patchwork::wrap_elements(legend),
   design = "AB\nCD\nEE",
-  heights = c(1, 1, 0.18)
+  heights = c(1, 1, 0.1)
 ) &
   theme(legend.position = "none")
 ```
@@ -946,7 +950,11 @@ set.seed(1967)
 rob <- lapply(1:4, function(k) PcaHubert(Y, k, skew = TRUE, mcd = FALSE))
 maps <- lapply(rob, outlier_map, alpha = 0.9)
 # Extract one shared legend from a panel containing all four categories
-g <- ggplotGrob(maps[[2]] + theme(legend.title = element_blank()))
+g <- ggplotGrob(
+  maps[[2]] +
+    guides(colour = guide_legend(nrow = 1)) +
+    theme(legend.title = element_blank())
+)
 legend <- g$grobs[[which(g$layout$name == "guide-box-bottom")]]
 # Drop the per-panel legends and place the shared one across the bottom
 patchwork::wrap_plots(
@@ -956,7 +964,7 @@ patchwork::wrap_plots(
   maps[[4]],
   patchwork::wrap_elements(legend),
   design = "AB\nCD\nEE",
-  heights = c(1, 1, 0.18)
+  heights = c(1, 1, 0.1)
 ) &
   theme(legend.position = "none")
 ```

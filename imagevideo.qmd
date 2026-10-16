@@ -74,7 +74,7 @@ plot_images <- function(pixels, titles = NULL, ncol = 10) {
     facet_wrap(~title, ncol = ncol) +
     coord_equal() +
     theme_void() +
-    theme(strip.text = element_text(size = 8))
+    theme(strip.text = element_text(size = 7), strip.clip = "off")
 }
 shown <- c(sample(which(!fashion$planted), 20), which(fashion$planted))
 plot_images(

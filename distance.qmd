@@ -744,7 +744,9 @@ ggraph(g, layout = "tree") +
     title = "Single isolation tree for Dongsi air quality data",
     subtitle = "(max depth = 3)"
   ) +
-  theme_void(base_size = 12)
+  coord_cartesian(clip = "off") +
+  theme_void(base_size = 12) +
+  theme(plot.margin = margin_auto(10))
 ```
 
 Another way to visualise the same tree structure is to show the splits as lines on the scatterplot, as in @fig-iforest-tree.

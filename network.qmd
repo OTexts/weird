@@ -373,7 +373,11 @@ senate_node_scores |>
   ggplot(aes(x = Comp.1, y = Comp.2, colour = flagged)) +
   geom_point() +
   ggrepel::geom_text_repel(
-    data = senate_node_labels,
+    # Unflagged points get empty labels, so the labels avoid them too
+    data = bind_rows(
+      senate_node_labels,
+      senate_node_scores |> filter(!flagged) |> mutate(label = "")
+    ),
     aes(label = label),
     colour = "#D55E00"
   ) +

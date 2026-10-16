@@ -262,7 +262,7 @@ tibble(n = exp(seq(log(3), log(1e6), l = 100))) |>
     limits = c(3, 2e6),
     breaks = 10^(1:6),
     minor_breaks = NULL,
-    labels = format(10^(1:6), scientific = FALSE, trim = TRUE)
+    labels = scales::label_log()
   )
 ```
 
@@ -338,7 +338,7 @@ These can be produced using the **`lvplot`** package, as shown in @fig-cricketbo
 ```{r}
 #| label: fig-cricketboxlv
 #| code-fold: false
-#| fig-asp: 0.2
+#| fig-asp: 0.25
 #| fig-cap: "Letter-value plot of career batting averages for all men and women who played Test cricket and batted at least 20 times."
 
 library(lvplot)
@@ -395,7 +395,7 @@ When applied to three of the other examples (@fig-lvplots1, @fig-lvplots2 and @f
 
 ```{r}
 #| label: fig-lvplots1
-#| fig-asp: 0.2
+#| fig-asp: 0.25
 #| fig-cap: "Letter-value plot of Old Faithful eruption durations."
 
 oldfaithful |>

@@ -293,7 +293,10 @@ zspuriousdf |>
     parse = TRUE
   ) +
   guides(col = "none") +
-  theme(axis.text.x = element_text(size = 8)) +
+  theme(
+    axis.text.x = element_text(size = 8),
+    plot.margin = margin_part(r = 12)
+  ) +
   coord_cartesian(xlim = c(6, 7500))
 ```
 
@@ -539,7 +542,7 @@ df |>
       label = c("Grubbs test", "Chauvenet criterion")
     )
   ) +
-  coord_cartesian(xlim = c(4, 60000))
+  coord_cartesian(xlim = c(4, 1e5))
 ```
 
 From these, we can compute the probability of a spurious anomaly in a Normal distribution, using simulation rather than the approximation in @eq-spuriousz.
@@ -586,7 +589,7 @@ pzscoredf |>
       label = c("Grubbs test", "Chauvenet criterion")
     )
   ) +
-  coord_cartesian(xlim = c(4, 60000))
+  coord_cartesian(xlim = c(4, 1e5))
 ```
 
 @fig-pzscoretests shows that Grubbs' test has the correct size.

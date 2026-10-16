@@ -357,12 +357,12 @@ fr_anomalies_plot_male2 <- fr_anomalies |>
   ggrepel::geom_text_repel(
     data = yrs[yrs$Sex == "Male", ],
     #yrs |> filter(Sex == "Male", !Year %in% 1915:1918),
-    aes(y = 75, label = Year),
+    aes(y = 95, label = Year),
     col = "#478cb2",
     size = 3,
     seed = 1967
   ) +
-  ylim(0, 85)
+  ylim(0, 100)
 fr_anomalies_plot_female2 <- fr_anomalies |>
   filter(Sex == "Female", Year %in% yrs$Year[yrs$Sex == "Female"]) |>
   ggplot(aes(x = Year, y = Age)) +
@@ -380,12 +380,12 @@ fr_anomalies_plot_female2 <- fr_anomalies |>
   geom_point(col = "#c1653a") +
   ggrepel::geom_text_repel(
     data = yrs[yrs$Sex == "Female", ],
-    aes(y = 75, label = Year),
+    aes(y = 95, label = Year),
     col = "#c1653a",
     size = 3,
     seed = 1967
   ) +
-  ylim(0, 85)
+  ylim(0, 100)
 patchwork::wrap_plots(
   fr_anomalies_plot_female2,
   fr_anomalies_plot_male2,
@@ -847,7 +847,8 @@ PBS_feat_nomissing |>
   GGally::ggpairs(
     columnLabels = c("Trend", "Seasonality", "Spectral entropy", "ACF1"),
     lower = list(continuous = GGally::wrap("points", size = 0.6, alpha = 0.5))
-  )
+  ) +
+  scale_x_continuous(breaks = c(0, 0.5, 1))
 ```
 
 With `r sum(sapply(PBS_feat, is.numeric))` features, plots like this cannot show all the information.
