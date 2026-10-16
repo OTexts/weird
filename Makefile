@@ -3,7 +3,7 @@ SHELL := /bin/bash
 qmd_files   := $(wildcard *.qmd)
 rds_files   := $(wildcard rds/*.rds)
 data_files  := $(wildcard data/*)
-shared_deps := weird.bib before-each-chapter.R tex-labels.R $(wildcard plot-fonts/*.ttf) goatcounter.html apa-single-spaced.csl otexts.scss _quarto.yml htmlreplace.pl post-render.R
+shared_deps := weird.bib before-each-chapter.R tex-labels.R $(wildcard plot-fonts/*.ttf) $(wildcard _extensions/OTexts/otexts/*) _quarto.yml post-render.R
 
 .PHONY: all preview build launch deploy clean update
 
@@ -16,11 +16,11 @@ update:
 build: _book/.built
 
 _book/.built: $(qmd_files) $(rds_files) $(data_files) $(shared_deps)
-	source .uvr/activate && QUARTO_R=$$(dirname $$(command -v R)) quarto render --to html
+	source .uvr/activate && QUARTO_R=$$(dirname $$(command -v R)) quarto render --to otexts-html
 	touch $@
 
 preview: build
-	source .uvr/activate && QUARTO_R=$$(dirname $$(command -v R)) quarto preview --to html
+	source .uvr/activate && QUARTO_R=$$(dirname $$(command -v R)) quarto preview --to otexts-html
 
 deploy: build
 	cp .htaccess _book

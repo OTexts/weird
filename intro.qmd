@@ -1,9 +1,7 @@
 ---
-format:
-  html:
-    other-links:
-      - text: "halley_toms_ozone.txt"
-        href: https://OTexts.com/weird/data/halley_toms_ozone.txt
+other-links:
+  - text: "halley_toms_ozone.txt"
+    href: https://OTexts.com/weird/data/halley_toms_ozone.txt
 ---
 
 # Introduction {#sec-intro}

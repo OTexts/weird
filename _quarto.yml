@@ -42,44 +42,12 @@ book:
     style: "docked"
   favicon: favicon.ico
 
-published-title: "Last updated"
-date-format: "DD MMMM YYYY"
-number-depth: 2
 bibliography: weird.bib
-biblio-style: authoryear-comp
-fig-width: 8
-fig-height: 5
-fig-align: center
-fig-dpi: 150
-output-width: 100%
-syntax-highlighting: kate
 
 execute:
   freeze: auto
-  collapse: true
-  echo: true
   cache: true
 
 format:
-  html:
-    theme:
-      light:
-        - cosmo
-        - otexts.scss
-    toc-title: "Sections"
-    fontsize: 1.125rem
-    linestretch: 1.6
-    mainfont: "Libron, Georgia, serif"
-    html-math-method: katex
-    code-link: false
-    fig-responsive: true
+  otexts-html:
     code-fold: true
-    embed-resources: false
-    include-in-header:
-      - file: goatcounter.html
-    include-after-body:
-      - text: |
-          <script>
-            document.getElementById('current-year').textContent = new Date().getFullYear();
-          </script>
-    csl: apa-single-spaced.csl

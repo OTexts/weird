@@ -3,7 +3,8 @@
 files <- strsplit(Sys.getenv("QUARTO_PROJECT_OUTPUT_FILES"), "\n")[[1]]
 files <- files[endsWith(files, ".html")]
 if (length(files) > 0) {
-  status <- system2("perl", c("-i", "htmlreplace.pl", shQuote(files)))
+  script <- "_extensions/OTexts/otexts/htmlreplace.pl"
+  status <- system2("perl", c("-i", script, shQuote(files)))
   if (status != 0) stop("htmlreplace.pl failed")
 
   # Reduce figures to 256 colours; pngquant leaves a file unchanged (exit 98/99)

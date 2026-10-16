@@ -1,133 +1,48 @@
 /*-- scss:defaults --*/
-$theme-main: #65775c;
-$theme-gray: #ebebeb;
-$theme-yellow: #f4ba02;
-$theme-orange: #f49b02;
+$theme-main: #65775c !default;
+$theme-gray: #ebebeb !default;
+$theme-yellow: #f4ba02 !default;
+$theme-orange: #f49b02 !default;
 
-$body-bg: white;
-$body-color: darken($theme-gray, 70%);
-$link-color: $theme-main;
-$link-hover-color: saturate($theme-main, 40%);
-$toc-color: $theme-main;
-$link-decoration: none;
+$body-bg: white !default;
+$body-color: darken($theme-gray, 70%) !default;
+$link-color: $theme-main !default;
+$link-hover-color: saturate($theme-main, 40%) !default;
+$toc-color: $theme-main !default;
+$link-decoration: none !default;
 // Links take the weight of their context, so bold text stays bold
-$link-weight: inherit;
-$primary: $theme-main;
-$sidebar-bg: $theme-main;
-$sidebar-fg: white;
-$sidebar-hover-color: $theme-orange;
-$sidebar-active-color: $theme-yellow;
+$link-weight: inherit !default;
+$primary: $theme-main !default;
+$sidebar-bg: $theme-main !default;
+$sidebar-fg: white !default;
+$sidebar-hover-color: $theme-orange !default;
+$sidebar-active-color: $theme-yellow !default;
 
-$font-family-sans-serif: "Fira Sans", sans-serif;
-$font-family-monospace: "Hack", monospace;
-$headings-font-family: $font-family-sans-serif;
-$headings-font-weight: 600;
-$headings-color: $theme-main;
+$font-family-sans-serif: "Fira Sans", sans-serif !default;
+$font-family-monospace: "Hack", monospace !default;
+$headings-font-family: $font-family-sans-serif !default;
+$headings-font-weight: 600 !default;
+$headings-color: $theme-main !default;
 // Inline code takes the weight of its context, so **`pkg`** renders bold
-$font-weight-monospace-inline: inherit;
+$font-weight-monospace-inline: inherit !default;
 
 $h2-font-size: 1.4rem !default;
 $h3-font-size: 1.2rem !default;
 $h4-font-size: 1rem !default;
 $h5-font-size: 0.9rem !default;
 
-$code-block-bg: #f2f2f2;
-$code-block-border-left: #aaaaaa;
-$code-color: $body-color;
-$code-block-color: $body-color;
+$code-block-bg: #f2f2f2 !default;
+$code-block-border-left: #aaaaaa !default;
+$code-color: $body-color !default;
+$code-block-color: $body-color !default;
 // Pale theme tint shared by blockquotes and the current-section TOC pill
-$theme-tint: lighten($theme-main, 50%);
+$theme-tint: lighten($theme-main, 50%) !default;
+// Table header row and stub column
+$theme-header-bg: lighten($theme-main, 40%) !default;
 
-$callout-color-tip: $theme-orange;
+$callout-color-tip: $theme-orange !default;
 
 /*-- scss:rules --*/
-
-// Libron (OFL), self-hosted in fonts/
-@each $file, $weight, $style in ("Regular", 400, normal), ("Italic", 400, italic),
-  ("Bold", 700, normal), ("BoldItalic", 700, italic)
-{
-  @font-face {
-    font-family: "Libron";
-    src: url("fonts/Libron-#{$file}.woff2") format("woff2");
-    font-weight: $weight;
-    font-style: $style;
-    font-display: swap;
-  }
-}
-
-// Fira Sans (OFL, via Fontsource), self-hosted in fonts/; the browser only
-// downloads the latin-ext files when a page uses those characters
-$fira-subsets: (
-  "latin": (
-    U+0000-00FF,
-    U+0131,
-    U+0152-0153,
-    U+02BB-02BC,
-    U+02C6,
-    U+02DA,
-    U+02DC,
-    U+0304,
-    U+0308,
-    U+0329,
-    U+2000-206F,
-    U+20AC,
-    U+2122,
-    U+2191,
-    U+2193,
-    U+2212,
-    U+2215,
-    U+FEFF,
-    U+FFFD,
-  ),
-  "latin-ext": (
-    U+0100-02BA,
-    U+02BD-02C5,
-    U+02C7-02CC,
-    U+02CE-02D7,
-    U+02DD-02FF,
-    U+0304,
-    U+0308,
-    U+0329,
-    U+1D00-1DBF,
-    U+1E00-1E9F,
-    U+1EF2-1EFF,
-    U+2020,
-    U+20A0-20AB,
-    U+20AD-20C0,
-    U+2113,
-    U+2C60-2C7F,
-    U+A720-A7FF,
-  ),
-);
-// 600 (SemiBold, upright only) is for headings
-@each $subset, $range in $fira-subsets {
-  @each $weight, $style in (400, normal), (400, italic), (600, normal),
-    (700, normal), (700, italic)
-  {
-    @font-face {
-      font-family: "Fira Sans";
-      src: url("fonts/fira-sans-#{$subset}-#{$weight}-#{$style}.woff2")
-        format("woff2");
-      font-weight: $weight;
-      font-style: $style;
-      font-display: swap;
-      unicode-range: $range;
-    }
-  }
-}
-
-// Hack (MIT / Bitstream Vera), self-hosted in fonts/
-@each $file, $weight, $style in ("regular", 400, normal), ("bold", 700, normal),
-  ("italic", 400, italic), ("bolditalic", 700, italic)
-{
-  @font-face {
-    font-family: "Hack";
-    src: url("fonts/hack-#{$file}-subset.woff2") format("woff2");
-    font-weight: $weight;
-    font-style: $style;
-    font-display: swap;
-  }
-}
 
 h1,
 h2 {
@@ -178,7 +93,7 @@ caption {
 table {
   background: white;
   margin: 2em 0;
-  border: 1px solid lighten($theme-main, 50%);
+  border: 1px solid $theme-tint;
 }
 
 table td,
@@ -193,7 +108,7 @@ table th {
 
 th {
   color: $body-color;
-  background-color: lighten($theme-main, 40%) !important;
+  background-color: $theme-header-bg !important;
   font-weight: bold;
 }
 
@@ -202,7 +117,7 @@ td {
 }
 
 .stub-column td:first-child {
-  background-color: lighten($theme-main, 40%) !important;
+  background-color: $theme-header-bg !important;
   font-weight: bold;
 }
 
@@ -221,6 +136,16 @@ pre code {
   color: $body-color !important;
   background-color: $code-block-bg;
   border-radius: 5px;
+}
+
+// Quarto outdents code blocks and callouts on wide screens so their text
+// lines up with the body; keep the boxes flush with the text column instead
+@include media-breakpoint-up(lg) {
+  div.sourceCode,
+  .callout,
+  .callout:not(.no-icon) {
+    margin-left: 0;
+  }
 }
 
 // Printed chunk output: the code-block grey, without the left border, so it

@@ -1,0 +1,41 @@
+title: OTexts
+author: Rob J Hyndman
+version: 0.1.0
+quarto-required: ">=1.6.0"
+contributes:
+  formats:
+    html:
+      theme:
+        light:
+          - cosmo
+          - otexts.scss
+      toc-title: "Sections"
+      fontsize: 1.125rem
+      linestretch: 1.6
+      mainfont: "Libron, Georgia, serif"
+      html-math-method: katex
+      syntax-highlighting: kate
+      number-depth: 2
+      code-link: false
+      fig-responsive: true
+      # Figure defaults for R books (fig-dpi is doubled for retina screens)
+      fig-width: 7.5
+      fig-asp: 0.618
+      fig-dpi: 150
+      fig-align: center
+      knitr:
+        opts_chunk:
+          dev: ragg_png
+          fig.align: center # fig-align alone doesn't reach knitr chunks
+          out.width: "100%"
+          out.extra: 'loading="lazy"'
+          comment: ""
+      published-title: "Last updated"
+      date-format: "DD MMMM YYYY"
+      csl: apa-single-spaced.csl
+      include-in-header:
+        - file: goatcounter.html
+      include-after-body:
+        - file: current-year.html
+      filters:
+        - otexts.lua

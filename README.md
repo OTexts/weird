@@ -17,7 +17,7 @@
 
 If R packages are compiled from source, some need system libraries, such as libcurl, OpenSSL, libxml2, FreeType, HarfBuzz, FriBidi and GLPK.
 
-The web fonts used on the site (Libron, Fira Sans and Hack) are included in `fonts/`, so they need not be installed.
+The web fonts used on the site (Libron, Fira Sans and Hack) come with the [OTexts Quarto format](https://github.com/OTexts/quarto-otexts) in `_extensions/`, so they need not be installed.
 
 ### Setting up
 
