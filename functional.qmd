@@ -815,12 +815,11 @@ So MEI captures a curve's overall level relative to the rest of the sample, in m
 
 For most collections of curves, curves with an extreme MEI (very close to 0 or 1) are, by virtue of sitting near the edge of the sample, poorly enveloped and so also have somewhat low MBD.
 In fact, there is a well-defined upper bound on MBD as a function of MEI, tracing out a parabola [@Arribas-Gil2014-ll]:
-$$
-  \text{MBD}(y_i) \le a_0 + a_1\,\text{MEI}(y_i) + a_2\,\text{MEI}(y_i)^2,
-  \qquad
-  \text{where } a_0 = -\frac{2}{n(n - 1)},
+\begin{align*}
+  \text{MBD}(y_i) & \le a_0 + a_1\,\text{MEI}(y_i) + a_2\,\text{MEI}(y_i)^2, \\
+  \text{where } a_0 & = -\frac{2}{n(n - 1)},
   \quad a_1 = \frac{2(n + 1)}{n - 1},\quad a_2 = -\frac{2n}{n - 1}.
-$$
+\end{align*}
 A curve with an unusual shape stands out from this pattern: its MBD falls noticeably *below* the parabola for its MEI value, meaning it is even less enveloped than curves with a similar rank would typically be.
 The outliergram plots MEI against MBD along with this parabola, and flags as shape outliers those curves whose vertical distance below the parabola exceeds a boxplot-style fence (the third quartile of these distances, plus 1.5 times their interquartile range, by default).
 
