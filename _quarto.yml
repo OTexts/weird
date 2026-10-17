@@ -8,8 +8,9 @@ project:
 book:
   title: "That's weird! Anomaly&nbsp;detection using&nbsp;R"
   author:
-    name: "<a href='https://robjhyndman.com'>Rob J Hyndman</a>"
+    name: "Rob J Hyndman"
     affiliation: "Monash University, Australia"
+    url: "https://robjhyndman.com"
   site-url: "https://OTexts.com/weird"
   chapters:
     - index.qmd
@@ -35,10 +36,8 @@ book:
   page-footer:
     left: "Published by OTexts using [Quarto](https://quarto.org). &copy; [Rob J Hyndman](https://robjhyndman.com) []{#current-year}"
     border: false
-    background: light
   sidebar:
     id: book
-    background: "#cccccc"
     style: "docked"
   favicon: favicon.ico
 
