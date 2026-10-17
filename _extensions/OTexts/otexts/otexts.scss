@@ -304,10 +304,14 @@ button {
 }
 
 // Long display equations scroll within their own box on narrow screens,
-// rather than widening the page
-.katex-display {
+// rather than widening the page. Superscripts and fractions reach a few pixels
+// beyond KaTeX's box, so half of KaTeX's 1em margin becomes padding to keep them
+// clear of the overflow clip (.math.display outranks katex.min.css, loaded later)
+.math.display .katex-display {
   overflow-x: auto;
   overflow-y: hidden;
+  margin: 0.5em 0;
+  padding: 0.5em 0;
 }
 
 .katex {
