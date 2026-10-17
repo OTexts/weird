@@ -37,5 +37,6 @@ contributes:
         - file: goatcounter.html
       include-after-body:
         - file: current-year.html
+        - file: fit-tables.html
       filters:
         - otexts.lua

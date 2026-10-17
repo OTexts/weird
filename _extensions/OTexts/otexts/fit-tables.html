@@ -1,0 +1,50 @@
+<script>
+  // Shrink a table that is wider than the text column, by setting --table-scale
+  // (used by the cell font size and padding in otexts.scss), down to 9px text.
+  // A table still too wide then scrolls within its box, wrapped in Bootstrap's
+  // table-responsive div if nothing around it scrolls already
+  (() => {
+    const minFontPx = 9;
+    const scroller = (table) => {
+      for (let el = table.parentElement; el && el.tagName !== "MAIN"; el = el.parentElement) {
+        if (/auto|scroll/.test(getComputedStyle(el).overflowX)) return el;
+      }
+      return null;
+    };
+    const fit = () => {
+      document.querySelectorAll("main table").forEach((table) => {
+        table.style.removeProperty("--table-scale");
+        const cell = table.querySelector("td, th");
+        const box = scroller(table) || table.parentElement;
+        const available = box.clientWidth;
+        if (!cell || !available || table.offsetWidth <= available) return;
+        const minScale = minFontPx / parseFloat(getComputedStyle(cell).fontSize);
+        // Width is not quite proportional to the scale (borders, katex), so
+        // correct the first estimate once
+        let scale = 1;
+        for (let i = 0; i < 2; i++) {
+          scale = Math.max(minScale, Math.min(1, (scale * available) / table.offsetWidth));
+          table.style.setProperty("--table-scale", scale);
+        }
+        if (table.offsetWidth > available && !scroller(table)) {
+          const wrapper = document.createElement("div");
+          wrapper.className = "table-responsive";
+          table.replaceWith(wrapper);
+          wrapper.appendChild(table);
+        }
+      });
+    };
+    let pending = false;
+    const schedule = () => {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(() => {
+        pending = false;
+        fit();
+      });
+    };
+    window.addEventListener("load", fit);
+    window.addEventListener("resize", schedule);
+    document.fonts.ready.then(fit);
+  })();
+</script>

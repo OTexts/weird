@@ -90,6 +90,12 @@ caption {
   display: block;
 }
 
+// Wide captioned tables scroll within their own box on narrow screens,
+// rather than widening the page
+figure.quarto-float-tbl > div {
+  overflow-x: auto;
+}
+
 table {
   background: white;
   margin: 2em 0;
@@ -99,10 +105,12 @@ table {
 table td,
 table th {
   border: 1px;
-  font-size: 0.9rem;
+  // --table-scale is set by fit-tables.html to shrink a table that is wider
+  // than the text column
+  font-size: calc(0.9rem * var(--table-scale, 1));
   height: 12px;
   text-shadow: none;
-  padding: 8px 12px !important;
+  padding: calc(8px * var(--table-scale, 1)) calc(12px * var(--table-scale, 1)) !important;
   line-height: 1.4 !important;
 }
 
@@ -229,6 +237,16 @@ nav[role="doc-toc"] .nav-link.active,
   border-left: none !important;
 }
 
+// Quarto already drops the box from plain inline code in the TOC, but not from
+// language-tagged code (`DataFrame`{.python} renders as code.sourceCode), which
+// would otherwise show a lighter box inside the pill
+nav[role="doc-toc"] li code.sourceCode,
+nav[role="doc-toc"] li code.sourceCode span {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
 // Code in headings (e.g. `quantile()`): monospace only, no box
 :is(h1, h2, h3, h4, h5, h6) code,
 :is(h1, h2, h3, h4, h5, h6) code span {
@@ -283,6 +301,13 @@ button {
   padding: 5px;
   margin-top: 10px;
   font-family: $font-family-sans-serif;
+}
+
+// Long display equations scroll within their own box on narrow screens,
+// rather than widening the page
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .katex {
