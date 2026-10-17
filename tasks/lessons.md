@@ -76,3 +76,8 @@
 
 - **Check a font claim by pixels, not by eye.** I (and the figure reviewers) reported fig-tukeydepth and others as "not Fira Sans" from glyph shapes; the knitr output was pixel-identical to a direct BookMath render. Before calling a font wrong, render the same plot with the family set explicitly and `compare -metric AE` the two.
 
+
+## 2026-10-18
+
+- **Check what an overflow rule clips, not just what it scrolls.** I reported the extension's `.katex-display { overflow-y: hidden }` as fixing wide equations, having measured only horizontal overflow; the user spotted a cropped superscript, and 135 equations book-wide reached 1–8px beyond their box. When a style adds `overflow: hidden/auto`, measure `scrollHeight > clientHeight` (and width) for every affected element, and look at a high-DPI screenshot.
+- **Write new markup the way the book already does.** I split an equation with `$$\begin{aligned}...$$` when every other multi-line equation in the book is a bare `\begin{align*}`. Before adding a construct, grep for how existing chapters write it.
