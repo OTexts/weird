@@ -1,0 +1,9 @@
+<script>
+  // Fill an access date written as []{#current-date}, e.g. in a citation
+  const currentDate = document.getElementById('current-date');
+  if (currentDate) currentDate.textContent = new Date().toLocaleDateString('en-GB', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+</script>

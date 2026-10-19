@@ -314,6 +314,18 @@ button {
   padding: 0.5em 0;
 }
 
+// Wide inline equations marked [$...$]{.wide-math} (e.g. one per item of a
+// lettered list, so the letter stays on the same line) scroll within their own
+// box in the same way. Opt-in, since a boxed equation can't wrap across lines
+.wide-math {
+  display: inline-block;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  vertical-align: middle;
+  padding: 0.25em 0;
+}
+
 .katex {
   font-size: 1.15em !important;
 }

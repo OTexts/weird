@@ -8,6 +8,8 @@ while (<>) {
   s|<p class="author" style="margin: 0.5em 0 -0.5em 0;">|<p class="author">|g;
   # Quarto shows full titles for chapter xrefs on unnumbered pages (e.g. the preface);
   # shorten them to "Chapter N" / "Appendix A" as in the numbered chapters
+  # [-@sec-...] refs (marked by otexts.lua) get the bare number or letter
+  s|(<span class="xref-noprefix"><a [^>]*class="quarto-xref"><span>)(?:Appendix )?(\d+\|[A-Z])(?:&nbsp;\| —) [^<]*(</span>)|$1$2$3|g;
   s|(class="quarto-xref"><span>)(\d+)&nbsp; [^<]*(</span>)|$1Chapter $2$3|g;
   s|(class="quarto-xref"><span>)(Appendix [A-Z])[^<]*(</span>)|$1$2$3|g;
     # Process only inside csl-entry divs

@@ -28,3 +28,13 @@ function Meta(meta)
   end
   return meta
 end
+
+-- Mark [-@sec-...] refs so htmlreplace.pl can drop the "Chapter" prefix: on
+-- unnumbered pages (e.g. the preface) Quarto ignores the "-" and gives the
+-- full chapter title, which htmlreplace.pl would turn into "Chapter N"
+function Cite(cite)
+  local c = cite.citations[1]
+  if #cite.citations == 1 and c.mode == "SuppressAuthor" and c.id:match("^sec%-") then
+    return pandoc.Span(cite, { class = "xref-noprefix" })
+  end
+end
