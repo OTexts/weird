@@ -314,6 +314,13 @@ button {
   padding: 0.5em 0;
 }
 
+// Equation numbers sit flush right, but KaTeX's 2px Safari strut in each
+// vlist pokes out past them (its -2px margin moves the layout, not the box),
+// so numbered equations scrolled by 2px
+.math.display .katex-tag .vlist-t2 {
+  margin-right: 0;
+}
+
 // Wide inline equations marked [$...$]{.wide-math} (e.g. one per item of a
 // lettered list, so the letter stays on the same line) scroll within their own
 // box in the same way. Opt-in, since a boxed equation can't wrap across lines
