@@ -158,7 +158,7 @@ pre code {
 
 // Printed chunk output: the code-block grey, without the left border, so it
 // is set apart from the text but still distinct from the code above it
-:is(.cell-output-stdout, .cell-output-stderr) pre {
+:is(.cell-output-stdout, .cell-output-stderr, .cell-output-display) pre {
   background-color: $code-block-bg;
   border-radius: 5px;
   padding: 0.4em 0.6em;

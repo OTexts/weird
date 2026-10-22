@@ -12,6 +12,8 @@ while (<>) {
   s|(<span class="xref-noprefix"><a [^>]*class="quarto-xref"><span>)(?:Appendix )?(\d+\|[A-Z])(?:&nbsp;\| —) [^<]*(</span>)|$1$2$3|g;
   s|(class="quarto-xref"><span>)(\d+)&nbsp; [^<]*(</span>)|$1Chapter $2$3|g;
   s|(class="quarto-xref"><span>)(Appendix [A-Z])[^<]*(</span>)|$1$2$3|g;
+  # Link to directories, not index.html (the server redirects .../index.html to .../)
+  s{(\bhref=)(["'])((?:\.\.?/|/)?(?:[^"'\s#?:]*/)?)index\.html(?=[#?"'])}{$1 . $2 . ($3 eq '' ? './' : $3)}ge;
     # Process only inside csl-entry divs
     s{(<div\b[^>]*\bclass="csl-entry"[^>]*>)(.*?)(</div>)}{
         my ($open, $inner, $close) = ($1, $2, $3);
