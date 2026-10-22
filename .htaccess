@@ -3,6 +3,10 @@ RewriteEngine On
 RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
 RewriteRule ^(.*)$ https://%1%{REQUEST_URI} [R=301,QSA,NC,L]
 
+# .../index.html -> .../ (THE_REQUEST, so the DirectoryIndex lookup doesn't loop)
+RewriteCond %{THE_REQUEST} \s(/[^?\s]*/)index\.html[?\s] [NC]
+RewriteRule ^ %1 [R=301,L]
+
 # Chapter files were renamed from 01-intro.html etc. to intro.html etc.
 RewriteRule ^[0-9]{2}-([a-z]+)(\.html|_files/.*)$ /weird/$1$2 [R=301,L]
 
