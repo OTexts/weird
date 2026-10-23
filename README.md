@@ -2,6 +2,8 @@
 
 ### Anomaly and outlier detection using R
 
+An open-source textbook by Rob J Hyndman, published at <https://OTexts.com/weird>.
+
 ## Building the book
 
 ### Dependencies
@@ -36,4 +38,6 @@ Once the environment is set up, build the book with `make`:
 make build     # Render all chapters to HTML (default target)
 make preview   # Build, then launch a live preview in the browser
 make clean     # Remove build artifacts
+make update    # Update the R packages (reinstalling weird) and sync .uvr/
+make deploy    # Build, then rsync _book/ to the OTexts server
 ```
