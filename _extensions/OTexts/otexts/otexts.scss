@@ -76,6 +76,15 @@ dd {
   color: $headings-color;
 }
 
+// Subtitle on the title page: sans serif, smaller, in the title colour, and
+// close to the rule under the title
+#title-block-header .subtitle {
+  font-family: $font-family-sans-serif;
+  font-size: 1.1rem;
+  color: $headings-color;
+  margin-top: -0.75rem;
+}
+
 .table-caption,
 figcaption.quarto-float-caption,
 caption {
@@ -274,6 +283,28 @@ nav[role="doc-toc"] li code.sourceCode span {
 
 #toc-title {
   font-weight: bold;
+}
+
+// Previous/next chapter links: shaded boxes with rounded corners, in the
+// $theme-tint of the blockquotes and the current-section TOC pill
+.page-navigation {
+  gap: 1em;
+}
+
+.nav-page a {
+  background-color: $theme-tint;
+  color: mix($theme-main, black, 75%);
+  border-radius: 5px;
+  padding: 0.4em 0.8em;
+  transition: background-color 0.15s ease;
+}
+
+.nav-page a:hover {
+  background-color: mix($theme-main, $theme-tint, 15%);
+}
+
+.nav-page .bi {
+  font-size: 1.4rem;
 }
 
 .page-navigation a:hover {
