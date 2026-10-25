@@ -221,12 +221,12 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   color: $sidebar-hover-color;
 }
 
-// Section TOC: rounded pills, lightly tinted on hover; the current section
-// uses $theme-tint with darker text (a solid pill looked too heavy).
+// Section TOC: rounded boxes, lightly tinted on hover; the current section
+// uses $theme-tint with darker text (a solid box looked too heavy).
 // No bold when active: the wider text would rewrap and shift the list on scroll
 nav[role="doc-toc"] .nav-link {
   display: block;
-  border-radius: 15px;
+  border-radius: 5px;
   padding: 2px 10px;
   margin-bottom: 3px;
   transition:
@@ -308,7 +308,7 @@ nav[role="doc-toc"] li code.sourceCode span {
 }
 
 .page-navigation a:hover {
-  color: saturate($theme-main, 60%) !important;
+  color: $link-hover-color !important;
 }
 
 .csl-entry {
