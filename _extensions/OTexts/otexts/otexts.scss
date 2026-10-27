@@ -3,6 +3,8 @@ $theme-main: #65775c !default;
 $theme-gray: #ebebeb !default;
 $theme-yellow: #f4ba02 !default;
 $theme-orange: #f49b02 !default;
+// Top band of the front-page title block, and the author text below it
+$title-block-bg: #dddddd !default;
 
 $body-bg: white !default;
 $body-color: darken($theme-gray, 70%) !default;
@@ -76,13 +78,44 @@ dd {
   color: $headings-color;
 }
 
-// Subtitle on the title page: sans serif, smaller, in the title colour, and
-// close to the rule under the title
-#title-block-header .subtitle {
+// Title block on the front page (title-block.html), as on the bookdown
+// sites: the title, with any subtitle in small type after it, on a grey band
+// over a band of the theme colour holding the authors and affiliations
+#title-block-header.otexts-title-block {
+  margin-bottom: 2rem;
+  border-radius: 10px;
+  overflow: hidden;
   font-family: $font-family-sans-serif;
-  font-size: 1.1rem;
-  color: $headings-color;
-  margin-top: -0.75rem;
+  .quarto-title {
+    background-color: $title-block-bg;
+    padding: 0.5rem 20px;
+  }
+  h1.title {
+    margin: 0 !important; // overrides the h1 margins above
+    padding: 0;
+    border-bottom: none;
+    color: $headings-color;
+    font-size: 2.2rem;
+    small.subtitle {
+      font-size: 0.4em;
+      font-weight: normal;
+    }
+  }
+  .otexts-title-authors {
+    background-color: $theme-main;
+    color: $title-block-bg;
+    padding: 0.5rem 20px 0.6rem;
+    p {
+      margin: 0;
+    }
+    .author {
+      font-size: 1.5rem;
+      line-height: 1.3;
+    }
+    a {
+      color: inherit;
+    }
+  }
 }
 
 .table-caption,
@@ -219,6 +252,37 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
 
 .sidebar-title > a:hover {
   color: $sidebar-hover-color;
+}
+
+// Language selector (languages.js), between the title and the search box
+.otexts-languages {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.otexts-languages select {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  color: inherit;
+  background-color: transparent;
+  border: 1px solid rgba($sidebar-fg, 0.5);
+  border-radius: 5px;
+  padding: 2px 4px;
+  cursor: pointer;
+}
+
+.otexts-languages select:hover,
+.otexts-languages select:focus {
+  border-color: $sidebar-hover-color;
+}
+
+.otexts-languages option {
+  color: $body-color;
+  background-color: $body-bg;
 }
 
 // Section TOC: rounded boxes, lightly tinted on hover; the current section

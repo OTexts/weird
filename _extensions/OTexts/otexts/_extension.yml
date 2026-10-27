@@ -9,6 +9,8 @@ contributes:
         light:
           - cosmo
           - otexts.scss
+      template-partials:
+        - title-block.html
       toc-title: "Sections"
       fontsize: 1.125rem
       linestretch: 1.6
