@@ -1,37 +1,19 @@
-# Preface {.unnumbered}
+---
+date-modified: today
+---
 
-> This book is under development, and the last few chapters are incomplete.
-> If you find any errors, please report them on the [GitHub issues page](https://github.com/OTexts/weird/issues).
+# Home {.unnumbered .unlisted}
 
-This book is about tools and techniques for finding and understanding anomalies.
-It begins with some simple data sets containing only one variable, and builds up slowly to much more complicated data.
-It covers popular but inadvisable methods to identify anomalies (pointing out their shortcomings), as well as more reliable and recommended approaches.
+::: {.otexts-cover logo="figs/weird-hex.png" alt="Front cover of That's weird! Anomaly detection using R, by Rob J Hyndman"}
+[Free to read online]{.eyebrow}
 
-The book is written for two audiences: (1)&nbsp;people finding themselves doing data analysis without having had formal training in anomaly detection; and (2)&nbsp;students studying statistics or data science.
+A probabilistic perspective on finding and understanding anomalies.
 
-You will need a knowledge of statistics and probability at about second-year undergraduate level.
-So if you've done a couple of statistics subjects, and are familiar with multiple regression, hypothesis tests and probability distributions, then you should be prepared for what follows.
-This book takes a probabilistic approach to anomaly detection, and so probability distributions are particularly important.
-This is the subject of @sec-univariate and @sec-multivariate.
-You will also need some knowledge of matrix algebra; the most important matrix results that we use are provided in @sec-appendix.
+For people doing data analysis without formal training in anomaly detection, and for students of statistics or data science.
 
-Finally, you will need to know how to use R and be familiar with the [tidyverse](https://tidyverse.org) packages such as **`dplyr`**, **`tidyr`** and **`ggplot2`**.
-There are many online resources that cover this material, including @r4ds and the [StartR](https://startr.numbat.space/) self-learning modules developed at Monash University.
+Applications cover univariate and multivariate data, time series, functional data, images, videos, networks, and event data.
 
-All R examples in the book assume that you have loaded the [**`weird`** package](https://pkg.robjhyndman.com/weird/) first.
-You will need to use the development version, currently available on GitHub.
+The [**`weird`** package](https://pkg.robjhyndman.com/weird/) is used throughout, with R code provided for all examples.
 
-```{r}
-#| label: library
-#| code-fold: false
-
-#pak::pak("robjhyndman/weird")
-library(weird)
-```
-
-This loads the relevant data sets, and various other packages needed to reproduce the examples.
-For some of the plots, you will also need to load the **`latex2exp`** package.
-
-&nbsp;<br>
-
-Rob J Hyndman <br> `r format(Sys.Date(), "%B %Y")`
+[Start reading](preface.qmd){.btn .btn-primary}
+:::

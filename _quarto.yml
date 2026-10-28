@@ -15,6 +15,7 @@ book:
   site-url: "https://OTexts.com/weird"
   chapters:
     - index.qmd
+    - preface.qmd
     - "intro.qmd"
     - "univariate.qmd"
     - "multivariate.qmd"

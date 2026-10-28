@@ -43,3 +43,30 @@ contributes:
         - file: fit-tables.html
       filters:
         - otexts.lua
+    pdf:
+      template-partials:
+        - before-title.tex
+      documentclass: book
+      pdf-engine: pdflatex
+      block-headings: false
+      cite-method: biblatex
+      biblatexoptions:
+        - style=authoryear-comp
+      number-sections: true
+      number-depth: 2
+      toc-depth: 2
+      toc-title: "Contents"
+      linestretch: 1.2
+      colorlinks: false
+      fig-pos: "htbp"
+      fig-height: 7
+      fig-width: 11.2
+      geometry: "left=2cm, right=2cm, top=2cm, bottom=2cm"
+      include-in-header:
+        - file: preamble.tex
+      include-after-body:
+        - file: printindex.tex
+      format-resources:
+        - fpp.sty
+      default-image-extension: pdf
+      keep-tex: true

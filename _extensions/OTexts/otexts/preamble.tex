@@ -1,0 +1,49 @@
+\usepackage{fpp}
+
+% Allow per-figure width control: e.g., \setlength{\pandocfigwidth}{0.7\linewidth}
+% before a code cell to display it at 70% text width.
+% Automatically resets at end of figure environment (LaTeX grouping).
+\newlength{\pandocfigwidth}
+\setlength{\pandocfigwidth}{\linewidth}
+\ifPDFTeX
+\renewcommand*\pandocbounded[1]{\resizebox{\pandocfigwidth}{!}{#1}}
+\else
+% Direction switches: TeX--XeT under XeLaTeX, \textdir under LuaLaTeX
+\ifXeTeX
+  \def\otextsbeginL{\beginL}\def\otextsendL{\endL}
+  \def\otextsbeginR{\beginR}\def\otextsendR{\endR}
+\else
+  \def\otextsbeginL{\textdir TLT\relax}\def\otextsendL{}
+  \def\otextsbeginR{\textdir TRT\relax}\def\otextsendR{}
+\fi
+% A box scaled in right-to-left mode is placed to the left of its origin,
+% so build it left to right (TeX--XeT, enabled by babel)
+\renewcommand*\pandocbounded[1]{\hbox{\otextsbeginL\resizebox{\pandocfigwidth}{!}{#1}\otextsendL}}
+% The same for every image: in right-to-left mode it is placed to the left of
+% its origin (off the page, for the logo and figures)
+\AtBeginDocument{%
+  \let\otextsincludegraphics\includegraphics
+  \DeclareRobustCommand{\includegraphics}[2][]{\hbox{\otextsbeginL\otextsincludegraphics[#1]{#2}\otextsendL}}}
+% TikZ diagrams are drawn left to right
+\RequirePackage{etoolbox}
+\AtBeginEnvironment{tikzpicture}{\otextsbeginL}
+\AtEndEnvironment{tikzpicture}{\otextsendL}
+% Under XeLaTeX, lists indent on the left and hang their labels out into the right margin.
+% Move the indent to the start (right) side and put the label flush with it.
+% Lists that set a right margin themselves (quote, bibliography) are left alone.
+\ifXeTeX
+\makeatletter
+\let\otextsoldlist\list
+\def\list#1#2{\otextsoldlist{#1}{#2%
+  \ifdim\rightmargin=\z@
+    \setlength\rightmargin{\leftmargin}\setlength\leftmargin{\z@}%
+    \ifx\makelabel\@mklab\def\makelabel##1{##1\hfil}\fi
+  \fi}}
+\makeatother
+\fi
+\fi
+
+\ifPDFTeX\DeclareUnicodeCharacter{2B24}{\textbullet}\fi
+
+% So pdflatex also works run by hand in the LaTeX/ folder after a render
+\graphicspath{{../_book}}

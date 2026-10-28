@@ -1,0 +1,10 @@
+% Book metadata for fpp.sty (the title page, running head and copyright page)
+\makeatletter
+\def\otextsbooktitle{$title$}
+\def\otextsbooksubtitle{$subtitle$}
+\def\otextsrunningtitle{$if(runningtitle)$$runningtitle$$else$$title$$endif$}
+\def\otextsbookauthors{$for(authors)$$it.name.literal$$sep$\\ $endfor$}
+\def\otextsisbn{$isbn$}
+\def\otextssiteurl{$book.site-url$}
+\def\otextsprintedition{$print-edition$}
+\makeatother

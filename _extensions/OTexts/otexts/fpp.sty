@@ -1,0 +1,398 @@
+\RequirePackage{iftex}
+
+%\pdfminorversion=3
+
+% Page layout must come before pdfx so pdfx reads the correct paper dimensions
+\geometry{%
+  paperwidth={6.690in},
+  paperheight={9.610in},
+  textwidth=130mm,
+  textheight=190mm,
+  left=2cm,
+  top=2cm,
+  headsep = 2\baselineskip,
+  headheight = \baselineskip
+}
+
+\PassOptionsToPackage{colorlinks=false}{hyperref}
+\ifPDFTeX\usepackage[x-302]{pdfx}\fi
+
+% FONTS
+\ifPDFTeX
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\fi
+\usepackage{alltt}
+\let\temptt\texttt
+\renewcommand\texttt[1]{\mbox{\temptt{#1}}}
+% Under XeLaTeX/LuaLaTeX (e.g. right-to-left books) the fonts are set with
+% mainfont, sansfont and monofont in the document YAML instead
+\ifPDFTeX
+\usepackage[notextcomp,nott]{kpfonts}
+%\usepackage[t1,scale=0.86]{sourcecodepro}
+\usepackage[scaled=0.86]{DejaVuSansMono}
+\usepackage[lf,t]{carlito}
+\fi
+
+% Spacing
+\usepackage{parskip}
+
+% Various packages
+\usepackage{paralist,booktabs,xspace,tabularx,multicol,mathtools, ragged2e}
+\mathtoolsset{mathic=true}
+\usepackage{multicol}
+\usepackage{placeins}
+\usepackage{rotating}
+\usepackage{amsmath}
+% bm clashes with unicode-math (XeLaTeX/LuaLaTeX); use bold italic there
+\ifPDFTeX\usepackage{bm}\else\providecommand{\bm}[1]{\symbfit{#1}}\fi
+\usepackage[hyphens]{url}
+\urlstyle{tt}
+
+%% CAPTIONS
+\usepackage{caption}
+\DeclareCaptionStyle{italic}[justification=centering]
+ {labelfont={bf},textfont={it},labelsep=colon}
+\captionsetup[figure]{style=italic,format=hang,singlelinecheck=true}
+\captionsetup[table]{style=italic,format=hang,singlelinecheck=true}
+
+% Redefine shaded environment if it exists (for R plots)
+\ifcsname Shaded\endcsname
+  %\definecolor{shadecolor}{RGB}{225,225,225}
+  \renewenvironment{Shaded}{\fontsize{9.5}{10}\begin{snugshade}}{\end{snugshade}}
+\fi
+
+% Chapter and section headings
+\RequirePackage{etoolbox}
+\usepackage{titlesec,titletoc}
+\titlespacing*{\section}{0pt}{3ex}{1ex}
+\titlespacing*{\subsection}{0ex}{1ex}{0ex}
+\titlespacing*{\paragraph}{0pt}{1ex}{1em}
+
+% Strings a book can redefine in header-includes
+\providecommand{\otextschapter}{Chapter}
+\providecommand{\otextsraggedright}{\raggedright}
+% Logo on the title page, at the start of the line for the book's direction
+\providecommand{\otextslogo}{\includegraphics[width=5cm]{extrafiles/OTexts-graylogo}}
+% The title, subtitle, authors and ISBN (\otextsbooktitle, \otextsbooksubtitle,
+% \otextsbookauthors, \otextsisbn, \otextssiteurl, \otextsprintedition) and the running head (\otextsrunningtitle,
+% the title unless `runningtitle` is set) come from the book's YAML, through
+% before-title.tex
+\providecommand{\otextstitle}{\otextsbooktitle
+  \ifdefempty{\otextsbooksubtitle}{}{\par{\large\otextsbooksubtitle}}}
+\providecommand{\otextscopyrightpage}{%
+    \emph{\otextsbooktitle}\par
+    \ifdefempty{\otextsisbn}{}{ISBN \otextsisbn\par}
+    Copyright \textcopyright\ \the\year. OTexts
+    \par{Available online at \textit{\otextssiteurl}}
+    \ifdefempty{\otextsprintedition}{}{\par\textit{\otextsprintedition, \monthyear}}
+    \par\textsc{Published by OTexts}
+}
+
+\selectcolormodel{HTML}
+\definecolor{main}{HTML}{333333}
+\definecolor{highlight}{HTML}{eeeeee}
+
+\titleformat{\chapter}%
+[display]% shape
+{}% format applied to label+text
+  {\huge\sffamily\bfseries\color{main}\otextschapter\ \thechapter}% label
+  {0pt}% horizontal separation between label and title body
+  {\fontsize{26}{32}\sffamily\bfseries\otextsraggedright\color{main}}% before the title body
+\titleformat{\section}%
+[hang]% shape
+{\sffamily\large\bfseries\color{main}}% format applied to label+text
+{\thesection}% label
+{1em}% horizontal separation between label and title body
+{}% before the title body
+[]% after the title body
+\titleformat{\subsection}%
+[hang]% shape
+{\sffamily\normalsize\bfseries\itshape\color{main}}% format applied to label+text
+{}% label
+{0em}% horizontal separation between label and title body
+{}% before the title body
+[]% after the title body
+
+% Description list label
+\renewcommand*\descriptionlabel[1]{\hspace\labelsep\normalfont\em #1}
+
+
+%% BIBLIOGRAPHY
+\usepackage{hyphenat}
+% Quarto loads biblatex (with biblatexoptions) before this file
+\makeatletter
+\@ifpackageloaded{biblatex}{}{\usepackage[style=authoryear-comp]{biblatex}}
+\makeatother
+\ExecuteBibliographyOptions{bibencoding=utf8,minnames=1,maxnames=3, maxbibnames=99,terseinits=true,giveninits=true,uniquename=false,uniquelist=true,labeldate=true,doi=false, isbn=false, dashed=false, backref=true}
+\DefineBibliographyStrings{english}{%
+  backrefpage = {Cited on p.},% originally "cited on page"
+  backrefpages = {Cited on pp.},% originally "cited on pages"
+}
+\AtBeginDocument{\hypersetup{colorlinks=false}}
+\renewbibmacro*{pageref}{%
+  \iflistundef{pageref}%
+  {\renewcommand{\finentrypunct}{\addperiod}}%
+  {\renewcommand{\finentrypunct}{\addspace}%
+\printtext{\addperiod\nobreak\hfill\rlap{\hskip15pt\colorbox{highlight}{\scriptsize\printlist[pageref][-\value{listtotal}]{pageref}}}}}}
+
+\defbibenvironment{bibliography}
+{\list
+  {}
+  {%
+    \setlength{\leftmargin}{\bibhang}%
+    \setlength{\rightmargin}{2.5cm}%
+    \setlength{\itemindent}{-\leftmargin}%
+    \setlength{\itemsep}{\bibitemsep}%
+    \setlength{\parsep}{\bibparsep}%
+  }%
+}
+{\endlist}
+{\item}
+
+%\renewcommand{\cite}[2][0pt]{\sidenote[][#1]{\fullcite{#2}.}}
+\AtEveryBibitem{\clearfield{month}}
+\AtEveryBibitem{%
+  \clearfield{day}%
+  \clearfield{month}%
+  \clearfield{endday}%
+  \clearfield{endmonth}%
+  \clearfield{doi}%
+}
+\DeclareFieldFormat{url}{\url{#1}}
+\DeclareFieldFormat[article]{pages}{#1}
+\DeclareFieldFormat[inproceedings]{pages}{\lowercase{pp.}#1}
+\DeclareFieldFormat[incollection]{pages}{\lowercase{pp.}#1}
+\DeclareFieldFormat[article]{volume}{\textbf{#1}}
+\DeclareFieldFormat[article]{number}{(#1)}
+\DeclareFieldFormat[article]{title}{\MakeCapital{#1}}
+\DeclareFieldFormat[inproceedings]{title}{#1}
+\DeclareFieldFormat{shorthandwidth}{#1}
+
+% Don't use "In:" in bibliography. Omit urls from journal articles.
+\DeclareBibliographyDriver{article}{%
+  \usebibmacro{bibindex}%
+  \usebibmacro{begentry}%
+  \usebibmacro{author/editor}%
+  \setunit{\labelnamepunct}\newblock
+  \usebibmacro{title}%
+  \newunit
+  \printlist{language}%
+  \newunit\newblock
+  \usebibmacro{byauthor}%
+  \newunit\newblock
+  \usebibmacro{byeditor+others}%
+  \newunit\newblock
+  \printfield{version}%
+  \newunit\newblock
+  %  \usebibmacro{in:}%
+  \usebibmacro{journal+issuetitle}%
+  \setunit{\bibpagespunct}%
+  \printfield{pages}
+  \newunit\newblock
+  \usebibmacro{eprint}
+  \newunit\newblock
+  \printfield{addendum}%
+  \newunit\newblock
+  \usebibmacro{pageref}%
+  \newunit\newblock
+  \printfield{note}%
+\usebibmacro{finentry}}
+
+\DeclareBibliographyDriver{incollection}{%
+  \usebibmacro{bibindex}%
+  \usebibmacro{begentry}%
+  \usebibmacro{author/translator+others}%
+  \setunit{\printdelim{nametitledelim}}\newblock
+  \usebibmacro{title}%
+  \newunit
+  \printlist{language}%
+  \newunit\newblock
+  \usebibmacro{byauthor}%
+  \newunit\newblock
+  \usebibmacro{in:}%
+  \usebibmacro{maintitle+booktitle}%
+  \newunit\newblock
+  \usebibmacro{byeditor+others}%
+  \newunit\newblock
+  \printfield{edition}%
+  \newunit
+  \iffieldundef{maintitle}
+  {\printfield{volume}%
+  \printfield{part}}
+  {}%
+  \newunit
+  \printfield{volumes}%
+  \newunit\newblock
+  \usebibmacro{series+number}%
+  \newunit\newblock
+  \printfield{note}%
+  \newunit\newblock
+  \usebibmacro{publisher+location+date}%
+  \newunit\newblock
+  \usebibmacro{chapter+pages}%
+  \newunit\newblock
+  \iftoggle{bbx:isbn}
+  {\printfield{isbn}}
+  {}%
+  \newunit\newblock
+  %\usebibmacro{doi+eprint+url}%
+  %\newunit\newblock
+  \usebibmacro{addendum+pubstate}%
+  \setunit{\bibpagerefpunct}\newblock
+  \usebibmacro{pageref}%
+  \newunit\newblock
+  \iftoggle{bbx:related}
+  {\usebibmacro{related:init}%
+  \usebibmacro{related}}
+  {}%
+\usebibmacro{finentry}}
+
+% Remove dot between volume and number in journal articles.
+\renewbibmacro*{journal+issuetitle}{%
+  \usebibmacro{journal}%
+  \setunit*{\addspace}%
+  \iffieldundef{series}
+  {}
+  {\newunit
+    \printfield{series}%
+  \setunit{\addspace}}%
+  \printfield{volume}%
+  %  \setunit*{\adddot}%
+  \printfield{number}%
+  \setunit{\addcomma\space}%
+  \printfield{eid}%
+  \setunit{\addspace}%
+  \usebibmacro{issue+date}%
+  \newunit\newblock
+  \usebibmacro{issue}%
+\newunit}
+
+\renewcommand{\bibfont}{\small}
+% The index in the same size as the bibliography
+\AtBeginEnvironment{theindex}{\small}
+\setlength\bibitemsep{0.2\baselineskip}
+
+\defbibnote{backrefs}{Numbers on right indicate pages where each reference is cited.}
+
+%% GRAPHICS
+\RequirePackage{graphicx}
+\setcounter{topnumber}{2}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{4}
+\renewcommand{\topfraction}{0.85}
+\renewcommand{\bottomfraction}{0.85}
+\renewcommand{\textfraction}{0.15}
+\renewcommand{\floatpagefraction}{0.7}
+
+\RequirePackage{float}
+
+%% LINE AND PAGE BREAKING
+%\sloppy
+\clubpenalty = 10000
+\widowpenalty = 10000
+\brokenpenalty = 10000
+\RequirePackage{microtype}
+\ifPDFTeX\DisableLigatures{encoding = T1, family = tt*}\fi
+\raggedbottom
+\usepackage[bottom]{footmisc}
+
+\let\subsubsection\paragraph
+
+% Prints the month name (e.g., January) and the year (e.g., 2008)
+\newcommand{\monthyear}{%
+  \ifcase\month\or January\or February\or March\or April\or May\or June\or
+  July\or August\or September\or October\or November\or
+  December\fi\space\number\year
+}
+
+%% headers and footers
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancyhf{}
+\renewcommand{\chaptermark}[1]{\markboth{\thechapter.~#1}{}}
+\fancyhead[LE]{\thepage\quad\textsc{\otextsrunningtitle}}% book title
+\fancyhead[RO]{\textsc{\MakeLowercase{\leftmark}}\quad\thepage}% chapter title
+
+% Title page
+\def\titlepage{%
+  \cleardoublepage%
+  {%
+    \sffamily%
+    \otextsraggedright
+      \fontsize{14}{18}\selectfont\par\noindent\textcolor{darkgray}{{%
+          \otextsbookauthors%
+      }}%
+      \par\vspace{9.5pc}%
+      \fontsize{36}{48}\selectfont\par\noindent\textcolor{darkgray}{{\otextstitle}}%
+      \vfill%
+      %\fontsize{14}{16}\selectfont\par\noindent{\thanklesspublisher}%
+      \par\noindent\otextslogo\par
+  }
+  \thispagestyle{empty}%
+  \clearpage%
+  % copyright page
+  \newpage
+    ~\vfill
+    \thispagestyle{empty}
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{\baselineskip}
+    \otextscopyrightpage}
+\def\frontmatter{}
+\def\maketitle{\titlepage\doublehyphendemerits=\maxdimen\setlength{\parskip}{0.5\baselineskip}}
+
+%% FLOW CHARTS
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows}
+\tikzstyle{decision} = [diamond, draw, fill=blue!20,
+text width=4em, text badly centered, node distance=4cm, inner sep=0pt]
+\tikzstyle{judgment} = [diamond, draw, fill=green!20,
+text width=4em, text badly centered, node distance=4cm, inner sep=0pt]
+\tikzstyle{block} = [rectangle, draw, fill=blue!20,
+text width=4.5cm, text centered, rounded corners, minimum height=4em]
+\tikzstyle{narrowblock} = [rectangle, draw, fill=blue!20,
+text width=3.8cm, text centered, rounded corners, minimum height=4em]
+\tikzstyle{line} = [draw, thick, -latex']
+%\tikzstyle{line} = [->,thi
+\tikzstyle{cloud} = [draw, ellipse,fill=red!20, node distance=2.7cm,
+minimum height=1.8em, text centered]
+\tikzstyle{data} = [draw, trapezium, trapezium left angle=70, trapezium right angle=-70, minimum height=4em, fill=red!20, text width=4.5em, text badly centered, node distance=3.5cm]
+
+\tikzstyle{connector} = [->,thick]
+
+% \titlecontents{chapter}%
+% [2em]% distance from left margin
+% {\addvspace{6pt}\bfseries}% global formatting
+%   {\hspace*{-1em}\contentslabel{1.5em}}%width of chapter number
+%   {\hspace{-2.5em}}%without chapter number
+%   {\hfill\contentspage}%filler + page num
+% \titlecontents{section}%
+% [7em]%distance from left margin
+% {}%global formatting
+%   {\hspace*{1.8em}\contentslabel{2.8em}}%width of section number
+%   {}%without section number
+%   {\dotfill\contentspage}%filler + page num
+
+\defbibheading{bibliography}[\bibname]{%
+  \chapter*{#1}%
+  \markboth{#1}{#1}%
+\addcontentsline{toc}{chapter}{\bibname}}
+
+% hyperref is loaded after this file under XeLaTeX/LuaLaTeX
+\AtBeginDocument{%
+\let\oldhref\href
+\renewcommand{\href}[2]{#2\footnote{\fontsize{8}{9}\tt\url{#1}}}}
+
+
+% Index
+\usepackage{makeidx}
+\makeindex
+
+\setlength{\abovedisplayskip}{0cm}
+\setlength{\belowdisplayskip}{0cm}
+\setlength{\abovedisplayshortskip}{0pt}
+\setlength{\belowdisplayshortskip}{0pt}
+\setlength{\tabcolsep}{0.12cm}
+\renewcommand*\MakeUppercase[1]{#1}

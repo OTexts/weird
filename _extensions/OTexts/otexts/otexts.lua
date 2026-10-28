@@ -17,10 +17,16 @@ for _, font in ipairs(fonts) do
     path = "fonts/" .. font .. ".woff2" })
 end
 
+-- Write a list of metadata items into the page as JSON, for languages.js
+local function add_json(id, items)
+  local json = quarto.json.encode(items):gsub("</", "<\\/")
+  quarto.doc.include_text("in-header",
+    '<script type="application/json" id="' .. id .. '">' .. json .. "</script>")
+end
+
 -- Language selector: the `languages:` list (lang, name, url of each edition)
--- goes into the page as JSON, read by languages.js
 local function add_languages(languages)
-  if not languages or #languages == 0 then return end
+  if not languages or #languages == 0 then return false end
   local editions = {}
   for _, l in ipairs(languages) do
     table.insert(editions, {
@@ -29,14 +35,33 @@ local function add_languages(languages)
       url = pandoc.utils.stringify(l.url),
     })
   end
-  quarto.doc.add_html_dependency({
-    name = "otexts-languages",
-    version = "0.1.0",
-    scripts = { "languages.js" },
-  })
-  local json = quarto.json.encode(editions):gsub("</", "<\\/")
-  quarto.doc.include_text("in-header",
-    '<script type="application/json" id="otexts-languages">' .. json .. "</script>")
+  add_json("otexts-languages", editions)
+  return true
+end
+
+-- R and Python icons: the `software:` list (lang, name, url, and for the
+-- current book `current: true`). `pages` maps this book's page names to the
+-- other book's, e.g. intro: 01-intro
+local function add_software(software)
+  if not software or #software == 0 then return false end
+  local books = {}
+  for _, s in ipairs(software) do
+    local book = {
+      lang = pandoc.utils.stringify(s.lang),
+      name = pandoc.utils.stringify(s.name),
+      url = pandoc.utils.stringify(s.url),
+      current = s.current == true,
+    }
+    if s.pages then
+      book.pages = {}
+      for key, value in pairs(s.pages) do
+        book.pages[key] = pandoc.utils.stringify(value)
+      end
+    end
+    table.insert(books, book)
+  end
+  add_json("otexts-software", books)
+  return true
 end
 
 -- Title block byline (title-block.html): the authors on one line, as "A, B
@@ -85,6 +110,59 @@ local function add_byline(meta)
   end
 end
 
+-- Front page cover: `::: {.otexts-cover image="..."}` puts the book cover
+-- beside the div's content, which ends with the page's date-modified. Without
+-- an image, a stand-in cover is drawn in CSS from the title and authors,
+-- with the optional `logo="..."` image (e.g. a hex sticker) below the title
+local function cover_book(div, meta)
+  local image = div.attributes.image
+  if image then
+    local alt = div.attributes.alt
+      or ("Front cover of " .. pandoc.utils.stringify(meta.title or ""))
+    return pandoc.Div(pandoc.Plain(pandoc.Image(alt, image)),
+      { class = "otexts-cover-book" })
+  end
+  local authors = pandoc.Inlines({})
+  for i, a in ipairs(meta["by-author"] or {}) do
+    if i > 1 then authors:insert(pandoc.LineBreak()) end
+    local name = a.name and a.name.literal or a.name
+    authors:extend(pandoc.Inlines(name or {}))
+  end
+  local parts = {
+    pandoc.Div(pandoc.Plain(authors), { class = "otexts-cover-authors" }),
+    pandoc.Div(pandoc.Plain(meta.title or {}), { class = "otexts-cover-title" }),
+  }
+  if div.attributes.logo then
+    parts[#parts + 1] = pandoc.Div(pandoc.Plain(pandoc.Image("", div.attributes.logo)),
+      { class = "otexts-cover-logo" })
+  end
+  parts[#parts + 1] = pandoc.Div(pandoc.Plain("OTexts"), { class = "otexts-cover-publisher" })
+  return pandoc.Div(parts, { class = "otexts-cover-book otexts-cover-standin", ["aria-hidden"] = "true" })
+end
+
+local function cover(div, meta)
+  local text = pandoc.Blocks(div.content)
+  if meta["date-modified"] then
+    local label = pandoc.utils.stringify(meta["published-title"] or "Last updated")
+    text:insert(pandoc.Div(pandoc.Plain(label .. " " ..
+      pandoc.utils.stringify(meta["date-modified"])), { class = "otexts-cover-updated" }))
+  end
+  return pandoc.Div({
+    cover_book(div, meta),
+    pandoc.Div(text, { class = "otexts-cover-text" }),
+  }, { class = "otexts-cover" })
+end
+
+function Pandoc(doc)
+  if not quarto.doc.is_format("html") then return nil end
+  doc.blocks = doc.blocks:walk({
+    Div = function(div)
+      if div.classes:includes("otexts-cover") then return cover(div, doc.meta) end
+    end,
+  })
+  return doc
+end
+
 function Meta(meta)
   if quarto.doc.is_format("html") then
     add_byline(meta)
@@ -94,7 +172,15 @@ function Meta(meta)
       stylesheets = { "fonts.css" },
       resources = resources,
     })
-    add_languages(meta.languages)
+    local has_languages = add_languages(meta.languages)
+    local has_software = add_software(meta.software)
+    if has_languages or has_software then
+      quarto.doc.add_html_dependency({
+        name = "otexts-languages",
+        version = "0.1.0",
+        scripts = { "languages.js" },
+      })
+    end
   end
   return meta
 end

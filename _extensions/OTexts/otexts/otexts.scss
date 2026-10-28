@@ -118,6 +118,151 @@ dd {
   }
 }
 
+// Front page cover (otexts.lua): the book beside a short introduction. The
+// cover carries the title and authors, so the title block and the page's own
+// heading are hidden, but the title block stays in the page for screen readers
+.otexts-cover {
+  display: grid;
+  grid-template-columns: minmax(10rem, 18rem) minmax(0, 1fr);
+  gap: 2rem 3.5rem;
+  align-items: center;
+  margin: 1.5rem 0 2.5rem;
+}
+
+// The cover as a physical book: a spine highlight at the left edge and a
+// layered shadow underneath
+.otexts-cover-book {
+  position: relative;
+  border-radius: 2px 4px 4px 2px;
+  overflow: hidden;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.25),
+    0 6px 12px -4px rgba(30, 10, 10, 0.3),
+    0 22px 40px -18px rgba(30, 10, 10, 0.55);
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, rgba(0, 0, 0, 0.28) 0, rgba(255, 255, 255, 0.22) 1.4%,
+        rgba(0, 0, 0, 0.1) 3%, transparent 5.5%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 30%);
+  }
+}
+
+// Stand-in cover for a book without a cover image, laid out like the
+// printed covers: authors, the title on a grey band, the publisher
+.otexts-cover-standin {
+  aspect-ratio: 400 / 583;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  background: linear-gradient(165deg, lighten($theme-main, 6%), darken($theme-main, 8%));
+  color: white;
+  font-family: $font-family-sans-serif;
+  .otexts-cover-authors {
+    padding: 12% 9% 8%;
+    font-weight: 400;
+    font-size: 1.1rem;
+    line-height: 1.3;
+  }
+  .otexts-cover-title {
+    background: $title-block-bg;
+    color: $body-color;
+    padding: 6% 9%;
+    font-family: Libron, Georgia, serif;
+    font-variant: small-caps;
+    font-size: 1.6rem;
+    line-height: 1.1;
+  }
+  .otexts-cover-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6% 0;
+    img {
+      width: 48%;
+      height: auto;
+    }
+  }
+  .otexts-cover-publisher {
+    grid-row: 4;
+    align-self: end;
+    padding: 0 9% 9%;
+    text-align: end;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+}
+
+.otexts-cover-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 32rem;
+  p {
+    margin: 0;
+  }
+  // The edition, and that the book is free to read
+  .eyebrow {
+    font-family: $font-family-sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: $theme-main;
+  }
+  p:has(> .btn) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 0.4rem;
+  }
+  .btn {
+    font-family: $font-family-sans-serif;
+    border-radius: 5px;
+    padding: 0.45rem 1.1rem;
+  }
+}
+
+.otexts-cover-updated {
+  font-family: $font-family-sans-serif;
+  font-size: 0.8rem;
+  color: lighten($body-color, 30%);
+}
+
+body:has(.otexts-cover) #title-block-header {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+section:has(> .otexts-cover) > h1 {
+  display: none;
+}
+
+// On phones the cover sits above the text, small enough that the buttons
+// are still on the first screen
+@include media-breakpoint-down(sm) {
+  .otexts-cover {
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+    margin-top: 0.5rem;
+  }
+  .otexts-cover-book {
+    max-width: 11rem;
+  }
+}
+
 .table-caption,
 figcaption.quarto-float-caption,
 caption {
@@ -252,6 +397,37 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
 
 .sidebar-title > a:hover {
   color: $sidebar-hover-color;
+}
+
+// R and Python icons (languages.js), above the language selector: the book
+// being read in full colour, the other faint
+.otexts-software {
+  display: flex;
+  align-items: center;
+  gap: 0.9em;
+  margin-top: 0.5rem;
+}
+
+.otexts-software > * {
+  display: inline-flex;
+  color: $sidebar-fg;
+  line-height: 1;
+}
+
+.otexts-software svg {
+  height: 1.3rem;
+  width: auto;
+  fill: currentColor;
+}
+
+.otexts-software a {
+  opacity: 0.35;
+  transition: opacity 0.15s ease;
+}
+
+.otexts-software a:hover,
+.otexts-software a:focus-visible {
+  opacity: 0.8;
 }
 
 // Language selector (languages.js), between the title and the search box
