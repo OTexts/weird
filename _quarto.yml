@@ -35,12 +35,10 @@ book:
     - "references.qmd"
   appendices:
     - "appendix.qmd"
-  page-footer:
-    left: "Published by OTexts using [Quarto](https://quarto.org). &copy; [Rob J Hyndman](https://robjhyndman.com) []{#current-year}"
-    border: false
   sidebar:
     id: book
     style: "docked"
+    footer: "Published by OTexts using [Quarto](https://quarto.org). &copy; [Rob J Hyndman](https://robjhyndman.com) []{#current-year}"
   favicon: favicon.ico
 
 bibliography: weird.bib
