@@ -64,61 +64,43 @@ local function add_software(software)
   return true
 end
 
--- Title block byline (title-block.html): the authors on one line, as "A, B
--- and C" in the book's language, linked where they have a url, and each
--- affiliation once
-local and_words = {
-  en = "and", it = "e", es = "y", pt = "e", fr = "et", de = "und",
-  el = "και", fa = "و", zh = "和", ja = "と", ko = "와",
-}
-
-local function add_byline(meta)
-  local authors = meta["by-author"]
-  if not authors or #authors == 0 then return end
-  local lang = pandoc.utils.stringify(meta.lang or "en"):match("^%a+")
-  local and_word = and_words[lang] or "and"
-  local byline = pandoc.Inlines({})
-  for i, a in ipairs(authors) do
-    if i > 1 then
-      if i == #authors then
-        byline:extend({ pandoc.Space(), pandoc.Str(and_word), pandoc.Space() })
-      else
-        byline:extend({ pandoc.Str(","), pandoc.Space() })
-      end
-    end
-    local name = a.name and a.name.literal or a.name
-    name = pandoc.Inlines(name or {})
-    if a.url then
-      byline:insert(pandoc.Link(name, pandoc.utils.stringify(a.url)))
-    else
-      byline:extend(name)
-    end
-  end
-  meta["otexts-byline"] = byline
-
-  local affiliations = pandoc.List({})
-  for _, aff in ipairs(meta["by-affiliation"] or {}) do
-    if aff.name then affiliations:insert(pandoc.Inlines(aff.name)) end
-  end
-  if #affiliations > 0 then
-    local joined = pandoc.Inlines({})
-    for i, aff in ipairs(affiliations) do
-      if i > 1 then joined:extend({ pandoc.Str(";"), pandoc.Space() }) end
-      joined:extend(aff)
-    end
-    meta["otexts-affiliations"] = joined
-  end
-end
-
 -- Front page cover: `::: {.otexts-cover image="..."}` puts the book cover
 -- beside the div's content, which ends with the page's date-modified. Without
 -- an image, a stand-in cover is drawn in CSS from the title and authors,
 -- with the optional `logo="..."` image (e.g. a hex sticker) below the title
+local function author_names(meta)
+  local names = pandoc.List({})
+  for _, a in ipairs(meta["by-author"] or {}) do
+    local name = a.name and a.name.literal or a.name
+    names:insert(pandoc.utils.stringify(name or ""))
+  end
+  if #names < 2 then return names[1] or "" end
+  return table.concat(names, ", ", 1, #names - 1) .. " and " .. names[#names]
+end
+
+-- The image is the div's `image`, else `book: cover-image` if the file exists
+local function cover_image(div, meta)
+  if div.attributes.image then return div.attributes.image end
+  local image = meta.book and meta.book["cover-image"]
+  image = image and pandoc.utils.stringify(image)
+  if image and image ~= "" then
+    local f = io.open(image, "r")
+    if f then
+      f:close()
+      return image
+    end
+  end
+end
+
 local function cover_book(div, meta)
-  local image = div.attributes.image
+  local image = cover_image(div, meta)
   if image then
     local alt = div.attributes.alt
-      or ("Front cover of " .. pandoc.utils.stringify(meta.title or ""))
+    if not alt then
+      alt = "Front cover of " .. pandoc.utils.stringify(meta.title or "")
+      local names = author_names(meta)
+      if names ~= "" then alt = alt .. ", by " .. names end
+    end
     return pandoc.Div(pandoc.Plain(pandoc.Image(alt, image)),
       { class = "otexts-cover-book" })
   end
@@ -153,8 +135,32 @@ local function cover(div, meta)
   }, { class = "otexts-cover" })
 end
 
+-- The cover is for the web book only: in other formats it is dropped, with
+-- the page's heading (Quarto lifts a chapter's first heading out of any div,
+-- so the heading can't be hidden with .content-visible). Other blocks, such as
+-- the Jupyter engine's front matter cell, can sit between the two
+local function drop_cover(blocks)
+  local kept = pandoc.Blocks({})
+  for _, block in ipairs(blocks) do
+    if block.t == "Div" and block.classes:includes("otexts-cover") then
+      for i = #kept, 1, -1 do
+        if kept[i].t == "Header" then
+          if kept[i].level == 1 then kept:remove(i) end
+          break
+        end
+      end
+    else
+      kept:insert(block)
+    end
+  end
+  return kept
+end
+
 function Pandoc(doc)
-  if not quarto.doc.is_format("html") then return nil end
+  if not quarto.doc.is_format("html") then
+    doc.blocks = drop_cover(doc.blocks)
+    return doc
+  end
   doc.blocks = doc.blocks:walk({
     Div = function(div)
       if div.classes:includes("otexts-cover") then return cover(div, doc.meta) end
@@ -165,7 +171,6 @@ end
 
 function Meta(meta)
   if quarto.doc.is_format("html") then
-    add_byline(meta)
     quarto.doc.add_html_dependency({
       name = "otexts-fonts",
       version = "0.1.0",
@@ -189,6 +194,7 @@ end
 -- unnumbered pages (e.g. the preface) Quarto ignores the "-" and gives the
 -- full chapter title, which htmlreplace.pl would turn into "Chapter N"
 function Cite(cite)
+  if not quarto.doc.is_format("html") then return nil end
   local c = cite.citations[1]
   if #cite.citations == 1 and c.mode == "SuppressAuthor" and c.id:match("^sec%-") then
     return pandoc.Span(cite, { class = "xref-noprefix" })

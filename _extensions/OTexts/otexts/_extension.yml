@@ -9,8 +9,6 @@ contributes:
         light:
           - cosmo
           - otexts.scss
-      template-partials:
-        - title-block.html
       toc-title: "Sections"
       fontsize: 1.125rem
       linestretch: 1.6
@@ -61,6 +59,15 @@ contributes:
       fig-pos: "htbp"
       fig-height: 7
       fig-width: 11.2
+      # cairo_pdf finds the plot fonts set up by the otexts R package (BookMath)
+      # through fontconfig; the default pdf() device can't use them. Plotmath
+      # symbols are set in KaTeX_Main, as they are in the HTML (ragg) figures
+      knitr:
+        opts_chunk:
+          dev: cairo_pdf
+          dev.args:
+            cairo_pdf:
+              symbolfamily: KaTeX_Main_Plot
       geometry: "left=2cm, right=2cm, top=2cm, bottom=2cm"
       include-in-header:
         - file: preamble.tex
@@ -70,3 +77,6 @@ contributes:
         - fpp.sty
       default-image-extension: pdf
       keep-tex: true
+      filters:
+        - otexts.lua
+        - code-blocks.lua

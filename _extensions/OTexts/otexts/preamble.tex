@@ -4,7 +4,9 @@
 % before a code cell to display it at 70% text width.
 % Automatically resets at end of figure environment (LaTeX grouping).
 \newlength{\pandocfigwidth}
-\setlength{\pandocfigwidth}{\linewidth}
+% Set when the document starts: in the preamble \linewidth is still the class's
+% default, not the text width set by geometry in fpp.sty
+\AtBeginDocument{\setlength{\pandocfigwidth}{\linewidth}}
 \ifPDFTeX
 \renewcommand*\pandocbounded[1]{\resizebox{\pandocfigwidth}{!}{#1}}
 \else
@@ -42,6 +44,33 @@
 \makeatother
 \fi
 \fi
+
+% R output as left-to-right, left-aligned, like the code
+\RecustomVerbatimEnvironment{verbatim}{Verbatim}{}
+% ... and shaded like the code above it and the HTML output
+\BeforeBeginEnvironment{verbatim}{\begin{snugshade}}
+\AfterEndEnvironment{verbatim}{\end{snugshade}}
+
+% Tables in a smaller font (captions stay outside the tabular, at full size)
+\AtBeginEnvironment{tabular}{\small}
+\AtBeginEnvironment{longtable}{\small}
+
+% A display that follows a blank line starts in vertical mode, where LaTeX adds
+% an empty line before it (on top of \parskip): start the paragraph with
+% \noindent so there is no empty line
+\let\otextsorigdisplay\[
+\renewcommand\[{\ifvmode\noindent\fi\otextsorigdisplay}
+\BeforeBeginEnvironment{equation}{\ifvmode\noindent\fi}
+\BeforeBeginEnvironment{equation*}{\ifvmode\noindent\fi}
+\BeforeBeginEnvironment{align}{\ifvmode\noindent\fi}
+\BeforeBeginEnvironment{align*}{\ifvmode\noindent\fi}
+\BeforeBeginEnvironment{gather*}{\ifvmode\noindent\fi}
+
+% Maths a little smaller, to sit with the text (Latin Modern Math is large next to Libron)
+\ifLuaTeX\setmathfont{Latin Modern Math}[Scale=0.95]\fi
+
+% For scaling wide tables to the text width
+\usepackage{adjustbox}
 
 \ifPDFTeX\DeclareUnicodeCharacter{2B24}{\textbullet}\fi
 
