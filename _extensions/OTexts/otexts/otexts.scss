@@ -531,6 +531,45 @@ nav[role="doc-toc"] li code.sourceCode span {
   color: $link-hover-color;
 }
 
+// On narrow screens the sidebar is a popup. While open it is a flex column that
+// runs from below the header to the bottom of the screen, so the footer at its
+// end stays in view (Quarto's min-height and 100vh overrun the screen)
+@media (max-width: 991.98px) {
+  #quarto-sidebar.show {
+    display: flex;
+    flex-direction: column;
+    bottom: 0;
+    height: auto;
+    min-height: 0;
+    max-height: none !important;
+  }
+}
+
+// Footer text pinned to the bottom of the sidebar; wraps if the sidebar is narrow
+.quarto-sidebar-footer {
+  margin-top: auto;
+  padding: 1em 0;
+}
+
+.sidebar-footer-item {
+  font-size: 0.7rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.sidebar-footer-item p {
+  margin-bottom: 0;
+}
+
+.sidebar-footer-item a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.sidebar-footer-item a:hover {
+  color: $sidebar-hover-color;
+}
+
 button {
   background-color: $theme-gray;
   border-radius: 8px;
