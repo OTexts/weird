@@ -38,7 +38,7 @@ book:
   sidebar:
     id: book
     style: "docked"
-    footer: "Published by OTexts using [Quarto](https://quarto.org). &copy; [Rob J Hyndman](https://robjhyndman.com) []{#current-year}"
+    footer: "&copy; []{#current-year} [OTexts](https://OTexts.com)&trade;. Built with [Quarto](https://quarto.org)."
   favicon: favicon.ico
 
 bibliography: weird.bib
