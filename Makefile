@@ -24,6 +24,7 @@ preview: build
 
 deploy: build
 	rsync -zrvce 'ssh -p 18765' --delete _book/ u192-zw4zvui1lqsb@ssh.otexts.com:www/otexts.com/public_html/weird
+	touch .deployed
 
 clean:
 	rm -rf _book _freeze *_cache *_files
