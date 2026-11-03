@@ -257,7 +257,11 @@ gpd_s <- surprisals(n01$v1, distribution = dist_student_t(4))
 gpd_beta <- 0.1
 # Threshold and GPD fit computed in the same way as surprisals_prob()
 gpd_u <- unname(quantile(gpd_s, prob = 1 - gpd_beta, type = 8))
-gpd_fit <- evd::fpot(gpd_s, threshold = gpd_u, std.err = FALSE)$estimate
+# (fitted to the excesses divided by their median, then rescaled)
+gpd_excess <- gpd_s[gpd_s > gpd_u] - gpd_u
+gpd_c <- median(gpd_excess)
+gpd_fit <- evd::fpot(gpd_excess / gpd_c, threshold = 0, std.err = FALSE)$estimate
+gpd_fit["scale"] <- gpd_fit["scale"] * gpd_c
 # Observation with the 10th largest surprisal
 gpd_si <- sort(gpd_s, decreasing = TRUE)[10]
 gpd_pi <- gpd_beta *
