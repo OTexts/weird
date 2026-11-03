@@ -1,7 +1,3 @@
-options(
-  repos = c(CRAN = "https://packagemanager.posit.co/cran/__linux__/resolute/latest")
-)
-
 # >>> uvr >>>
 local({
   lib <- Sys.getenv("UVR_LIBRARY")
