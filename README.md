@@ -1,8 +1,6 @@
-# That's weird
+# That's weird: Anomaly and outlier detection using R
 
-### Anomaly and outlier detection using R
-
-An open-source textbook by Rob J Hyndman, published at <https://OTexts.com/weird>.
+Source files for the open-source textbook by Rob J Hyndman, published at <https://OTexts.com/weird>.
 
 ## Building the book
 
@@ -21,23 +19,37 @@ If R packages are compiled from source, some need system libraries, such as libc
 
 The web fonts used on the site (Libron, Fira Sans and Hack) come with the [OTexts Quarto format](https://github.com/OTexts/quarto-otexts) in `_extensions/`, so they need not be installed.
 
-### Setting up
+### R packages (uvr)
 
-R package dependencies are managed with [uvr](https://github.com/nbafrank/uvr), a fast package manager for R.
-Install it, then set up the project environment:
-
-```bash
-uvr sync
-```
-
-This reads `uvr.toml`/`uvr.lock` and installs the required packages into a project-local environment at `.uvr/`.
-
-Once the environment is set up, build the book with `make`:
+Packages are listed in `uvr.toml` and pinned in `uvr.lock`. They install into `.uvr/library`, which `.Rprofile` puts on the library path.
 
 ```bash
-make build     # Render all chapters to HTML (default target)
-make preview   # Build, then launch a live preview in the browser
-make clean     # Remove build artifacts
-make update    # Update the R packages (reinstalling weird) and sync .uvr/
-make deploy    # Build, then rsync _book/ to the OTexts server
+uvr sync              # install from uvr.lock
+uvr add <pkg>         # add a package
+uvr update            # update packages and the lockfile
+uvr doctor            # check which R is active
 ```
+
+`uvr sync` must build packages with the same R that Quarto runs, or compiled packages such as igraph may fail to load. The Makefile ensures this by rendering with the R that `.uvr/activate` selects. If you have more than one R installed, run `uvr r pin <version>` with the version you want. This writes `.r-version`, which is git-ignored because each machine pins its own R. Re-pin and run `uvr sync` after upgrading R. If a compiled package still fails, rebuild from source with `UVR_NO_BINARY=1 uvr sync`.
+
+### Quarto
+
+```bash
+quarto render --to otexts-html            # whole book, into _book/
+quarto render intro.qmd --to otexts-html  # one chapter
+quarto preview --to otexts-html           # live preview
+```
+
+Always use `--to otexts-html`; plain `--to html` drops the OTexts styling. The post-render script (`htmlreplace.pl`, pngquant) runs automatically. Outside `make`, run these from a shell where `source .uvr/activate` has been run.
+
+### Makefile
+
+| Target          | Does                                                          |
+|-----------------|---------------------------------------------------------------|
+| `make build`    | Full render (default). Skips if no sources changed since last build |
+| `make preview`  | Build, then `quarto preview`                                  |
+| `make update`   | `uvr update && uvr sync` (reinstalling weird)                 |
+| `make deploy`   | Build, then rsync `_book/` to otexts.com/weird                |
+| `make clean`    | Remove `_book`, `_freeze`, `*_cache`, `*_files`               |
+
+Run `make clean` after updating R packages or data, as chunk output is cached in `_freeze/` and `<chapter>_cache/`.
