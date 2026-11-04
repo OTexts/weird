@@ -629,3 +629,27 @@ button {
 div.csl-entry a:has(i.bi) {
   text-indent: 0;
 }
+
+// Author photo beside its bio (::: author-bio, with the photo first and the
+// text in a nested ::: bio-text): two columns, so the text stays in one block
+// instead of wrapping under the photo. The photo is on the start side
+.author-bio {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25em;
+  margin-bottom: 1em;
+}
+
+.author-bio > p:first-child {
+  flex: none;
+  margin: 0;
+}
+
+.author-bio > .bio-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.author-bio > .bio-text > p:last-child {
+  margin-bottom: 0;
+}
