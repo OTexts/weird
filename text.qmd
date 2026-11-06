@@ -19,7 +19,7 @@ Keep the book's probabilistic framing throughout: anomalies in categorical data 
    - CA of a two-way table: row profiles, chi-squared distance, inertia.
      Anomalous rows are profiles far from the centroid / with large contribution to inertia.
      Biplot (link to ch9).
-   - Example: wine country x variety (which countries have unusual variety profiles).
+   - Example: road deaths by state x road user (wine country x variety cut, Nov 2026, for length).
      CA, MCA and FAMD all via FactoMineR.
    - MCA for many categorical variables: numerical coordinates, then ch6/ch9 methods.
      Explains the CA step in HDoutliers.
@@ -340,16 +340,8 @@ For example, classifying the deaths by state, road user, age group, sex, crash t
 Of the `r scales::comma(NROW(deaths7))` deaths with all seven variables recorded, `r sprintf("%.0f", 100 * n_unique / NROW(deaths7))`% are the only death with their combination of values.
 These deaths all have the same estimated surprisal, $\log n$, and the same surprisal probability, `r sprintf("%.2f", n_unique / NROW(deaths7))`, so none of them is anomalous, and the model cannot distinguish between them.
 
-Between independence and the full joint distribution are models in which each variable depends on only a few others.
-Any joint distribution can be written as a product of conditional distributions,
-$$
-  f(y_1, \dots, y_m)
-  = f_1(y_1) f(y_2 \mid y_1) f(y_3 \mid y_1, y_2) \cdots f(y_m \mid y_1, \dots, y_{m-1}),
-$$
-so the surprisal of an observation is a sum of conditional surprisals, one for each variable.
-A **Chow--Liu tree**\ [@Chow1968] approximates the joint distribution by conditioning each variable on just one other variable, chosen to give the closest such approximation to the joint distribution.
-More generally, a **Bayesian network** allows each variable to depend on a small set of other variables, and can be estimated using the **`bnlearn`** package\ [@Scutari2010].
-Each conditional probability is then estimated from a two- or three-way table, most of whose cells contain enough observations, and the conditional surprisals show which variable makes an observation surprising, given the variables it depends on.
+Between independence and the full joint distribution are models in which each variable depends on only a few others, so that the surprisal is a sum of conditional surprisals, one for each variable, each estimated from a small table with enough observations in most cells.
+A **Chow--Liu tree**\ [@Chow1968] conditions each variable on just one other variable, and a **Bayesian network** on a small set of other variables, which can be estimated using the **`bnlearn`** package\ [@Scutari2010].
 
 ### Anomalous cells in a contingency table
 
@@ -513,6 +505,7 @@ state_d <- function(state) state_distances |> filter(row == state)
 profiles <- prop.table(user_state, margin = 1)
 average <- colSums(user_state) / sum(user_state)
 cells_d2 <- sweep(profiles, 2, average)^2 / rep(average, each = nrow(profiles))
+act_x2 <- state_d("ACT")$n * state_d("ACT")$distance^2
 # The prose describes these distances and contributions
 stopifnot(
   isTRUE(all.equal(
@@ -533,7 +526,9 @@ stopifnot(
   round(100 * profiles["ACT", "Pedal cyclist"], 1) == 4.8,
   round(100 * average["Pedal cyclist"], 1) == 2.7,
   round(100 * profiles["ACT", "Driver"], 1) == 41.2,
-  round(100 * average["Driver"], 1) == 45.2
+  round(100 * average["Driver"], 1) == 45.2,
+  ncol(user_state) == 6,
+  act_x2 > 4 * (ncol(user_state) - 1)
 )
 ```
 
@@ -547,6 +542,9 @@ The distance measures how unusual a row's profile is, and is the anomaly score f
 The contribution also depends on the row's mass, and measures how much the row affects the analysis.
 The Northern Territory has only `r sprintf("%.0f", 100 * state_d("NT")$mass)`% of the deaths, but because its profile is so unusual, it accounts for `r sprintf("%.0f", state_d("NT")$contribution)`% of the total inertia.
 The ACT has less than 1% of the deaths, so although its profile is the second most unusual, it contributes only `r sprintf("%.0f", state_d("ACT")$contribution)`% of the inertia.
+A profile estimated from a few observations is more variable than one estimated from many, so a large distance for a small row could be noise.
+Row $j$'s term in the chi-squared statistic is $n_{j \cdot} d_j^2$, and if the row's observations came from the average profile, this would be about $K - 1$ on average.
+For the ACT, it is `r sprintf("%.1f", act_x2)`, compared with $K - 1 = 5$, so its unusual profile is not just noise.
 
 ### The correspondence analysis map
 
@@ -638,76 +636,6 @@ The Northern Territory lies far from all the other states, in the direction of p
 The ACT lies on the opposite side of the origin, along with the motorcycle riders, motorcycle pillion passengers and pedal cyclists.
 The map shows why the anomalous rows are anomalous, but the anomaly scores themselves are the chi-squared distances, which use all the dimensions, not just the two shown.
 
-### Wine countries and grape varieties
-
-The `wine_reviews` data contain reviews of wines from `r n_distinct(wine_reviews$country, na.rm = TRUE)` countries, made from `r scales::comma(n_distinct(wine_reviews$variety, na.rm = TRUE))` grape varieties and blends.
-Most of the varieties are rare, so those with fewer than 500 reviews are combined into a single "Other" category, and countries with fewer than 50 reviews are omitted.
-
-```{r}
-#| label: wine-ca
-#| code-fold: false
-#| dependson: chisq-distances
-
-wine_table <- wine_reviews |>
-  filter(!is.na(country), !is.na(variety)) |>
-  filter(n() >= 50, .by = country) |>
-  mutate(
-    variety = forcats::fct_lump_min(variety, 500, other_level = "Other")
-  ) |>
-  with(table(country, variety))
-dim(wine_table)
-wine_distances <- chisq_distances(wine_table) |>
-  arrange(desc(distance))
-wine_distances
-```
-
-```{r}
-#| label: wine-ca-check
-#| include: false
-#| dependson: wine-ca
-
-wine_profiles <- prop.table(wine_table, margin = 1)
-wine_average <- colSums(wine_table) / sum(wine_table)
-country_d <- function(country) wine_distances |> filter(row == country)
-england_x2 <- country_d("England")$n * country_d("England")$distance^2
-# The prose describes these countries and their varieties
-stopifnot(
-  all(dim(wine_table) == c(26, 38)),
-  all(
-    wine_distances$row[1:5] ==
-      c("England", "Germany", "Portugal", "Austria", "Australia")
-  ),
-  country_d("England")$n == 59,
-  round(100 * wine_profiles["England", "Sparkling Blend"]) == 66,
-  round(100 * wine_average["Sparkling Blend"], 1) == 1.6,
-  round(100 * wine_profiles["Germany", "Riesling"]) == 83,
-  round(100 * wine_profiles["Portugal", "Portuguese Red"]) == 45,
-  round(100 * wine_profiles["Austria", "Grüner Veltliner"]) == 36,
-  round(100 * wine_profiles["Australia", "Shiraz"]) == 27,
-  round(100 * wine_average["Shiraz"], 1) == 0.7,
-  country_d("England")$contribution < 1,
-  wine_distances$row[NROW(wine_distances)] == "US",
-  round(100 * country_d("US")$mass) == 45,
-  round(england_x2) == 1544,
-  all(wine_profiles[c("Georgia", "Croatia", "Hungary"), "Other"] > 0.6),
-  round(100 * wine_average["Other"]) == 15
-)
-```
-
-England has the most unusual profile, because `r sprintf("%.0f", 100 * wine_profiles["England", "Sparkling Blend"])`% of its wines are sparkling blends, compared with `r sprintf("%.1f", 100 * wine_average["Sparkling Blend"])`% overall.
-The next four countries are also anomalous because of a single variety that is rare elsewhere: Riesling in Germany (`r sprintf("%.0f", 100 * wine_profiles["Germany", "Riesling"])`% of its wines), Portuguese red blends in Portugal, Grüner Veltliner in Austria, and Shiraz in Australia.
-Australia's distance is partly a matter of labelling: Shiraz is the same grape as Syrah, but Australian wines usually use the name Shiraz, which accounts for only `r sprintf("%.1f", 100 * wine_average["Shiraz"])`% of all the wines.
-At the other end of the list, the US is the closest country to the average profile, because its wines make up `r sprintf("%.0f", 100 * country_d("US")$mass)`% of the table, so the average profile is largely the US profile.
-
-The countries differ greatly in mass.
-England has only `r country_d("England")$n` reviews, so it contributes less than 1% of the total inertia, although its distance is the largest.
-A profile estimated from a few observations is more variable than one estimated from many, so a large distance for a small row could be noise.
-Row $j$'s term in the chi-squared statistic is $n_{j \cdot} d_j^2$, and if the row's observations came from the average profile, this would be roughly $K - 1$ on average.
-For England, it is `r scales::comma(england_x2, accuracy = 1)`, compared with $K - 1 = 37$ (the table has 38 columns), far more than noise would produce.
-
-The distances also depend on how the categories are defined.
-Most of the wines from Georgia, Croatia and Hungary are local varieties that fall into the "Other" category (which contains `r sprintf("%.0f", 100 * wine_average["Other"])`% of all the wines), so their distances would change if the rare varieties were grouped differently.
-
 ### Multiple correspondence analysis
 
 When there are more than two categorical variables, **multiple correspondence analysis** (MCA) applies correspondence analysis to the **indicator matrix**.
@@ -734,7 +662,6 @@ $$
 where $f_q(y_{iq})$ is estimated by the proportion of observations that share the category of observation $i$ on variable $q$.
 So the distance depends only on how rare each of the observation's categories is on its own, as with the surprisal under the independence model of @sec-categorical.
 An unusual combination of common categories does not make it large.
-(The AVF score is similar, but averages the proportions rather than their reciprocals.)
 
 The road deaths show this, using five variables: road user, age group, sex, crash type and state.
 With `ncp = Inf`, `MCA()` keeps all the dimensions, so the squared distances of the observations from the origin are the values of $d_i^2$ above.
@@ -803,16 +730,7 @@ The first models the numerical variables conditionally on the categorical variab
 ### Conditional distributions
 
 Let $\bm{y}_i$ denote the numerical variables of observation $i$, and $\bm{x}_i$ its categorical variables.
-The joint distribution can be written as
-$$
-  f(\bm{y}, \bm{x}) = f(\bm{x})\, f(\bm{y} \mid \bm{x}),
-$$
-where $f(\bm{x})$ is the probability mass function of the categorical variables, and $f(\bm{y} \mid \bm{x})$ is the conditional density of the numerical variables, given the categories.
-So the surprisal of an observation is the sum of two parts,
-$$
-  s_i = -\log f(\bm{x}_i) - \log f(\bm{y}_i \mid \bm{x}_i).
-$$
-The first part is the surprisal of the categories, as in @sec-categorical, and the second is a conditional surprisal, measuring how unusual the numerical values are for an observation in those categories.
+As in @sec-categorical, the surprisal splits into the surprisal of the categories and a conditional surprisal, $s_i = -\log f(\bm{x}_i) - \log f(\bm{y}_i \mid \bm{x}_i)$, where $f(\bm{y} \mid \bm{x})$ is now the conditional density of the numerical variables, given the categories.
 Because $f(\bm{y} \mid \bm{x})$ is a density, the second part depends on the units in which $\bm{y}$ is measured, but changing the units adds the same constant to every observation's surprisal, and so does not change which observations are the most surprising.
 
 In @sec-categorical, the ages of the people killed on the roads were grouped into five-year age groups so that they could be treated as a categorical variable.
@@ -939,7 +857,7 @@ and the surprisal of each wine is the sum of three parts: how rare its combinati
 The second and third conditional distributions are modelled by linear regressions with Normal errors (@sec-regression-log-scores), which extend the model of the Shiraz prices in @sec-regression-methods to all the wines.
 The points are integers, but as the possible scores are one point apart, a Normal distribution can be used to approximate the discrete conditional distribution.
 The surprisals are computed from the residuals and the residual standard deviations, rather than from the standardised residuals as in @sec-regression-log-scores, so that they are the surprisals of the points and the log prices themselves, and can be added.
-The countries and varieties are grouped as in @sec-correspondence.
+Most of the `r scales::comma(n_distinct(wine_reviews$variety, na.rm = TRUE))` varieties are rare, so those with fewer than 500 reviews are combined into a single "Other" category, and countries with fewer than 50 reviews are omitted.
 
 ```{r}
 #| label: wine-mixed
@@ -1089,49 +1007,13 @@ For a wine from such a country, at least one of its ten nearest neighbours is fr
 No wine from any other country has a score above `r sprintf("%.2f", max(shiraz$knn[shiraz$n_country > 10]))`.
 After these come the most expensive Australian and US wines, and some cheap wines from Spain, which has only `r country_n["Spain"]` Shiraz wines; the Henschke 2009 Shiraz is in position `r henschke$rank`.
 
+So the kNN scores based on the Gower distance mainly find observations in rare categories, as MCA did in @sec-correspondence.
+How much a category counts compared with a numerical difference is set by the choice of distance, not by the data: in the Gower distance, being in a different country counts as much as the full range of prices.
+
 **Factor analysis of mixed data** (FAMD)\ [@Pages2004] is the analogue of PCA (@sec-pca) and MCA for mixed data.
 The numerical variables are standardised as in a PCA of the correlation matrix, and the categorical variables are replaced by their indicator matrices, weighted as in MCA.
 As with MCA, the resulting coordinates can be passed to any of the methods for numerical data.
-Here we use kNN distances again, with the same value of $k = 10$ that was used above.
+FAMD is implemented by the `FAMD()` function in the **`FactoMineR`** package.
 
-```{r}
-#| label: shiraz-famd
-#| code-fold: false
-#| dependson: [shiraz-gower, road-ca]
-
-shiraz_famd <- shiraz |>
-  select(country, points, log_price) |>
-  as.data.frame() |>
-  FAMD(ncp = Inf, graph = FALSE)
-shiraz <- shiraz |>
-  mutate(knn_famd = dbscan::kNNdist(shiraz_famd$ind$coord, k = 10))
-shiraz |>
-  select(country, winery, year, points, price, knn_famd) |>
-  arrange(desc(knn_famd))
-```
-
-```{r}
-#| label: shiraz-famd-check
-#| include: false
-#| dependson: [shiraz-famd, shiraz-gower-check]
-
-shiraz <- shiraz |> mutate(rank_famd = rank(-knn_famd, ties.method = "min"))
-top_famd <- shiraz |> arrange(desc(knn_famd)) |> head(NROW(rare))
-henschke_famd <- shiraz |>
-  filter(winery == "Henschke", year == 2009, price == 780)
-# The prose describes the wines with the largest FAMD kNN scores
-stopifnot(
-  all(top_famd$n_country <= 10),
-  top_famd$country[1] == "Peru",
-  country_n["Peru"] == 1,
-  henschke_famd$rank_famd == 42
-)
-```
-
-The ranking is much the same.
-The single wine from Peru has the largest score, and the `r NROW(rare)` wines from the countries with ten or fewer Shiraz wines again come first, as each rare category is given a large weight, as in MCA.
-The Henschke 2009 Shiraz is in position `r henschke_famd$rank_famd`.
-
-So distance-based methods applied to mixed data mainly find observations in rare categories, as MCA did in @sec-correspondence.
-How much a category counts compared with a numerical difference is set by the choice of distance, not by the data: in the Gower distance, being in a different country counts as much as the full range of prices.
-When a conditional model can be specified, the surprisals of the previous subsections are more informative, as they find observations whose numerical values are unusual for their categories, and show which part of the observation makes it surprising.
+When a conditional model can be specified, its surprisals are more informative than distance-based scores, whether from the Gower distance or from FAMD coordinates.
+They find numerical values that are unusual for their categories, not just rare categories, and their parts show which part of an observation is unusual.
