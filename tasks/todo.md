@@ -1,3 +1,17 @@
+# Split ch10 into categorical.qmd and text.qmd (2026-11-06)
+
+- [x] categorical.qmd: categorical part, own setup chunk, plan items 1-3, rewritten intro
+- [x] text.qmd: text part only, new intro, plan items 4-7, "methods discussed so far" reworded
+- [x] Check "this chapter" phrasing and forward references in both
+- [x] _quarto.yml: categorical.qmd before text.qmd
+- [x] intro.qmd:199 chapter list
+- [x] .claude/CLAUDE.md chapter counts
+- [x] Render both chapters, then make build; check no unresolved @sec- refs
+
+## Review
+
+categorical.qmd (ch10, 7,784 words) and text.qmd (ch11, 3,297 words) are the old ch10 split at "From text to numbers". Apart from the new intros and front matter, the only change to the sections is "the methods discussed so far" -> "the methods of @sec-categorical-data". make build exits 0 with no unresolved cross-references. The sidebar numbers the chapters 10 Categorical data, 11 Textual data, 12 Time series data, and so on.
+
 # Figure text after the 7.5in width change (2026-10-16)
 
 Layout
@@ -51,18 +65,35 @@ Data and dependencies
 - [x] Add tidytext to uvr.toml; uvr sync (FactoMineR already installed)
 
 Sections
-- [ ] 1. Anomalies in categorical data (surprisals, surprisal probabilities with ties, rare combinations, anomalous cells); road deaths
-- [ ] 2. Correspondence analysis and MCA; wine country x variety
-- [ ] 3. Mixed numerical and categorical data (f(y|x) p(x); Gower, FAMD); wine, road deaths
-- [ ] 4. From text to numbers (tidytext, DTM, tf-idf, function words)
-- [ ] 5. Feature-based anomalies in text; wine descriptions
+- [x] Chapter introduction (drafted 2026-11-06)
+- [x] 1. Anomalies in categorical data (surprisals, surprisal probabilities with ties, rare combinations, anomalous cells); road deaths (drafted 2026-11-06; awaiting author review)
+  - [x] weird: surprisals.factor() and surprisals_prob.factor() (prob, prior, loo) replace the cat_surprisals_prob() helper in text.qmd; results identical; chapter renders (2026-11-06). weird changes uncommitted in ~/git/R/weird; push, then `uvr update weird`
+- [x] 2. Correspondence analysis and MCA (drafted 2026-11-06; awaiting author review)
+  - CA of state x road user (profiles, chi-squared distance, inertia = X^2/n, contributions, map); wine country x variety (26 x 38: countries >= 50 reviews, varieties >= 500, rest "Other"); MCA of five road-death variables (full-space distance = mean of 1/f_q - 1, so only rare values count; young drivers rank 2,514+)
+  - FactoMineR was not installed: added with `uvr add FactoMineR`
+  - rds/wine_reviews.rds refreshed (111,592 rows, with description). ch1 changes only in inline counts. ch8: Shiraz n 4,496 -> 4,553; coefs -6.115 + 0.108, sigma 0.484; nine (not eight) wines with prob < 0.002 (Gerin 2013 now 0.00198); two (not three) expensive wines unflagged; BACON m 600 -> 650 (most common points score now has 603 obs; results identical for m 600-800); BACON outliers now the same nine wines (guard added)
+- [x] 3. Mixed numerical and categorical data (drafted 2026-11-06; awaiting author review)
+  - Conditional: age | road user (KDE per road user, LOO; rank-based p); 55 deaths with p < 0.001 (fig-road-age)
+  - Regression with categorical predictors: wine s = s_cat + s_points + s_price (Normal lm errors, via dnorm of residuals). Top: $3,300 Médoc, Romanian botrytis Riesling, Blair Chardonnay priced $2013 (= vintage); Henschke 2009 14th
+  - Price residuals heavy-tailed (0.2% beyond 4 SD vs 0.006%); t errors (df 8.7) would reorder the top (100-point wines first, errors drop out of top 15). Kept Normal to match ch8, with a caveat in the text — author decision
+  - Gower (cluster::daisy) + kNN and FAMD on Shiraz (country, points, log price): both rank the 37 wines from countries with <= 10 Shiraz first; Henschke 2009 at 45 (Gower), 42 (FAMD)
+  - Added Gower1971 and Pages2004 to weird.bib
+- [x] 4. From text to numbers (drafted 2026-11-06; awaiting author review)
+  - tokens/vocabulary (4.6M tokens, 32,362 words, 38% once, Zipf), function vs content words (stop_words 44% of tokens), DTM (0.1% non-zero), tf-idf with varieties as documents (variety-name words removed; "zin" and "sb" remain)
+- [x] 5. Feature-based anomalies in text (drafted 2026-11-06; awaiting author review)
+  - all 111,592 reviews; six features (words, word_length, function_words, mean idf, bing sentiment, punctuation); mvscale + Mclust GMM (cached as rds/wine_text_gmm.rds, ~6 min) + GPD surprisal probs; 82 with p < 0.001: 7 placeholder texts ("Imported by ...", "not available"), terse reviews, blend percentages, a duplicated text, the Gaultier packaging review
+  - points ~ text features (R^2 0.38, mostly length): + residuals = placeholders and two-sentence 97-point reviews; - residuals = long critical 80-point reviews with non-negative bing sentiment (word-by-word lexicon; "Unfotunately" typo)
+  - Type-token ratio omitted (falls with length); readability not used
+  - tidytext loaded in an uncached chunk, and mclust::Mclust() not library(mclust) (mclust::count masks dplyr::count when the knitr cache re-attaches it)
+  - Added Silge2017, Hu2004, SparckJones1972, Zipf1949 to weird.bib
 - [ ] 6. Language-model surprisals and perplexity; wine descriptions; AI-text detection discussion
 - [ ] 7. Authorship verification as one-class anomaly detection; Royal Book of Oz
 - [ ] Chapter summary (methods, not example results)
 
 Cross-chapter
-- [ ] highdim.qmd HDoutliers: replace forward use of "correspondence analysis" with plain words + @sec- reference to ch10
-- [ ] Bibliography entries (Silge & Robinson, Greenacre, Binongo 2003, Mosteller & Wallace, Burrows 2002, Koppel & Schler 2004, DetectGPT, Binoculars)
+- [ ] CSL renders "Chapman and Hall/CRC" as "Chapman; Hall/CRC" (6 refs book-wide); use `\&` in weird.bib
+- [x] highdim.qmd HDoutliers: replace forward use of "correspondence analysis" with plain words + @sec- reference to ch10
+- [ ] Bibliography entries (Greenacre2017 and Le2008 added; Silge & Robinson, Greenacre, Binongo 2003, Mosteller & Wallace, Burrows 2002, Koppel & Schler 2004, DetectGPT, Binoculars)
 
 Finish
 - [ ] Render text.qmd; check fig- labels vs fig-cap, guard chunks, values cited in prose

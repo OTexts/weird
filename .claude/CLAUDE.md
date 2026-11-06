@@ -25,7 +25,7 @@ R packages are managed with [uvr](https://github.com/nbafrank/uvr), not `renv`: 
 
 ## Architecture
 
-- `*.qmd` — Chapters in Quarto Markdown. Chapters 1–13 have substantial content; 14–16 are stubs. Put chapter-level options at the top level of the front matter (e.g. `other-links:`), not under `format: html:`, which the `otexts-html` format ignores.
+- `*.qmd` — Chapters in Quarto Markdown. Chapters 1–14 have substantial content; 15–17 are stubs. Put chapter-level options at the top level of the front matter (e.g. `other-links:`), not under `format: html:`, which the `otexts-html` format ignores.
 - `_quarto.yml` — Chapter order, bibliography (`weird.bib`), execution settings, and the `otexts-html` format.
 - `_extensions/OTexts/otexts/` — The shared OTexts Quarto format ([OTexts/quarto-otexts](https://github.com/OTexts/quarto-otexts)): theme, web fonts, CSL, figure and knitr chunk defaults, and `htmlreplace.pl`. Change it in that repo, then run `quarto update OTexts/quarto-otexts`. Override figure defaults in YAML, not with `knitr::opts_chunk$set()`.
 - **otexts** R package ([OTexts/otexts](https://github.com/OTexts/otexts)) — R setup shared with the other OTexts books. Change it in that repo, then run `uvr update otexts`.

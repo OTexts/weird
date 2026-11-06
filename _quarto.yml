@@ -25,6 +25,7 @@ book:
     - "density.qmd"
     - "regression.qmd"
     - "highdim.qmd"
+    - "categorical.qmd"
     - "text.qmd"
     - "timeseries.qmd"
     - "functional.qmd"
