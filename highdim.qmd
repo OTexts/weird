@@ -1399,7 +1399,7 @@ It was designed to address several problems at once:
 The central idea is to reduce any high-dimensional problem to one dimension using nearest-neighbour distances (@sec-nn).
 Each observation is scored by the distance $d_{i,1}$ to its nearest neighbour, which is equivalent to the kNN anomaly score of @sec-knn-scores with $k = 1$; an anomaly is an observation whose nearest-neighbour distance is unusually large because it sits far from the rest of the data.
 The remaining machinery exists to make this single idea work across the four situations above.
-Categorical variables are first converted to continuous scores using correspondence analysis.
+Categorical variables are first converted to numerical coordinates, using a method described in @sec-correspondence.
 When there are very many variables, the data are replaced by a few random projections (@sec-projections); these are intended to approximate the pairwise distances, while sidestepping the curse of dimensionality that makes nearest-neighbour distances uninformative in high dimensions.
 When there are very many observations, computing all $n(n - 1)/2$ pairwise distances is too expensive (@sec-nn), so the leader algorithm (@sec-clustering) is run first: in a single pass it groups the observations into clusters of radius $\delta$ and keeps one leader from each, and the nearest-neighbour distances are then computed only between the leaders.
 Because a whole cluster of nearby anomalies is represented by a single leader, this also lets the method flag clusters of anomalies, not just isolated points.

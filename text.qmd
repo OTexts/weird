@@ -367,7 +367,8 @@ state_user
 Sometimes the question is not which observations are anomalous, but which cells of a contingency table have unusual counts.
 As with the DDC algorithm (@sec-ddc), the anomalies are cells rather than observations, but here each cell is a count of observations rather than a single value.
 
-Let $n_{jk}$ be the count in row $j$ and column $k$, with row totals $n_{j \cdot}$, column totals $n_{\cdot k}$, and $n$ observations in total.
+Suppose the table has $J$ rows and $K$ columns, and let $n_{jk}$ be the count in row $j$ and column $k$.
+A dot in place of a subscript denotes the sum over that index, so the row totals are $n_{j \cdot} = \sum_{k=1}^K n_{jk}$, the column totals are $n_{\cdot k} = \sum_{j=1}^J n_{jk}$, and $n$ is the total number of observations.
 If the two variables are independent, the expected count in each cell is $e_{jk} = n_{j \cdot}n_{\cdot k}/n$.
 The **standardised residual** of a cell is
 $$
@@ -441,3 +442,353 @@ The Normal approximation is also poor for cells with small expected counts, such
 
 Looking at the cells one at a time does not show how whole states differ: the Northern Territory differs from the other states in several types of road user at once.
 Correspondence analysis, described in the next section, compares whole rows and columns of a contingency table, and so finds states, or types of road user, that are anomalous.
+
+## Correspondence analysis {#sec-correspondence}
+
+**Correspondence analysis** compares the rows (or the columns) of a contingency table, and represents them as points in a low-dimensional map\ [@Greenacre2017].
+It is a version of principal component analysis (@sec-pca) for tables of counts, and is computed here using the **`FactoMineR`** package\ [@Le2008].
+
+### Profiles and the chi-squared distance
+
+The **profile** of row $j$ of a contingency table is the vector of proportions $n_{jk}/n_{j \cdot}$, for $k = 1,\dots,K$, which gives the distribution of the observations in that row across the $K$ columns.
+The **mass** of row $j$ is $n_{j \cdot}/n$, the proportion of all observations that fall in that row.
+The average of the row profiles, weighted by their masses, is the vector of column proportions $n_{\cdot k}/n$.
+This is the profile that every row would have if the two variables were independent.
+
+To compare the states, they must be the rows of the table, so the table of the previous section is transposed.
+The profiles, as percentages, show how the deaths in each state are divided among the road users.
+
+```{r}
+#| label: road-profiles
+#| code-fold: false
+#| dependson: state-road-user-table
+
+user_state <- t(state_user)
+round(100 * prop.table(user_state, margin = 1), 1)
+```
+
+The difference between the profile of row $j$ and the average profile is measured by the **chi-squared distance**
+$$
+  d_j^2
+  = \sum_{k=1}^K \frac{\big(n_{jk}/n_{j \cdot} - n_{\cdot k}/n\big)^2}{n_{\cdot k}/n}.
+$$ {#eq-chisq-distance}
+This is a weighted Euclidean distance (@sec-distances), in which each squared difference is divided by the column proportion, so that a difference in a rare column counts for more than the same difference in a common column.
+
+The **total inertia** of the table is the weighted average of the squared distances, $\sum_j (n_{j \cdot}/n)\, d_j^2$, which measures how widely the profiles are spread around their average, much as a variance does.
+It is equal to $X^2/n$, where $X^2$ is the chi-squared statistic for the test of independence calculated by `chisq.test()`, so the inertia measures how far the table is from independence.
+The **contribution** of row $j$ is the proportion of the total inertia that comes from that row, $(n_{j \cdot}/n)\, d_j^2$ divided by the total inertia.
+
+The following function computes the mass, the chi-squared distance and the contribution (as a percentage) of each row of a table.
+
+```{r}
+#| label: chisq-distances
+#| code-fold: false
+#| dependson: road-profiles
+
+chisq_distances <- function(tab) {
+  profiles <- prop.table(tab, margin = 1)
+  average <- colSums(tab) / sum(tab)
+  # t() puts each profile in a column, so `average` is subtracted from each one
+  d2 <- colSums((t(profiles) - average)^2 / average)
+  mass <- rowSums(tab) / sum(tab)
+  tibble(
+    row = rownames(tab),
+    n = rowSums(tab),
+    mass = mass,
+    distance = sqrt(d2),
+    contribution = 100 * mass * d2 / sum(mass * d2)
+  )
+}
+state_distances <- chisq_distances(user_state) |>
+  arrange(desc(distance))
+state_distances
+```
+
+```{r}
+#| label: road-distances-check
+#| include: false
+#| dependson: chisq-distances
+
+state_d <- function(state) state_distances |> filter(row == state)
+profiles <- prop.table(user_state, margin = 1)
+average <- colSums(user_state) / sum(user_state)
+cells_d2 <- sweep(profiles, 2, average)^2 / rep(average, each = nrow(profiles))
+# The prose describes these distances and contributions
+stopifnot(
+  isTRUE(all.equal(
+    sum(state_distances$mass * state_distances$distance^2),
+    unname(suppressWarnings(chisq.test(user_state))$statistic) / sum(user_state)
+  )),
+  state_distances$row[1] == "NT",
+  state_distances$row[2] == "ACT",
+  round(state_d("NT")$distance, 2) == 0.34,
+  round(state_d("ACT")$distance, 2) == 0.21,
+  max(state_distances$distance[-(1:2)]) < 0.125,
+  round(state_d("NT")$contribution) == 37,
+  round(100 * state_d("NT")$mass) == 3,
+  state_d("ACT")$mass < 0.01,
+  round(state_d("ACT")$contribution) == 4,
+  names(which.max(cells_d2["NT", ])) == "Passenger",
+  cells_d2["ACT", "Pedal cyclist"] > 4 * cells_d2["ACT", "Driver"],
+  round(100 * profiles["ACT", "Pedal cyclist"], 1) == 4.8,
+  round(100 * average["Pedal cyclist"], 1) == 2.7,
+  round(100 * profiles["ACT", "Driver"], 1) == 41.2,
+  round(100 * average["Driver"], 1) == 45.2
+)
+```
+
+The Northern Territory has by far the most unusual profile, with a chi-squared distance of `r sprintf("%.2f", state_d("NT")$distance)` from the average profile.
+The next is the ACT, at `r sprintf("%.2f", state_d("ACT")$distance)`, and no other state is more than 0.12 from the average.
+The largest term in the Northern Territory's distance comes from passengers, whose high share of its deaths also gave the largest residual in @fig-state-road-user.
+The ACT has more deaths of pedal cyclists than average (`r sprintf("%.1f", 100 * profiles["ACT", "Pedal cyclist"])`% compared with `r sprintf("%.1f", 100 * average["Pedal cyclist"])`%), and fewer deaths of drivers (`r sprintf("%.1f", 100 * profiles["ACT", "Driver"])`% compared with `r sprintf("%.1f", 100 * average["Driver"])`%).
+The difference for drivers is the larger, but drivers are a common column and pedal cyclists a rare one, so the pedal cyclists add more than four times as much to the ACT's distance.
+
+The distance measures how unusual a row's profile is, and is the anomaly score for that row.
+The contribution also depends on the row's mass, and measures how much the row affects the analysis.
+The Northern Territory has only `r sprintf("%.0f", 100 * state_d("NT")$mass)`% of the deaths, but because its profile is so unusual, it accounts for `r sprintf("%.0f", state_d("NT")$contribution)`% of the total inertia.
+The ACT has less than 1% of the deaths, so although its profile is the second most unusual, it contributes only `r sprintf("%.0f", state_d("ACT")$contribution)`% of the inertia.
+
+### The correspondence analysis map
+
+A profile is a point in $K$-dimensional space.
+Suppose each coordinate of the profiles, and of the average profile, is divided by the square root of its column proportion, $\sqrt{n_{\cdot k}/n}$.
+The Euclidean distances between these transformed profiles are then the chi-squared distances.
+Correspondence analysis is a principal component analysis of the transformed profiles, in which each row is weighted by its mass.
+The first dimension is the direction that captures the largest part of the total inertia, the second dimension captures the largest part of what remains, and so on, just as principal components capture as much of the variance as possible.
+The eigenvalues, called **principal inertias**, add up to the total inertia, and are shown in the output of `CA()` below, along with the percentage of the total inertia that each one captures.
+
+```{r}
+#| label: road-ca
+#| code-fold: false
+#| dependson: road-profiles
+#| message: false
+
+library(FactoMineR)
+road_ca <- CA(as.data.frame.matrix(user_state), graph = FALSE)
+road_ca$eig
+```
+
+```{r}
+#| label: road-ca-check
+#| include: false
+#| dependson: [road-distances-check, road-ca]
+
+ca_rows <- road_ca$row$coord
+ca_cols <- road_ca$col$coord
+ca_norm <- rowSums(ca_rows[, 1:2]^2)
+# The prose describes the principal inertias and the map positions
+stopifnot(
+  isTRUE(all.equal(
+    sum(road_ca$eig[, 1]),
+    sum(state_distances$mass * state_distances$distance^2)
+  )),
+  isTRUE(all.equal(
+    sqrt(ca_norm["NT"]),
+    state_d("NT")$distance,
+    tolerance = 0.02,
+    check.attributes = FALSE
+  )),
+  round(sqrt(ca_norm["ACT"]), 2) == 0.13,
+  round(road_ca$eig[2, 3]) == 86,
+  names(which.max(ca_norm)) == "NT",
+  sign(ca_rows["NT", 1]) == sign(ca_cols["Pedestrian", 1]),
+  sign(ca_rows["NT", 2]) == sign(ca_cols["Passenger", 2]),
+  sign(ca_rows["ACT", 1]) == sign(ca_cols["Pedal cyclist", 1]),
+  sign(ca_rows["ACT", 1]) == sign(ca_cols["Motorcycle rider", 1]),
+  sign(ca_rows["ACT", 1]) == sign(ca_cols["Motorcycle pillion passenger", 1])
+)
+```
+
+The same analysis can be applied to the columns, and it gives the same principal inertias, so the rows and the columns can be shown on the same map.
+@fig-road-ca shows the first two dimensions, which together capture `r sprintf("%.0f", road_ca$eig[2, 3])`% of the total inertia.
+For most states, the distance from the origin of the map is close to the chi-squared distance, but not for the ACT, which is `r sprintf("%.2f", sqrt(ca_norm["ACT"]))` from the origin compared with a chi-squared distance of `r sprintf("%.2f", state_d("ACT")$distance)`.
+Much of the ACT's difference from the average profile lies in the dimensions that are not shown.
+The rows and the columns are on different scales, so the distance between a state and a road user has no direct meaning.
+Instead, each state is pulled towards the road users that account for a larger share of its deaths than average, and away from those that account for a smaller share.
+A biplot (@sec-pca) shows the relation between observations and variables in the same way.
+
+```{r}
+#| label: fig-road-ca
+#| dependson: road-ca
+#| fig-cap: >-
+#|   Correspondence analysis map of Australian road deaths from 1989 to 2025, by state and road user.
+#|   States far from the origin have unusual mixtures of road users.
+#| fig-height: 4.5
+
+ca_points <- bind_rows(
+  State = as_tibble(road_ca$row$coord[, 1:2], rownames = "label"),
+  `Road user` = as_tibble(road_ca$col$coord[, 1:2], rownames = "label"),
+  .id = "type"
+)
+ca_points |>
+  ggplot(aes(x = `Dim 1`, y = `Dim 2`, colour = type)) +
+  geom_hline(yintercept = 0, colour = "grey") +
+  geom_vline(xintercept = 0, colour = "grey") +
+  geom_point() +
+  ggrepel::geom_text_repel(aes(label = label), size = 3, show.legend = FALSE) +
+  coord_fixed() +
+  labs(
+    x = sprintf("Dimension 1 (%.0f%% of inertia)", road_ca$eig[1, 2]),
+    y = sprintf("Dimension 2 (%.0f%% of inertia)", road_ca$eig[2, 2]),
+    colour = NULL
+  )
+```
+
+The Northern Territory lies far from all the other states, in the direction of passengers and pedestrians.
+The ACT lies on the opposite side of the origin, along with the motorcycle riders, motorcycle pillion passengers and pedal cyclists.
+The map shows why the anomalous rows are anomalous, but the anomaly scores themselves are the chi-squared distances, which use all the dimensions, not just the two shown.
+
+### Wine countries and grape varieties
+
+The `wine_reviews` data contain reviews of wines from `r n_distinct(wine_reviews$country, na.rm = TRUE)` countries, made from `r scales::comma(n_distinct(wine_reviews$variety, na.rm = TRUE))` grape varieties and blends.
+Most of the varieties are rare, so those with fewer than 500 reviews are combined into a single "Other" category, and countries with fewer than 50 reviews are omitted.
+
+```{r}
+#| label: wine-ca
+#| code-fold: false
+#| dependson: chisq-distances
+
+wine_table <- wine_reviews |>
+  filter(!is.na(country), !is.na(variety)) |>
+  filter(n() >= 50, .by = country) |>
+  mutate(
+    variety = forcats::fct_lump_min(variety, 500, other_level = "Other")
+  ) |>
+  with(table(country, variety))
+dim(wine_table)
+wine_distances <- chisq_distances(wine_table) |>
+  arrange(desc(distance))
+wine_distances
+```
+
+```{r}
+#| label: wine-ca-check
+#| include: false
+#| dependson: wine-ca
+
+wine_profiles <- prop.table(wine_table, margin = 1)
+wine_average <- colSums(wine_table) / sum(wine_table)
+country_d <- function(country) wine_distances |> filter(row == country)
+england_x2 <- country_d("England")$n * country_d("England")$distance^2
+# The prose describes these countries and their varieties
+stopifnot(
+  all(dim(wine_table) == c(26, 38)),
+  all(
+    wine_distances$row[1:5] ==
+      c("England", "Germany", "Portugal", "Austria", "Australia")
+  ),
+  country_d("England")$n == 59,
+  round(100 * wine_profiles["England", "Sparkling Blend"]) == 66,
+  round(100 * wine_average["Sparkling Blend"], 1) == 1.6,
+  round(100 * wine_profiles["Germany", "Riesling"]) == 83,
+  round(100 * wine_profiles["Portugal", "Portuguese Red"]) == 45,
+  round(100 * wine_profiles["Austria", "Grüner Veltliner"]) == 36,
+  round(100 * wine_profiles["Australia", "Shiraz"]) == 27,
+  round(100 * wine_average["Shiraz"], 1) == 0.7,
+  country_d("England")$contribution < 1,
+  wine_distances$row[NROW(wine_distances)] == "US",
+  round(100 * country_d("US")$mass) == 45,
+  round(england_x2) == 1544,
+  all(wine_profiles[c("Georgia", "Croatia", "Hungary"), "Other"] > 0.6),
+  round(100 * wine_average["Other"]) == 15
+)
+```
+
+England has the most unusual profile, because `r sprintf("%.0f", 100 * wine_profiles["England", "Sparkling Blend"])`% of its wines are sparkling blends, compared with `r sprintf("%.1f", 100 * wine_average["Sparkling Blend"])`% overall.
+The next four countries are also anomalous because of a single variety that is rare elsewhere: Riesling in Germany (`r sprintf("%.0f", 100 * wine_profiles["Germany", "Riesling"])`% of its wines), Portuguese red blends in Portugal, Grüner Veltliner in Austria, and Shiraz in Australia.
+Australia's distance is partly a matter of labelling: Shiraz is the same grape as Syrah, but Australian wines usually use the name Shiraz, which accounts for only `r sprintf("%.1f", 100 * wine_average["Shiraz"])`% of all the wines.
+At the other end of the list, the US is the closest country to the average profile, because its wines make up `r sprintf("%.0f", 100 * country_d("US")$mass)`% of the table, so the average profile is largely the US profile.
+
+The countries differ greatly in mass.
+England has only `r country_d("England")$n` reviews, so it contributes less than 1% of the total inertia, although its distance is the largest.
+A profile estimated from a few observations is more variable than one estimated from many, so a large distance for a small row could be noise.
+Row $j$'s term in the chi-squared statistic is $n_{j \cdot} d_j^2$, and if the row's observations came from the average profile, this would be roughly $K - 1$ on average.
+For England, it is `r scales::comma(england_x2, accuracy = 1)`, compared with $K - 1 = 37$ (the table has 38 columns), far more than noise would produce.
+
+The distances also depend on how the categories are defined.
+Most of the wines from Georgia, Croatia and Hungary are local varieties that fall into the "Other" category (which contains `r sprintf("%.0f", 100 * wine_average["Other"])`% of all the wines), so their distances would change if the rare varieties were grouped differently.
+
+### Multiple correspondence analysis
+
+When there are more than two categorical variables, **multiple correspondence analysis** (MCA) applies correspondence analysis to the **indicator matrix**.
+This replaces each categorical variable by a set of dummy variables, one for each of its categories, which equal 1 for the observations in that category and 0 otherwise.
+For example, three road deaths with gender and crash type (Male, Single), (Female, Multiple) and (Male, Multiple) give the indicator matrix
+
+| Male | Female | Single | Multiple |
+|:----:|:------:|:------:|:--------:|
+|  1   |   0    |   1    |    0     |
+|  0   |   1    |   0    |    1     |
+|  1   |   0    |   0    |    1     |
+
+with one row for each observation.
+Every category has its own column (none is dropped as a reference category, as it would be in a regression), so with $m$ variables, each row of the indicator matrix contains $m$ ones.
+The analysis places each observation at a point with numerical coordinates, which can then be passed to any of the methods of @sec-distance-methods or @sec-highdim; this is how the HDoutliers algorithm (@sec-hdoutliers) handles categorical variables.
+
+Equivalently, MCA is a PCA (@sec-pca) of the indicator matrix after each column is centred and divided by $\sqrt{m p_k}$, where $p_k$ is the proportion of observations in category $k$.
+This differs from a PCA of standardised dummy variables, which would divide by $\sqrt{p_k(1-p_k)}$ and so treat a category with proportion $p_k$ in the same way as one with proportion $1-p_k$; in MCA, the rarer a category is, the more weight it has.
+
+Applying @eq-chisq-distance to the rows of the indicator matrix gives a simple form for the chi-squared distance of observation $i$ from the centre,
+$$
+  d_i^2 = \frac{1}{m} \sum_{q=1}^m \frac{1}{f_q(y_{iq})} - 1,
+$$
+where $f_q(y_{iq})$ is estimated by the proportion of observations that share the category of observation $i$ on variable $q$.
+So the distance depends only on how rare each of the observation's categories is on its own, as with the surprisal under the independence model of @sec-categorical.
+An unusual combination of common categories does not make it large.
+(The AVF score is similar, but averages the proportions rather than their reciprocals.)
+
+The road deaths show this, using five variables: road user, age group, sex, crash type and state.
+With `ncp = Inf`, `MCA()` keeps all the dimensions, so the squared distances of the observations from the origin are the values of $d_i^2$ above.
+
+```{r}
+#| label: road-mca
+#| code-fold: false
+#| dependson: [road-user-age, road-ca]
+
+deaths5 <- deaths |>
+  select(road_user, age_group, gender, crash_type, state) |>
+  tidyr::drop_na()
+road_mca <- MCA(as.data.frame(deaths5), ncp = Inf, graph = FALSE)
+deaths5 <- deaths5 |>
+  mutate(
+    d2 = rowSums(road_mca$ind$coord^2),
+    rank = rank(-d2, ties.method = "min"),
+    rank5 = rank(-rowSums(road_mca$ind$coord[, 1:5]^2), ties.method = "min")
+  )
+deaths5 |>
+  count(road_user, age_group, gender, crash_type, state, d2) |>
+  arrange(desc(d2))
+```
+
+```{r}
+#| label: road-mca-check
+#| include: false
+#| dependson: road-mca
+
+inverse_f <- deaths5 |>
+  select(road_user:state) |>
+  sapply(function(x) {
+    1 / as.numeric(prop.table(table(x))[x])
+  })
+top_mca <- deaths5 |> arrange(desc(d2)) |> head(8)
+young_drivers5 <- deaths5 |>
+  filter(road_user == "Driver", age_group %in% c("0-4", "5-9"))
+# The prose describes the MCA distances
+stopifnot(
+  isTRUE(all.equal(
+    deaths5$d2,
+    rowMeans(inverse_f) - 1,
+    check.attributes = FALSE
+  )),
+  all(top_mca$road_user == "Motorcycle pillion passenger"),
+  all(top_mca$state == "ACT"),
+  NROW(young_drivers5) == 5,
+  min(young_drivers5$rank) > 2500,
+  min(young_drivers5$rank5) > 2500
+)
+```
+
+The observations furthest from the centre are motorcycle pillion passengers in the ACT, the rarest type of road user in the territory with the fewest deaths.
+The young drivers that stood out in @sec-categorical are not close to the top: the highest ranked of them is at position `r scales::comma(min(young_drivers5$rank))` out of `r scales::comma(NROW(deaths5))`.
+Keeping only the first few dimensions does not help: using the first five dimensions, the highest ranked young driver is at position `r scales::comma(min(young_drivers5$rank5))`.
+So for purely categorical data, the surprisals of @sec-categorical are a better guide to which observations are anomalous.
+The value of MCA is that it puts categorical variables on a numerical scale, so that they can be analysed together with numerical variables, as discussed in the next section.
