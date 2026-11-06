@@ -982,3 +982,18 @@ FAMD is implemented by the `FAMD()` function in the **`FactoMineR`** package.
 
 When a conditional model can be specified, its surprisals are more informative than distance-based scores, whether from the Gower distance or from FAMD coordinates.
 They find numerical values that are unusual for their categories, not just rare categories, and their parts show which part of an observation is unusual.
+
+## Summary {#sec-categorical-summary}
+
+For categorical data, the density is replaced by a probability mass function, and the surprisal of an observation is minus the log of the probability of its category.
+Being rare is not enough to make a category anomalous: its surprisal probability is the total probability of all categories that are no more probable, so when many categories are equally rare, none of them is anomalous.
+
+With several categorical variables, the number of combinations grows multiplicatively, so most combinations have few or no observations.
+An independence model avoids this, but finds only rare values, not rare combinations of common values.
+An inbetween approach is to use conditional models: conditional surprisals, and models such as Chow--Liu trees and Bayesian networks.
+
+Standardised residuals under independence find the cells of a contingency table with unusual counts, while correspondence analysis finds whole rows or columns with unusual profiles, using the chi-squared distance from the average profile as the anomaly score.
+Multiple correspondence analysis gives numerical coordinates for several categorical variables, to which the methods for numerical data can be applied, but, like the independence model, it misses unusual combinations of common categories.
+
+For mixed data, the surprisal splits into the surprisal of the categories and the conditional surprisal of the numerical variables given the categories, estimated by density estimates or regression models, and its parts show what makes an observation anomalous.
+Distances that combine both kinds of variables, such as the Gower distance, allow the distance-based methods to be used, but the relative weight of categorical and numerical differences is then set by the choice of distance rather than by the data.
