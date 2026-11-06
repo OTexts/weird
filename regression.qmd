@@ -450,14 +450,14 @@ shiraz |>
 ```
 
 @fig-shiraz-surprisal shows the relationship between points and price, with the points coloured according to the surprisal probability.
-The eight orange points are observations with surprisal probabilities less than 0.002 (two are almost overlapping).
+The nine orange points are observations with surprisal probabilities less than 0.002 (two are almost overlapping).
 
 ```{r}
 #| label: fig-shiraz-surprisal
 #| dependson: shiraz-surprisals
 #| fig-cap: Price vs points for Shiraz wines.
 #|   Points are coloured according to the surprisal probability.
-#|   The eight orange points are observations with surprisal probabilities less than 0.002.
+#|   The nine orange points are observations with surprisal probabilities less than 0.002.
 
 shiraz |>
   ggplot(aes(x = points, y = price, colour = prob < 0.002)) +
@@ -472,14 +472,14 @@ shiraz |>
 #| dependson: shiraz-surprisals
 
 shiraz_surprise <- shiraz |> filter(prob < 0.002)
-if (NROW(shiraz_surprise) != 8L) {
+if (NROW(shiraz_surprise) != 9L) {
   stop("Something is wrong here.")
 }
 ```
 
 This shows the value of computing surprisal probabilities on the conditional distribution.
-The eight observations are not simply those with the highest prices, but those whose price is anomalous given their points values.
-There are three wines with prices above \$300 that are not identified as anomalous, because their prices are less extreme given their points values (their surprisal probabilities lie between 0.002 and 0.003).
+The nine observations are not simply those with the highest prices, but those whose price is anomalous given their points values.
+There are two wines with prices above \$300 that are not identified as anomalous, because their prices are less extreme given their points values (their surprisal probabilities lie between 0.002 and 0.003).
 
 ```{r}
 #| label: shiraz-expensive-check
@@ -487,7 +487,7 @@ There are three wines with prices above \$300 that are not identified as anomalo
 #| dependson: shiraz-surprisals
 
 expensive_missed <- shiraz |> filter(price > 300, prob >= 0.002)
-stopifnot(NROW(expensive_missed) == 3L, all(expensive_missed$prob < 0.003))
+stopifnot(NROW(expensive_missed) == 2L, all(expensive_missed$prob < 0.003))
 ```
 
 ## GAM surprisals {#sec-gam-surprisals}
@@ -712,7 +712,7 @@ shiraz_points <- shiraz |> count(points) |> arrange(desc(n))
 We now apply regression BACON to the same `shiraz` data set containing wine reviews that was used in @sec-ols, with `points` as the predictor and `log(price)` as the response.
 Multivariate BACON is first applied to the predictor variable, and then the regression version of the algorithm uses scaled prediction errors.
 Because the predictor has many repeated values (taking only integer values between 80 and 100), we need to specify the initial set to be larger than the number of observations with the most common points score, which is `r shiraz_points$points[1]` with `r shiraz_points$n[1]` observations.
-So we set the initial size of the multivariate BACON subset to $s = 600$ observations to ensure it does not contain only observations with a single points score (with the default initial size, the subset collapses onto a single points score and its covariance matrix is singular).
+So we set the initial size of the multivariate BACON subset to $s = 650$ observations to ensure it does not contain only observations with a single points score (with the default initial size, the subset collapses onto a single points score and its covariance matrix is singular).
 The BACON algorithm then identifies outliers as those with large scaled prediction errors from the fitted regression line based on the final basic subset.
 This initial size $s$ is set using the `m` argument of `robustX::BACON()` below.
 
@@ -725,7 +725,7 @@ bacon_alpha <- 0.05
 bacon_wine <- robustX::BACON(
   x = shiraz$points,
   y = log(shiraz$price),
-  m = 600,
+  m = 650,
   alpha = bacon_alpha,
   verbose = FALSE
 )
@@ -752,7 +752,11 @@ However, `r english::words(sum(wine_bacon$bacon_outlier))` regression outliers a
 #| include: false
 #| dependson: shiraz-bacon
 
-stopifnot(sum(wine_bacon$bacon_x_outlier) == 0)
+stopifnot(
+  sum(wine_bacon$bacon_x_outlier) == 0,
+  650 > shiraz_points$n[1],
+  setequal(which(wine_bacon$bacon_outlier), which(shiraz$prob < 0.002))
+)
 ```
 
 The largest BACON distances are shown below.
@@ -769,7 +773,7 @@ wine_bacon |>
   select(country, winery, year, points, price, bacon_distance)
 ```
 
-These are almost identical to those identified by the linear regression surprisals approach (@sec-regression-log-scores), with one additional anomaly (the last in the table above).
+These are the same nine wines that have surprisal probabilities less than 0.002 under the linear regression model (@sec-regression-log-scores).
 
 To see the effect of the anomalies on the fitted regression relationship, we refit the least-squares model using only the final BACON basic subset.
 This gives the regression line shown in @fig-shiraz-bacon that is obtained after omitting the nominated regression outliers.
