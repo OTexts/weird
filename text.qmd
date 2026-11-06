@@ -714,18 +714,18 @@ When there are more than two categorical variables, **multiple correspondence an
 This replaces each categorical variable by a set of dummy variables, one for each of its categories, which equal 1 for the observations in that category and 0 otherwise.
 For example, three road deaths with gender and crash type (Male, Single), (Female, Multiple) and (Male, Multiple) give the indicator matrix
 
-| Male | Female | Single | Multiple |
-|:----:|:------:|:------:|:--------:|
-|  1   |   0    |   1    |    0     |
-|  0   |   1    |   0    |    1     |
-|  1   |   0    |   0    |    1     |
+  | Male | Female | Single | Multiple |
+  | :--: | :----: | :----: | :------: |
+  |  1   |   0    |   1    |    0     |
+  |  0   |   1    |   0    |    1     |
+  |  1   |   0    |   0    |    1     |
 
 with one row for each observation.
 Every category has its own column (none is dropped as a reference category, as it would be in a regression), so with $m$ variables, each row of the indicator matrix contains $m$ ones.
 The analysis places each observation at a point with numerical coordinates, which can then be passed to any of the methods of @sec-distance-methods or @sec-highdim; this is how the HDoutliers algorithm (@sec-hdoutliers) handles categorical variables.
 
 Equivalently, MCA is a PCA (@sec-pca) of the indicator matrix after each column is centred and divided by $\sqrt{m p_k}$, where $p_k$ is the proportion of observations in category $k$.
-This differs from a PCA of standardised dummy variables, which would divide by $\sqrt{p_k(1-p_k)}$ and so treat a category with proportion $p_k$ in the same way as one with proportion $1-p_k$; in MCA, the rarer a category is, the more weight it has.
+This differs from a PCA of standardised dummy variables, which would divide by $\sqrt{p_k(1 - p_k)}$ and so treat a category with proportion $p_k$ in the same way as one with proportion $1 - p_k$; in MCA, the rarer a category is, the more weight it has.
 
 Applying @eq-chisq-distance to the rows of the indicator matrix gives a simple form for the chi-squared distance of observation $i$ from the centre,
 $$
@@ -792,3 +792,346 @@ The young drivers that stood out in @sec-categorical are not close to the top: t
 Keeping only the first few dimensions does not help: using the first five dimensions, the highest ranked young driver is at position `r scales::comma(min(young_drivers5$rank5))`.
 So for purely categorical data, the surprisals of @sec-categorical are a better guide to which observations are anomalous.
 The value of MCA is that it puts categorical variables on a numerical scale, so that they can be analysed together with numerical variables, as discussed in the next section.
+
+## Mixed numerical and categorical data {#sec-mixed}
+
+Many data sets contain both numerical and categorical variables.
+The road deaths record each person's age as well as the type of road user, and the wine reviews give each wine's price and points as well as its country and grape variety.
+There are two ways to find anomalies in such data.
+The first models the numerical variables conditionally on the categorical variables, and the second defines a distance between observations that combines both kinds of variables, so that the methods of @sec-distance-methods can be applied.
+
+### Conditional distributions
+
+Let $\bm{y}_i$ denote the numerical variables of observation $i$, and $\bm{x}_i$ its categorical variables.
+The joint distribution can be written as
+$$
+  f(\bm{y}, \bm{x}) = f(\bm{x})\, f(\bm{y} \mid \bm{x}),
+$$
+where $f(\bm{x})$ is the probability mass function of the categorical variables, and $f(\bm{y} \mid \bm{x})$ is the conditional density of the numerical variables, given the categories.
+So the surprisal of an observation is the sum of two parts,
+$$
+  s_i = -\log f(\bm{x}_i) - \log f(\bm{y}_i \mid \bm{x}_i).
+$$
+The first part is the surprisal of the categories, as in @sec-categorical, and the second is a conditional surprisal, measuring how unusual the numerical values are for an observation in those categories.
+Because $f(\bm{y} \mid \bm{x})$ is a density, the second part depends on the units in which $\bm{y}$ is measured, but changing the units adds the same constant to every observation's surprisal, and so does not change which observations are the most surprising.
+
+In @sec-categorical, the ages of the people killed on the roads were grouped into five-year age groups so that they could be treated as a categorical variable.
+Instead, age can be kept as a numerical variable $y$, with the type of road user as the categorical variable $x$.
+The conditional density of age is then estimated by a separate kernel density estimate for each type of road user (@sec-kdesurprisals), which `mutate()` computes when given `.by = road_user`.
+Both parts are leave-one-out surprisals (@sec-loo-surprisals).
+
+There is no simple formula for the surprisal probabilities of a distribution that combines probabilities and densities, so the rank-based approximation of @sec-approximate-surprisal-prob is used: $p_i$ is estimated by the proportion of observations whose surprisal is at least $s_i$.
+
+```{r}
+#| label: road-age
+#| code-fold: false
+
+deaths_age <- road_deaths |>
+  filter(!is.na(road_user), !is.na(age)) |>
+  mutate(s_user = surprisals(road_user, loo = TRUE)) |>
+  mutate(s_age = surprisals(age, loo = TRUE), .by = road_user) |>
+  mutate(
+    s = s_user + s_age,
+    p = rank(-s, ties.method = "max") / n()
+  )
+deaths_age |>
+  select(state, year, road_user, age, s_user, s_age, s, p) |>
+  arrange(desc(s))
+```
+
+```{r}
+#| label: road-age-check
+#| include: false
+#| dependson: road-age
+
+flagged_age <- deaths_age |> filter(p < 0.001)
+top_age <- deaths_age |> arrange(desc(s)) |> head(25)
+age_drivers0 <- deaths_age |> filter(road_user == "Driver", age == 0)
+p_marginal <- deaths_age |>
+  mutate(
+    s_marg = surprisals(age, loo = TRUE),
+    p_marg = rank(-s_marg, ties.method = "max") / n()
+  ) |>
+  filter(road_user == "Driver", age == 0)
+pillion_ages <- deaths_age$age[
+  deaths_age$road_user == "Motorcycle pillion passenger"
+]
+# The prose describes the deaths with the largest surprisals
+stopifnot(
+  all(is.finite(deaths_age$s)),
+  NROW(flagged_age) == 55,
+  top_age$road_user[1] == "Motorcycle pillion passenger",
+  top_age$age[1] == 2,
+  NROW(age_drivers0) == 5,
+  all(age_drivers0$p < 0.001),
+  all(p_marginal$p_marg > 0.009),
+  all(c(0, 7, 101) %in% flagged_age$age[flagged_age$road_user == "Driver"]),
+  all(flagged_age$age[flagged_age$road_user == "Driver"] %in% c(0, 7, 101)),
+  any(top_age$road_user == "Driver" & top_age$age == 101),
+  all(
+    flagged_age$age[flagged_age$road_user == "Motorcycle rider"] %in%
+      c(3:8, 85:91)
+  ),
+  all(flagged_age$age[flagged_age$road_user == "Pedal cyclist"] >= 89),
+  all(
+    flagged_age$age[
+      flagged_age$road_user == "Motorcycle pillion passenger"
+    ] %in%
+      c(2:10, 54:69)
+  ),
+  median(pillion_ages) == 24,
+  sum(flagged_age$road_user == "Passenger") == 1,
+  flagged_age$age[flagged_age$road_user == "Passenger"] == 101,
+  !any(flagged_age$road_user == "Pedestrian")
+)
+```
+
+The deaths with surprisal probabilities below 0.001 are shown in @fig-road-age.
+They include the five drivers aged 0, a driver aged 7, and a 101-year-old driver, who may well be genuine.
+The drivers aged 0 have a surprisal probability of `r sprintf("%.5f", age_drivers0$p[1])`, but an age of 0 is much less surprising on its own: when the type of road user is ignored, its surprisal probability is `r sprintf("%.3f", p_marginal$p_marg[1])`.
+The other flagged deaths are of a 101-year-old passenger, motorcycle riders aged under 10 or over 84, pedal cyclists aged 89 or more, and motorcycle pillion passengers who were either young children or aged over 50.
+Pillion passengers are the rarest type of road user, so their deaths start with a larger surprisal, and their median age is only `r median(pillion_ages)`.
+These are the same combinations that stood out in @sec-categorical, but without the ages being grouped, so that, for example, the 101-year-old driver is distinguished from drivers aged 85, who were in the same age group.
+
+```{r}
+#| label: fig-road-age
+#| dependson: road-age
+#| fig-cap: >-
+#|   Ages of the people killed on Australian roads from 1989 to 2025, by road user.
+#|   The deaths with surprisal probabilities below 0.001, under the conditional model of age given road user, are shown in orange.
+#| fig-height: 3
+
+deaths_age |>
+  ggplot(aes(x = age, y = road_user)) +
+  geom_jitter(
+    data = filter(deaths_age, p >= 0.001),
+    height = 0.3,
+    width = 0.3,
+    alpha = 0.05,
+    size = 0.3
+  ) +
+  geom_jitter(
+    data = filter(deaths_age, p < 0.001),
+    height = 0.3,
+    width = 0.3,
+    colour = "#D55E00",
+    size = 1
+  ) +
+  scale_y_discrete(limits = rev) +
+  labs(x = "Age (years)", y = NULL)
+```
+
+### Regression with categorical predictors
+
+When there are several numerical variables, the conditional density $f(\bm{y} \mid \bm{x})$ can itself be written as a product of conditional distributions, as in @sec-categorical, and each of these can be estimated with a regression model (@sec-regression-methods).
+A categorical predictor enters a regression as a set of dummy variables, one for each category, except that one category of each variable is dropped as a reference category, as the intercept already accounts for it.
+The `lm()` function does this automatically for factors.
+
+For the wine reviews, let the categorical variables be the country and the grape variety, and the numerical variables be the points and the log price.
+Then
+\begin{align*}
+  f(\text{log price}, \text{points}, \text{country}, \text{variety})
+   & = f(\text{country}, \text{variety})                                                  \\
+   & \quad \times f(\text{points} \mid \text{country}, \text{variety})                    \\
+   & \quad \times f(\text{log price} \mid \text{points}, \text{country}, \text{variety}),
+\end{align*}
+and the surprisal of each wine is the sum of three parts: how rare its combination of country and variety is, how unusual its points are for that combination, and how unusual its price is for its points, country and variety.
+The second and third conditional distributions are modelled by linear regressions with Normal errors (@sec-regression-log-scores), which extend the model of the Shiraz prices in @sec-regression-methods to all the wines.
+The points are integers, but as the possible scores are one point apart, a Normal distribution can be used to approximate the discrete conditional distribution.
+The surprisals are computed from the residuals and the residual standard deviations, rather than from the standardised residuals as in @sec-regression-log-scores, so that they are the surprisals of the points and the log prices themselves, and can be added.
+The countries and varieties are grouped as in @sec-correspondence.
+
+```{r}
+#| label: wine-mixed
+#| code-fold: false
+
+wines <- wine_reviews |>
+  filter(!is.na(country), !is.na(variety), !is.na(price), !is.na(points)) |>
+  filter(n() >= 50, .by = country) |>
+  mutate(
+    variety = forcats::fct_lump_min(variety, 500, other_level = "Other")
+  )
+fit_points <- lm(points ~ country + variety, data = wines)
+fit_price <- lm(log(price) ~ points + country + variety, data = wines)
+wines <- wines |>
+  mutate(
+    s_cat = surprisals(interaction(country, variety)),
+    s_points = -dnorm(
+      residuals(fit_points),
+      sd = sigma(fit_points),
+      log = TRUE
+    ),
+    s_price = -dnorm(residuals(fit_price), sd = sigma(fit_price), log = TRUE),
+    s = s_cat + s_points + s_price,
+    p = rank(-s, ties.method = "max") / n()
+  )
+wines |>
+  select(country, variety, points, price, s_cat:s) |>
+  arrange(desc(s)) |>
+  head(15)
+```
+
+```{r}
+#| label: wine-mixed-check
+#| include: false
+#| dependson: wine-mixed
+
+top_wines <- wines |> arrange(desc(s)) |> head(15)
+wine_rank <- function(w) which(top_wines$winery == w)[1]
+romania <- wines |> filter(country == "Romania", variety == "Riesling")
+price_z <- residuals(fit_price) / sigma(fit_price)
+# The prose describes the wines with the largest surprisals
+stopifnot(
+  n_distinct(wines$country) == 26,
+  nlevels(wines$variety) == 38,
+  wine_rank("Château les Ormes Sorbet") == 1,
+  wine_rank("Sirena Dunarii") == 2,
+  wine_rank("Blair") == 3,
+  top_wines$price[3] == 2013,
+  top_wines$year[3] == 2013,
+  top_wines$price[1] == 3300,
+  top_wines$points[1] == 88,
+  NROW(romania) == 4,
+  top_wines$s_cat[2] == max(top_wines$s_cat),
+  which.max(top_wines$s_price) == 1,
+  all(top_wines$s_price > top_wines$s_cat + top_wines$s_points),
+  sum(top_wines$country[-(1:3)] == "France") == 8,
+  sum(grepl("Bordeaux", top_wines$variety[-(1:3)])) == 5,
+  wine_rank("Henschke") == 14,
+  top_wines$year[14] == 2009,
+  top_wines$price[14] == 780,
+  round(100 * mean(abs(price_z) > 4), 1) == 0.2,
+  round(100 * 2 * pnorm(-4), 3) == 0.006
+)
+```
+
+The fifteen most surprising wines are shown above.
+The first is a Bordeaux red blend with 88 points and a price of \$3,300, almost all of whose surprisal comes from its price.
+The third is a US Chardonnay whose price, \$2,013, is the same as its vintage.
+Both are probably recording errors.
+The second is a Romanian Riesling, a botrytis dessert wine costing \$320; it is one of only `r english::words(NROW(romania))` Romanian Rieslings, so its combination of country and variety has the largest surprisal in the list, as well as a very high price.
+Eight of the other twelve are French, five of them Bordeaux blends, with prices far higher than their points would predict.
+The Australian Shiraz in 14th place, priced at \$780, is the Henschke 2009 Shiraz that was the most anomalous of the Shiraz wines in @sec-regression-log-scores; it remains anomalous when compared with all the wines, once its country and variety are taken into account.
+Because the surprisal is a sum, the three parts show what makes each wine anomalous.
+
+For every one of these wines, the price contributes more to the surprisal than the other two parts together.
+This is partly because the residuals of the price model have much heavier tails than a Normal distribution: `r sprintf("%.1f", 100 * mean(abs(price_z) > 4))`% of them are more than four standard deviations from zero, compared with `r sprintf("%.3f", 100 * 2 * pnorm(-4))`% under a Normal distribution.
+So the Normal model exaggerates the price surprisals of the most expensive wines, and a heavier-tailed error distribution would give more weight to the other two parts.
+
+### Distances for mixed data
+
+The distance-based methods of @sec-distance-methods can be applied to mixed data if the distance between two observations combines differences in both kinds of variables.
+The **Gower distance**\ [@Gower1971] between observations $i$ and $j$ is the average of the differences between them on each of the $m$ variables,
+$$
+  d_{ij} = \frac{1}{m} \sum_{q=1}^m d_{ijq},
+$$
+where $d_{ijq} = |y_{iq} - y_{jq}|/R_q$ for a numerical variable with range $R_q$, and for a categorical variable $d_{ijq}$ is 0 if the two observations are in the same category and 1 otherwise.
+Each $d_{ijq}$ lies between 0 and 1, so no single variable can contribute more than $1/m$ to the distance.
+
+The Gower distance is computed by `cluster::daisy()`, whose result can be passed to `dbscan::kNNdist()` to give the kNN anomaly scores of @sec-knn-scores.
+Here it is applied to the Shiraz wines, with the country, the points and the log price, and $k = 10$.
+
+```{r}
+#| label: shiraz-gower
+#| code-fold: false
+
+shiraz <- wine_reviews |>
+  filter(
+    variety %in% c("Shiraz", "Syrah"),
+    !is.na(country),
+    !is.na(price),
+    !is.na(points)
+  ) |>
+  mutate(country = factor(country), log_price = log(price))
+gower <- shiraz |>
+  select(country, points, log_price) |>
+  as.data.frame() |>
+  cluster::daisy(metric = "gower")
+shiraz <- shiraz |>
+  mutate(knn = dbscan::kNNdist(gower, k = 10))
+shiraz |>
+  select(country, winery, year, points, price, knn) |>
+  arrange(desc(knn))
+```
+
+```{r}
+#| label: shiraz-gower-check
+#| include: false
+#| dependson: shiraz-gower
+
+country_n <- table(shiraz$country)
+shiraz <- shiraz |>
+  mutate(
+    n_country = as.numeric(country_n[as.character(country)]),
+    rank = rank(-knn, ties.method = "min")
+  )
+rare <- shiraz |> filter(n_country <= 10)
+henschke <- shiraz |> filter(winery == "Henschke", year == 2009, price == 780)
+next_wines <- shiraz |> arrange(desc(knn)) |> slice(38:47)
+# The prose describes the wines with the largest kNN scores
+stopifnot(
+  NROW(shiraz) == 4552,
+  NROW(rare) == 37,
+  n_distinct(rare$country) == 10,
+  all(rare$knn >= 1 / 3 - 1e-8),
+  max(shiraz$knn[shiraz$n_country > 10]) < 0.16,
+  NROW(henschke) == 1,
+  henschke$rank == 45,
+  "Penfolds" %in% next_wines$winery,
+  sum(next_wines$country == "Spain") >= 3,
+  country_n["Spain"] == 34,
+  country_n["US"] > 3000
+)
+```
+
+The `r NROW(rare)` wines with the largest scores all come from the `r english::words(n_distinct(rare$country))` countries with ten or fewer Shiraz wines.
+For a wine from such a country, at least one of its ten nearest neighbours is from a different country, so its score is at least $1/3$ from the country alone.
+No wine from any other country has a score above `r sprintf("%.2f", max(shiraz$knn[shiraz$n_country > 10]))`.
+After these come the most expensive Australian and US wines, and some cheap wines from Spain, which has only `r country_n["Spain"]` Shiraz wines; the Henschke 2009 Shiraz is in position `r henschke$rank`.
+
+**Factor analysis of mixed data** (FAMD)\ [@Pages2004] is the analogue of PCA (@sec-pca) and MCA for mixed data.
+The numerical variables are standardised as in a PCA of the correlation matrix, and the categorical variables are replaced by their indicator matrices, weighted as in MCA.
+As with MCA, the resulting coordinates can be passed to any of the methods for numerical data.
+Here we use kNN distances again, with the same value of $k = 10$ that was used above.
+
+```{r}
+#| label: shiraz-famd
+#| code-fold: false
+#| dependson: [shiraz-gower, road-ca]
+
+shiraz_famd <- shiraz |>
+  select(country, points, log_price) |>
+  as.data.frame() |>
+  FAMD(ncp = Inf, graph = FALSE)
+shiraz <- shiraz |>
+  mutate(knn_famd = dbscan::kNNdist(shiraz_famd$ind$coord, k = 10))
+shiraz |>
+  select(country, winery, year, points, price, knn_famd) |>
+  arrange(desc(knn_famd))
+```
+
+```{r}
+#| label: shiraz-famd-check
+#| include: false
+#| dependson: [shiraz-famd, shiraz-gower-check]
+
+shiraz <- shiraz |> mutate(rank_famd = rank(-knn_famd, ties.method = "min"))
+top_famd <- shiraz |> arrange(desc(knn_famd)) |> head(NROW(rare))
+henschke_famd <- shiraz |>
+  filter(winery == "Henschke", year == 2009, price == 780)
+# The prose describes the wines with the largest FAMD kNN scores
+stopifnot(
+  all(top_famd$n_country <= 10),
+  top_famd$country[1] == "Peru",
+  country_n["Peru"] == 1,
+  henschke_famd$rank_famd == 42
+)
+```
+
+The ranking is much the same.
+The single wine from Peru has the largest score, and the `r NROW(rare)` wines from the countries with ten or fewer Shiraz wines again come first, as each rare category is given a large weight, as in MCA.
+The Henschke 2009 Shiraz is in position `r henschke_famd$rank_famd`.
+
+So distance-based methods applied to mixed data mainly find observations in rare categories, as MCA did in @sec-correspondence.
+How much a category counts compared with a numerical difference is set by the choice of distance, not by the data: in the Gower distance, being in a different country counts as much as the full range of prices.
+When a conditional model can be specified, the surprisals of the previous subsections are more informative, as they find observations whose numerical values are unusual for their categories, and show which part of the observation makes it surprising.
