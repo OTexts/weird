@@ -1017,3 +1017,485 @@ FAMD is implemented by the `FAMD()` function in the **`FactoMineR`** package.
 
 When a conditional model can be specified, its surprisals are more informative than distance-based scores, whether from the Gower distance or from FAMD coordinates.
 They find numerical values that are unusual for their categories, not just rare categories, and their parts show which part of an observation is unusual.
+
+## From text to numbers {#sec-text-numbers}
+
+Documents cannot be analysed using the methods discussed so far, because each contains many words (categorical values), and almost every document is unique.
+Instead, a document can be converted to numbers by counting how often each word occurs in it, treating it as a "bag of words" and ignoring their order.
+This loses much of the meaning of the text, but it is enough to find many kinds of anomalous documents.
+
+The examples in this section and the next use the descriptions of the wines written by the tasters in the wine reviews (@sec-data).
+Here are three of them.
+
+```{r}
+#| label: wine-descriptions
+#| code-fold: false
+
+wine_reviews <- wine_reviews |>
+  mutate(id = row_number(), .before = 1)
+wine_reviews |>
+  slice(c(1, 2, 3)) |>
+  pull(description)
+```
+
+### Tokens and vocabulary
+
+A **token** is a unit of text, usually a word, and splitting a text into tokens is called **tokenisation**.
+The `unnest_tokens()` function from the **`tidytext`** package\ [@Silge2017] converts the text to lower case, removes the punctuation, and returns one row for each token.
+
+```{r}
+#| label: tidytext
+#| code-fold: false
+#| cache: false
+
+library(tidytext)
+```
+
+```{r}
+#| label: wine-words
+#| code-fold: false
+#| dependson: wine-descriptions
+
+wine_words <- wine_reviews |>
+  select(id, variety, description) |>
+  unnest_tokens(word, description)
+wine_words
+vocabulary <- wine_words |>
+  count(word, sort = TRUE)
+vocabulary
+```
+
+```{r}
+#| label: wine-words-check
+#| include: false
+#| dependson: wine-words
+
+top10_share <- sum(vocabulary$n[1:10]) / sum(vocabulary$n)
+once_share <- mean(vocabulary$n == 1)
+stop_share <- mean(wine_words$word %in% stop_words$word)
+# The prose describes the size of the vocabulary and the most common words
+stopifnot(
+  NROW(wine_words) > 4.5e6,
+  between(NROW(vocabulary), 32000, 33000),
+  round(100 * once_share) == 38,
+  round(100 * top10_share) == 27,
+  all(vocabulary$word[1:7] == c("and", "the", "a", "of", "with", "this", "is")),
+  vocabulary$word[8] == "wine",
+  NROW(stop_words) == 1149,
+  round(100 * stop_share) == 44
+)
+```
+
+The `r scales::comma(NROW(wine_reviews))` descriptions contain `r sprintf("%.1f", NROW(wine_words) / 1e6)` million tokens, but only `r scales::comma(NROW(vocabulary))` distinct words, which together form the **vocabulary**.
+A few words are used very often: the ten most common words account for `r sprintf("%.0f", 100 * top10_share)`% of the tokens.
+At the other extreme, `r sprintf("%.0f", 100 * once_share)`% of the vocabulary occurs only once.
+This follows the pattern found in almost every large collection of text, known as **Zipf's law**\ [@Zipf1949]: the frequency of a word is roughly inversely proportional to its rank in the list of word frequencies.
+
+Each token is therefore an observation of a categorical variable whose categories are the words of the vocabulary: tens of thousands of categories, most of them rare.
+The probability of each word can be estimated from its frequency, as in @sec-categorical, but for most words this estimate rests on only a handful of occurrences, and many possible words don't occur at all.
+
+### Function words and content words
+
+The most common words are "and", "the", "a", "of", "with", "this" and "is".
+These are **function words**, which give a sentence its grammatical structure, as distinct from **content words**, such as "wine", "cherry" and "tannins", which carry its meaning.
+Lists of function words and other very common words are called **stop words**.
+The `stop_words` data in **`tidytext`** combine three such lists, giving `r scales::comma(NROW(stop_words))` words, and these account for `r sprintf("%.0f", 100 * stop_share)`% of the tokens in the descriptions.
+Removing them with `anti_join()` leaves the content words.
+
+```{r}
+#| label: wine-content-words
+#| code-fold: false
+#| dependson: wine-words
+
+vocabulary |>
+  anti_join(stop_words, by = "word")
+```
+
+Stop words are usually removed when the aim is to find what a document is about, but they are the most useful words for describing how it is written, as how often a writer uses them reflects the writer's habits rather than the subject.
+
+### The document-term matrix
+
+The word counts of a collection of documents form a **document-term matrix**, with one row for each document and one column for each word in the vocabulary.
+The entry in row $d$ and column $w$ is $n_{dw}$, the number of times word $w$ occurs in document $d$, so each row is a numerical vector, and its sum is the length of the document, $n_d = \sum_w n_{dw}$.
+The `cast_sparse()` function builds the matrix from the word counts.
+
+```{r}
+#| label: wine-dtm
+#| code-fold: false
+#| dependson: wine-words
+
+dtm <- wine_words |>
+  count(id, word) |>
+  cast_sparse(id, word, n)
+dim(dtm)
+```
+
+```{r}
+#| label: wine-dtm-check
+#| include: false
+#| dependson: wine-dtm
+
+dtm_density <- Matrix::nnzero(dtm) / prod(dim(dtm))
+stopifnot(
+  NROW(dtm) == NROW(wine_reviews),
+  NCOL(dtm) == NROW(vocabulary),
+  round(100 * dtm_density, 1) == 0.1
+)
+```
+
+Each description is now a point in a space with `r scales::comma(NCOL(dtm))` dimensions, but only `r sprintf("%.1f", 100 * dtm_density)`% of the entries are non-zero, so the matrix is stored in a sparse form.
+The methods of @sec-highdim could in principle be applied to its rows, but most of the columns are almost entirely zero, and the counts of common words such as "the" dominate any distance between rows.
+So the counts are usually reweighted, or reduced to a few features.
+
+### Term frequency--inverse document frequency
+
+The **term frequency** of word $w$ in document $d$ is the proportion of the document's tokens that are that word, $\text{tf}_{dw} = n_{dw}/n_d$.
+If $N$ is the number of documents, and $N_w$ is the number of documents that contain word $w$, the **inverse document frequency** of word $w$ is
+$$
+  \text{idf}_w = \log(N / N_w),
+$$
+which is zero for a word that occurs in every document, and largest for a word that occurs in only one\ [@SparckJones1972].
+The product $\text{tf}_{dw} \times \text{idf}_w$, called **tf-idf**, is large for words that are common in document $d$ but rare in the other documents, so it picks out the words that distinguish a document from the rest.
+Replacing the counts in the document-term matrix by their tf-idf values gives rare words more weight than common ones, much as MCA gives rare categories more weight (@sec-correspondence).
+
+@fig-wine-tfidf shows the words that are most characteristic of six grape varieties, found by treating all the descriptions of each variety as a single document and computing the tf-idf of each word with `bind_tf_idf()`.
+The words in the names of the varieties (such as "pinot" and "noir") are removed first, as they are trivially characteristic.
+
+```{r}
+#| label: fig-wine-tfidf
+#| dependson: wine-words
+#| fig-cap: >-
+#|   The six words with the largest tf-idf in the descriptions of each of six grape varieties, treating all the descriptions of each variety as a single document.
+#| fig-height: 4.5
+
+variety_words <- wine_reviews |>
+  distinct(variety) |>
+  unnest_tokens(word, variety)
+variety_tfidf <- wine_words |>
+  filter(!is.na(variety)) |>
+  anti_join(variety_words, by = "word") |>
+  count(variety, word) |>
+  bind_tf_idf(word, variety, n)
+varieties <- c(
+  "Chardonnay",
+  "Pinot Noir",
+  "Riesling",
+  "Sauvignon Blanc",
+  "Syrah",
+  "Zinfandel"
+)
+variety_tfidf |>
+  filter(variety %in% varieties) |>
+  slice_max(tf_idf, n = 6, by = variety, with_ties = FALSE) |>
+  ggplot(aes(x = tf_idf, y = reorder_within(word, tf_idf, variety))) +
+  geom_col() +
+  facet_wrap(vars(variety), scales = "free_y") +
+  scale_y_reordered() +
+  labs(x = "tf-idf", y = NULL)
+```
+
+```{r}
+#| label: wine-tfidf-check
+#| include: false
+#| dependson: fig-wine-tfidf
+
+top_tfidf <- variety_tfidf |>
+  filter(variety %in% varieties) |>
+  slice_max(tf_idf, n = 6, by = variety, with_ties = FALSE)
+has <- function(v, w) all(w %in% top_tfidf$word[top_tfidf$variety == v])
+sweetness <- wine_reviews |>
+  filter(variety %in% varieties) |>
+  summarise(
+    dry = mean(grepl("\\b(dry|sweet)\\b", description, ignore.case = TRUE)),
+    .by = variety
+  )
+# The prose describes the words in fig-wine-tfidf
+stopifnot(
+  has("Chardonnay", c("oak", "buttered", "pineapple", "toast")),
+  has("Pinot Noir", c("cola", "raspberry", "cranberry")),
+  has("Riesling", c("lime", "peach", "tangerine", "dry", "off")),
+  has("Sauvignon Blanc", c("gooseberry", "grapefruit", "sb")),
+  has("Syrah", c("pepper", "meat")),
+  has("Zinfandel", c("alcohol", "zin")),
+  sweetness$variety[which.max(sweetness$dry)] == "Riesling"
+)
+```
+
+Most of the words are what a wine drinker would expect: the oak, butter, pineapple and toast of Chardonnay, the cola, raspberry and cranberry of Pinot Noir, the lime, peach and tangerine of Riesling, the gooseberry and grapefruit of Sauvignon Blanc, the pepper and meat of Syrah, and the alcohol of Zinfandel.
+The words "dry" and "off" (as in "off-dry") appear for Riesling, whose reviews often say how sweet the wine is, and the tasters' abbreviations "zin" and "sb" survive the removal of the variety names.
+
+## Feature-based anomalies in text {#sec-text-features}
+
+Anomalous documents can be found by describing each document by a few interpretable features, and then applying the multivariate methods of earlier chapters to the features.
+The features used here measure the length of a document, its style, its vocabulary and its tone.
+
+- `words`: the number of words;
+- `word_length`: the mean number of letters in each word;
+- `function_words`: the proportion of the words that are stop words;
+- `idf`: the mean of the inverse document frequencies of the words, which is large when a document uses words that are rare in the collection;
+- `sentiment`: the number of positive words minus the number of negative words, divided by the number of words, using the list of `r scales::comma(NROW(get_sentiments()))` positive and negative words compiled by @Hu2004;
+- `punctuation`: the number of punctuation marks for each word.
+
+For the wine data, each description is a document, so the idf of a word depends on how many of the `r scales::comma(NROW(wine_reviews))` descriptions contain it, rather than how many varieties, as in @fig-wine-tfidf.
+
+```{r}
+#| label: wine-text-features
+#| code-fold: false
+#| dependson: wine-words
+
+idf <- wine_words |>
+  distinct(id, word) |>
+  count(word) |>
+  mutate(idf = log(NROW(wine_reviews) / n)) |>
+  select(word, idf)
+text_features <- wine_words |>
+  left_join(idf, by = "word") |>
+  left_join(get_sentiments(), by = "word") |>
+  summarise(
+    words = n(),
+    word_length = mean(nchar(word)),
+    function_words = mean(word %in% stop_words$word),
+    idf = mean(idf),
+    sentiment = (sum(sentiment == "positive", na.rm = TRUE) -
+      sum(sentiment == "negative", na.rm = TRUE)) /
+      n(),
+    .by = id
+  ) |>
+  left_join(
+    wine_reviews |> select(id, points, description),
+    by = "id"
+  ) |>
+  mutate(
+    punctuation = stringr::str_count(description, "[[:punct:]]") / words,
+    .after = sentiment
+  )
+text_features
+```
+
+The features are scaled with `mvscale()` (@sec-scaling), and a Gaussian mixture model (@sec-gmm-surprisal) is fitted to the scaled features.
+Its surprisal probabilities are computed using the GPD approximation of @sec-approximate-surprisal-prob, as the mixture model is unlikely to fit the tails of the distribution well.
+With more than 100,000 reviews, fitting the mixture takes several minutes.
+
+```{r}
+#| label: wine-text-gmm-display
+#| eval: false
+#| code-fold: false
+
+Z <- text_features |>
+  select(words:punctuation) |>
+  mvscale() |>
+  as.matrix()
+set.seed(1967)
+text_gmm <- mclust::Mclust(Z, verbose = FALSE) |>
+  dist_mclust()
+```
+
+```{r}
+#| label: wine-text-gmm-fit
+#| include: false
+#| dependson: wine-text-features
+
+Z <- text_features |>
+  select(words:punctuation) |>
+  mvscale() |>
+  as.matrix()
+set.seed(1967)
+text_gmm <- mclust::Mclust(Z, verbose = FALSE) |>
+  dist_mclust() |>
+  cache("wine_text_gmm")
+```
+
+```{r}
+#| label: wine-text-gmm
+#| code-fold: false
+#| dependson: wine-text-gmm-fit
+
+text_features <- text_features |>
+  mutate(
+    s = surprisals(Z, distribution = text_gmm),
+    p = surprisals_prob(Z, distribution = text_gmm, approximation = "gpd")
+  )
+text_features |>
+  arrange(p) |>
+  select(points, words:punctuation, p)
+```
+
+The texts of the twelve least probable reviews are printed below, using a function that wraps each one to fit the page.
+
+```{r}
+#| label: wine-text-top
+#| code-fold: false
+#| dependson: wine-text-gmm
+
+print_reviews <- function(reviews) {
+  reviews |>
+    mutate(text = paste0("[", points, " points] ", description)) |>
+    pull(text) |>
+    lapply(\(x) c(strwrap(x, width = 80, exdent = 2), "")) |>
+    unlist() |>
+    writeLines()
+}
+text_features |>
+  slice_min(p, n = 12) |>
+  print_reviews()
+```
+
+```{r}
+#| label: wine-text-check
+#| include: false
+#| dependson: wine-text-top
+
+flagged_text <- text_features |> filter(p < 0.001)
+top_text <- text_features |> arrange(p) |> head(12)
+non_review <- grepl("^Imported by|not available", text_features$description)
+percentages <- grepl("%", flagged_text$description)
+gaultier <- text_features |> filter(grepl("Gaultier", description))
+# The prose describes the reviews with the smallest surprisal probabilities
+stopifnot(
+  NROW(get_sentiments()) == 6786,
+  sum(non_review) == 7,
+  all(text_features$p[non_review] < 0.001),
+  sum(grepl("^Imported by|not available", top_text$description[1:7])) == 6,
+  all(top_text$words[1:7] <= 7),
+  sum(flagged_text$words <= 10) >= 15,
+  sum(percentages) >= 15,
+  any(grepl("^Smells raisiny", top_text$description)),
+  sum(grepl("%", top_text$description)) >= 2,
+  NROW(gaultier) == 1,
+  gaultier$id %in% top_text$id,
+  sum(grepl("^Dark, dusty.*Dark, dusty", top_text$description)) == 1,
+  between(NROW(flagged_text), 60, 110),
+  sum(flagged_text$words <= 10 | flagged_text$words >= 100) >= 25,
+  sum(flagged_text$words > 10 & flagged_text$words < 100) >= 25
+)
+```
+
+`r english::Words(NROW(flagged_text))` reviews have surprisal probabilities below 0.001.
+The least probable are not reviews at all: `r english::words(sum(non_review))` descriptions say only that the wine was "Imported by" a named company, or that the review is not available.
+They are very short, use rare words (the names of the importers), and have no sentiment.
+The text is missing rather than anomalous, but the points and price may still be genuine.
+Other flagged reviews are very terse, such as "Smells raisiny, feels hot, tastes overripe.", or list the percentages of the vineyards or grape varieties in a blend, which gives them much more punctuation than usual.
+One review contains its own text twice, presumably a data-entry error, so it is unusually long.
+One flagged review describes not the wine but its packaging: a red vinyl body suit designed for the bottle by the fashion designer Jean-Paul Gaultier.
+
+```{r}
+#| label: fig-wine-text-features
+#| dependson: wine-text-gmm
+#| fig-cap: >-
+#|   Number of words and mean inverse document frequency of the wine review descriptions.
+#|   The reviews with surprisal probabilities below 0.001, under a Gaussian mixture model of the six text features, are shown in orange.
+#| fig-height: 3.5
+
+text_features |>
+  ggplot(aes(x = words, y = idf)) +
+  geom_jitter(
+    data = filter(text_features, p >= 0.001),
+    width = 0.01,
+    height = 0,
+    alpha = 0.05,
+    size = 0.3
+  ) +
+  geom_jitter(
+    data = filter(text_features, p < 0.001),
+    width = 0.01,
+    height = 0,
+    colour = "#D55E00",
+    size = 1
+  ) +
+  scale_x_log10() +
+  labs(x = "Number of words (log scale)", y = "Mean idf")
+```
+
+@fig-wine-text-features shows two of the six features.
+The descriptions that are not reviews are at the top left, with only a few words, all of them rare.
+Many of the other flagged reviews are very short or very long, and the rest are flagged because of their other features, or their combination of features.
+
+### Wording that disagrees with the points
+
+The points awarded to a wine should agree with what the taster wrote about it.
+As in @sec-mixed, this can be checked with a conditional model: a regression of the points on the text features, whose large residuals are reviews with more or fewer points than their wording would suggest.
+
+```{r}
+#| label: wine-text-points
+#| code-fold: false
+#| dependson: wine-text-gmm
+
+fit_text <- lm(
+  points ~ log(words) +
+    word_length +
+    function_words +
+    idf +
+    sentiment +
+    punctuation,
+  data = text_features
+)
+text_features <- text_features |>
+  mutate(r = rstandard(fit_text))
+text_features |>
+  arrange(desc(r)) |>
+  select(points, words, sentiment, r)
+text_features |>
+  arrange(r) |>
+  select(points, words, sentiment, r)
+```
+
+The texts of the six reviews with the largest positive residuals, and of the six with the largest negative residuals, are printed below.
+
+```{r}
+#| label: wine-text-points-top
+#| code-fold: false
+#| dependson: [wine-text-points, wine-text-top]
+
+text_features |>
+  slice_max(r, n = 6) |>
+  print_reviews()
+text_features |>
+  slice_min(r, n = 6) |>
+  print_reviews()
+```
+
+```{r}
+#| label: wine-text-points-check
+#| include: false
+#| dependson: wine-text-points-top
+
+r2_text <- summary(fit_text)$r.squared
+top_pos <- text_features |> arrange(desc(r)) |> head(6)
+top_neg <- text_features |> arrange(r) |> head(6)
+# The prose describes the largest residuals in each direction
+stopifnot(
+  round(r2_text, 2) == 0.38,
+  round(cor(text_features$points, text_features$words), 2) == 0.54,
+  coef(fit_text)["log(words)"] > 0,
+  coef(fit_text)["sentiment"] > 0,
+  sum(grepl("^Imported by", top_pos$description[1:4])) == 4,
+  all(top_pos$points[grepl("^Imported by", top_pos$description)] >= 86),
+  sum(top_pos$points == 97) == 2,
+  all(top_pos$points[!grepl("^Imported by", top_pos$description)] == 97),
+  all(top_pos$words[top_pos$points == 97] < 30),
+  any(grepl("majestic", top_pos$description)),
+  any(grepl("hugely rich", top_pos$description)),
+  all(top_neg$points <= 82),
+  all(top_neg$words > 50),
+  all(top_neg$sentiment >= 0),
+  any(grepl("^Charming aromas", top_neg$description)),
+  any(grepl("Sawdust notes dominate", top_neg$description)),
+  any(grepl("Unfotunately", top_neg$description)),
+  all(
+    c("charming", "promise", "good", "dominate") %in%
+      get_sentiments()$word[
+        get_sentiments()$sentiment == "positive"
+      ]
+  ),
+  !"unfotunately" %in% get_sentiments()$word
+)
+```
+
+The text features explain `r sprintf("%.0f", 100 * r2_text)`% of the variation in the points, mostly through the length of the review: tasters write more about the wines they like, and the correlation between the points and the number of words is `r sprintf("%.2f", cor(text_features$points, text_features$words))`.
+The largest positive residuals include four of the "Imported by" descriptions, whose wines have `r min(top_pos$points[grepl("^Imported by", top_pos$description)])`--`r max(top_pos$points[grepl("^Imported by", top_pos$description)])` points but only a few words, and two short reviews of wines with 97 points, each of which describes the wine in just two sentences, as "majestic" or "hugely rich".
+The largest negative residuals are long reviews of wines with 80--82 points, which describe at length what is wrong with the wine.
+None of them has a negative sentiment score, because the list of positive and negative words takes each word on its own.
+In "Charming aromas of tobacco leaf and strawberries promise good things to come but the palate does not follow through", the words "charming", "promise" and "good" all count as positive; in "Sawdust notes dominate the nose", so does "dominate"; and the misspelt "Unfotunately" is not in the list at all.
+
+This shows the main weakness of features: they detect only the kinds of anomaly that the analyst has thought to measure, and features such as word counts ignore the order and context of the words.
+A model of the language itself can take some of that context into account.
