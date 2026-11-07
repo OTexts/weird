@@ -154,7 +154,8 @@ As this episode illustrates, anomaly detection is inseparable from the context, 
 
 ## Approaches to anomaly detection {#sec-approaches}
 
-This book takes a probabilistic perspective on anomaly detection, where the aim is to estimate the likelihood of each observation.
+Some anomaly detection methods estimate how likely each observation is under a probability distribution; others measure how far, or how easily isolated, each observation is from the rest of the data, without an explicit probability model.
+This book covers both, but favours the probabilistic perspective, because it leads to anomaly scores that can be interpreted as probabilities, and so to natural thresholds for deciding when an observation is anomalous.
 Consequently, @sec-univariate and @sec-multivariate introduce (or revise) some material on probability distributions and related tools.
 
 ### Z-scores and statistical tests

@@ -50,7 +50,7 @@ The methods in the previous chapters all assume numerical data, where values can
 Many data sets also contain **categorical variables**, which take one of a fixed set of values, called **categories** (or levels), such as gender, state, or country.
 Categories usually have no natural order and there is no natural measure of distance between them.
 
-The probabilistic approach of this book still applies.
+The probabilistic approach of @sec-density-methods still applies.
 The density is replaced by a probability mass function, and an anomaly is an observation with a high surprisal (@sec-surprisals): a category, or a combination of categories, that rarely occurs.
 
 The chapter starts with anomalies in categorical data, including anomalous cells in tables of counts.

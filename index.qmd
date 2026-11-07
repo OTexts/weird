@@ -7,7 +7,7 @@ date-modified: today
 ::: {.otexts-cover logo="figs/weird-hex.png" alt="Front cover of That's weird! Anomaly detection using R, by Rob J Hyndman"}
 [Free to read online]{.eyebrow}
 
-A probabilistic perspective on finding and understanding anomalies.
+Finding and understanding anomalies, from classical tests to modern density- and distance-based methods.
 
 For people doing data analysis without formal training in anomaly detection, and for students of statistics or data science.
 

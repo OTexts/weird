@@ -8,8 +8,7 @@
 source("before-each-chapter.R")
 ```
 
-This book takes a probabilistic perspective on anomaly detection.
-That is, we are interested in the likelihood of each observation.
+Many of the methods in this book identify anomalies as observations that are unlikely under some probability distribution.
 So before turning to anomaly detection methods, we first need to understand probability distributions.
 Some of this material (especially @sec-common) should be familiar to most readers, but is covered here as a refresher, and to introduce some notation that will be used in later chapters.
 
