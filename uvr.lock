@@ -3356,11 +3356,11 @@ requires = ["spatstat.utils"]
 
 [[package]]
 name = "spatstat.utils"
-version = "3.2.5"
+version = "3.2.6"
 source = "cran"
-raw_version = "3.2-5"
-url = "https://cran.r-project.org/src/contrib/spatstat.utils_3.2-5.tar.gz"
-checksum = "md5:cce3c418041d68834e27b52a838a9088"
+raw_version = "3.2-6"
+url = "https://cran.r-project.org/src/contrib/spatstat.utils_3.2-6.tar.gz"
+checksum = "md5:d677ebaea9184ef8a45f47a74d60cfb5"
 
 [[package]]
 name = "splancs"
@@ -3981,8 +3981,8 @@ checksum = "md5:b5603af0a2d1b62511f85f5574c747a8"
 name = "weird"
 version = "3.1.0-4.9000"
 source = "github"
-url = "https://api.github.com/repos/robjhyndman/weird/tarball/c6185e3a55b5c462a6a125e3c93a3a298846fe86"
-checksum = "git:c6185e3a55b5c462a6a125e3c93a3a298846fe86"
+url = "https://api.github.com/repos/robjhyndman/weird/tarball/f677cb785d6512e968d63d49fc4a00047f5cc813"
+checksum = "git:f677cb785d6512e968d63d49fc4a00047f5cc813"
 requires = [
     "aplpack",
     "broom",
