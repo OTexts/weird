@@ -50,7 +50,7 @@ The methods in the previous chapters all assume numerical data, where values can
 Many data sets also contain **categorical variables**, which take one of a fixed set of values, called **categories** (or levels), such as gender, state, or country.
 Categories usually have no natural order and there is no natural measure of distance between them.
 
-The probabilistic approach of @sec-density-methods carries over directly, with the density replaced by a probability mass function.
+For categorical data, the probabilistic approach of @sec-density-methods carries over directly, with the density replaced by a probability mass function.
 An anomaly is then an observation with a high surprisal (@sec-surprisals): a category, or a combination of categories, that rarely occurs.
 The methods of @sec-distance-methods and @sec-highdim do not carry over so easily, because they need distances between observations, which is more difficult to define for categorical variables.
 
