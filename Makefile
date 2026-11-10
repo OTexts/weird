@@ -1,26 +1,41 @@
+# make, make html  render the HTML book into _book/
+# make pdf         (this book has no PDF version)
+# make all         render every version of the book
+# make preview     preview the HTML book, re-rendering on save
+# make update      update the otexts extension and the R packages (uvr.toml -> uvr.lock -> .uvr/library)
+# make deploy      render the HTML book and upload it to otexts.com
+# make clean       remove the rendered book and caches
+
 qmd_files   := $(wildcard *.qmd)
 resources   := $(wildcard rds/*.rds data/*)
 shared_deps := weird.bib before-each-chapter.R post-render.R .htaccess \
                _quarto.yml $(wildcard _extensions/OTexts/otexts/*)
 
-.PHONY: default preview build deploy clean update
+.PHONY: default all html pdf preview update deploy clean
 
-default: build
+default: html
 
-update:
-	rm -rf .uvr/library/weird
-	uvr update && uvr sync
+all: html pdf
 
-preview:
-	quarto preview
-
-build: _book/.built
+html: _book/.built
 
 _book/.built: $(qmd_files) $(resources) $(shared_deps)
 	quarto render --to otexts-html
 	touch $@
 
-deploy: build
+pdf:
+	@echo "There is no PDF version of this book"
+
+preview:
+	quarto preview --to otexts-html
+
+update:
+	quarto update extension OTexts/quarto-otexts --no-prompt
+	rm -rf .uvr/library/otexts
+	rm -rf .uvr/library/weird
+	uvr update && uvr sync
+
+deploy: html
 	rsync -zrvc --delete -e 'ssh -p 18765' _book/ u192-zw4zvui1lqsb@ssh.otexts.com:www/otexts.com/public_html/weird
 	touch .deployed
 
