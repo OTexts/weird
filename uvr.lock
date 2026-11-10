@@ -136,11 +136,11 @@ checksum = "md5:230a93c95eaabdfc7a2e958efbbe25db"
 
 [[package]]
 name = "GGally"
-version = "2.4.0"
+version = "2.5.0"
 source = "cran"
-raw_version = "2.4.0"
-url = "https://cran.r-project.org/src/contrib/GGally_2.4.0.tar.gz"
-checksum = "md5:10e743f036dd7a85cc00e5d726c35df5"
+raw_version = "2.5.0"
+url = "https://cran.r-project.org/src/contrib/GGally_2.5.0.tar.gz"
+checksum = "md5:2f147baec8f9568d38caf83e822808b2"
 requires = [
     "ggplot2",
     "cli",
@@ -1506,11 +1506,11 @@ requires = [
 
 [[package]]
 name = "ggtime"
-version = "1.1.0"
+version = "1.1.1"
 source = "cran"
-raw_version = "1.1.0"
-url = "https://cran.r-project.org/src/contrib/ggtime_1.1.0.tar.gz"
-checksum = "md5:ef0c88015f69d297216cef2bb17616f7"
+raw_version = "1.1.1"
+url = "https://cran.r-project.org/src/contrib/ggtime_1.1.1.tar.gz"
+checksum = "md5:21ba0ca8ad27fd4963d8e98f683a0bdb"
 requires = [
     "ggplot2",
     "gtable",
@@ -2546,11 +2546,11 @@ requires = ["askpass"]
 
 [[package]]
 name = "otel"
-version = "0.2.0"
+version = "0.3.0"
 source = "cran"
-raw_version = "0.2.0"
-url = "https://cran.r-project.org/src/contrib/otel_0.2.0.tar.gz"
-checksum = "md5:cecd0f434a6327dcf5ca0bc2da494d06"
+raw_version = "0.3.0"
+url = "https://cran.r-project.org/src/contrib/otel_0.3.0.tar.gz"
+checksum = "md5:b9c41923305ec69ba71e80b63e86ec02"
 
 [[package]]
 name = "otexts"

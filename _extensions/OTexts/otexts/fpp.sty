@@ -25,8 +25,8 @@
 \usepackage{alltt}
 \let\temptt\texttt
 \renewcommand\texttt[1]{\mbox{\temptt{#1}}}
-% Under XeLaTeX/LuaLaTeX (e.g. right-to-left books) the fonts are set with
-% mainfont, sansfont and monofont in the document YAML instead
+% The format uses LuaLaTeX, with the fonts set by mainfont, sansfont, monofont
+% and mathfont in _extension.yml. These are for a book that switches to pdflatex
 \ifPDFTeX
 \usepackage[notextcomp,nott]{kpfonts}
 %\usepackage[t1,scale=0.86]{sourcecodepro}
@@ -59,7 +59,8 @@
 % Redefine shaded environment if it exists (for R plots)
 \ifcsname Shaded\endcsname
   %\definecolor{shadecolor}{RGB}{225,225,225}
-  \renewenvironment{Shaded}{\fontsize{9.5}{10}\begin{snugshade}}{\end{snugshade}}
+  % At this size 80 columns of code fit the text width
+  \renewenvironment{Shaded}{\fontsize{8.9}{10}\begin{snugshade}}{\end{snugshade}}
 \fi
 
 % Page breaks in long code blocks (see code-blocks.lua): between
@@ -121,19 +122,22 @@
   {\huge\sffamily\bfseries\color{main}\otextschapter\ \thechapter}% label
   {0pt}% horizontal separation between label and title body
   {\fontsize{26}{32}\sffamily\bfseries\otextsraggedright\color{main}}% before the title body
+% \color before the title leaves a whatsit in vertical mode, and TeX can break the
+% page after one, stranding the heading above: colour the label and title instead
+\newcommand{\otextsheadingtext}[1]{\textcolor{main}{#1}}
 \titleformat{\section}%
 [hang]% shape
-{\sffamily\large\bfseries\color{main}}% format applied to label+text
-{\thesection}% label
+{\sffamily\large\bfseries}% format applied to label+text
+{\textcolor{main}{\thesection}}% label
 {1em}% horizontal separation between label and title body
-{}% before the title body
+{\otextsheadingtext}% before the title body
 []% after the title body
 \titleformat{\subsection}%
 [hang]% shape
-{\sffamily\normalsize\bfseries\itshape\color{main}}% format applied to label+text
+{\sffamily\normalsize\bfseries\itshape}% format applied to label+text
 {}% label
 {0em}% horizontal separation between label and title body
-{}% before the title body
+{\otextsheadingtext}% before the title body
 []% after the title body
 
 % Description list label
@@ -318,6 +322,24 @@
 \ifPDFTeX\DisableLigatures{encoding = T1, family = tt*}\fi
 \raggedbottom
 \usepackage[bottom]{footmisc}
+% Keeps a table with its caption (see tables.lua)
+\RequirePackage{needspace}
+\makeatletter
+% No running head on the blank page before a chapter
+\def\cleardoublepage{\clearpage\if@twoside\ifodd\c@page\else
+  \hbox{}\thispagestyle{empty}\newpage\fi\fi}
+% Room in the contents for three-digit pages and sections such as 13.10
+\renewcommand*\@pnumwidth{2em}
+\renewcommand*\@tocrmarg{3em}
+\renewcommand*\l@section{\@dottedtocline{1}{1.5em}{2.8em}}
+% Pandoc follows a heading with \label and \addcontentsline. Each leaves a \write,
+% and TeX can break the page after one, stranding the heading: keep the \nobreak
+\AtBeginDocument{%
+  \let\otexts@label\label
+  \def\label#1{\otexts@label{#1}\ifvmode\if@nobreak\nobreak\fi\fi}%
+  \let\otexts@addcontentsline\addcontentsline
+  \def\addcontentsline#1#2#3{\otexts@addcontentsline{#1}{#2}{#3}\ifvmode\if@nobreak\nobreak\fi\fi}}
+\makeatother
 
 \let\subsubsection\paragraph
 
@@ -362,7 +384,7 @@
     \setlength{\parindent}{0pt}
     \setlength{\parskip}{\baselineskip}
     \otextscopyrightpage}
-\def\frontmatter{}
+\def\frontmatter{\pagenumbering{roman}}
 \def\maketitle{\titlepage\doublehyphendemerits=\maxdimen\setlength{\parskip}{0.5\baselineskip}}
 
 %% FLOW CHARTS

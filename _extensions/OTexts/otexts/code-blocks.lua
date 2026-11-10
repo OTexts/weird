@@ -53,6 +53,8 @@ local function commands(lines)
 end
 
 function CodeBlock(el)
+  -- Front matter: Quarto drops this block later, and would leave its minipage
+  if el.text:match("^%-%-%-%s") then return nil end
   local lines = {}
   for line in (el.text .. "\n"):gmatch("(.-)\n") do lines[#lines + 1] = line end
   local is_code = el.classes:includes("r") or el.classes:includes("sourceCode")

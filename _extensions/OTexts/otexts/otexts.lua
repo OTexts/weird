@@ -169,7 +169,20 @@ function Pandoc(doc)
   return doc
 end
 
+-- Hack is in the extension's fonts/ (it is not in TeX Live), so for LaTeX
+-- point fontspec at it, unless the book sets its own monofont or a Path
+local function hack_path(meta)
+  if pandoc.utils.stringify(meta.monofont or "") ~= "Hack-Regular.ttf" then return end
+  local options = pandoc.utils.stringify(meta.monofontoptions or "")
+  if options:match("Path%s*=") then return end
+  local dir = quarto.utils.resolve_path("fonts"):gsub("\\", "/") .. "/"
+  -- Raw LaTeX, as a plain string would have its underscores escaped
+  meta.monofontoptions = pandoc.MetaInlines({ pandoc.RawInline("latex",
+    "Path=" .. dir .. (options ~= "" and ", " .. options or "")) })
+end
+
 function Meta(meta)
+  if quarto.doc.is_format("latex") then hack_path(meta) end
   if quarto.doc.is_format("html") then
     quarto.doc.add_html_dependency({
       name = "otexts-fonts",
