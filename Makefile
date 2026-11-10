@@ -34,6 +34,8 @@ update:
 	rm -rf .uvr/library/otexts
 	rm -rf .uvr/library/weird
 	uvr update && uvr sync
+# uvr unpacks x13binary without its executable bit, which seasonal::seas() needs
+	if [ -f .uvr/library/x13binary/bin/x13ashtml ]; then chmod +x .uvr/library/x13binary/bin/x13ashtml; fi
 
 deploy: html
 	rsync -zrvc --delete -e 'ssh -p 18765' _book/ u192-zw4zvui1lqsb@ssh.otexts.com:www/otexts.com/public_html/weird
