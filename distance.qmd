@@ -16,6 +16,14 @@ Throughout this chapter, the methods are illustrated using daily average ozone l
 The data are shown in @fig-dongsi.
 
 ```{r}
+#| label: fetch-air-quality
+#| eval: false
+#| code-fold: false
+
+air_quality <- fetch_air_quality()
+```
+
+```{r}
 #| label: dongsi
 #| code-fold: false
 

@@ -32,6 +32,14 @@ To keep the geometry simple, we will scale all variables to have mean zero and u
 The ideas throughout the chapter will be illustrated using air quality and meteorological variables measured hourly at the Aotizhongxin monitoring station (at the Olympic Sports Centre) in Beijing, over May 2014.
 
 ```{r}
+#| label: fetch-air-quality
+#| eval: false
+#| code-fold: false
+
+air_quality <- fetch_air_quality()
+```
+
+```{r}
 #| label: aotizhongxin
 #| code-fold: false
 
