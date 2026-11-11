@@ -89,6 +89,7 @@ contributes:
         - file: printindex.tex
       format-resources:
         - fpp.sty
+        - OTexts-graylogo.pdf
       default-image-extension: pdf
       keep-tex: true
       filters:

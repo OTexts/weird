@@ -96,7 +96,7 @@
 \providecommand{\otextschapter}{Chapter}
 \providecommand{\otextsraggedright}{\raggedright}
 % Logo on the title page, at the start of the line for the book's direction
-\providecommand{\otextslogo}{\includegraphics[width=5cm]{extrafiles/OTexts-graylogo}}
+\providecommand{\otextslogo}{\includegraphics[width=5cm]{OTexts-graylogo}}
 % The title, subtitle, authors and ISBN (\otextsbooktitle, \otextsbooksubtitle,
 % \otextsbookauthors, \otextsisbn, \otextssiteurl, \otextsprintedition) and the running head (\otextsrunningtitle,
 % the title unless `runningtitle` is set) come from the book's YAML, through
@@ -127,14 +127,14 @@
 \newcommand{\otextsheadingtext}[1]{\textcolor{main}{#1}}
 \titleformat{\section}%
 [hang]% shape
-{\sffamily\large\bfseries}% format applied to label+text
+{\sffamily\fontsize{13}{16}\selectfont\bfseries}% format applied to label+text
 {\textcolor{main}{\thesection}}% label
 {1em}% horizontal separation between label and title body
 {\otextsheadingtext}% before the title body
 []% after the title body
 \titleformat{\subsection}%
 [hang]% shape
-{\sffamily\normalsize\bfseries\itshape}% format applied to label+text
+{\sffamily\fontsize{11}{14}\selectfont\bfseries\itshape}% format applied to label+text
 {}% label
 {0em}% horizontal separation between label and title body
 {\otextsheadingtext}% before the title body
