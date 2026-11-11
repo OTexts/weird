@@ -153,7 +153,7 @@ How often a writer uses them reflects the writer's habits rather than the subjec
 ### The document-term matrix
 
 The word counts of a collection of documents form a **document-term matrix**, with one row for each document and one column for each word in the vocabulary.
-The entry in row $d$ and column $w$ is $n_{dw}$, the number of times word $w$ occurs in document $d$, so each row is a numerical vector, and its sum is the length of the document, $n_d = \sum_w n_{dw}$.
+The entry in row $i$ and column $w$ is $t_{iw}$ (with $t$ for tokens), the number of times word $w$ occurs in document $i$, so each row is a numerical vector, and its sum is the number of tokens in the document, $t_i = \sum_w t_{iw}$.
 The `cast_sparse()` function builds the matrix from the word counts.
 
 ```{r}
@@ -186,13 +186,13 @@ So the counts are usually reweighted, or reduced to a few features.
 
 ### Term frequency--inverse document frequency
 
-The **term frequency** of word $w$ in document $d$ is the proportion of the document's tokens that are that word, $\text{tf}_{dw} = n_{dw}/n_d$.
-If $N$ is the number of documents, and $N_w$ is the number of documents that contain word $w$, the **inverse document frequency** of word $w$ is
+The **term frequency** of word $w$ in document $i$ is the proportion of the document's tokens that are that word, $\text{tf}_{iw} = t_{iw}/t_i$.
+If $n$ is the number of documents, and $n_w$ is the number of documents that contain word $w$, the **inverse document frequency** of word $w$ is
 $$
-  \text{idf}_w = \log(N / N_w),
+  \text{idf}_w = \log(n / n_w),
 $$
 which is zero for a word that occurs in every document, and largest for a word that occurs in only one\ [@SparckJones1972].
-The product $\text{tf}_{dw} \times \text{idf}_w$, called **tf-idf**, is large for words that are common in document $d$ but rare in the other documents, so it picks out the words that distinguish a document from the rest.
+The product $\text{tf}_{iw} \times \text{idf}_w$, called **tf-idf**, is large for words that are common in document $i$ but rare in the other documents, so it picks out the words that distinguish a document from the rest.
 Replacing the counts in the document-term matrix by their tf-idf values gives rare words more weight than common ones, much as MCA gives rare categories more weight (@sec-correspondence).
 
 @fig-wine-tfidf shows the words that are most characteristic of six grape varieties, found by treating all the descriptions of each variety as a single document and computing the tf-idf of each word with `bind_tf_idf()`, using all the varieties in the data as the collection of documents.
