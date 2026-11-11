@@ -9,7 +9,7 @@ source("before-each-chapter.R")
 ```
 
 The methods in the previous chapters all assume numerical data, where values can be ordered, averaged, and compared by the distances between them.
-Many data sets also contain **categorical variables**, which take one of a fixed set of values, called **categories**, such as sex, state, or country.
+Many data sets also contain **categorical variables**, which take one of a fixed set of values, called **categories**, such as gender, state, or country.
 Categories usually have no natural order and there is no natural measure of distance between them.
 
 For categorical data, the probabilistic approach of @sec-density-methods carries over directly, with the density replaced by a probability mass function.
@@ -24,7 +24,7 @@ The methods of @sec-distance-methods and @sec-highdim do not carry over so easil
 
 The examples in this section use the Australian Road Deaths Database\ [@ARDD], compiled by the Bureau of Infrastructure and Transport Research Economics, which records every person killed in a road crash in Australia.
 The `road_deaths` data set in the **`weird`** package contains the `r scales::comma(NROW(road_deaths))` deaths from January 1989 to December 2025.
-Each row is one person killed, and the variables include the state or territory, the type of road user (driver, passenger, pedestrian, motorcycle rider, motorcycle (pillion) passenger or pedal cyclist), the person's age and sex, the type of road, and the speed limit where the crash occurred.
+Each row is one person killed, and the variables include the state or territory, the type of road user (driver, passenger, pedestrian, motorcycle rider, motorcycle (pillion) passenger or pedal cyclist), the person's age and gender, the type of road, and the speed limit where the crash occurred.
 Most of the variables are categorical.
 
 ### One categorical variable
@@ -265,7 +265,7 @@ n_unique <- sum(combinations$n == 1)
 ```
 
 When there are more variables, the number of combinations grows multiplicatively, and most combinations have few or no observations.
-For example, classifying the deaths by state, road user, age group, sex, crash type (single or multiple vehicle), day of the week and month gives `r scales::comma(n_possible)` possible combinations, many more than there are deaths.
+For example, classifying the deaths by state, road user, age group, gender, crash type (single or multiple vehicle), day of the week and month gives `r scales::comma(n_possible)` possible combinations, many more than there are deaths.
 Of the `r scales::comma(NROW(deaths7))` deaths with all seven variables recorded, `r sprintf("%.0f", 100 * n_unique / NROW(deaths7))`% are the only death with their combination of values.
 These deaths all have the same estimated surprisal, $\log n$, and the same surprisal probability, `r sprintf("%.2f", n_unique / NROW(deaths7))`, so none of them is anomalous, and the model cannot distinguish between them.
 
@@ -569,7 +569,7 @@ The map shows why the anomalous rows are anomalous, but the anomaly scores thems
 
 When there are more than two categorical variables, **multiple correspondence analysis** (MCA) applies correspondence analysis to the **indicator matrix**.
 The indicator matrix replaces each categorical variable by a set of dummy variables, one for each of its categories, which equal 1 for the observations in that category and 0 otherwise.
-For example, three road deaths with sex and crash type (Male, Single), (Female, Multiple) and (Male, Multiple) give the indicator matrix
+For example, three road deaths with gender and crash type (Male, Single), (Female, Multiple) and (Male, Multiple) give the indicator matrix
 
   | Male | Female | Single | Multiple |
   | :--: | :----: | :----: | :------: |
@@ -592,7 +592,7 @@ where $f_q(y_{iq})$ is estimated by the proportion of observations that share th
 So the distance depends only on how rare each of the observation's categories is on its own, as with the surprisal under the independence model of @sec-categorical.
 An unusual combination of common categories does not make it large.
 
-The road deaths show this, using five variables: road user, age group, sex, crash type and state.
+The road deaths show this, using five variables: road user, age group, gender, crash type and state.
 With `ncp = Inf`, `MCA()` keeps all the dimensions, so the squared distances of the observations from the origin are the values of $d_i^2$ above.
 
 ```{r}
