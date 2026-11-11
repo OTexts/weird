@@ -57,10 +57,10 @@ That is also a question of anomaly detection: is the text surprising, given the 
 ## From text to numbers {#sec-text-numbers}
 
 Documents cannot be analysed using the methods of @sec-categorical-data, because each contains many words (categorical values), and almost every document is unique.
-Instead, a document can be converted to numbers by counting how often each word occurs in it, treating it as a "bag of words" and ignoring their order.
+Instead, a document can be converted to numbers by counting how often each word occurs in it, treating it as a **bag of words** and ignoring the order of the words.
 This loses much of the meaning of the text, but it is enough to find many kinds of anomalous documents.
 
-The examples in this section and the next use the descriptions of the wines written by the tasters in the wine reviews (@sec-data).
+The examples in this section and the next use the tasters' descriptions of the wines in the wine reviews data (@sec-data).
 Here are three of them.
 
 ```{r}
@@ -147,7 +147,8 @@ vocabulary |>
   anti_join(stop_words, by = "word")
 ```
 
-Stop words are usually removed when the aim is to find what a document is about, but they are the most useful words for describing how it is written, as how often a writer uses them reflects the writer's habits rather than the subject.
+Stop words are usually removed when the aim is to find what a document is about, but they are the most useful words for describing how it is written.
+How often a writer uses them reflects the writer's habits rather than the subject.
 
 ### The document-term matrix
 
@@ -180,7 +181,7 @@ stopifnot(
 ```
 
 Each description is now a point in a space with `r scales::comma(NCOL(dtm))` dimensions, but only `r sprintf("%.1f", 100 * dtm_density)`% of the entries are non-zero, so the matrix is stored in a sparse form.
-The methods of @sec-highdim could in principle be applied to its rows, but most of the columns are almost entirely zero, and the counts of common words such as "the" dominate any distance between rows.
+The methods of @sec-highdim could in principle be applied to its rows, but most of the columns are almost entirely zero, and the counts of common words such as "the" contribute far more to any distance between rows than those of rarer words.
 So the counts are usually reweighted, or reduced to a few features.
 
 ### Term frequency--inverse document frequency
@@ -194,7 +195,7 @@ which is zero for a word that occurs in every document, and largest for a word t
 The product $\text{tf}_{dw} \times \text{idf}_w$, called **tf-idf**, is large for words that are common in document $d$ but rare in the other documents, so it picks out the words that distinguish a document from the rest.
 Replacing the counts in the document-term matrix by their tf-idf values gives rare words more weight than common ones, much as MCA gives rare categories more weight (@sec-correspondence).
 
-@fig-wine-tfidf shows the words that are most characteristic of six grape varieties, found by treating all the descriptions of each variety as a single document and computing the tf-idf of each word with `bind_tf_idf()`.
+@fig-wine-tfidf shows the words that are most characteristic of six grape varieties, found by treating all the descriptions of each variety as a single document and computing the tf-idf of each word with `bind_tf_idf()`, using all the varieties in the data as the collection of documents.
 The words in the names of the varieties (such as "pinot" and "noir") are removed first, as they are trivially characteristic.
 
 ```{r}
@@ -257,16 +258,16 @@ stopifnot(
 )
 ```
 
-Most of the words are what a wine drinker would expect: the oak, butter, pineapple and toast of Chardonnay, the cola, raspberry and cranberry of Pinot Noir, the lime, peach and tangerine of Riesling, the gooseberry and grapefruit of Sauvignon Blanc, the pepper and meat of Syrah, and the alcohol of Zinfandel.
+Most of the words are what a wine drinker would expect: the oak, buttered toast and pineapple of Chardonnay, the cola, raspberry and cranberry of Pinot Noir, the lime, peach and tangerine of Riesling, the gooseberry and grapefruit of Sauvignon Blanc, the pepper and meat of Syrah, and the alcohol of Zinfandel.
 The words "dry" and "off" (as in "off-dry") appear for Riesling, whose reviews often say how sweet the wine is, and the tasters' abbreviations "zin" and "sb" survive the removal of the variety names.
 
 ## Feature-based anomalies in text {#sec-text-features}
 
 Anomalous documents can be found by describing each document by a few interpretable features, and then applying the multivariate methods of earlier chapters to the features.
-The features used here measure the length of a document, its style, its vocabulary and its tone.
+The features used here measure the length of a document, its style, its vocabulary and its tone:
 
 - `words`: the number of words;
-- `word_length`: the mean number of letters in each word;
+- `word_length`: the mean number of characters in each word;
 - `function_words`: the proportion of the words that are stop words;
 - `idf`: the mean of the inverse document frequencies of the words, which is large when a document uses words that are rare in the collection;
 - `sentiment`: the number of positive words minus the number of negative words, divided by the number of words, using the list of `r scales::comma(NROW(get_sentiments()))` positive and negative words compiled by @Hu2004;
@@ -308,7 +309,7 @@ text_features <- wine_words |>
 text_features
 ```
 
-The features are scaled with `mvscale()` (@sec-scaling), and a Gaussian mixture model (@sec-gmm-surprisal) is fitted to the scaled features.
+The features are converted to robust multivariate $z$-scores with `mvscale()` (@sec-scaling), and a Gaussian mixture model (@sec-gmm-surprisal) is fitted to the scaled features.
 Its surprisal probabilities are computed using the GPD approximation of @sec-approximate-surprisal-prob, as the mixture model is unlikely to fit the tails of the distribution well.
 With more than 100,000 reviews, fitting the mixture takes several minutes.
 
@@ -407,12 +408,13 @@ stopifnot(
 ```
 
 `r english::Words(NROW(flagged_text))` reviews have surprisal probabilities below 0.001.
-The least probable are not reviews at all: `r english::words(sum(non_review))` descriptions say only that the wine was "Imported by" a named company, or that the review is not available.
-They are very short, use rare words (the names of the importers), and have no sentiment.
+Six of the seven least probable are not reviews at all.
+In total, `r english::words(sum(non_review))` descriptions say only that the wine was "Imported by" a named company, or that the review is not available.
+The "Imported by" descriptions are very short, use rare words (the names of the importers), and have no sentiment.
 The text is missing rather than anomalous, but the points and price may still be genuine.
-Other flagged reviews are very terse, such as "Smells raisiny, feels hot, tastes overripe.", or list the percentages of the vineyards or grape varieties in a blend, which gives them much more punctuation than usual.
-One review contains its own text twice, presumably a data-entry error, so it is unusually long.
-One flagged review describes not the wine but its packaging: a red vinyl body suit designed for the bottle by the fashion designer Jean-Paul Gaultier.
+Other flagged reviews are very terse, such as "Smells raisiny, feels hot, tastes overripe.", or list the percentages of the vineyards or grape varieties in a blend, which gives most of them much more punctuation than usual.
+One of the reviews printed above contains its own text twice, as does the next review in the ranking, presumably through data-entry errors, which makes both unusually long.
+Another flagged review is mostly about the packaging rather than the wine: a red vinyl body suit designed for the bottle by the fashion designer Jean-Paul Gaultier.
 
 ```{r}
 #| label: fig-wine-text-features
@@ -443,7 +445,7 @@ text_features |>
 ```
 
 @fig-wine-text-features shows two of the six features.
-The descriptions that are not reviews are at the top left, with only a few words, all of them rare.
+The descriptions that are not reviews are at the top left, with only a few words, most of them rare.
 Many of the other flagged reviews are very short or very long, and the rest are flagged because of their other features, or their combination of features.
 
 ### Wording that disagrees with the points
@@ -529,9 +531,9 @@ stopifnot(
 
 The text features explain `r sprintf("%.0f", 100 * r2_text)`% of the variation in the points, mostly through the length of the review: tasters write more about the wines they like, and the correlation between the points and the number of words is `r sprintf("%.2f", cor(text_features$points, text_features$words))`.
 The largest positive residuals include four of the "Imported by" descriptions, whose wines have `r min(top_pos$points[grepl("^Imported by", top_pos$description)])`--`r max(top_pos$points[grepl("^Imported by", top_pos$description)])` points but only a few words, and two short reviews of wines with 97 points, each of which describes the wine in just two sentences, as "majestic" or "hugely rich".
-The largest negative residuals are long reviews of wines with 80--82 points, which describe at length what is wrong with the wine.
+The largest negative residuals are long reviews of wines with 80--82 points, which explain what is wrong with the wine.
 None of them has a negative sentiment score, because the list of positive and negative words takes each word on its own.
-In "Charming aromas of tobacco leaf and strawberries promise good things to come but the palate does not follow through", the words "charming", "promise" and "good" all count as positive; in "Sawdust notes dominate the nose", so does "dominate"; and the misspelt "Unfotunately" is not in the list at all.
+In "Charming aromas of tobacco leaf and strawberries promise good things to come but the palate does not follow through", the words "charming", "promise" and "good" all count as positive; in "Sawdust notes dominate the nose", so does "dominate"; and the misspelt "Unfotunately", which would otherwise count as negative, is not in the list at all.
 
 This shows the main weakness of features: they detect only the kinds of anomaly that the analyst has thought to measure, and features such as word counts ignore the order and context of the words.
 A model of the language itself can take some of that context into account.
