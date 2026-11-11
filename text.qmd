@@ -389,6 +389,11 @@ text_features |>
 
 flagged_text <- text_features |> filter(p < 0.001)
 top_text <- text_features |> arrange(p) |> head(12)
+next_text <- text_features |> arrange(p) |> slice(13)
+repeated <- stringr::str_count(
+  flagged_text$description,
+  stringr::fixed(substr(flagged_text$description, 1, 40))
+) >= 2
 non_review <- grepl("^Imported by|not available", text_features$description)
 percentages <- grepl("%", flagged_text$description)
 gaultier <- text_features |> filter(grepl("Gaultier", description))
@@ -406,6 +411,8 @@ stopifnot(
   NROW(gaultier) == 1,
   gaultier$id %in% top_text$id,
   sum(grepl("^Dark, dusty.*Dark, dusty", top_text$description)) == 1,
+  grepl("^This very fine Cabernet.*This very fine Cabernet", next_text$description),
+  sum(repeated) == 2,
   between(NROW(flagged_text), 60, 110),
   sum(flagged_text$words <= 10 | flagged_text$words >= 100) >= 25,
   sum(flagged_text$words > 10 & flagged_text$words < 100) >= 25
