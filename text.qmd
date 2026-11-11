@@ -65,6 +65,14 @@ The examples in this section and the next use the tasters' descriptions of the w
 Here are three of them.
 
 ```{r}
+#| label: fetch-wine-reviews
+#| eval: false
+#| code-fold: false
+
+wine_reviews <- fetch_wine_reviews()
+```
+
+```{r}
 #| label: wine-descriptions
 #| code-fold: false
 

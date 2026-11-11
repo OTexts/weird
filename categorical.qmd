@@ -790,6 +790,14 @@ The surprisals are computed from the residuals and the residual standard deviati
 Most of the `r scales::comma(n_distinct(wine_reviews$variety, na.rm = TRUE))` varieties are rare, so those with fewer than 500 reviews are combined into a single "Other" category, and countries with fewer than 50 reviews are omitted.
 
 ```{r}
+#| label: fetch-wine-reviews
+#| eval: false
+#| code-fold: false
+
+wine_reviews <- fetch_wine_reviews()
+```
+
+```{r}
 #| label: wine-mixed
 #| code-fold: false
 
