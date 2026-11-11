@@ -309,6 +309,9 @@ text_features <- wine_words |>
 text_features
 ```
 
+Apart from `words`, these features are averages over the words of a review.
+The reviews are relatively short, with a median of `r median(text_features$words)` words, so the features will be noisy, especially for the shortest reviews.
+
 The features are converted to robust multivariate $z$-scores with `mvscale()` (@sec-scaling), and a Gaussian mixture model (@sec-gmm-surprisal) is fitted to the scaled features.
 Its surprisal probabilities are computed using the GPD approximation of @sec-approximate-surprisal-prob, as the mixture model is unlikely to fit the tails of the distribution well.
 With more than 100,000 reviews, fitting the mixture takes several minutes.
