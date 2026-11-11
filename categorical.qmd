@@ -1,43 +1,5 @@
 # Categorical data {#sec-categorical-data}
 
-::: {.content-hidden}
-PLAN (Oct 2026)
-
-Keep the book's probabilistic framing throughout: anomalies in categorical data have high surprisal -log p(x).
-
-1. Anomalies in categorical data
-   - One variable: surprisal -log p(x); surprisal probability = sum of p over categories no more probable than the observed one.
-     Handles many rare categories (each individually rare) and ties (discrete surprisal probabilities).
-     Smoothing for unseen categories.
-   - Several variables: the full joint table is sparse.
-     Independence model (AVF-style scores); pairwise/conditional surprisals -log p(x_j \| x\_-j) for "common values, rare combination"; Chow-Liu trees / Bayesian networks as a pointer only.
-   - Anomalous cells in a contingency table: standardised residuals from a log-linear independence model (a different question from anomalous rows; leads into CA).
-   - Example: BITRE Australian Road Deaths Database (CC BY): state, road user, crash type, speed limit, day/time, age, remoteness.
-     Also used in section 3.
-
-2. Correspondence analysis
-   - CA of a two-way table: row profiles, chi-squared distance, inertia.
-     Anomalous rows are profiles far from the centroid / with large contribution to inertia.
-     Biplot (link to ch9).
-   - Example: road deaths by state x road user (wine country x variety cut, Nov 2026, for length).
-     CA, MCA and FAMD all via FactoMineR.
-   - MCA for many categorical variables: numerical coordinates, then ch6/ch9 methods.
-     Explains the CA step in HDoutliers.
-   - NOTE: highdim.qmd (HDoutliers) already says "correspondence analysis" before this chapter defines it.
-     Replace with a plain-words description plus a forward section reference.
-
-3. Mixed numerical and categorical data
-   - Factorise the density: f(y, x) = f(y \| x) p(x), so surprisals add; f(y \| x) from the ch8 regression machinery with categorical predictors.
-   - Distance-based alternatives: Gower distance with kNN/LOF/stray (ch6); FAMD (FactoMineR) as the mixed-data analogue of PCA/MCA.
-   - Examples: wine_reviews (price given points, variety, country), extending the ch1 Shiraz example; road deaths.
-
-Out of scope: sequences of categorical events (log codes) belong in events.qmd.
-
-Data for the weird package: road_deaths package data (BITRE ARDD, 1989-2025).
-
-New book dependencies: FactoMineR (already installed).
-:::
-
 ```{r}
 #| label: setup10
 #| include: false
@@ -47,12 +9,12 @@ source("before-each-chapter.R")
 ```
 
 The methods in the previous chapters all assume numerical data, where values can be ordered, averaged, and compared by the distances between them.
-Many data sets also contain **categorical variables**, which take one of a fixed set of values, called **categories** (or levels), such as gender, state, or country.
+Many data sets also contain **categorical variables**, which take one of a fixed set of values, called **categories**, such as sex, state, or country.
 Categories usually have no natural order and there is no natural measure of distance between them.
 
 For categorical data, the probabilistic approach of @sec-density-methods carries over directly, with the density replaced by a probability mass function.
 An anomaly is then an observation with a high surprisal (@sec-surprisals): a category, or a combination of categories, that rarely occurs.
-The methods of @sec-distance-methods and @sec-highdim do not carry over so easily, because they need distances between observations, which is more difficult to define for categorical variables.
+The methods of @sec-distance-methods and @sec-highdim do not carry over so easily, because they need distances between observations, which are more difficult to define for categorical variables.
 
 @sec-categorical computes surprisals for one or more categorical variables, and also looks for anomalous cells in tables of counts.
 @sec-correspondence describes correspondence analysis, which compares the rows of a table of counts and converts categorical variables to numerical coordinates, so that the distance-based and high-dimensional methods can be used.
@@ -68,7 +30,7 @@ Most of the variables are categorical.
 ### One categorical variable
 
 Suppose the observations $y_1,\dots,y_n$ each take one of $K$ categories $c_1,\dots,c_K$.
-This is known as a **factor** variable, and the categories are its **levels**.
+Such a variable is known as a **factor**, and the categories are its **levels**.
 Let $f$ denote the probability mass function of the underlying random variable, so that $f(c_k)$ is the probability that an observation falls in category $c_k$, and the surprisal of $y_i$ is $s_i = -\log f(y_i)$, as in @eq-surprisal.
 The integral in the surprisal probability (@eq-pi-density) becomes a sum over the categories:
 $$
@@ -139,8 +101,8 @@ Estimating $f(c_k)$ by $n_k/n$ causes problems for very rare categories.
 A category with no observations has an estimated probability of zero, so a new observation in that category has an infinite surprisal.
 The same happens to a category with a single observation when leave-one-out surprisals (@sec-loo-surprisals) are used, because the observation's own category is then empty.
 A simple fix is to add a small constant $a$ to every count, giving $\hat{f}(c_k) = (n_k + a)/(n + Ka)$.
-This is the posterior mean of $f(c_k)$ under a symmetric Dirichlet prior with parameter $a$ [@Agresti2013].
-The usual choices are $a = 1$, a uniform prior (Laplace's rule of succession), and $a = 1/2$, the Jeffreys prior, which gives good predictions even for the rarest categories\ [@Krichevsky1981].
+This is the posterior mean of $f(c_k)$ under a symmetric Dirichlet prior with parameter $a$\ [@Agresti2013].
+The usual choices are $a = 1$, a Uniform prior (Laplace's rule of succession), and $a = 1/2$, the Jeffreys prior, which gives good predictions even for the rarest categories\ [@Krichevsky1981].
 This requires the list of possible categories to be known in advance, and it reduces the surprisals of the rarest categories, so it matters most when $n$ is small compared to $K$.
 
 In `surprisals()` and `surprisals_prob()`, the categories are the levels of the factor, including any levels with no observations, $a$ is set by the `prior` argument (with default value 0), and leave-one-out estimates are given by `loo = TRUE`.
@@ -194,7 +156,7 @@ cells |>
 ```
 
 The driver deaths at young ages reflect licensing laws.
-Learner drivers may drive under supervision from age 16 (15¾ in the ACT), and alone from 17 in most states and 18 in Victoria, so few drivers are younger than 16, and most of the driver deaths in the 15--19 group are of people aged 17 to 19.
+Learner drivers can currently drive under supervision from age 16 (15¾ in the ACT), and alone from 17 in most states and 18 in Victoria, so few drivers are younger than 16, and most of the driver deaths in the 15--19 group are of people aged 17 to 19.
 
 The least probable cells are shown below.
 
@@ -207,7 +169,7 @@ cells |>
   arrange(p)
 ```
 
-The least probable cells include drivers aged 0--4 and 5--9, very young motorcycle riders and passengers, motorcycle riders aged 85 and over, and motorcycle passengers in their sixties.
+The least probable cells include drivers aged 0--4 and 5--9, very young motorcycle riders and passengers, motorcycle riders aged 85 and over, and motorcycle passengers aged 55--69.
 The three cells with a single death are tied, so each has $p_i = 3/n$.
 Neither drivers nor young children are unusual among road deaths; what is unusual is the combination.
 The five drivers in the 0--4 group are all recorded as aged zero, so they are clearly recording errors.
@@ -500,7 +462,7 @@ stopifnot(
 ```
 
 The Northern Territory has by far the most unusual profile, with a chi-squared distance of `r sprintf("%.2f", state_d("NT")$distance)` from the average profile.
-The next is the ACT, at `r sprintf("%.2f", state_d("ACT")$distance)`, and no other state is more than 0.12 from the average.
+The next is the ACT, at `r sprintf("%.2f", state_d("ACT")$distance)`, and the other states are all less than 0.13 from the average.
 The largest term in the Northern Territory's distance comes from passengers, whose high share of its deaths also gave the largest residual in @fig-state-road-user.
 The ACT has more deaths of pedal cyclists than average (`r sprintf("%.1f", 100 * profiles["ACT", "Pedal cyclist"])`% compared with `r sprintf("%.1f", 100 * average["Pedal cyclist"])`%), and fewer deaths of drivers (`r sprintf("%.1f", 100 * profiles["ACT", "Driver"])`% compared with `r sprintf("%.1f", 100 * average["Driver"])`%).
 The difference for drivers is the larger, but drivers are a common column and pedal cyclists a rare one, so the pedal cyclists add more than four times as much to the ACT's distance.
@@ -566,9 +528,9 @@ stopifnot(
 
 The same analysis can be applied to the columns, and it gives the same principal inertias, so the rows and the columns can be shown on the same map.
 @fig-road-ca shows the first two dimensions, which together capture `r sprintf("%.0f", road_ca$eig[2, 3])`% of the total inertia.
-For most states, the distance from the origin of the map is close to the chi-squared distance, but not for the ACT, which is `r sprintf("%.2f", sqrt(ca_norm["ACT"]))` from the origin compared with a chi-squared distance of `r sprintf("%.2f", state_d("ACT")$distance)`.
-Much of the ACT's difference from the average profile lies in the dimensions that are not shown.
-The rows and the columns are on different scales, so the distance between a state and a road user has no direct meaning.
+For most states, the distance from the origin of the map is close to the chi-squared distance, but not for South Australia or the ACT.
+Much of the difference from the average profile for these two lies in the dimensions that are not shown.
+The rows and the columns are positioned by separate analyses, so the distance between a state and a road user has no direct meaning.
 Instead, each state is pulled towards the road users that account for a larger share of its deaths than average, and away from those that account for a smaller share.
 A biplot (@sec-pca) shows the relation between observations and variables in the same way.
 
@@ -606,8 +568,8 @@ The map shows why the anomalous rows are anomalous, but the anomaly scores thems
 ### Multiple correspondence analysis
 
 When there are more than two categorical variables, **multiple correspondence analysis** (MCA) applies correspondence analysis to the **indicator matrix**.
-This replaces each categorical variable by a set of dummy variables, one for each of its categories, which equal 1 for the observations in that category and 0 otherwise.
-For example, three road deaths with gender and crash type (Male, Single), (Female, Multiple) and (Male, Multiple) give the indicator matrix
+The indicator matrix replaces each categorical variable by a set of dummy variables, one for each of its categories, which equal 1 for the observations in that category and 0 otherwise.
+For example, three road deaths with sex and crash type (Male, Single), (Female, Multiple) and (Male, Multiple) give the indicator matrix
 
   | Male | Female | Single | Multiple |
   | :--: | :----: | :----: | :------: |
@@ -619,8 +581,8 @@ with one row for each observation.
 Every category has its own column (none is dropped as a reference category, as it would be in a regression), so with $m$ variables, each row of the indicator matrix contains $m$ ones.
 The analysis places each observation at a point with numerical coordinates, which can then be passed to any of the methods of @sec-distance-methods or @sec-highdim; this is how the HDoutliers algorithm (@sec-hdoutliers) handles categorical variables.
 
-Equivalently, MCA is a PCA (@sec-pca) of the indicator matrix after each column is centred and divided by $\sqrt{m p_k}$, where $p_k$ is the proportion of observations in category $k$.
-This differs from a PCA of standardised dummy variables, which would divide by $\sqrt{p_k(1 - p_k)}$ and so treat a category with proportion $p_k$ in the same way as one with proportion $1 - p_k$; in MCA, the rarer a category is, the more weight it has.
+Equivalently, MCA is a PCA (@sec-pca) of the indicator matrix after each column is centred and divided by $\sqrt{m \pi_k}$, where $\pi_k$ is the proportion of observations in category $k$.
+This differs from a PCA of standardised dummy variables, which would divide by $\sqrt{\pi_k(1 - \pi_k)}$ and so treat a category with proportion $\pi_k$ in the same way as one with proportion $1 - \pi_k$; in MCA, the rarer a category is, the more weight it has.
 
 Applying @eq-chisq-distance to the rows of the indicator matrix gives a simple form for the chi-squared distance of observation $i$ from the centre,
 $$
@@ -774,9 +736,10 @@ stopifnot(
 The deaths with surprisal probabilities below 0.001 are shown in @fig-road-age.
 They include the five drivers aged 0, a driver aged 7, and a 101-year-old driver, who may well be genuine.
 The drivers aged 0 have a surprisal probability of `r sprintf("%.5f", age_drivers0$p[1])`, but an age of 0 is much less surprising on its own: when the type of road user is ignored, its surprisal probability is `r sprintf("%.3f", p_marginal$p_marg[1])`.
-The other flagged deaths are of a 101-year-old passenger, motorcycle riders aged under 10 or over 84, pedal cyclists aged 89 or more, and motorcycle passengers who were either young children or aged over 50.
+The other flagged deaths are of a 101-year-old passenger, motorcycle riders aged under 10 or over 84, pedal cyclists aged 89 or more, and motorcycle passengers who were either children or aged over 50.
 Motorcycle passengers are the rarest type of road user, so their deaths start with a larger surprisal, and their median age is only `r median(pillion_ages)`.
-These are the same combinations that stood out in @sec-categorical, but without the ages being grouped, so that, for example, the 101-year-old driver is distinguished from drivers aged 85, who were in the same age group.
+Most of these are the combinations that stood out in @sec-categorical.
+Keeping the ages ungrouped also separates, for example, the 101-year-old driver from drivers aged 85, who were in the same age group.
 
 ```{r}
 #| label: fig-road-age
@@ -982,8 +945,8 @@ The numerical variables are standardised as in a PCA of the correlation matrix, 
 As with MCA, the resulting coordinates can be passed to any of the methods for numerical data.
 FAMD is implemented by the `FAMD()` function in the **`FactoMineR`** package.
 
-When a conditional model can be specified, its surprisals are more informative than distance-based scores, whether from the Gower distance or from FAMD coordinates.
-They find numerical values that are unusual for their categories, not just rare categories, and their parts show which part of an observation is unusual.
+When a conditional model can be specified, its surprisals are more informative than scores based on the Gower distance.
+They find numerical values that are unusual for their categories, as well as rare categories, and the separate terms show what makes an observation unusual.
 
 ## Summary {#sec-categorical-summary}
 
@@ -992,7 +955,7 @@ Being rare is not enough to make a category anomalous: its surprisal probability
 
 With several categorical variables, the number of combinations grows multiplicatively, so most combinations have few or no observations.
 An independence model avoids this, but finds only rare values, not rare combinations of common values.
-An inbetween approach is to use conditional models: conditional surprisals, and models such as Chow--Liu trees and Bayesian networks.
+Conditional models, such as Chow--Liu trees and Bayesian networks, lie between independence and the full joint distribution, and give a sum of conditional surprisals.
 
 Standardised residuals under independence find the cells of a contingency table with unusual counts, while correspondence analysis finds whole rows or columns with unusual profiles, using the chi-squared distance from the average profile as the anomaly score.
 Multiple correspondence analysis gives numerical coordinates for several categorical variables, to which the methods for numerical data can be applied, but, like the independence model, it misses unusual combinations of common categories.

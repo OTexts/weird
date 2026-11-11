@@ -112,6 +112,11 @@ Also update this skill to take account of any new issues you find when reviewing
 - Every data set introduced in a "Data sets" section should be used later in the book; grep each name across chapters. Roadmap lists of later data types must match the current chapter titles in `_quarto.yml`.
 - When a chunk prints results for several examples that the prose interprets as a numbered list, the printed order should match the list order.
 - A word the book defines as a technical term (e.g. "spurious anomaly" = false positive, ch1) must not be used elsewhere in its everyday sense ("spurious" meaning erroneous).
+- "For most X ..., but not for Y" must be checked for every row, not just Y: ch10 named the ACT as the one state poorly represented on the CA map, but South Australia's map distance was an even smaller fraction of its chi-squared distance. A guard that tests only the named cases won't catch this.
+- A hard-coded bound ("no other state is more than 0.12") must hold for the unrounded values (Tasmania was 0.122), and a guard written with rounding in mind (`< 0.125`) does not verify it.
+- "These are the same X that stood out earlier" must be checked by comparing the two sets: ch10's conditional model flagged 55 deaths, 12 of them outside the earlier top-ten cells. Likewise a description of a printed top-$n$ ("in their sixties") must cover every row printed (a 55--59 cell was also there).
+- A symbol for a proportion must not reuse $p$ with a different subscript in a chapter where $p_i$ is the surprisal probability.
+- After an example is cut to a brief mention (e.g. FAMD in ch10), recheck later comparative claims and summaries for conclusions about it.
 
 **Clarity for 3rd year undergraduates**
 - Notation introduced before it is used
