@@ -317,7 +317,7 @@ air_quality
 ### Wine prices and quality {-}
 
 The `wine_reviews` data set contains data on `r scales::comma(NROW(wine_reviews))` wines from `r dplyr::n_distinct(wine_reviews$country, na.rm = TRUE)` countries, taken from the *Wine Enthusiast Magazine* during the week of 15 June 2017.
-The data set contains information on the winery and its location, the variety of grape used to make the wine, the year of harvest, the price of the wine in $US, and a points value that provides a measure of the quality of the wine based on a taster's assessment on a scale of 0 to 100.
+The data set contains information on the winery and its location, the variety of grape used to make the wine, the year of harvest, the price of the wine in $US, and a points value that provides a measure of the quality of the wine based on a taster's assessment on a scale of 80 to 100.
 Again, it does not come pre-loaded with the package, but can be obtained using the `fetch_wine_reviews()` function.
 
 ```{r}

@@ -455,7 +455,7 @@ Many of the other flagged reviews are very short or very long, and the rest are 
 
 ### Wording that disagrees with the points
 
-The points awarded to a wine should agree with what the taster wrote about it.
+The points awarded to a wine, on a scale of 80 to 100, should agree with what the taster wrote about it.
 As in @sec-mixed, this can be checked with a conditional model: a regression of the points on the text features, whose large residuals are reviews with more or fewer points than their wording would suggest.
 The seven descriptions that are not reviews are removed first: an import statement, or a note that the review is not available, says nothing about the wine, so it can neither agree nor disagree with the points.
 
