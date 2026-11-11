@@ -452,12 +452,15 @@ Many of the other flagged reviews are very short or very long, and the rest are 
 
 The points awarded to a wine should agree with what the taster wrote about it.
 As in @sec-mixed, this can be checked with a conditional model: a regression of the points on the text features, whose large residuals are reviews with more or fewer points than their wording would suggest.
+The seven descriptions that are not reviews are removed first: an import statement, or a note that the review is not available, says nothing about the wine, so it can neither agree nor disagree with the points.
 
 ```{r}
 #| label: wine-text-points
 #| code-fold: false
 #| dependson: wine-text-gmm
 
+reviews <- text_features |>
+  filter(!grepl("^Imported by|not available", description))
 fit_text <- lm(
   points ~ log(words) +
     word_length +
@@ -465,14 +468,14 @@ fit_text <- lm(
     idf +
     sentiment +
     punctuation,
-  data = text_features
+  data = reviews
 )
-text_features <- text_features |>
+reviews <- reviews |>
   mutate(r = rstandard(fit_text))
-text_features |>
+reviews |>
   arrange(desc(r)) |>
   select(points, words, sentiment, r)
-text_features |>
+reviews |>
   arrange(r) |>
   select(points, words, sentiment, r)
 ```
@@ -484,10 +487,10 @@ The texts of the six reviews with the largest positive residuals, and of the six
 #| code-fold: false
 #| dependson: [wine-text-points, wine-text-top]
 
-text_features |>
+reviews |>
   slice_max(r, n = 6) |>
   print_reviews()
-text_features |>
+reviews |>
   slice_min(r, n = 6) |>
   print_reviews()
 ```
@@ -498,19 +501,20 @@ text_features |>
 #| dependson: wine-text-points-top
 
 r2_text <- summary(fit_text)$r.squared
-top_pos <- text_features |> arrange(desc(r)) |> head(6)
-top_neg <- text_features |> arrange(r) |> head(6)
+top_pos <- reviews |> arrange(desc(r)) |> head(6)
+top_neg <- reviews |> arrange(r) |> head(6)
+high_words <- median(reviews$words[between(reviews$points, 96, 98)])
 # The prose describes the largest residuals in each direction
 stopifnot(
+  NROW(text_features) - NROW(reviews) == 7,
   round(r2_text, 2) == 0.38,
-  round(cor(text_features$points, text_features$words), 2) == 0.54,
+  round(cor(reviews$points, reviews$words), 2) == 0.54,
   coef(fit_text)["log(words)"] > 0,
   coef(fit_text)["sentiment"] > 0,
-  sum(grepl("^Imported by", top_pos$description[1:4])) == 4,
-  all(top_pos$points[grepl("^Imported by", top_pos$description)] >= 86),
-  sum(top_pos$points == 97) == 2,
-  all(top_pos$points[!grepl("^Imported by", top_pos$description)] == 97),
-  all(top_pos$words[top_pos$points == 97] < 30),
+  min(top_pos$points) == 96,
+  max(top_pos$points) == 98,
+  max(top_pos$words) == 40,
+  high_words > 40,
   any(grepl("majestic", top_pos$description)),
   any(grepl("hugely rich", top_pos$description)),
   all(top_neg$points <= 82),
@@ -529,8 +533,9 @@ stopifnot(
 )
 ```
 
-The text features explain `r sprintf("%.0f", 100 * r2_text)`% of the variation in the points, mostly through the length of the review: tasters write more about the wines they like, and the correlation between the points and the number of words is `r sprintf("%.2f", cor(text_features$points, text_features$words))`.
-The largest positive residuals include four of the "Imported by" descriptions, whose wines have `r min(top_pos$points[grepl("^Imported by", top_pos$description)])`--`r max(top_pos$points[grepl("^Imported by", top_pos$description)])` points but only a few words, and two short reviews of wines with 97 points, each of which describes the wine in just two sentences, as "majestic" or "hugely rich".
+The text features explain `r sprintf("%.0f", 100 * r2_text)`% of the variation in the points, mostly through the length of the review: tasters write more about the wines they like, and the correlation between the points and the number of words is `r sprintf("%.2f", cor(reviews$points, reviews$words))`.
+The largest positive residuals are reviews of wines with 96--98 points that use 40 words or fewer, although the median length of the reviews of such wines is `r high_words` words.
+Their wording is still full of praise, such as "majestic" and "hugely rich", so they don't disagree with their points; they are just shorter than the model expects.
 The largest negative residuals are long reviews of wines with 80--82 points, which explain what is wrong with the wine.
 None of them has a negative sentiment score, because the list of positive and negative words takes each word on its own.
 In "Charming aromas of tobacco leaf and strawberries promise good things to come but the palate does not follow through", the words "charming", "promise" and "good" all count as positive; in "Sawdust notes dominate the nose", so does "dominate"; and the misspelt "Unfotunately", which would otherwise count as negative, is not in the list at all.
