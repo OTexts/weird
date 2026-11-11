@@ -2556,8 +2556,8 @@ checksum = "md5:b9c41923305ec69ba71e80b63e86ec02"
 name = "otexts"
 version = "0.1.0"
 source = "github"
-url = "https://api.github.com/repos/OTexts/otexts/tarball/da996edd2275bd51541157bd0b36027f667057a3"
-checksum = "git:da996edd2275bd51541157bd0b36027f667057a3"
+url = "https://api.github.com/repos/OTexts/otexts/tarball/f7e30ccb48fea4529305487a45ddab98bb6ac211"
+checksum = "git:f7e30ccb48fea4529305487a45ddab98bb6ac211"
 requires = [
     "ggplot2",
     "here",
