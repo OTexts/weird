@@ -92,3 +92,8 @@
 ## 2026-11-11
 
 - **When fixing code that uses a misnamed path, raise the name before rebuilding on it.** I restored `gifs/` for an mp4 file without questioning it; the user had it renamed to `videos/`. If a fix recreates a folder or file, check that its name still describes its contents.
+
+## 2026-11-11
+
+- **Call data what they are.** I called the "Imported by ..." wine descriptions "placeholders"; they are import statements, which appear at the end of ordinary reviews too. Read the values and name them for what they say, rather than for the role they seem to play in the analysis. Don't lump different kinds of value under one label (the two "not available" notes are a different thing).
+- **Test an explanation for asymmetric residuals before offering it.** I said the 80-point floor limited the negative residuals, citing +7.5 against -4.6. A floor does not prohibit negative residuals, and the +7.5 came from the import statements; without them the extremes are +4.9 and -4.6. Recompute after any change to the data before repeating an earlier comparison.

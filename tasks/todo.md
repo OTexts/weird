@@ -81,8 +81,8 @@ Sections
 - [x] 4. From text to numbers (drafted 2026-11-06; awaiting author review)
   - tokens/vocabulary (4.6M tokens, 32,362 words, 38% once, Zipf), function vs content words (stop_words 44% of tokens), DTM (0.1% non-zero), tf-idf with varieties as documents (variety-name words removed; "zin" and "sb" remain)
 - [x] 5. Feature-based anomalies in text (drafted 2026-11-06; awaiting author review)
-  - all 111,592 reviews; six features (words, word_length, function_words, mean idf, bing sentiment, punctuation); mvscale + Mclust GMM (cached as rds/wine_text_gmm.rds, ~6 min) + GPD surprisal probs; 82 with p < 0.001: 7 placeholder texts ("Imported by ...", "not available"), terse reviews, blend percentages, a duplicated text, the Gaultier packaging review
-  - points ~ text features (R^2 0.38, mostly length): + residuals = placeholders and two-sentence 97-point reviews; - residuals = long critical 80-point reviews with non-negative bing sentiment (word-by-word lexicon; "Unfotunately" typo)
+  - all 111,592 reviews; six features (words, word_length, function_words, mean idf, bing sentiment, punctuation); mvscale + Mclust GMM (cached as rds/wine_text_gmm.rds, ~6 min) + GPD surprisal probs; 82 with p < 0.001: 7 non-reviews (5 import statements, 2 "not available"), terse reviews, blend percentages, a duplicated text, the Gaultier packaging review
+  - points ~ text features (R^2 0.38, mostly length): 7 non-reviews removed before fitting; + residuals = reviews of 96-98 point wines with at most 40 words; - residuals = long critical 80-point reviews with non-negative bing sentiment (word-by-word lexicon; "Unfotunately" typo)
   - Type-token ratio omitted (falls with length); readability not used
   - tidytext loaded in an uncached chunk, and mclust::Mclust() not library(mclust) (mclust::count masks dplyr::count when the knitr cache re-attaches it)
   - Added Silge2017, Hu2004, SparckJones1972, Zipf1949 to weird.bib
