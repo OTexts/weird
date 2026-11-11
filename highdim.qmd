@@ -359,7 +359,8 @@ tourr::render(
   height = 900
 )
 # Encode the frames as an H.264 video at 10 frames per second
-system2(
+dir.create("videos", showWarnings = FALSE)
+status <- system2(
   "ffmpeg",
   c(
     "-y",
@@ -375,15 +376,16 @@ system2(
     "yuv420p",
     "-movflags",
     "+faststart",
-    "gifs/highdim-grand-tour.mp4"
+    "videos/highdim-grand-tour.mp4"
   )
 )
+stopifnot(status == 0)
 unlink(frames_dir, recursive = TRUE)
 ```
 
 ::: {#fig-grand-tour}
 ```{=html}
-<video src="gifs/highdim-grand-tour.mp4" autoplay loop muted playsinline
+<video src="videos/highdim-grand-tour.mp4" autoplay loop muted playsinline
   style="width: 70%; display: block; margin: auto;"></video>
 ```
 

@@ -88,3 +88,7 @@
 - **When cutting an analysis, cut its results too.** Removing the code and output of an example (ch10 FAMD) but keeping a sentence reporting what it found leaves the reader a claim they can't see or rerun. Either keep the example visible, or reduce it to what the method is and where it is implemented, and narrow any later generalisation to the analyses still shown.
 - **No forward references to later chapters of the "same idea used again" kind.** I wrote "The same strategy is used for time series in @sec-weird-series, and for images in @sec-image-features" in ch10; the user dislikes pointing ahead like this. Make such connections as back references from the later chapter instead.
 - **Never show `cache()` in a visible chunk.** `cache()` is the book's internal helper and readers don't have it. I put `|> cache("wine_text_gmm")` in a visible ch10 chunk. Follow the timeseries.qmd pattern instead: a visible `eval: false` chunk with the plain code, and an `include: false` chunk that runs the same code with `cache()`. Before adding `cache()`, grep how other chapters hide it.
+
+## 2026-11-11
+
+- **When fixing code that uses a misnamed path, raise the name before rebuilding on it.** I restored `gifs/` for an mp4 file without questioning it; the user had it renamed to `videos/`. If a fix recreates a folder or file, check that its name still describes its contents.

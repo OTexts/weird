@@ -3,7 +3,6 @@ project:
   post-render: post-render.R
   resources:
     - /.htaccess
-    - /gifs/*.mp4
     - /data/*.txt
 
 book:
