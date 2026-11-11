@@ -319,6 +319,13 @@ pre code {
   padding: 0.4em 0.6em;
 }
 
+// Chunk output tagged `#| class-output: wrap` (e.g. long printed strings):
+// wrap long lines as the R console does, instead of scrolling sideways
+pre.wrap,
+pre.wrap code {
+  white-space: pre-wrap;
+}
+
 // Code comments: the kate grey (#898887) is too faint on $code-block-bg.
 pre code span.co {
   color: #6e6e6e; // lightest grey with 4.5:1 contrast (WCAG AA)
