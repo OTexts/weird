@@ -1,7 +1,7 @@
 # Network and graph data {#sec-network}
 
 ```{r}
-#| label: setup12
+#| label: setup16
 #| include: false
 #| cache: false
 

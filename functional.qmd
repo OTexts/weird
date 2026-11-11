@@ -1,7 +1,7 @@
 # Functional data {#sec-functional}
 
 ```{r}
-#| label: setup11
+#| label: setup13
 #| include: false
 #| cache: false
 
