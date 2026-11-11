@@ -6,8 +6,6 @@
 #| cache: false
 
 source("before-each-chapter.R")
-library(rrcov)
-library(mclust)
 ```
 
 Many anomaly detection problems involve images or video.
@@ -89,6 +87,15 @@ The first strategy is to project the images onto a few principal components, and
 
 First, we rescale the intensities to lie between 0 and 1, and drop the pixels that are white in every image (mostly in the corners), as they carry no information.
 We do not standardise each pixel, because all pixels are measured on the same scale, and standardising would inflate the noise in the nearly white pixels near the edges of the images.
+
+```{r}
+#| label: rrcov
+#| message: false
+#| code-fold: false
+#| cache: false
+
+library(rrcov)
+```
 
 ```{r}
 #| label: fashion-pca
@@ -276,6 +283,15 @@ The function below computes seven of them for a matrix `W`, with larger values i
 Following @sec-robpca, the isolation forest is applied to the scores together with the orthogonal distances.
 We use 10 nearest neighbours for the kNN, LOF and GLOSH scores, rather than the 20 used in @sec-distance-methods.
 The smaller value is needed because the same function is used on the image features in @sec-image-features, where with 20 neighbours HDBSCAN finds no clusters, and GLOSH then gives every observation a score of 1.
+
+```{r}
+#| label: mclust
+#| message: false
+#| code-fold: false
+#| cache: false
+
+library(mclust)
+```
 
 ```{r}
 #| label: fashion-methods

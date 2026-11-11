@@ -317,6 +317,15 @@ Its surprisal probabilities are computed using the GPD approximation of @sec-app
 With more than 100,000 reviews, fitting the mixture takes several minutes.
 
 ```{r}
+#| label: mclust
+#| message: false
+#| code-fold: false
+#| cache: false
+
+library(mclust)
+```
+
+```{r}
 #| label: wine-text-gmm-display
 #| eval: false
 #| code-fold: false
@@ -327,7 +336,7 @@ Z <- text_features |>
   mvscale() |>
   as.matrix()
 set.seed(1967)
-text_gmm <- mclust::Mclust(Z, verbose = FALSE) |>
+text_gmm <- Mclust(Z, verbose = FALSE) |>
   dist_mclust()
 ```
 
@@ -342,7 +351,7 @@ Z <- text_features |>
   mvscale() |>
   as.matrix()
 set.seed(1967)
-text_gmm <- mclust::Mclust(Z, verbose = FALSE) |>
+text_gmm <- Mclust(Z, verbose = FALSE) |>
   dist_mclust() |>
   cache("wine_text_gmm")
 ```
