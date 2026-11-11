@@ -117,6 +117,9 @@ Also update this skill to take account of any new issues you find when reviewing
 - "These are the same X that stood out earlier" must be checked by comparing the two sets: ch10's conditional model flagged 55 deaths, 12 of them outside the earlier top-ten cells. Likewise a description of a printed top-$n$ ("in their sixties") must cover every row printed (a 55--59 cell was also there).
 - A symbol for a proportion must not reuse $p$ with a different subscript in a chapter where $p_i$ is the surprisal probability.
 - After an example is cut to a brief mention (e.g. FAMD in ch10), recheck later comparative claims and summaries for conclusions about it.
+- A count of how many flagged items show a pattern ("one review contains its own text twice") must be checked over the whole flagged set, not just the printed top $n$: ch11's guard searched the top 12 and missed a second duplicate at rank 13.
+- When a sentence describes a group made up of two kinds ("They are very short, use rare words (the names of the importers), and have no sentiment"), check each kind separately; ch11's "not available" descriptions contain no importer names and have positive sentiment. Likewise "the least probable are X" must be checked rank by rank, and "describes not X but Y" against the full text of the quoted document.
+- Claims about text features must match how the code counts them: `nchar()` counts characters, not letters, and tokens can contain digits and apostrophes.
 
 **Clarity for 3rd year undergraduates**
 - Notation introduced before it is used
