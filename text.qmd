@@ -48,17 +48,18 @@ source("before-each-chapter.R")
 
 Text is an extreme example of categorical data (@sec-categorical-data).
 Each word comes from a vocabulary of many thousands of words, most of which are rarely used, and a document is a sequence of words whose meaning depends on their order.
-A document is anomalous if it is improbable under a model of the language in which it is written, or if its features have low density compared to those of other documents.
+A document is anomalous if it is improbable under a model of the language in which it is written, or if it has features that are very different from other documents in a given corpus.
 
 The chapter starts by converting documents to numbers, and then finds anomalous documents from their features or from their surprisals under a language model.
-Finally, it asks whether a text was written by the author to whom it is attributed.
-That is also a question of anomaly detection: is the text surprising, given the author's known work?
+Then it explores whether a document is surprising given other documents thought to be from the same author; this can help in identifying misattributed authorship.
+
+TBC
 
 ## From text to numbers {#sec-text-numbers}
 
 Documents cannot be analysed using the methods of @sec-categorical-data, because each contains many words (categorical values), and almost every document is unique.
-Instead, a document can be converted to numbers by counting how often each word occurs in it, treating it as a **bag of words** and ignoring the order of the words.
-This loses much of the meaning of the text, but it is enough to find many kinds of anomalous documents.
+One relatively simple approach to analysing textual data is to convert a document to numbers by counting how often each word occurs in it, treating it as a **bag of words** and ignoring the order of the words.
+While this loses much of the meaning of the text, it is enough to find many kinds of anomalous documents.
 
 The examples in this section and the next use the tasters' descriptions of the wines in the wine reviews data (@sec-data).
 Here are three of them.
@@ -73,6 +74,8 @@ wine_reviews |>
   slice(c(1, 2, 3)) |>
   pull(description)
 ```
+
+Our task is to find reviews that are anomalous in some way --- substantially different from the other reviews in the data set.
 
 ### Tokens and vocabulary
 
@@ -135,7 +138,11 @@ The probability of each word can be estimated from its frequency, as in @sec-cat
 The most common words are "and", "the", "a", "of", "with", "this" and "is".
 These are **function words**, which give a sentence its grammatical structure, as distinct from **content words**, such as "wine", "cherry" and "tannins", which carry its meaning.
 Lists of function words and other very common words are called **stop words**.
+
 The `stop_words` data in **`tidytext`** combine three such lists, giving `r scales::comma(NROW(stop_words))` words, and these account for `r sprintf("%.0f", 100 * stop_share)`% of the tokens in the descriptions.
+Stop words are usually removed when the aim is to find what a document is about, but they are useful words for describing *how* it is written.
+Every writer uses these little words in different ways, and their patterns of usage can help identify an author.
+
 Removing them with `anti_join()` leaves the content words.
 
 ```{r}
@@ -146,9 +153,6 @@ Removing them with `anti_join()` leaves the content words.
 vocabulary |>
   anti_join(stop_words, by = "word")
 ```
-
-Stop words are usually removed when the aim is to find what a document is about, but they are the most useful words for describing how it is written.
-How often a writer uses them reflects the writer's habits rather than the subject.
 
 ### The document-term matrix
 
@@ -402,7 +406,8 @@ next_text <- text_features |> arrange(p) |> slice(13)
 repeated <- stringr::str_count(
   flagged_text$description,
   stringr::fixed(substr(flagged_text$description, 1, 40))
-) >= 2
+) >=
+  2
 non_review <- grepl("^Imported by|not available", text_features$description)
 percentages <- grepl("%", flagged_text$description)
 gaultier <- text_features |> filter(grepl("Gaultier", description))
@@ -420,7 +425,10 @@ stopifnot(
   NROW(gaultier) == 1,
   gaultier$id %in% top_text$id,
   sum(grepl("^Dark, dusty.*Dark, dusty", top_text$description)) == 1,
-  grepl("^This very fine Cabernet.*This very fine Cabernet", next_text$description),
+  grepl(
+    "^This very fine Cabernet.*This very fine Cabernet",
+    next_text$description
+  ),
   sum(repeated) == 2,
   between(NROW(flagged_text), 60, 110),
   sum(flagged_text$words <= 10 | flagged_text$words >= 100) >= 25,
