@@ -58,10 +58,11 @@ TBC
 ## From text to numbers {#sec-text-numbers}
 
 Documents cannot be analysed using the methods of @sec-categorical-data, because each contains many words (categorical values), and almost every document is unique.
-One relatively simple approach to analysing textual data is to convert a document to numbers by counting how often each word occurs in it, treating it as a **bag of words** and ignoring the order of the words.
+One relatively simple approach to analysing textual data is to convert each document to a vector of numbers by counting how often each word occurs in it, treating it as a **bag of words** and ignoring the order of the words.
 While this loses much of the meaning of the text, it is enough to find many kinds of anomalous documents.
 
-The examples in this section and the next use the tasters' descriptions of the wines in the wine reviews data (@sec-data).
+The examples in this section and the next use the tasters' descriptions of the `r scales::comma(NROW(wine_reviews))` wines in the wine reviews data (@sec-data).
+Think of these as a large collection of short documents, each describing a wine.
 Here are three of them.
 
 ```{r}
@@ -75,11 +76,10 @@ wine_reviews <- fetch_wine_reviews()
 ```{r}
 #| label: wine-descriptions
 #| code-fold: false
+#| class-output: wrap
 
-wine_reviews <- wine_reviews |>
-  mutate(id = row_number(), .before = 1)
 wine_reviews |>
-  slice(c(1, 2, 3)) |>
+  slice_head(n = 3) |>
   pull(description)
 ```
 
@@ -87,8 +87,11 @@ Our task is to find reviews that are anomalous in some way --- substantially dif
 
 ### Tokens and vocabulary
 
-A **token** is a unit of text, usually a word, and splitting a text into tokens is called **tokenisation**.
-The `unnest_tokens()` function from the **`tidytext`** package\ [@Silge2017] converts the text to lower case, removes the punctuation, and returns one row for each token.
+A **token** is a unit of text, and splitting a document into tokens is called **tokenisation**.
+Depending on the analysis, the tokens might be single characters, words, pairs of adjacent words, or whole sentences, but in this chapter every token is a single word.
+The `unnest_tokens()` function from the **`tidytext`** package\ [@Silge2017] splits text into words by default.
+It converts the text to lower case, removes the punctuation, and returns one row for each token, here in a column called `word`.
+So we can keep track of which document each token came from, we also add an `id` column to the reviews, which is just the row number of each review in the data frame.
 
 ```{r}
 #| label: tidytext
@@ -103,9 +106,11 @@ library(tidytext)
 #| code-fold: false
 #| dependson: wine-descriptions
 
+wine_reviews <- wine_reviews |>
+  mutate(id = row_number(), .before = 1)
 wine_words <- wine_reviews |>
   select(id, variety, description) |>
-  unnest_tokens(word, description)
+  unnest_tokens(word, description, token = "words")
 wine_words
 vocabulary <- wine_words |>
   count(word, sort = TRUE)
@@ -164,8 +169,16 @@ vocabulary |>
 
 ### The document-term matrix
 
-The word counts of a collection of documents form a **document-term matrix**, with one row for each document and one column for each word in the vocabulary.
-The entry in row $i$ and column $w$ is $t_{iw}$ (with $t$ for tokens), the number of times word $w$ occurs in document $i$, so each row is a numerical vector, and its sum is the number of tokens in the document, $t_i = \sum_w t_{iw}$.
+The word counts of a collection of $n$ documents form an $n \times m$ **document-term matrix**, with one row for each document and one column for each of the $m$ words in the vocabulary.
+The entry in row $i$ and column $w$ is $t_{iw}$, the number of times word $w$ occurs in document $i$.
+The sums of each row and column, and the numbers of non-zero entries in each row and column, provide simple summaries of the documents and the words:
+
+- $t_i = \sum_w t_{iw}$, the sum of row $i$, is the number of tokens in document $i$;
+- $t_w = \sum_i t_{iw}$, the sum of column $w$, is the number of times word $w$ occurs in the whole collection, which is the frequency used to rank the vocabulary above;
+- $m_i$, the number of non-zero entries in row $i$, is the number of distinct words in document $i$, so $m_i \le t_i$ and $m_i \le m$;
+- $n_w$, the number of non-zero entries in column $w$, is the number of documents that contain word $w$, called its **document frequency**, so $n_w \le n$.
+
+The total of all the entries, $\sum_i t_i = \sum_w t_w$, is the number of tokens in the collection.
 The `cast_sparse()` function builds the matrix from the word counts.
 
 ```{r}
@@ -192,14 +205,14 @@ stopifnot(
 )
 ```
 
-Each description is now a point in a space with `r scales::comma(NCOL(dtm))` dimensions, but only `r sprintf("%.1f", 100 * dtm_density)`% of the entries are non-zero, so the matrix is stored in a sparse form.
+Each description is now a point in a space with $m =$ `r scales::comma(NCOL(dtm))` dimensions, but only `r sprintf("%.1f", 100 * dtm_density)`% of the entries are non-zero, so the matrix is stored in a sparse form.
 The methods of @sec-highdim could in principle be applied to its rows, but most of the columns are almost entirely zero, and the counts of common words such as "the" contribute far more to any distance between rows than those of rarer words.
 So the counts are usually reweighted, or reduced to a few features.
 
 ### Term frequency--inverse document frequency
 
 The **term frequency** of word $w$ in document $i$ is the proportion of the document's tokens that are that word, $\text{tf}_{iw} = t_{iw}/t_i$.
-If $n$ is the number of documents, and $n_w$ is the number of documents that contain word $w$, the **inverse document frequency** of word $w$ is
+The **inverse document frequency** of word $w$ depends on its document frequency $n_w$:
 $$
   \text{idf}_w = \log(n / n_w),
 $$
@@ -376,31 +389,23 @@ text_gmm <- Mclust(Z, verbose = FALSE) |>
 text_features <- text_features |>
   mutate(
     s = surprisals(Z, distribution = text_gmm),
-    p = surprisals_prob(Z, distribution = text_gmm, approximation = "gpd")
+    p = surprisals_prob(Z, distribution = text_gmm, approximation = "gpd"),
+    flagged = p < 0.001
   )
 text_features |>
   arrange(p) |>
-  select(points, words:punctuation, p)
+  select(points, words:punctuation, p, flagged)
 ```
 
-The texts of the twelve least probable reviews are printed below, using a function that wraps each one to fit the page.
+The texts of the twelve least probable reviews are shown below.
 
 ```{r}
 #| label: wine-text-top
 #| code-fold: false
 #| dependson: wine-text-gmm
+#| class-output: wrap
 
-print_reviews <- function(reviews) {
-  reviews |>
-    mutate(text = paste0("[", points, " points] ", description)) |>
-    pull(text) |>
-    lapply(\(x) c(strwrap(x, width = 80, exdent = 2), "")) |>
-    unlist() |>
-    writeLines()
-}
-text_features |>
-  slice_min(p, n = 12) |>
-  print_reviews()
+text_features |> slice_min(p, n = 12) |> pull(description)
 ```
 
 ```{r}
@@ -408,16 +413,17 @@ text_features |>
 #| include: false
 #| dependson: wine-text-top
 
-flagged_text <- text_features |> filter(p < 0.001)
+flagged_text <- text_features |> filter(flagged)
 top_text <- text_features |> arrange(p) |> head(12)
-next_text <- text_features |> arrange(p) |> slice(13)
-repeated <- stringr::str_count(
-  flagged_text$description,
-  stringr::fixed(substr(flagged_text$description, 1, 40))
-) >=
-  2
 non_review <- grepl("^Imported by|not available", text_features$description)
+flagged_non_review <- grepl(
+  "^Imported by|not available",
+  flagged_text$description
+)
+short_reviews <- flagged_text |> filter(words <= 10, !flagged_non_review)
 percentages <- grepl("%", flagged_text$description)
+punct_q99 <- quantile(text_features$punctuation, 0.99)
+high_punct <- flagged_text$punctuation > punct_q99
 gaultier <- text_features |> filter(grepl("Gaultier", description))
 # The prose describes the reviews with the smallest surprisal probabilities
 stopifnot(
@@ -426,31 +432,28 @@ stopifnot(
   all(text_features$p[non_review] < 0.001),
   sum(grepl("^Imported by|not available", top_text$description[1:7])) == 6,
   all(top_text$words[1:7] <= 7),
-  sum(flagged_text$words <= 10) >= 15,
-  sum(percentages) >= 15,
-  any(grepl("^Smells raisiny", top_text$description)),
-  sum(grepl("%", top_text$description)) >= 2,
+  grepl("^Smells raisiny", top_text$description[7]),
+  all(top_text$words <= 12),
+  NROW(short_reviews) >= 10,
+  median(short_reviews$points) < quantile(text_features$points, 0.05),
+  sum(high_punct) >= 20,
+  sum(high_punct & flagged_text$words > 10) >= sum(flagged_text$words > 10) / 3,
+  sum(percentages) >= 5,
+  sum(percentages & high_punct) > sum(percentages) / 2,
   NROW(gaultier) == 1,
-  gaultier$id %in% top_text$id,
-  sum(grepl("^Dark, dusty.*Dark, dusty", top_text$description)) == 1,
-  grepl(
-    "^This very fine Cabernet.*This very fine Cabernet",
-    next_text$description
-  ),
-  sum(repeated) == 2,
+  gaultier$p < 0.001,
   between(NROW(flagged_text), 60, 110),
-  sum(flagged_text$words <= 10 | flagged_text$words >= 100) >= 25,
-  sum(flagged_text$words > 10 & flagged_text$words < 100) >= 25
+  sum(flagged_text$words <= 10) >= 15,
+  all(flagged_text$words < 100),
+  sum(flagged_text$words > 10) >= 25
 )
 ```
 
 `r english::Words(NROW(flagged_text))` reviews have surprisal probabilities below 0.001.
-Six of the seven least probable are not reviews at all.
-In total, `r english::words(sum(non_review))` descriptions say only that the wine was "Imported by" a named company, or that the review is not available.
-The "Imported by" descriptions are very short, use rare words (the names of the importers), and have no sentiment.
-The text is missing rather than anomalous, but the points and price may still be genuine.
-Other flagged reviews are very terse, such as "Smells raisiny, feels hot, tastes overripe.", or list the percentages of the vineyards or grape varieties in a blend, which gives most of them much more punctuation than usual.
-One of the reviews printed above contains its own text twice, as does the next review in the ranking, presumably through data-entry errors, which makes both unusually long.
+Seven of the eight least probable are not reviews at all, but say only that the wine was "Imported by" a named company, or that the review is not available.
+The other reviews printed above are very terse, such as "Smells raisiny, feels hot, tastes overripe.", and dismiss the wine in a few words.
+The flagged reviews with ten words or fewer have a median of `r median(short_reviews$points)` points, lower than 95% of all reviews.
+Many of the longer flagged reviews have much more punctuation than usual: `r english::words(sum(high_punct))` of the flagged reviews have more punctuation marks per word than 99% of all reviews, including most of those that list the percentages of the vineyards or grape varieties in a blend.
 Another flagged review is mostly about the packaging rather than the wine: a red vinyl body suit designed for the bottle by the fashion designer Jean-Paul Gaultier.
 
 ```{r}
@@ -483,7 +486,7 @@ text_features |>
 
 @fig-wine-text-features shows two of the six features.
 The descriptions that are not reviews are at the top left, with only a few words, most of them rare.
-Many of the other flagged reviews are very short or very long, and the rest are flagged because of their other features, or their combination of features.
+Many of the other flagged reviews are very short, and the rest are flagged because of their other features, or their combination of features.
 
 ### Wording that disagrees with the points
 
@@ -523,13 +526,10 @@ The texts of the six reviews with the largest positive residuals, and of the six
 #| label: wine-text-points-top
 #| code-fold: false
 #| dependson: [wine-text-points, wine-text-top]
+#| class-output: wrap
 
-reviews |>
-  slice_max(r, n = 6) |>
-  print_reviews()
-reviews |>
-  slice_min(r, n = 6) |>
-  print_reviews()
+reviews |> slice_max(r, n = 6) |> pull(description)
+reviews |> slice_min(r, n = 6) |> pull(description)
 ```
 
 ```{r}
