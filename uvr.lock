@@ -2556,8 +2556,8 @@ checksum = "md5:b9c41923305ec69ba71e80b63e86ec02"
 name = "otexts"
 version = "0.1.0"
 source = "github"
-url = "https://api.github.com/repos/OTexts/otexts/tarball/f7e30ccb48fea4529305487a45ddab98bb6ac211"
-checksum = "git:f7e30ccb48fea4529305487a45ddab98bb6ac211"
+url = "https://api.github.com/repos/OTexts/otexts/tarball/e5f8ee13e1199ab3f420cd6956c2c590df3bca84"
+checksum = "git:e5f8ee13e1199ab3f420cd6956c2c590df3bca84"
 requires = [
     "ggplot2",
     "here",
@@ -3981,8 +3981,8 @@ checksum = "md5:b5603af0a2d1b62511f85f5574c747a8"
 name = "weird"
 version = "3.1.0-4.9000"
 source = "github"
-url = "https://api.github.com/repos/robjhyndman/weird/tarball/36b4ed3ae773803e7dee5e241e33a675e478a5dc"
-checksum = "git:36b4ed3ae773803e7dee5e241e33a675e478a5dc"
+url = "https://api.github.com/repos/robjhyndman/weird/tarball/9a0347c7b58f92ee766bdf1e7d401062a26b78f7"
+checksum = "git:9a0347c7b58f92ee766bdf1e7d401062a26b78f7"
 requires = [
     "aplpack",
     "broom",
