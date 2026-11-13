@@ -298,7 +298,11 @@ The features used here measure the length of a document, its style, its vocabula
 - `sentiment`: the number of positive words minus the number of negative words, divided by the number of words, using the list of `r scales::comma(NROW(get_sentiments()))` positive and negative words compiled by @Hu2004;
 - `punctuation`: the number of punctuation marks for each word.
 
-For the wine data, each description is a document, so the idf of a word depends on how many of the `r scales::comma(NROW(wine_reviews))` descriptions contain it, rather than how many varieties, as in @fig-wine-tfidf.
+### Reviews with unusual features
+
+We treat each of the `r scales::comma(NROW(wine_reviews))` descriptions as a document and compute the six features for each one.
+All but one of the features depend only on the description itself.
+The exception is idf, which depends on the whole collection: here $n_w$ is the number of descriptions containing word $w$, not the number of varieties as in @fig-wine-tfidf.
 
 ```{r}
 #| label: wine-text-features
@@ -488,94 +492,158 @@ text_features |>
 The descriptions that are not reviews are at the top left, with only a few words, most of them rare.
 Many of the other flagged reviews are very short, and the rest are flagged because of their other features, or their combination of features.
 
-### Wording that disagrees with the points
+### Reviews that disagree with their points
 
-The points awarded to a wine, on a scale of 80 to 100, should agree with what the taster wrote about it.
-As in @sec-mixed, this can be checked with a conditional model: a regression of the points on the text features, whose large residuals are reviews with more or fewer points than their wording would suggest.
+A review can also be anomalous because its text does not fit its other variables.
+The points awarded to a wine, on a scale of 80 to 100, should agree with what the taster wrote about it, so a review whose points are surprising given its wording is a **conditional anomaly**, even if neither its points nor its wording is unusual on its own.
+As in @sec-mixed, such anomalies are found from the conditional surprisal, $-\log f(\text{points} \mid \text{text})$, here estimated by a linear regression with Normal errors (@sec-regression-log-scores).
+
+The six features above are not much use as predictors, as only the sentiment score measures whether a review is favourable, and it uses a general list of words that knows nothing about wine.
+Instead, the predictors are the logarithm of the number of words, and the counts of every word that occurs in at least 500 reviews, taken from the document-term matrix.
+Each coefficient is then the change in the expected points for each use of that word.
 The seven descriptions that are not reviews are removed first: an import statement, or a note that the review is not available, says nothing about the wine, so it can neither agree nor disagree with the points.
 
 ```{r}
-#| label: wine-text-points
+#| label: wine-text-reviews
 #| code-fold: false
 #| dependson: wine-text-gmm
 
 reviews <- text_features |>
   filter(!grepl("^Imported by|not available", description))
-fit_text <- lm(
-  points ~ log(words) +
-    word_length +
-    function_words +
-    idf +
-    sentiment +
-    punctuation,
-  data = reviews
-)
-reviews <- reviews |>
-  mutate(r = rstandard(fit_text))
-reviews |>
-  arrange(desc(r)) |>
-  select(points, words, sentiment, r)
-reviews |>
-  arrange(r) |>
-  select(points, words, sentiment, r)
 ```
 
-The texts of the six reviews with the largest positive residuals, and of the six with the largest negative residuals, are printed below.
+The regression has more than 100,000 observations and nearly 1,000 predictors.
+The fitted model takes up nearly 2 GB, mostly in the QR decomposition of the design matrix, so we keep only the parts we need.
 
 ```{r}
-#| label: wine-text-points-top
+#| label: wine-text-points-display
+#| eval: false
 #| code-fold: false
-#| dependson: [wine-text-points, wine-text-top]
-#| class-output: wrap
 
-reviews |> slice_max(r, n = 6) |> pull(description)
-reviews |> slice_min(r, n = 6) |> pull(description)
+X <- as.matrix(dtm[reviews$id, Matrix::colSums(dtm > 0) >= 500])
+fit <- lm(points ~ log(words) + X, data = reviews)
+fit_words <- list(
+  coef = coef(fit),
+  fitted = fitted(fit),
+  p = surprisals_prob(fit, approximation = "gpd")
+)
+```
+
+```{r}
+#| label: wine-text-points-fit
+#| include: false
+#| dependson: [wine-dtm, wine-text-reviews]
+
+fit_words <- local({
+  X <- as.matrix(dtm[reviews$id, Matrix::colSums(dtm > 0) >= 500])
+  fit <- lm(points ~ log(words) + X, data = reviews)
+  list(
+    coef = coef(fit),
+    fitted = fitted(fit),
+    p = surprisals_prob(fit, approximation = "gpd")
+  )
+}) |>
+  cache("wine_text_points")
+```
+
+```{r}
+#| label: wine-text-points
+#| code-fold: false
+#| dependson: wine-text-points-fit
+
+reviews <- reviews |>
+  mutate(fitted = fit_words$fitted, p = fit_words$p, flagged = p < 0.001)
+coefs <- sort(fit_words$coef[-(1:2)])
+names(coefs) <- sub("^X", "", names(coefs))
+head(coefs, 10)
+tail(coefs, 10)
 ```
 
 ```{r}
 #| label: wine-text-points-check
 #| include: false
-#| dependson: wine-text-points-top
+#| dependson: wine-text-points
 
-r2_text <- summary(fit_text)$r.squared
-top_pos <- reviews |> arrange(desc(r)) |> head(6)
-top_neg <- reviews |> arrange(r) |> head(6)
-high_words <- median(reviews$words[between(reviews$points, 96, 98)])
-# The prose describes the largest residuals in each direction
+r2_words <- cor(reviews$points, reviews$fitted)^2
+top_pos <- reviews |> filter(points > fitted) |> slice_min(p, n = 6)
+top_neg <- reviews |> filter(points < fitted) |> slice_min(p, n = 6)
+tonnelles <- top_pos |> filter(grepl("barnyard", description))
+# The prose describes the coefficients and the largest residuals in each direction
 stopifnot(
   NROW(text_features) - NROW(reviews) == 7,
-  round(r2_text, 2) == 0.38,
-  round(cor(reviews$points, reviews$words), 2) == 0.54,
-  coef(fit_text)["log(words)"] > 0,
-  coef(fit_text)["sentiment"] > 0,
-  min(top_pos$points) == 96,
-  max(top_pos$points) == 98,
-  max(top_pos$words) == 40,
-  high_words > 40,
-  any(grepl("majestic", top_pos$description)),
-  any(grepl("hugely rich", top_pos$description)),
-  all(top_neg$points <= 82),
-  all(top_neg$words > 50),
-  all(top_neg$sentiment >= 0),
-  any(grepl("^Charming aromas", top_neg$description)),
-  any(grepl("Sawdust notes dominate", top_neg$description)),
-  any(grepl("Unfotunately", top_neg$description)),
-  all(
-    c("charming", "promise", "good", "dominate") %in%
-      get_sentiments()$word[
-        get_sentiments()$sentiment == "positive"
-      ]
-  ),
-  !"unfotunately" %in% get_sentiments()$word
+  length(coefs) == 979,
+  round(r2_words, 2) == 0.65,
+  all(c("lacks", "thin", "flat", "sugary", "short", "simple") %in% names(head(coefs, 10))),
+  all(c("gorgeous", "beautiful", "wonderful", "opulent") %in% names(tail(coefs, 10))),
+  sum(grepl("^20[0-9][0-9]$", names(tail(coefs, 10)))) == 3,
+  between(sum(reviews$flagged), 90, 110),
+  sum(top_pos$points >= 96) == 5,
+  NROW(tonnelles) == 1,
+  tonnelles$points == 92,
+  round(tonnelles$fitted) == 83,
+  all(sapply(
+    c("immense tannins", "grilled asparagus", "medicinal", "Old wood", "^95-97"),
+    \(x) any(grepl(x, top_pos$description))
+  )),
+  all(top_neg$points <= 83),
+  all(sapply(
+    c("asphalt", "Band-Aid", "Roquefort", "brilliant garnet", "brown around", "elegance"),
+    \(x) any(grepl(x, top_neg$description))
+  )),
+  !any(c("barnyard", "asphalt", "band", "roquefort") %in% names(coefs)),
+  coefs["medicinal"] < -0.5,
+  coefs["rustic"] < -0.5,
+  coefs["elegance"] > 0.5
 )
 ```
 
-The text features explain `r sprintf("%.0f", 100 * r2_text)`% of the variation in the points, mostly through the length of the review: tasters write more about the wines they like, and the correlation between the points and the number of words is `r sprintf("%.2f", cor(reviews$points, reviews$words))`.
-The largest positive residuals are reviews of wines with 96--98 points that use 40 words or fewer, although the median length of the reviews of such wines is `r high_words` words.
-Their wording is still full of praise, such as "majestic" and "hugely rich", so they don't disagree with their points; they are just shorter than the model expects.
-The largest negative residuals are long reviews of wines with 80--82 points, which explain what is wrong with the wine.
-None of them has a negative sentiment score, because the list of positive and negative words takes each word on its own.
-In "Charming aromas of tobacco leaf and strawberries promise good things to come but the palate does not follow through", the words "charming", "promise" and "good" all count as positive; in "Sawdust notes dominate the nose", so does "dominate"; and the misspelt "Unfotunately", which would otherwise count as negative, is not in the list at all.
+The word counts explain `r sprintf("%.0f", 100 * r2_words)`% of the variation in the points, and each doubling of the length of a review adds `r sprintf("%.1f", log(2) * fit_words$coef[2])` points to its expected score.
+The words with the most negative coefficients name faults, such as "lacks", "thin", "flat" and "sugary", or damn with faint praise, such as "simple" and "short".
+Those with the most positive coefficients are superlatives, such as "gorgeous", "beautiful" and "wonderful", and years, which occur in advice on when to drink a wine (e.g., "Drink 2023--2035"), given mainly for wines worth keeping.
 
-This shows the main weakness of features: they detect only the kinds of anomaly that the analyst has thought to measure, and features such as word counts ignore the order and context of the words.
+`r english::Words(sum(reviews$flagged))` reviews have surprisal probabilities below 0.001, `r english::words(sum(reviews$flagged & reviews$points > reviews$fitted))` of them with more points than predicted.
+The six least probable reviews in that direction are printed below.
+
+```{r}
+#| label: wine-text-points-top
+#| code-fold: false
+#| dependson: wine-text-points
+#| class-output: wrap
+
+reviews |>
+  filter(points > fitted) |>
+  slice_min(p, n = 6) |>
+  with(paste(points, "points.", description))
+```
+
+Five of these are wines with 96--98 points, and their reviews praise them in words that would signal faults in a lesser wine: "immense tannins", "green olive, grilled asparagus", an "almost medicinal intensity", "Old wood".
+The coefficient of "medicinal" is `r sprintf("%.2f", coefs["medicinal"])`.
+A powerful young wine is meant to taste like this, but a bag of words gives a word the same weight whatever wine it describes.
+One review starts with "95-97. Barrel sample.", the taster's range of scores for a wine tasted before it was bottled.
+
+The exception is the third, with `r tonnelles$points` points, whose review is critical: "A rustic wine, with definite barnyard flavors … the tannins and old wood tastes intrude too much."
+The model predicts `r round(tonnelles$fitted)` points, and nothing in the text suggests a wine worth 92.
+Perhaps the points were recorded against the wrong review; either way, this is the kind of anomaly a conditional model is meant to find.
+
+The six least probable reviews with fewer points than predicted are printed below.
+
+```{r}
+#| label: wine-text-points-bottom
+#| code-fold: false
+#| dependson: wine-text-points
+#| class-output: wrap
+
+reviews |>
+  filter(points < fitted) |>
+  slice_min(p, n = 6) |>
+  with(paste(points, "points.", description))
+```
+
+These are wines with 80--83 points, and their reviews describe the faults in vivid words that are too rare to be among the predictors, such as "asphalt", "Band-Aid" and "Roquefort".
+Others use favourable words to unfavourable effect: a "brilliant garnet hue" that leads to a "one-dimensional palate", and "fading elegance" in a wine that is "brown around the edges".
+The coefficient of "elegance" is `r sprintf("%.2f", coefs["elegance"])`.
+
+So the conditional model finds two kinds of anomaly.
+A few reviews, such as the third one above, really do disagree with their points.
+Most are reviews whose meaning depends on context that a bag of words cannot see: the same word can be praise for one wine and criticism of another, and a favourable word can be qualified or turned around by the words near it.
 A model of the language itself can take some of that context into account.
