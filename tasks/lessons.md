@@ -106,3 +106,5 @@
 ## 2026-11-13
 
 - **Use the project's own skill when one covers the task.** Asked to "review last subsection", I reviewed it ad hoc instead of running `/review-chapter`, which exists for exactly this and also runs deslop and applies fixes. Before starting a review, edit or other recurring task, check the skill list for a matching project skill and use it.
+- **Reproduce a setup function's exact call order before blaming its mechanism.** I claimed `conflict_prefer()` did nothing unless **conflicted** was attached, from a test that called it in a different order from `setup_book()`. In fact conflicted's own `library()` keeps the preferences working; the `count()` failure came from knitr re-attaching cached packages with base `library()` (bypassing that and dropping `exclude =`) combined with mclust's `Mclust()` needing mclust attached. When a test contradicts how a tool is documented to behave, recheck the test before rewriting the explanation.
+- **NEWS entries say what the change does.** No explanation of the old approach or why it failed; one sentence on the new behaviour and its effect.
