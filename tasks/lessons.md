@@ -102,3 +102,7 @@
 ## 2026-11-12
 
 - **Refit a cached model whenever its inputs change.** I changed the text-features GMM to use `log(words)` but `cache("wine_text_gmm")` kept loading the old raw-`words` fit, so the prose and the guards written next described a model the code no longer produced. When the next refit happened they broke (wine-text-check). After changing any code that feeds `cache()`, delete `rds/<name>.rds` and refit before writing prose or guards from the results.
+
+## 2026-11-13
+
+- **Use the project's own skill when one covers the task.** Asked to "review last subsection", I reviewed it ad hoc instead of running `/review-chapter`, which exists for exactly this and also runs deslop and applies fixes. Before starting a review, edit or other recurring task, check the skill list for a matching project skill and use it.
