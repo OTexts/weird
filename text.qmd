@@ -152,7 +152,7 @@ The most common words are "and", "the", "a", "of", "with", "this" and "is".
 These are **function words**, which give a sentence its grammatical structure, as distinct from **content words**, such as "wine", "cherry" and "tannins", which carry its meaning.
 Lists of function words and other very common words are called **stop words**.
 
-The `stop_words` data in **`tidytext`** combine three such lists, giving `r scales::comma(NROW(stop_words))` words, and these account for `r sprintf("%.0f", 100 * stop_share)`% of the tokens in the descriptions.
+The `stop_words` data in **`tidytext`** combine three overlapping lists, giving `r scales::comma(n_distinct(stop_words$word))` distinct words, and these account for `r sprintf("%.0f", 100 * stop_share)`% of the tokens in the descriptions.
 Stop words are usually removed when the aim is to find what a document is about, but they are useful words for describing *how* it is written.
 Every writer uses these little words in different ways, and their patterns of usage can help identify an author.
 
@@ -173,12 +173,12 @@ The word counts of a collection of $n$ documents form an $n \times m$ **document
 The entry in row $i$ and column $w$ is $t_{iw}$, the number of times word $w$ occurs in document $i$.
 The sums of each row and column, and the numbers of non-zero entries in each row and column, provide simple summaries of the documents and the words:
 
-- $t_i = \sum_w t_{iw}$, the sum of row $i$, is the number of tokens in document $i$;
-- $t_w = \sum_i t_{iw}$, the sum of column $w$, is the number of times word $w$ occurs in the whole collection, which is the frequency used to rank the vocabulary above;
-- $m_i$, the number of non-zero entries in row $i$, is the number of distinct words in document $i$, so $m_i \le t_i$ and $m_i \le m$;
+- $t_{i\cdot} = \sum_w t_{iw}$, the sum of row $i$, is the number of tokens in document $i$;
+- $t_{\cdot w} = \sum_i t_{iw}$, the sum of column $w$, is the number of times word $w$ occurs in the whole collection, which is the frequency used to rank the vocabulary above;
+- $m_i$, the number of non-zero entries in row $i$, is the number of distinct words in document $i$, so $m_i \le t_{i\cdot}$ and $m_i \le m$;
 - $n_w$, the number of non-zero entries in column $w$, is the number of documents that contain word $w$, called its **document frequency**, so $n_w \le n$.
 
-The total of all the entries, $\sum_i t_i = \sum_w t_w$, is the number of tokens in the collection.
+The total of all the entries, $\sum_i t_{i\cdot} = \sum_w t_{\cdot w}$, is the number of tokens in the collection.
 The `cast_sparse()` function builds the matrix from the word counts.
 
 ```{r}
@@ -211,7 +211,7 @@ So the counts are usually reweighted, or reduced to a few features.
 
 ### Term frequency--inverse document frequency
 
-The **term frequency** of word $w$ in document $i$ is the proportion of the document's tokens that are that word, $\text{tf}_{iw} = t_{iw}/t_i$.
+The **term frequency** of word $w$ in document $i$ is the proportion of the document's tokens that are that word, $\text{tf}_{iw} = t_{iw}/t_{i\cdot}$.
 The **inverse document frequency** of word $w$ depends on its document frequency $n_w$:
 $$
   \text{idf}_w = \log(n / n_w),
@@ -295,7 +295,7 @@ The features used here measure the length of a document, its style, its vocabula
 - `word_length`: the mean number of characters in each word;
 - `function_words`: the proportion of the words that are stop words;
 - `idf`: the mean of the inverse document frequencies of the words, which is large when a document uses words that are rare in the collection;
-- `sentiment`: the number of positive words minus the number of negative words, divided by the number of words, using the list of `r scales::comma(NROW(get_sentiments()))` positive and negative words compiled by @Hu2004;
+- `sentiment`: the number of positive words minus the number of negative words, divided by the number of words, using the list of `r scales::comma(n_distinct(get_sentiments()$word))` positive and negative words compiled by @Hu2004;
 - `punctuation`: the number of punctuation marks for each word.
 
 ### Reviews with unusual features
@@ -316,7 +316,7 @@ idf <- wine_words |>
   select(word, idf)
 text_features <- wine_words |>
   left_join(idf, by = "word") |>
-  left_join(get_sentiments(), by = "word") |>
+  left_join(get_sentiments() |> filter(n() == 1, .by = word), by = "word") |>
   summarise(
     words = n(),
     word_length = mean(nchar(word)),
@@ -677,5 +677,5 @@ The coefficients of "long" and "elegance" are `r sprintf("%.2f", coefs["long"])`
 
 So the conditional model finds two kinds of anomaly.
 A few reviews, such as the third one above, really do disagree with their points.
-Most are reviews that a bag of words cannot read: the words that carry their meaning are too rare to be among the predictors, or a common word means something different in context, as in "flat-out dazzling" and "fading elegance".
+The others printed above are reviews that a bag of words cannot read: the words that carry their meaning are too rare to be among the predictors, or a common word means something different in context, as in "flat-out dazzling" and "fading elegance".
 A model of the language itself can take some of that context into account.
