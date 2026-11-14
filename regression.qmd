@@ -59,7 +59,7 @@ Consider the wine reviews of Shiraz (aka Syrah), plotted in @fig-shiraz.
 We can fit a linear regression model to these data, using the points awarded to each wine as a predictor, and the log prices as the response variable.
 
 ```{r}
-#| label: fetch-wine-reviews
+#| label: fetch-wine-reviews-regression
 #| eval: false
 #| code-fold: false
 

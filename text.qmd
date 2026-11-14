@@ -66,7 +66,7 @@ Think of these as a large collection of short documents, each describing a wine.
 Here are three of them.
 
 ```{r}
-#| label: fetch-wine-reviews
+#| label: fetch-wine-reviews-text
 #| eval: false
 #| code-fold: false
 
@@ -346,7 +346,7 @@ Its surprisal probabilities are computed using the GPD approximation of @sec-app
 With more than 100,000 reviews, fitting the mixture takes several minutes.
 
 ```{r}
-#| label: mclust
+#| label: mclust-text
 #| message: false
 #| code-fold: false
 #| cache: false
