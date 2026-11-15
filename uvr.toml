@@ -70,3 +70,4 @@ oddnet = { git = "sevvandi/oddnet" }
 otexts = { git = "OTexts/otexts" }
 weird = { git = "robjhyndman/weird" }
 FactoMineR = "*"
+reticulate = "*"
