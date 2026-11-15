@@ -1,3 +1,17 @@
+# Section 3 of text.qmd: language-model surprisals with OLMo 2 (2026-11-14)
+
+- [x] Add reticulate to the book's R packages (uvr; also upgraded tweedie, np and one other)
+- [x] Prototype: OLMo 2 1B via reticulate + transformers on ~300 reviews (batched = unbatched to 2e-5; 0.19 s/review on CPU, ~6 h for all)
+- [x] Save per-token surprisals: rds/wine_olmo.rds, 6,258,097 tokens, 28.8 MB with xz (full precision)
+- [x] Full run: 14.4 h on CPU, all 111,592 reviews scored, no NAs
+- [x] Hidden chunk with cache("wine_olmo") and visible eval:false chunk in text.qmd; chapter renders
+- [x] Investigate extreme token surprisals: OLMo 2 7B on 200 reviews gives nearly the same (token cor 0.95, extremes 61 -> 17 at >18 nats but still 15-21 for the same tokens); not 1B under-training. Over half are in the first 7 tokens
+- [x] Prompt "Wine review:\n" (tested on the 200): extremes 61 -> 19, positions 1-6 drop from 5.4-6.9 to 4.0-5.9 nats; same tokens as before
+- [x] Rerun (4.75 h, finished 2026-11-15 17:53): all reviews with the prompt (scratchpad/proto/run_prompt.R) -> rds/wine_olmo.rds
+- [x] Then update both chunks in text.qmd to the prompt version of token_surprisals() and re-render
+- [x] Check memorisation (infini-gram, olmo-mix-1124): 0/6 full reviews; 1/199 mid-review 12-word windows found, and only that review's first sentence
+- [x] Draft section 3 prose (2026-11-15): LM intro, OLMo 2 + code, mean surprisal/perplexity, most/least surprising reviews (repeated review), surprising tokens (misspellings); 4 new refs in weird.bib
+
 # Split ch10 into categorical.qmd and text.qmd (2026-11-06)
 
 - [x] categorical.qmd: categorical part, own setup chunk, plan items 1-3, rewritten intro
