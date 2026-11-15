@@ -697,21 +697,23 @@ model_name <- "allenai/OLMo-2-0425-1B"
 tokenizer <- transformers$AutoTokenizer$from_pretrained(model_name)
 olmo <- transformers$AutoModelForCausalLM$from_pretrained(model_name)
 
-# Surprisal of each token in a batch of texts, given the tokens before it
-token_surprisals <- function(texts) {
+# Surprisal of each token in a batch of texts, given the prompt and the tokens before it
+token_surprisals <- function(texts, prompt = "Wine review:\n") {
   input <- tokenizer(texts, return_tensors = "pt", padding = TRUE)
-  # Start each text with the beginning-of-text token
-  bos <- torch$full(list(length(texts), 1L), tokenizer$bos_token_id)
-  ids <- torch$cat(list(bos, input$input_ids), dim = 1L)
-  mask <- torch$cat(list(torch$ones_like(bos), input$attention_mask), dim = 1L)
+  # Start each text with the beginning-of-text token and the prompt
+  start <- c(tokenizer$bos_token_id, unlist(tokenizer$encode(prompt)))
+  m <- length(start)
+  start <- torch$tensor(list(as.list(start)))$expand(length(texts), -1L)
+  ids <- torch$cat(list(start, input$input_ids), dim = 1L)
+  mask <- torch$cat(list(torch$ones_like(start), input$attention_mask), dim = 1L)
   logits <- with(torch$no_grad(), olmo(ids, attention_mask = mask)$logits)
-  # Log probabilities at each position, of the token that comes next
-  n <- ids$size(1L) - 1L
-  log_probs <- torch$log_softmax(logits$narrow(1L, 0L, n), dim = -1L)
-  next_ids <- ids$narrow(1L, 1L, n)
+  # Log probabilities of each token of the texts, from the position before it
+  n <- ids$size(1L) - m
+  log_probs <- torch$log_softmax(logits$narrow(1L, m - 1L, n), dim = -1L)
+  next_ids <- ids$narrow(1L, m, n)
   surprisal <- -log_probs$gather(-1L, next_ids$unsqueeze(-1L))$squeeze(-1L)
   # Transpose so that the tokens of each text are consecutive, dropping padding
-  keep <- t(mask$narrow(1L, 1L, n)$numpy() == 1)
+  keep <- t(mask$narrow(1L, m, n)$numpy() == 1)
   tibble(
     text = col(keep)[keep],
     token_id = as.integer(t(next_ids$numpy())[keep]),
@@ -750,17 +752,19 @@ wine_tokens <- local({
   model_name <- "allenai/OLMo-2-0425-1B"
   tokenizer <- transformers$AutoTokenizer$from_pretrained(model_name)
   olmo <- transformers$AutoModelForCausalLM$from_pretrained(model_name)
-  token_surprisals <- function(texts) {
+  token_surprisals <- function(texts, prompt = "Wine review:\n") {
     input <- tokenizer(texts, return_tensors = "pt", padding = TRUE)
-    bos <- torch$full(list(length(texts), 1L), tokenizer$bos_token_id)
-    ids <- torch$cat(list(bos, input$input_ids), dim = 1L)
-    mask <- torch$cat(list(torch$ones_like(bos), input$attention_mask), dim = 1L)
+    start <- c(tokenizer$bos_token_id, unlist(tokenizer$encode(prompt)))
+    m <- length(start)
+    start <- torch$tensor(list(as.list(start)))$expand(length(texts), -1L)
+    ids <- torch$cat(list(start, input$input_ids), dim = 1L)
+    mask <- torch$cat(list(torch$ones_like(start), input$attention_mask), dim = 1L)
     logits <- with(torch$no_grad(), olmo(ids, attention_mask = mask)$logits)
-    n <- ids$size(1L) - 1L
-    log_probs <- torch$log_softmax(logits$narrow(1L, 0L, n), dim = -1L)
-    next_ids <- ids$narrow(1L, 1L, n)
+    n <- ids$size(1L) - m
+    log_probs <- torch$log_softmax(logits$narrow(1L, m - 1L, n), dim = -1L)
+    next_ids <- ids$narrow(1L, m, n)
     surprisal <- -log_probs$gather(-1L, next_ids$unsqueeze(-1L))$squeeze(-1L)
-    keep <- t(mask$narrow(1L, 1L, n)$numpy() == 1)
+    keep <- t(mask$narrow(1L, m, n)$numpy() == 1)
     tibble(
       text = col(keep)[keep],
       token_id = as.integer(t(next_ids$numpy())[keep]),
