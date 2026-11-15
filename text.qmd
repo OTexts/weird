@@ -679,3 +679,108 @@ So the conditional model finds two kinds of anomaly.
 A few reviews, such as the third one above, really do disagree with their points.
 The others printed above are reviews that a bag of words cannot read: the words that carry their meaning are too rare to be among the predictors, or a common word means something different in context, as in "flat-out dazzling" and "fading elegance".
 A model of the language itself can take some of that context into account.
+
+## Language-model surprisals {#sec-text-lm}
+
+TBC
+
+```{r}
+#| label: wine-olmo-display
+#| eval: false
+#| code-fold: false
+
+library(reticulate)
+py_require(c("torch", "transformers"))
+torch <- import("torch")
+transformers <- import("transformers")
+model_name <- "allenai/OLMo-2-0425-1B"
+tokenizer <- transformers$AutoTokenizer$from_pretrained(model_name)
+olmo <- transformers$AutoModelForCausalLM$from_pretrained(model_name)
+
+# Surprisal of each token in a batch of texts, given the tokens before it
+token_surprisals <- function(texts) {
+  input <- tokenizer(texts, return_tensors = "pt", padding = TRUE)
+  # Start each text with the beginning-of-text token
+  bos <- torch$full(list(length(texts), 1L), tokenizer$bos_token_id)
+  ids <- torch$cat(list(bos, input$input_ids), dim = 1L)
+  mask <- torch$cat(list(torch$ones_like(bos), input$attention_mask), dim = 1L)
+  logits <- with(torch$no_grad(), olmo(ids, attention_mask = mask)$logits)
+  # Log probabilities at each position, of the token that comes next
+  n <- ids$size(1L) - 1L
+  log_probs <- torch$log_softmax(logits$narrow(1L, 0L, n), dim = -1L)
+  next_ids <- ids$narrow(1L, 1L, n)
+  surprisal <- -log_probs$gather(-1L, next_ids$unsqueeze(-1L))$squeeze(-1L)
+  # Transpose so that the tokens of each text are consecutive, dropping padding
+  keep <- t(mask$narrow(1L, 1L, n)$numpy() == 1)
+  tibble(
+    text = col(keep)[keep],
+    token_id = as.integer(t(next_ids$numpy())[keep]),
+    surprisal = t(surprisal$numpy())[keep]
+  )
+}
+
+# Batches of 16 reviews of similar length, to reduce padding
+by_length <- wine_reviews$id[order(nchar(wine_reviews$description))]
+batches <- split(by_length, ceiling(seq_along(by_length) / 16))
+wine_tokens <- lapply(batches, \(b) {
+  token_surprisals(wine_reviews$description[b]) |>
+    mutate(id = b[text], .before = 1)
+}) |>
+  bind_rows() |>
+  select(-text) |>
+  arrange(id)
+# Replace the token numbers by the text of the tokens
+vocab <- unique(wine_tokens$token_id)
+pieces <- vapply(vocab, \(i) tokenizer$decode(list(i)), "")
+wine_tokens <- wine_tokens |>
+  mutate(token = pieces[match(token_id, vocab)], .after = id) |>
+  select(-token_id)
+```
+
+```{r}
+#| label: wine-olmo
+#| include: false
+#| dependson: wine-words
+
+wine_tokens <- local({
+  library(reticulate)
+  py_require(c("torch", "transformers"))
+  torch <- import("torch")
+  transformers <- import("transformers")
+  model_name <- "allenai/OLMo-2-0425-1B"
+  tokenizer <- transformers$AutoTokenizer$from_pretrained(model_name)
+  olmo <- transformers$AutoModelForCausalLM$from_pretrained(model_name)
+  token_surprisals <- function(texts) {
+    input <- tokenizer(texts, return_tensors = "pt", padding = TRUE)
+    bos <- torch$full(list(length(texts), 1L), tokenizer$bos_token_id)
+    ids <- torch$cat(list(bos, input$input_ids), dim = 1L)
+    mask <- torch$cat(list(torch$ones_like(bos), input$attention_mask), dim = 1L)
+    logits <- with(torch$no_grad(), olmo(ids, attention_mask = mask)$logits)
+    n <- ids$size(1L) - 1L
+    log_probs <- torch$log_softmax(logits$narrow(1L, 0L, n), dim = -1L)
+    next_ids <- ids$narrow(1L, 1L, n)
+    surprisal <- -log_probs$gather(-1L, next_ids$unsqueeze(-1L))$squeeze(-1L)
+    keep <- t(mask$narrow(1L, 1L, n)$numpy() == 1)
+    tibble(
+      text = col(keep)[keep],
+      token_id = as.integer(t(next_ids$numpy())[keep]),
+      surprisal = t(surprisal$numpy())[keep]
+    )
+  }
+  by_length <- wine_reviews$id[order(nchar(wine_reviews$description))]
+  batches <- split(by_length, ceiling(seq_along(by_length) / 16))
+  wine_tokens <- lapply(batches, \(b) {
+    token_surprisals(wine_reviews$description[b]) |>
+      mutate(id = b[text], .before = 1)
+  }) |>
+    bind_rows() |>
+    select(-text) |>
+    arrange(id)
+  vocab <- unique(wine_tokens$token_id)
+  pieces <- vapply(vocab, \(i) tokenizer$decode(list(i)), "")
+  wine_tokens |>
+    mutate(token = pieces[match(token_id, vocab)], .after = id) |>
+    select(-token_id)
+}) |>
+  cache("wine_olmo")
+```
