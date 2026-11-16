@@ -9,10 +9,11 @@ This is "That's Weird! Anomaly Detection using R", an open-source textbook by Ro
 ## Build Commands
 
 ```bash
-make build     # Render all .qmd files to HTML, then run post-render.R (default target)
-make preview   # Build, then launch a live Quarto preview in the browser
+make           # (= make html) Render the HTML book into _book/, then run post-render.R
+make preview   # Live Quarto preview, re-rendering on save
+make update    # Update the otexts extension and the R packages (uvr)
 make clean     # Remove _book/, _freeze/, *_cache/, *_files/
-make deploy    # rsync _book/ to production server (OTexts SSH)
+make deploy    # Render, then rsync _book/ to production server (OTexts SSH)
 ```
 
 To render a single chapter:
@@ -44,7 +45,7 @@ R packages are managed with [uvr](https://github.com/nbafrank/uvr), not `renv`: 
 
 - `cache(expr, "name")` (from otexts) saves long computations as `rds/<name>.rds`. `rds/` is only for caches.
 - Data sets belong in the **weird** package (as package data, or a `fetch_*()` function for large data such as `fetch_pets2006()`). The only exception is `data/halley_toms_ozone.txt` (ch1), which is published at `https://OTexts.com/weird/data/` (see `resources` in `_quarto.yml`), read from that URL, and listed under `other-links` in the chapter's front matter.
-- Chunks are also cached by knitr (`*_cache/`) and frozen (`freeze: auto`), so a change to plot styling (in the otexts package or format) only reaches every figure after `make clean && make build`.
+- Chunks are also cached by knitr (`*_cache/`) and frozen (`freeze: auto`), so a change to plot styling (in the otexts package or format) only reaches every figure after `make clean && make`.
 
 ## Code Style
 
