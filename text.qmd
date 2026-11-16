@@ -83,7 +83,7 @@ wine_reviews |>
   pull(description)
 ```
 
-Our task is to find reviews that are anomalous in some way --- substantially different from the other reviews in the data set.
+Our task is to find reviews that are substantially different from the other reviews in the data set.
 
 ### Tokens and vocabulary
 
@@ -91,7 +91,7 @@ A **token** is a unit of text, and splitting a document into tokens is called **
 Depending on the analysis, the tokens might be single characters, words, pairs of adjacent words, or whole sentences, but in this chapter every token is a single word.
 The `unnest_tokens()` function from the **`tidytext`** package\ [@Silge2017] splits text into words by default.
 It converts the text to lower case, removes the punctuation, and returns one row for each token, here in a column called `word`.
-So we can keep track of which document each token came from, we also add an `id` column to the reviews, which is just the row number of each review in the data frame.
+To keep track of which document each token came from, an `id` column, giving the row number of each review, is added to the data first.
 
 ```{r}
 #| label: tidytext
@@ -173,12 +173,12 @@ The word counts of a collection of $n$ documents form an $n \times m$ **document
 The entry in row $i$ and column $w$ is $t_{iw}$, the number of times word $w$ occurs in document $i$.
 The sums of each row and column, and the numbers of non-zero entries in each row and column, provide simple summaries of the documents and the words:
 
-- $t_{i\cdot} = \sum_w t_{iw}$, the sum of row $i$, is the number of tokens in document $i$;
+- $t_{i \cdot} = \sum_w t_{iw}$, the sum of row $i$, is the number of tokens in document $i$;
 - $t_{\cdot w} = \sum_i t_{iw}$, the sum of column $w$, is the number of times word $w$ occurs in the whole collection, which is the frequency used to rank the vocabulary above;
-- $m_i$, the number of non-zero entries in row $i$, is the number of distinct words in document $i$, so $m_i \le t_{i\cdot}$ and $m_i \le m$;
+- $m_i$, the number of non-zero entries in row $i$, is the number of distinct words in document $i$, so $m_i \le t_{i \cdot}$ and $m_i \le m$;
 - $n_w$, the number of non-zero entries in column $w$, is the number of documents that contain word $w$, called its **document frequency**, so $n_w \le n$.
 
-The total of all the entries, $\sum_i t_{i\cdot} = \sum_w t_{\cdot w}$, is the number of tokens in the collection.
+The total of all the entries, $\sum_i t_{i \cdot} = \sum_w t_{\cdot w}$, is the number of tokens in the collection.
 The `cast_sparse()` function builds the matrix from the word counts.
 
 ```{r}
@@ -211,7 +211,7 @@ So the counts are usually reweighted, or reduced to a few features.
 
 ### Term frequency--inverse document frequency
 
-The **term frequency** of word $w$ in document $i$ is the proportion of the document's tokens that are that word, $\text{tf}_{iw} = t_{iw}/t_{i\cdot}$.
+The **term frequency** of word $w$ in document $i$ is the proportion of the document's tokens that are that word, $\text{tf}_{iw} = t_{iw}/t_{i \cdot}$.
 The **inverse document frequency** of word $w$ depends on its document frequency $n_w$:
 $$
   \text{idf}_w = \log(n / n_w),
@@ -650,8 +650,9 @@ reviews |>
 Five of these are wines with 96--98 points, but the model predicts only `r round(min(top_great$fitted))`--`r round(max(top_great$fitted))` points for them, close to the average of `r round(mean(reviews$points))` points for all reviews.
 Their reviews praise them in words too rare to be among the predictors, such as "powerhouse", "dazzling", "knockout" and "memorable", while some of their common words count against them.
 "Flat-out dazzling" contains "flat", whose coefficient is `r sprintf("%.2f", coefs["flat"])`, and "an almost medicinal intensity" contains "medicinal", whose coefficient is `r sprintf("%.2f", coefs["medicinal"])`.
-A bag of words gives a word the same weight whatever words surround it.
-One review starts with "95-97. Barrel sample.", the taster's range of scores for a wine tasted before it was bottled; the text states the score, but numbers such as these are not among the predictors.
+A bag of words gives a word the same weight regardless of the words that surround it, so it does not detect the context in which the word appears.
+One review starts with "95-97.\ Barrel sample.", the taster's range of scores for a wine tasted before it was bottled.
+The text states the score, but "95" and "97" are not among the predictors, so the model has to predict the points from the other words, which suggest a score close to the average.
 
 The exception is the third, with `r tonnelles$points` points, whose review is critical: "A rustic wine, with definite barnyard flavors … the tannins and old wood tastes intrude too much."
 The model predicts `r round(tonnelles$fitted)` points, and nothing in the text suggests a wine worth 92.
@@ -682,20 +683,39 @@ A model of the language itself can take some of that context into account.
 
 ## Language-model surprisals {#sec-text-lm}
 
-A **language model** is a probability distribution for sequences of tokens.
+Language models are the engines behind chatbots such as ChatGPT and Claude.
+A language model estimates the probability distribution of the next token in a sequence, given all the tokens that have come before it.
+A chatbot treats the user's prompt as the start of a sequence, samples the next token from this distribution, appends it to the sequence, and repeats, so that its reply is generated one token at a time.
+
+To find anomalies, we can use the same distribution the other way round.
+Instead of generating new text, we give the model text that already exists, and ask how probable each token is, given the tokens before it.
+A document made up of improbable tokens has a high surprisal, and is a candidate anomaly.
+
 Let $x_{i1}, \dots, x_{iL_i}$ denote the $L_i$ tokens of document $i$.
 The probability of the whole document is the product of the probabilities of each token, given the tokens before it, so the surprisal of the document is the sum of the surprisals of its tokens:
 $$
   s_i = -\log f(x_{i1}, \dots, x_{iL_i}) = \sum_{j=1}^{L_i} s_{ij},
-  \qquad\text{where}\qquad
-  s_{ij} = -\log f(x_{ij} \mid x_{i1}, \dots, x_{i,j-1}).
+  \qquad
+  \text{where}\qquad s_{ij} = -\log f(x_{ij} \mid x_{i1}, \dots, x_{i,j-1}).
 $$
 Each token surprisal $s_{ij}$ depends on all the tokens that come before it, which is how a language model takes context into account.
 For example, "edges" is not a common word in wine reviews, but after "Looking brown around the" it is almost certain.
 
-The bag of words of @sec-text-numbers corresponds to a language model in which each token is independent of the others, so that $f(x_{ij} \mid x_{i1}, \dots, x_{i,j-1}) = f(x_{ij})$, and context is ignored altogether.
-**Large language models** are neural networks that are trained to predict each token from all the tokens before it, using trillions of tokens of text.
-They do this far better than any model based on counting words, because they use the meaning of the whole of the preceding text.
+A document with more tokens has more to predict, so its surprisal tends to be larger.
+To compare documents of different lengths, we can use the mean surprisal per token,
+$$
+  \bar{s}_i = \frac{s_i}{L_i} = \frac{1}{L_i} \sum_{j=1}^{L_i} s_{ij}.
+$$
+
+Suppose the model gave every token in a document a probability of $1/k$, as if it were picking each one at random from $k$ equally likely tokens.
+Then every token surprisal would be $\log k$, and so would the mean.
+The **perplexity** of a document reverses this: it is the number of equally likely tokens the model would have to be choosing between to be as surprised by the document as it actually is.
+It equals $e^{\bar{s}_i}$, so a mean surprisal of 3 nats per token corresponds to a perplexity of about 20.
+
+The bag of words of @sec-text-numbers is the simplest language model, in which each token is independent of the others, so that $f(x_{ij} \mid x_{i1}, \dots, x_{i,j-1}) = f(x_{ij})$, and context is ignored altogether.
+At the other extreme are **large language models**, which are neural networks trained to predict each token from all the tokens before it.
+They are called "large" because of their size: they have billions of parameters, and are trained on trillions of tokens of text.
+That size lets them use the meaning of the whole of the preceding text, so they predict the next token far better than any model based on counting words.
 
 ### Token surprisals from OLMo 2
 
@@ -711,14 +731,18 @@ Without it, the first few tokens of each review are much more surprising, becaus
 
 The model is run from R using the **`reticulate`** package, which calls the Python packages **`torch`** and **`transformers`**.
 The first time the code is run, `py_require()` installs these packages (and Python itself if necessary), and `from_pretrained()` downloads the model, which is about 6 GB.
+
 The function `token_surprisals()` computes the surprisal of every token in a batch of reviews.
-Reviews of similar length are put in the same batch, as each review in a batch is padded to the length of the longest.
-Even so, computing the surprisals for all the reviews took almost five hours on a desktop computer without a graphics processing unit (GPU); with a GPU it is much faster.
+Passing a batch through the model at once is much faster than passing the reviews one at a time, as the computations for the whole batch are done together as operations on large arrays.
+However, every review in a batch must have the same number of tokens, so shorter reviews are padded to the length of the longest, and the computation on the padding is wasted.
+Sorting the reviews by length, and putting 16 reviews of similar length in each batch, keeps the padding to a minimum.
+The batches are kept small to limit the memory needed, as at every position of every review the model returns a score for each of the 100,000 tokens in its vocabulary.
+Even with batching, computing the surprisals for all the reviews takes several hours on a desktop computer, and longer still without a graphics processing unit (GPU).
 
 ```{r}
 #| label: wine-olmo-display
 #| eval: false
-#| code-fold: false
+#| code-fold: true
 
 library(reticulate)
 py_require(c("torch", "transformers"))
@@ -736,7 +760,10 @@ token_surprisals <- function(texts, prompt = "Wine review:\n") {
   m <- length(start)
   start <- torch$tensor(list(as.list(start)))$expand(length(texts), -1L)
   ids <- torch$cat(list(start, input$input_ids), dim = 1L)
-  mask <- torch$cat(list(torch$ones_like(start), input$attention_mask), dim = 1L)
+  mask <- torch$cat(
+    list(torch$ones_like(start), input$attention_mask),
+    dim = 1L
+  )
   logits <- with(torch$no_grad(), olmo(ids, attention_mask = mask)$logits)
   # Log probabilities of each token of the texts, from the position before it
   n <- ids$size(1L) - m
@@ -789,7 +816,10 @@ wine_tokens <- local({
     m <- length(start)
     start <- torch$tensor(list(as.list(start)))$expand(length(texts), -1L)
     ids <- torch$cat(list(start, input$input_ids), dim = 1L)
-    mask <- torch$cat(list(torch$ones_like(start), input$attention_mask), dim = 1L)
+    mask <- torch$cat(
+      list(torch$ones_like(start), input$attention_mask),
+      dim = 1L
+    )
     logits <- with(torch$no_grad(), olmo(ids, attention_mask = mask)$logits)
     n <- ids$size(1L) - m
     log_probs <- torch$log_softmax(logits$narrow(1L, m - 1L, n), dim = -1L)
@@ -820,7 +850,8 @@ wine_tokens <- local({
   cache("wine_olmo")
 ```
 
-The result has one row for each token, giving its surprisal in nats.
+The result has one row for each token, giving its surprisal in nats (@sec-surprisals).
+As tokens are discrete, a token with a surprisal of $s$ nats is given probability $e^{-s}$ by the model.
 Here are the first 20 tokens of the first review.
 
 ```{r}
@@ -834,12 +865,35 @@ wine_tokens |>
 ```
 
 ```{r}
+#| label: wine-olmo-tannins
+#| include: false
+#| dependson: wine-olmo
+
+first_review <- wine_tokens |> filter(id == 1)
+tannins <- first_review$surprisal[18:19]
+# The prose describes the tokens of the first review
+stopifnot(
+  NROW(wine_tokens) == 6258097,
+  n_distinct(wine_tokens$id) == NROW(wine_reviews),
+  all(trimws(first_review$token[16:19]) == c("Firm", "t", "ann", "ins")),
+  all(tannins < 0.06)
+)
+```
+
+"Tannins" is split into three tokens, `" t"`, `"ann"` and `"ins"`.
+Once the model has seen `" t"` after "Firm", the rest of the word is almost certain, and the surprisals of "ann" and "ins" are only `r sprintf("%.2f", tannins[1])` and `r sprintf("%.2f", tannins[2])` nats.
+
+To score each review, its token surprisals are combined.
+The code below computes the number of tokens, the mean surprisal and the perplexity of each review.
+
+```{r}
 #| label: wine-lm-reviews
 #| code-fold: false
 #| dependson: wine-olmo
 
 lm_reviews <- wine_tokens |>
   summarise(tokens = n(), s = mean(surprisal), .by = id) |>
+  mutate(perplexity = exp(s)) |>
   left_join(wine_reviews |> select(id, points, description), by = "id")
 lm_reviews |>
   arrange(desc(s))
@@ -850,9 +904,6 @@ lm_reviews |>
 #| include: false
 #| dependson: [wine-lm-reviews, wine-text-gmm]
 
-first_review <- wine_tokens |> filter(id == 1)
-tannins <- first_review$surprisal[18:19]
-lm_totals <- wine_tokens |> summarise(total = sum(surprisal), n = n(), .by = id)
 lm_most <- lm_reviews |> slice_max(s, n = 12)
 lm_most_reviews <- lm_most |> filter(!grepl("^Imported by", description))
 lm_least <- lm_reviews |> slice_min(s, n = 6)
@@ -867,17 +918,14 @@ repeated_s <- c(
 by_length <- lm_reviews |>
   mutate(short = tokens <= 40) |>
   summarise(m = mean(s), sd = sd(s), .by = short)
-feature_flags <- text_features$flagged[match(lm_most_reviews$id, text_features$id)]
+feature_flags <- text_features$flagged[match(
+  lm_most_reviews$id,
+  text_features$id
+)]
 least_flags <- text_features$flagged[match(lm_least$id, text_features$id)]
-# The prose describes the tokens and the most and least surprising reviews
+# The prose describes the most and least surprising reviews
 stopifnot(
-  NROW(wine_tokens) == 6258097,
-  n_distinct(wine_tokens$id) == NROW(wine_reviews),
-  all(trimws(first_review$token[16:19]) == c("Firm", "t", "ann", "ins")),
-  all(tannins < 0.06),
-  round(cor(lm_totals$total, lm_totals$n), 2) == 0.91,
   round(median(lm_reviews$s), 2) == 3.33,
-  round(exp(median(lm_reviews$s))) == 28,
   all(grepl("^Imported by", lm_most$description[1:3])),
   NROW(lm_most_reviews) == 9,
   all(lm_most$tokens < median(lm_reviews$tokens)),
@@ -894,32 +942,35 @@ stopifnot(
 )
 ```
 
-"Tannins" is split into three tokens, `" t"`, `"ann"` and `"ins"`.
-Once the model has seen `" t"` after "Firm", the rest of the word is almost certain, and the surprisals of "ann" and "ins" are only `r sprintf("%.2f", tannins[1])` and `r sprintf("%.2f", tannins[2])` nats.
-
 ### Reviews with surprising wording
 
-The surprisal of a review, the sum of its token surprisals, depends mostly on its length: the correlation between the surprisals of the reviews and their numbers of tokens is `r sprintf("%.2f", cor(lm_totals$total, lm_totals$n))`.
-A long review is improbable simply because there are more tokens to predict.
-So the reviews are compared using the mean surprisal per token, $\bar{s}_i = s_i / L_i$, computed above.
-Its exponential, $e^{\bar{s}_i}$, is called the **perplexity** of the document: the model is as uncertain about each token, on average, as if it were choosing at random from $e^{\bar{s}_i}$ equally likely tokens.
-The median review has a mean surprisal of `r sprintf("%.2f", median(lm_reviews$s))` nats per token, or a perplexity of about `r round(exp(median(lm_reviews$s)))`.
+@fig-wine-lm-length shows the mean surprisal of each review against its number of tokens, with the corresponding perplexity on the right-hand axis.
 
 ```{r}
 #| label: fig-wine-lm-length
 #| dependson: wine-lm-reviews
 #| fig-cap: >-
-#|   Number of tokens and mean surprisal per token of the wine review descriptions, under OLMo 2.
+#|   Number of tokens and mean surprisal per token (left axis) or perplexity (right axis) of the wine review descriptions, under OLMo 2.
 #| fig-height: 3.5
 
 lm_reviews |>
   ggplot(aes(x = tokens, y = s)) +
-  geom_jitter(width = 0.01, height = 0, alpha = 0.05, size = 0.3) +
+  geom_jitter(width = 0.01, height = 0, alpha = 0.1, size = 0.3) +
   scale_x_log10() +
-  labs(x = "Number of tokens (log scale)", y = "Mean surprisal (nats per token)")
+  scale_y_continuous(
+    sec.axis = sec_axis(
+      transform = exp,
+      name = "Perplexity",
+      breaks = c(5, 10, 20, 50, 100, 200, 500)
+    )
+  ) +
+  labs(
+    x = "Number of tokens (log scale)",
+    y = "Mean surprisal (nats per token)"
+  )
 ```
 
-@fig-wine-lm-length shows that the mean surprisals of short reviews are higher and more variable than those of long reviews.
+The mean surprisals of short reviews are higher and more variable than those of long reviews.
 A short review has fewer tokens to average over, and less context with which to predict each of them.
 The texts of the twelve most surprising reviews are shown below.
 
@@ -951,31 +1002,12 @@ lm_reviews |> slice_min(s, n = 6) |> pull(description)
 
 These are the most formulaic reviews.
 Five of them list the percentages of the grape varieties in a blend, and once a review starts with "This blend of 43% Cabernet Sauvignon, 29% Merlot", the names of the other varieties are easy to predict.
+None of the six were flagged by the text features in @sec-text-features.
 
 The fourth review is different: its text appears twice, the second copy immediately following the first.
-@fig-wine-lm-repeat shows its token surprisals.
-The mean surprisal of the first half of the tokens is `r sprintf("%.2f", repeated_s[1])` nats, close to the median for all reviews, but that of the second half is only `r sprintf("%.2f", repeated_s[2])` nats: having read the review once, the model predicts it almost perfectly the second time.
-None of the six reviews were flagged by the text features in @sec-text-features, and a bag of words cannot detect a repeated text, as repeating a document only doubles its word counts.
-
-```{r}
-#| label: fig-wine-lm-repeat
-#| dependson: wine-lm-reviews
-#| fig-cap: >-
-#|   Token surprisals of the review whose text appears twice.
-#| fig-height: 3
-
-repeated <- lm_reviews |>
-  slice_min(s, n = 6) |>
-  slice_max(tokens, n = 1)
-wine_tokens |>
-  filter(id == repeated$id) |>
-  mutate(position = row_number()) |>
-  ggplot(aes(x = position, y = surprisal)) +
-  geom_col() +
-  labs(x = "Token number", y = "Surprisal (nats)")
-```
-
-The repeated review is anomalous because its mean surprisal is unusually *low*: it lies in the lower tail of the distribution of the mean surprisals of the reviews, although the language model finds it highly probable.
+The mean surprisal of the first half of the tokens is `r sprintf("%.2f", repeated_s[1])` nats (a perplexity of about `r round(exp(repeated_s[1]))`), close to the median for all reviews, but that of the second half is only `r sprintf("%.2f", repeated_s[2])` nats (a perplexity of `r sprintf("%.2f", exp(repeated_s[2]))`): having read the review once, the model is almost never in doubt about the next token the second time.
+A bag of words cannot detect a repeated text, as repeating a document only doubles its word counts.
+The repeated review is anomalous because the language model finds it highly probable, so its mean surprisal lies in the *lower* tail of the distribution, not the upper tail.
 Text that has been written by a large language model is also unusually predictable under a similar model, and detectors of machine-generated text are built on this idea\ [@Mitchell2023; @Hans2024].
 
 ### Surprising tokens
@@ -1009,13 +1041,36 @@ top_text <- wine_reviews$description[top_tokens$id]
 stopifnot(
   setequal(
     trimws(top_tokens$token),
-    c("aket", "otes", "RDD", "nis", "Thin", "fins", "process", "ini",
-      "intervention", "negoci", "bowls", "y")
+    c(
+      "aket",
+      "otes",
+      "RDD",
+      "nis",
+      "Thin",
+      "fins",
+      "process",
+      "ini",
+      "intervention",
+      "negoci",
+      "bowls",
+      "y"
+    )
   ),
   all(sapply(
-    c("Musaketeller", "tannnis", "finsih", "toprocess", "negociate", "honeysyuckle",
-      "Thin Mint", "RDD included", "Case Ibidini", "Pinotesque", "interventionist",
-      "bowls it right down the middle"),
+    c(
+      "Musaketeller",
+      "tannnis",
+      "finsih",
+      "toprocess",
+      "negociate",
+      "honeysyuckle",
+      "Thin Mint",
+      "RDD included",
+      "Case Ibidini",
+      "Pinotesque",
+      "interventionist",
+      "bowls it right down the middle"
+    ),
     \(x) any(grepl(x, top_text, fixed = TRUE))
   )),
   all(top_tokens$surprisal > 21)
