@@ -406,8 +406,8 @@ n_methods <- length(unique(o3_plots$outsTable$Method))
 same_years <- setequal(outliers$Year, o3_years)
 ```
 
-Reassuringly, the O3 plot, using all `r english::words(n_pc_o3)` principal components and `r english::words(n_methods)` quite different outlier-detection methods, flags `r english::words(length(o3_years))` years (`r format_years(o3_years)`) --- `r if (same_years) "exactly the same years" else "largely the same years"` identified by the two-component surprisal approach above.
-Of these, `r english::words(length(o3_red_years))` --- `r format_years(o3_red_years)` --- are flagged by all `r english::words(n_methods)` methods for at least one variable combination (shown in red in @fig-o3-pca), while the rest are flagged consistently but not unanimously.
+Reassuringly, the O3 plot, using all `r english::words(n_pc_o3)` principal components and `r english::words(n_methods)` quite different outlier-detection methods, flags `r english::words(length(o3_years))` years (`r format_years(o3_years)`), `r if (same_years) "exactly the same years" else "largely the same years"` identified by the two-component surprisal approach above.
+Of these, `r english::words(length(o3_red_years))` (`r format_years(o3_red_years)`) are flagged by all `r english::words(n_methods)` methods for at least one variable combination (shown in red in @fig-o3-pca), while the rest are flagged consistently but not unanimously.
 This agreement across methods, along with the time series analysis of @sec-weird-times, gives us some confidence that these years are genuine anomalies rather than artefacts of any one method.
 
 ## Functional bagplot {#sec-functional-bagplot}
@@ -715,7 +715,7 @@ Ranking curves by MBD alone identifies the years whose entire trajectory lies fu
 The `r english::words(length(shallow_years) - length(shallow_1800s))` most recent of these have the lowest mortality in the sample at most ages, while the `r english::words(length(shallow_1800s))` from the 1800s are shallow for the opposite reason --- their mortality is distinctly higher than in surrounding years at most ages.
 These earlier shallow years correspond to the 1854 cholera outbreak, the 1870 Franco-Prussian War and the 1871 Repression of the 'Commune de Paris'.
 
-This illustrates an important feature of depth-based ranking: it can fail to distinguish between curves that are unusual due to location and those that are unusual due to shape.
+This illustrates a limitation of depth-based ranking: it can fail to distinguish between curves that are unusual due to location and those that are unusual due to shape.
 Because French mortality has fallen more or less steadily across the study period, the most recent curves sit at one edge of the whole `r bd_n`-year sample and are therefore the least "enveloped" by the rest, even though their shape is not unusual.
 On the other hand, the 1854, 1870 and 1871 curves are unusual relative to the years around them, although only 1871 lies at the upper edge of the whole sample at most ages.
 
@@ -784,7 +784,7 @@ fr_smooth |>
 ```
 
 @fig-fbplot-sungenton fails to identify the war years or pandemics as outliers, and its fences are so wide that they include almost all of the curves.
-In fact, it flags `r english::words(length(outlier_years))` years, `r format_years(outlier_years)`, none of which are war years.
+It flags `r english::words(length(outlier_years))` years, `r format_years(outlier_years)`, none of which are war years.
 These are simply the most recent years in the sample, which have the lowest mortality at most ages.
 
 This may seem inconsistent with 1854, 1870 and 1871 being the shallowest 19th century curves, but a low MBD only means a curve is poorly enveloped by bands of other curves; it does not mean the curve's values are pointwise extreme, which is what the boxplot fence tests.
@@ -798,11 +798,9 @@ While the Sun--Genton functional boxplot did not do well in this example, it can
 
 The functional boxplot was coded from scratch here, but versions are available in other packages including `fda::fbplot()`, `GET::fBoxplot()`, `fdaoutlier::functional_boxplot()` and `roahd::fbplot()`.
 
-The next two sections look at ways of separating genuine shape anomalies from the kind of trend-driven magnitude effect that misled the depth boxplot here.
-
 ## Outliergram {#sec-outliergram}
 
-The modified band depth used above conflates two different reasons a curve can be unusual: it might have a genuinely atypical *shape*, or it might sit at one extreme of the bulk of the data, and so be poorly enveloped by the rest of the sample.
+The modified band depth used above conflates two different reasons a curve can be unusual: it might have an atypical *shape*, or it might sit at one extreme of the bulk of the data, and so be poorly enveloped by the rest of the sample.
 The outliergram of @Arribas-Gil2014-ll separates these two effects by comparing MBD against a second measure, the modified epigraph index (MEI) of @LopezPintadoRomo2011.
 
 Whereas MBD measures how often a curve is enveloped by bands formed from pairs of curves, MEI measures a curve's rank position: it is close to 1 for a curve lying below almost every other curve across almost the whole domain, close to 0 for a curve lying above almost every other curve, and around 0.5 for a curve in the middle of the pack.
@@ -957,7 +955,7 @@ A gradual trend over time becomes a continuous path through the score space, rat
 
 The second group works directly with the curves, via functional depth (such as the modified band depth) or directional outlyingness, leading to the functional boxplot and the magnitude-shape plot.
 These measures are dominated by how far a curve lies from the centre of the sample.
-The functional boxplot cannot distinguish a curve with a genuinely unusual shape from one that lies at one extreme of the sample, such as the last curve of a long, gradual trend; the magnitude-shape plot separates the two effects visually, but its outlier rule uses both scores, so curves at the end of a trend are still flagged.
+The functional boxplot cannot distinguish a curve with an unusual shape from one that lies at one extreme of the sample, such as the last curve of a long, gradual trend; the magnitude-shape plot separates the two effects visually, but its outlier rule uses both scores, so curves at the end of a trend are still flagged.
 The outliergram addresses this by comparing a curve's modified band depth with its rank position (via the modified epigraph index), so that curves which are poorly enveloped only because they are extreme are not flagged, while curves with unusual shapes are.
 
 No single method is more "correct" than the others.

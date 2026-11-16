@@ -15,7 +15,7 @@ source("before-each-chapter.R")
 ```
 
 Data analysis is about finding the stories hidden in the mass of information that makes up a data set.
-Usually we are interested in understanding the major patterns --- the relationships that hold true for most of the data.
+Usually we are interested in understanding the major patterns: the relationships that hold true for most of the data.
 But sometimes we need to look at the weird observations --- those that don't follow the crowd and behave differently.
 These weird observations are the "anomalies".
 They are the mavericks in the data, and in this book, they are what we find interesting.
@@ -150,7 +150,7 @@ This example reveals some lessons about anomaly detection:
 - Always plot the data.
   In this case, a graph such as @fig-halley would have revealed the problem in the late 1970s, but it seems no-one was producing plots like this.
 
-As this episode illustrates, anomaly detection is inseparable from the context, and from the assumptions we make about stability and variability.
+Anomaly detection cannot be separated from the context, or from the assumptions we make about stability and variability.
 
 ## Approaches to anomaly detection {#sec-approaches}
 
@@ -168,7 +168,7 @@ These are discussed in @sec-tests.
 
 ### Boxplot methods
 
-The second half of the 20th century witnessed the advent of computing, which allowed more sophisticated exploratory data analysis to be developed, including boxplots.
+Computing became widely available in the second half of the 20th century, which allowed more sophisticated exploratory data analysis to be developed, including boxplots.
 Most readers will be familiar with boxplots, which provide a simple and effective way to visualise the distribution of a variable, and are often also used for anomaly detection.
 Such methods are discussed in @sec-boxplots.
 
@@ -241,7 +241,7 @@ There are three solutions to this problem that are often employed when testing a
    This approach is useful in obtaining large sets of realistic data, as it takes little time to create the data set.
    However, it requires that the observations labelled anomalies are different in some way from the other observations (apart from their label).
 
-In this book, we will use data sets of each type when testing different anomaly detection methods.
+This book uses data sets of each type when testing different anomaly detection methods.
 @sec-data describes the main data sets used in the chapters that follow.
 
 ## Spurious anomalies and undetected anomalies {#sec-spurious}

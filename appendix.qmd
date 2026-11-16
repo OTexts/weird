@@ -12,7 +12,7 @@ code-fold: false
 source("before-each-chapter.R")
 ```
 
-Working with multivariate data inevitably involves writing some of the ideas using matrix expressions and matrix algebra.
+Working with multivariate data requires writing some of the ideas using matrix expressions and matrix algebra.
 In this appendix, a few of the results that we need are collected for convenient reference.
 Readers who have not previously studied matrix algebra are recommended to do some self-study using a good introductory textbook such as @johnston2021introduction.
 
@@ -32,7 +32,7 @@ Geometrically, we can picture a vector as a point in $n$-dimensional space, or e
 This is how we view each observation in a data set: a vector with one entry per variable, and so a point in a space with one axis per variable.
 
 The arrow image gives a vector two attributes: a **length** (how far the point lies from the origin) and a **direction** (the way the arrow points).
-The length (also called the magnitude or **norm**), and written $\|\bm{v}\|$, is the straight-line distance from the origin to the point,
+The length (also called the magnitude or **norm**), written $\|\bm{v}\|$, is the straight-line distance from the origin to the point,
 $$
   \|\bm{v}\| = \sqrt{v_1^2 + v_2^2 + \cdots + v_n^2}.
 $$
@@ -127,7 +127,7 @@ v <- c(1, 0)
 A %*% v
 ```
 
-Geometrically, $\bm{v}$ originally pointed along the $x$-axis with length 1; after $\bm{A}$ is applied, it points up and to the right and is more than three times longer.
+Originally, $\bm{v}$ pointed along the $x$-axis with length 1; after $\bm{A}$ is applied, it points up and to the right and is more than three times longer.
 
 ```{r}
 #| label: vector-transform-plot
@@ -191,8 +191,8 @@ diag(A)
 
 ## Rank {#sec-rank}
 
-The **rank** of a matrix measures how many genuinely independent rows (or equivalently, columns) it contains.
-A **rank-deficient** matrix has redundancy --- some rows are duplicates or weighted sums of others; a **full-rank** matrix has no redundancy.
+The **rank** of a matrix measures how many independent rows (or equivalently, columns) it contains.
+A **rank-deficient** matrix has redundancy (some rows are duplicates or weighted sums of others); a **full-rank** matrix has no redundancy.
 
 More formally, the rank is the number of linearly independent rows, which is always equal to the number of linearly independent columns.
 A set of rows is **linearly independent** when none of them can be written as a linear combination (i.e., a weighted sum) of the others.
@@ -238,7 +238,8 @@ Ainv %*% A
 ## Determinants {#sec-determinants}
 
 The **determinant** of a square matrix measures how much the matrix stretches or shrinks space when applied to vectors.
-A determinant of zero means the matrix has collapsed at least one direction down to nothing --- which is why such a matrix cannot be inverted: the information lost in the flattening cannot be recovered.
+A determinant of zero means the matrix has collapsed at least one direction down to nothing.
+Such a matrix cannot be inverted, because the information lost in the flattening cannot be recovered.
 So a square matrix is singular (equivalently, rank-deficient) if and only if its determinant is zero.
 
 The determinant of a square matrix $\bm{A}$ is denoted by $|\bm{A}|$ or $\text{det}(\bm{A})$.
@@ -293,7 +294,7 @@ Eigendecomposition is an essential tool in dimension reduction (@sec-highdim).
 
 ## Positive definite matrices {#sec-positive-definite}
 
-Just as some numerical values must be positive (for example, a distance or a variance), or at least non-negative, sometimes we need something similar for matrices.
+Just as some numerical values, such as distances and variances, must be non-negative, sometimes we need something similar for matrices.
 
 A **positive-definite** matrix is a special type of symmetric matrix where all the eigenvalues are positive.
 A positive-definite matrix is invertible, and its inverse is also positive definite.

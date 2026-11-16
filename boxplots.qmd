@@ -11,7 +11,7 @@ source("before-each-chapter.R")
 Most readers will have first come across anomaly detection using boxplots, proposed by John Tukey as a quick summary of medium-sized data sets [@Tukey75;@Tukey1977-xd;@wickhamboxplots;@kafadar26].
 Tukey never proposed that boxplots be a generic anomaly detection method, but they have become widely used for this purpose, and are often the first method that people think of when they want to identify anomalies in univariate data.
 
-This chapter describes the original boxplot method, along with some variations that have been developed to address some of the limitations of the original approach.
+This chapter describes the original boxplot method, along with some variations that have been developed to address its limitations.
 
 ## Univariate data depth {#sec-univariate-depth}
 
@@ -143,7 +143,7 @@ The length of the box is an estimate of the interquartile range (IQR).
 The **fences** lie 1.5 IQR beyond each end of the box, and any points outside the fences are shown as separate points in the plot.
 The "whiskers" that extend out each side of the box show the range of the remaining points.
 
-Originally, Tukey proposed two levels of outliers --- those more than 1.5 IQR beyond the box were labelled "outside" values, while those more than 3 IQR beyond the box were labelled "far out" values.
+Originally, Tukey proposed two levels of outliers: those more than 1.5 IQR beyond the box were labelled "outside" values, while those more than 3 IQR beyond the box were labelled "far out" values.
 Most software implementations of boxplots do not distinguish between these groups.
 When a boxplot is used for anomaly detection, all points outside the whiskers are called "anomalies" or "outliers", even though they may not be genuine anomalies.
 
@@ -181,7 +181,7 @@ tibble(x = rnorm(10000)) |>
   labs(y = "")
 ```
 
-Many "anomalies" are shown, but since all observations come from a simple distribution, none of them are actually anomalies.
+Many "anomalies" are shown, but since all observations come from a simple distribution, none of them are genuine anomalies.
 For this distribution, $Q(0.25) = `r sprintf("%.3f", q1)`$, $Q(0.75) = `r sprintf("%.3f", q3)`$, $\text{IQR} = `r sprintf("%.3f", iqr)`$, and so for a large sample size, the boxplot whiskers would be approximately $`r sprintf("%.3f", q1)` - 1.5\times `r sprintf("%.3f", iqr)` = `r sprintf("%.3f", whisker1)`$ and $`r sprintf("%.3f", q3)` + 1.5\times `r sprintf("%.3f", iqr)` = `r sprintf("%.3f", whisker2)`$.
 Any points outside the whiskers would be identified as "anomalous" by a boxplot and plotted as separate points.
 The probability of a standard Normal observation being at least $`r sprintf("%.3f", whisker2)`$ in absolute value (and therefore lying outside the boxplot whiskers) is $`r sprintf("%.5f", 2*(1-pnorm(whisker2)))`$.
@@ -206,7 +206,7 @@ Quite a few "anomalies" are shown, including the three abnormally short eruption
 But the remaining "anomalies" are not particularly unusual observations.
 All the points below 183 seconds are identified as anomalies, even though we know that observations in the region between 100 and 140 seconds are not unusual for this geyser.
 Because the boxplot does not allow for more than one mode, all the points in the second smaller cluster are identified as anomalies.
-The points around 300 seconds are also not really anomalies --- these are just values in the upper tail of the distribution for eruptions.
+The points around 300 seconds are also not genuine anomalies; they are values in the upper tail of the distribution of eruption durations.
 
 ## Modified IQR boxplots {#sec-modified-iqr}
 
@@ -387,9 +387,9 @@ This stopping rule means that, on average, there should be no more than about $2
 By default, $\alpha = 0.05$, so that, on average, there should be no more than about $2 \times (`r qnorm(1 - 0.05/2)`)^2 = `r round(2 * qnorm(1 - 0.05/2)^2,1)`$ legitimate observations in each tail, regardless of the size of the data set.
 
 Letter-value plots were not designed to detect anomalies, but to be a useful data visualisation tool for univariate distributions with large numbers of observations.
-So the display of legitimate observations in the tails of the distribution is by design, not a flaw.
+So they display legitimate observations in the tails of the distribution by design.
 
-In this cricketing example, it looks like there is one true anomaly (Don Bradman) and the remaining 9 observations displayed directly are simply in the tails of the distribution of the remaining data.
+In this cricketing example, it looks like there is one true anomaly (Don Bradman) and the remaining 9 observations displayed directly are in the tails of the distribution of the remaining data.
 
 When applied to three of the other examples (@fig-lvplots1, @fig-lvplots2 and @fig-lvplots3), we see between 8 and 16 observations shown as individual points in each case.
 
@@ -453,7 +453,6 @@ This is often called the **Tukey depth** of the point.
 (The point $\bm{z}$ does not have to be one of the observations.)
 
 For bivariate data, a halfspace is either of the two parts formed by splitting the plane with a straight line.
-A diagram will help illustrate the idea.
 Suppose we have the observations shown in @fig-tukeydepth.
 These are the first 10 observations from the first two variables of `n01`.
 The red line divides the plane into two sections which are called **halfspaces**.
@@ -478,7 +477,7 @@ n01 |>
 There are an infinite number of ways of dividing the plane into halfspaces, and the number of points in each halfspace will vary depending on where the dividing line falls.
 
 To find the depth of the orange point, we need to find the line which divides the plane into two sections where the half containing the orange point includes as few observations as possible.
-In fact, the red line is one such solution which has the orange point in a halfspace containing only two observations.
+The red line is one such solution which has the orange point in a halfspace containing only two observations.
 There are no dividing lines that would put the orange point in a halfspace on its own, or in a halfspace containing only one observation.
 So it has a Tukey depth of 2.
 
@@ -658,7 +657,7 @@ This type of boxplot has the advantage that it allows for multimodal distributio
 By definition, about 1% of points will lie outside the 99% region, so the points shown are not necessarily anomalies, just observations that occur in the lower probability regions of the space.
 By setting `show_anomalies = TRUE`, some of the points are highlighted as potential anomalies, based on how unlikely each observation is under a density estimate computed without it (@sec-loo-surprisals).
 
-The idea naturally extends to higher dimensions.
+The idea extends to higher dimensions.
 @fig-hdr-faithful2 shows the bivariate HDR boxplot of the duration and waiting times for the Old Faithful data.
 
 ```{r}
@@ -671,7 +670,7 @@ oldfaithful |>
 ```
 
 There are `r NROW(oldfaithful)` observations used to compute this density estimate, and even with that many observations, computing the 99% HDR contour is difficult, as shown by the rather jagged boundary of the HDR region.
-This is simply a consequence of the sparsity of points in multidimensional space and in the tails of a distribution.
+This is a consequence of the sparsity of points in multidimensional space and in the tails of a distribution.
 
 As with bagplots, there is a variation that shows the individual points coloured according to the HDR region in which they fall, as shown in @fig-hdr-faithful3.
 
@@ -698,7 +697,7 @@ The points shown individually are not necessarily anomalies.
 With fixed fences, a boxplot shows more spurious anomalies as the sample size grows; the modified IQR rule widens the fences with the sample size to control this, but only under Normality.
 Letter-value plots show a few legitimate observations in each tail by design, and an HDR boxplot shows about 1% of observations outside its 99% region.
 
-Boxplots, letter-value plots, bagplots, and HDR boxplots are all extremely useful tools in exploratory data analysis, and deserve to be widely applied.
+Boxplots, letter-value plots, bagplots, and HDR boxplots are all useful tools in exploratory data analysis, and deserve to be widely applied.
 They are particularly useful in summarising univariate and bivariate data distributions.
 However, as we have seen, none of them are effective at anomaly detection, and only HDR boxplots allow for data with multiple modes.
 

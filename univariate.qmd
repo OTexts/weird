@@ -981,7 +981,7 @@ If $F$ is known, the cdf of $M_n$ is given by $\Pr(M_n \le z) = \Pr(Y_1 \le z, \
 However, $F$ is often not known in practice.
 This gap is filled by Extreme Value Theory, which studies approximate families of models for $F^n$ so that extremes can be modelled and their uncertainty quantified.
 
-It is well known, due to the central limit theorem (@sec-clt), that the suitably standardised average of a set of iid random variables will converge to the Normal distribution if the mean and variance both exist and are finite.
+By the central limit theorem (@sec-clt), the suitably standardised average of a set of iid random variables will converge to the Normal distribution if the mean and variance both exist and are finite.
 The Fisher--Tippett--Gnedenko (FTG) theorem provides an analogous result for the maximum.
 It was developed in a series of papers by @Frechet1927, @Fisher1928, and @Gnedenko1943.
 Independently, @Mises1936 proposed a similar result.

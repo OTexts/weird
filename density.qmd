@@ -46,8 +46,6 @@ Surprisals are also commonly used in forecasting and prediction problems (where 
 In that context, the data are thought to be a reliable reflection of the underlying processes, and once the data are observed, the surprisal is used to assess how well the estimated distribution $f$ matches what actually happened.
 This book uses surprisals in reverse: $f$ is assumed to be a good description of the underlying processes, and the surprisals are then used to identify observations that are unlikely to have come from that distribution.
 
-Let's look at some specific examples.
-
 ### Normal distribution
 
 Suppose our observations come from a N(0,1) distribution, and that $f$ denotes the corresponding density function.
@@ -210,8 +208,7 @@ Using this assumed density, we can compute the surprisals, $s_i = -\log f^*(\bm{
 Then we can fit a Generalised Pareto Distribution (GPD) to the largest surprisals using the POT approach discussed in @sec-evt.
 This can work even when $f^*$ is incorrect or poorly estimated.
 
-Why should this work?
-The POT result in @sec-evt says that, for almost any continuous distribution, the values above a high threshold approximately follow a GPD.
+The POT result in @sec-evt explains why: for almost any continuous distribution, the values above a high threshold approximately follow a GPD.
 Here the GPD is fitted to the surprisals, not to the data, so the result needs to hold only for the surprisals.
 Using the wrong density $f^*$ changes the surprisal values, but in most cases the largest surprisals still follow a GPD.
 What $f^*$ and the data affect is the shape parameter $\xi$ in @eq-POT, which describes how quickly the upper tail of the surprisals dies away.
@@ -528,7 +525,7 @@ t4_prob |>
   geom_line()
 ```
 
-To summarise, even when we don't know the distribution of the data, we can use some incorrect assumed distribution to compute the surprisals, and then apply either a GPD or the rank approximation to obtain good estimates of the surprisal probabilities.
+Even when we don't know the distribution of the data, we can use some incorrect assumed distribution to compute the surprisals, and then apply either a GPD or the rank approximation to obtain good estimates of the surprisal probabilities.
 
 ## KDE surprisals {#sec-kdesurprisals}
 
@@ -570,8 +567,7 @@ In this case, the associated surprisal is called a **LOO surprisal**, given by $
 
 ### LOO KDE surprisals
 
-Let's take the example of KDE surprisals.
-The contribution of the $i$th point to the kernel density estimate at that point is $K_{\bm{H}}(\bm{0})/n$.
+For KDE surprisals, the contribution of the $i$th point to the kernel density estimate at that point is $K_{\bm{H}}(\bm{0})/n$.
 Therefore, the leave-one-out kernel density estimate is given by
 $$
   f_{-i} = \left[ nf_i - K_{\bm{H}}(\bm{0}) \right]/(n - 1),

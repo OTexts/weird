@@ -62,7 +62,7 @@ One relatively simple approach to analysing textual data is to convert each docu
 While this loses much of the meaning of the text, it is enough to find many kinds of anomalous documents.
 
 The examples in this section and the next use the tasters' descriptions of the `r scales::comma(NROW(wine_reviews))` wines in the wine reviews data (@sec-data).
-Think of these as a large collection of short documents, each describing a wine.
+They form a large collection of short documents, each describing a wine.
 Here are three of them.
 
 ```{r}
@@ -675,7 +675,7 @@ These are wines with 80--83 points, and their reviews describe the faults in viv
 Others use favourable words to unfavourable effect: a wine that "won't hold your attention for very long", and "fading elegance" in a wine that is "brown around the edges".
 The coefficients of "long" and "elegance" are `r sprintf("%.2f", coefs["long"])` and `r sprintf("%.2f", coefs["elegance"])`.
 
-So the conditional model finds two kinds of anomaly.
+The conditional model has found two kinds of anomaly.
 A few reviews, such as the third one above, really do disagree with their points.
 The others printed above are reviews that a bag of words cannot read: the words that carry their meaning are too rare to be among the predictors, or a common word means something different in context, as in "flat-out dazzling" and "fading elegance".
 A model of the language itself can take some of that context into account.
@@ -695,13 +695,13 @@ For example, "edges" is not a common word in wine reviews, but after "Looking br
 
 The bag of words of @sec-text-numbers corresponds to a language model in which each token is independent of the others, so that $f(x_{ij} \mid x_{i1}, \dots, x_{i,j-1}) = f(x_{ij})$, and context is ignored altogether.
 **Large language models** are neural networks that are trained to predict each token from all the tokens before it, using trillions of tokens of text.
-They do this far better than any model based on counting words, because they make use of the meaning of the whole of the preceding text.
+They do this far better than any model based on counting words, because they use the meaning of the whole of the preceding text.
 
 ### Token surprisals from OLMo 2
 
 The model used here is the smallest version of OLMo 2\ [@OLMo2025], with about a billion parameters.
 Unlike most large language models, it has been published along with the data used to train it.
-This matters for anomaly detection, as a model that had seen these reviews during training would find them unduly predictable.
+A model that had seen these reviews during training would find them unduly predictable, so it is useful to be able to check whether it did.
 A search of the training data\ [@Liu2024] for passages from a sample of about 200 of the reviews found almost none of them.
 
 The tokens of a large language model are not words.

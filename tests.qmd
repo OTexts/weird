@@ -27,7 +27,7 @@ The methods are tested on six examples: two involving real data, and four involv
    For these data, there were three extreme anomalies --- with durations up to 1 minute --- and several "inliers" in an area of low density between 140 and 180 seconds.
 3. The first 18 rows of the second variable in the `n01` data, along with the values 4.0 and 4.5.
    The latter two are anomalies as they are unlikely to arise from the N(0,1) distribution.
-   We save this data set as `n01b`.
+   This data set is saved as `n01b`.
    @fig-n01b shows the data for this example.
 
 ```{r}
@@ -929,7 +929,7 @@ batting_gaps |>
   labs(x = "Career batting average", y = "Tukey–Wainer–Schacht gap score")
 ```
 
-Restricting attention to scores above the exploratory threshold of 2.25, we show the five largest gaps below.
+The five largest gaps with scores above the exploratory threshold of 2.25 are shown below.
 
 ```{r}
 #| label: ws-top-gaps
@@ -1049,7 +1049,7 @@ stopifnot(sigma_qn < sigma_hat, all(qn_gaps$p_value >= 0.05))
 Only the gap below Bradman's average has a $p$-value below 0.05, suggesting that this gap is too large to be consistent with all batters coming from a single fitted Normal distribution.
 
 Finally, we apply the same approach to all six examples considered in this chapter.
-Here we associate the $p$-value with the larger observation in each gap pair.
+Here the $p$-value is associated with the larger observation in each gap pair.
 
 ```{r}
 #| label: gap-tests
@@ -1178,6 +1178,6 @@ They are particularly sensitive to the assumed data distribution, and the probab
 
 These tests are sometimes applied iteratively, where observations are removed from the data if determined to be anomalies, and the test re-applied to the remaining data.
 This process continues until no more anomalies are found.
-However, this procedure will clearly change the size of the test due to the problem of multiple comparisons.
+However, this procedure will change the size of the test due to the problem of multiple comparisons.
 
 Next, we will turn our attention to methods, developed in the latter part of the 20th century, that are based on quantiles and data depth rather than on any underlying parametric data distribution.

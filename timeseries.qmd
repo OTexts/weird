@@ -1355,7 +1355,7 @@ We flag a month as anomalous if this probability is below 0.001.
 
 If each forecast distribution were the true distribution of the next observation, the surprisal probabilities would be uniformly distributed on (0,1), as explained earlier, and so each observation would be flagged with probability $\pi = 0.001$.
 But `r sprintf("%.1f", 100 * mean(pbs_scores$prob < 0.001, na.rm = TRUE))`% of all observations have surprisal probabilities below 0.001, because of real anomalies, or forecast distributions that are too narrow, or both.
-What matters here is whether a month has more flagged series than usual, so we estimate $\pi$ in real time, using the proportion of flagged observations in all previous months.
+The aim is to find months with more flagged series than usual, so we estimate $\pi$ in real time, using the proportion of flagged observations in all previous months.
 To give a reasonable estimate of $\pi$ at the start, we only compute the joint probabilities after the first 12 months of surprisal probabilities are available.
 
 The independence assumption is also unrealistic here, as the same events affect many series.
@@ -1463,7 +1463,7 @@ There is no obvious explanation for March 1999.
 The most extreme month is February 2008, when 33 of the 84 groups were flagged.
 In that year, the usual fall in script volumes in February did not occur; total volume was about `r feb_growth`% higher than in February 2007.
 However, the combined volume for January and February 2008 was only about `r janfeb_growth`% higher than a year earlier, in line with previous years, and January 2008 was lower than January 2007.
-So it seems that some scripts that would usually have been recorded in January were recorded in February instead: a change in timing rather than in demand.
+So it seems that some scripts that would usually have been recorded in January were recorded in February instead, and that overall demand did not change.
 No administrative reason for this has been found.
 An event like this is much easier to spot when looking across all series than in any single series.
 

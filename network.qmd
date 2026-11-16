@@ -30,7 +30,7 @@ From @sec-network-sequence onwards, the chapter turns to anomalous networks with
 Statistical methods have a long history of success in modelling temporal dependence, but they have been underused for network anomaly detection compared to purely graph-theoretic approaches [@Ranshous2015-kf].
 For the whole-network problem, this chapter describes **oddnet**, a method due to @oddnet that fuses network analysis with time series modelling; the R package **`oddnet`** implements the algorithm.
 
-Before we begin, let's load the packages we will need, and define a few functions for plotting.
+This chapter uses the following packages, and defines a few functions for plotting.
 
 ```{r}
 #| label: ch12_libraries
@@ -156,7 +156,7 @@ senate_networks[[congress100]] |>
 
 For each senator (and the President), we compute six **`igraph`** features that describe their position in the co-voting network.
 
-**Degree** is simply the number of edges attached to a node, $d_i = \sum_{j} a_{ij}$ for an undirected network --- here, the number of other senators a given senator co-votes with sufficiently often to share an edge.
+**Degree** is the number of edges attached to a node, $d_i = \sum_{j} a_{ij}$ for an undirected network --- here, the number of other senators a given senator co-votes with sufficiently often to share an edge.
 It is the most basic measure of how connected a node is, but it says nothing about *where* those connections lead.
 
 Several of the remaining features depend on how far apart nodes are.
@@ -481,7 +481,7 @@ tibble(congress = senate_congress, edges = senate_edges_n) |>
   labs(x = "Congress", y = "Number of edges")
 ```
 
-The 100th Congress's raw edge count ranks only `r scales::ordinal(rank(-senate_edges_n)[congress100])` out of `r length(senate_congress)` Congresses --- not remotely the most extreme value in the sequence.
+The 100th Congress's raw edge count ranks only `r scales::ordinal(rank(-senate_edges_n)[congress100])` out of `r length(senate_congress)` Congresses.
 Not every anomaly will show up as an obvious spike in a raw feature, especially once we allow for trend and seasonality in how a feature evolves over time.
 For that, we need to bring in the time series tools from @sec-timeseries.
 
@@ -788,11 +788,10 @@ uci_constant <- sapply(uci_networks, \(m) {
 stopifnot(all(uci_constant == 0))
 ```
 
-Unlike the Senate network, which drifts slowly over decades, this network is driven by the rhythm of the academic calendar.
+Unlike the Senate networks, where single Congresses depart from a structure drifting slowly over decades, the anomalies here are short bursts of activity tied to the academic calendar.
 The two most anomalous days are 19 April and 28 May.
 On 19 April, only the third day on which any messages were sent, the network suddenly grew from 2 to 16 students, early in the platform's initial rapid growth phase identified by @Panzarasa2009.
 Of the other `r english::words(length(uci_flagged) - 2)` flagged days, 22 and 29 May are close to 28 May, near the end of that growth phase, while 15 June fell during the Spring final examinations and 24 September was the first day of Fall instruction.
-The Senate and UCI examples illustrate quite different anomaly patterns: single Congresses that depart from a structure drifting slowly over decades, against short bursts of activity tied to a fixed calendar.
 
 ## Summary {#sec-network-summary}
 

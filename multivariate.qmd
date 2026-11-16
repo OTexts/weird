@@ -198,7 +198,7 @@ tibble(m = seq(10)) |>
   scale_x_continuous(breaks = seq(10), minor_breaks = NULL)
 ```
 
-Remarkably, by 10 dimensions, almost all points lie outside the unit sphere, and live in the corners of the space; almost no points are in the centre of the space.
+By 10 dimensions, almost all points lie outside the unit sphere, and live in the corners of the space; almost no points are in the centre of the space.
 This occurs because an observation is only near the centre if all of its coordinates are near zero, and with enough variables, at least one of them is likely to be far from zero.
 For example, the probability that all $m$ coordinates lie between $-0.5$ and $0.5$ is $0.5^m$, which is less than 0.001 when $m = 10$.
 
@@ -303,7 +303,7 @@ $$
 $$
 The notation $|\bm{\Sigma}|$ denotes the determinant of the matrix $\bm{\Sigma}$.
 
-Multivariate Normal distributions have the interesting property that the marginal distributions are also Normal.
+The marginal distributions of a multivariate Normal distribution are also Normal.
 More generally, suppose we split $\bm{Y}$ into two parts, $\bm{Y}_1$ and $\bm{Y}_2$, with the mean and covariance matrix split in the same way:
 $$
   \bm{Y} = \begin{bmatrix}
@@ -1068,7 +1068,7 @@ Hence, the univariate bandwidths need to be squared if used in a bandwidth matri
 That is, if $h_1,\dots,h_m$ are the univariate bandwidths for each of the variables, then the corresponding diagonal bandwidth matrix is given by $\bm{H} = \text{diag}(h_1^2,\dots,h_m^2)$.
 For example, `geom_density_2d()` uses a bivariate Gaussian kernel with diagonal bandwidth matrix where the diagonal values are given by the squares of @eq-nrd.
 However, this approach leads to bandwidths that are too small, as it ignores the convergence properties of the multivariate estimator.
-Additionally, a diagonal bandwidth matrix cannot orient the kernels along the direction of any correlation between the variables, and so leads to more biased estimators when the variables are correlated.
+A diagonal bandwidth matrix also cannot orient the kernels along the direction of any correlation between the variables, and so leads to more biased estimators when the variables are correlated.
 
 The optimal bandwidth matrix (minimising the mean integrated squared error between the true density and its estimate) is of the order $n^{-2/(m+4)}$.
 If such a bandwidth matrix is used, then the mean integrated squared error of the estimator converges to zero at rate $n^{-4/(m+4)}$, implying that kernel density estimation becomes increasingly difficult as the dimension $m$ increases.

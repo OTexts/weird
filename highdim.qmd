@@ -26,7 +26,7 @@ The high-dimensional methods described in this chapter are designed to address t
 The simplest way to reduce the dimensionality of the data is to use **linear projections**: linear combinations of the original variables that map each $m$-dimensional observation to a lower-dimensional space.
 While anomalies may be hard to detect in the full high-dimensional space, they often become visible when viewed from the right projection direction.
 Different projection directions preserve different aspects of the joint structure, so the choice of direction matters.
-Understanding the geometry of projections sets the foundation for the methods described in the rest of this chapter.
+The methods in the rest of this chapter build on the geometry of projections.
 
 To keep the geometry simple, we will scale all variables to have mean zero and unit variance, although to preserve interpretability, no rotation will be applied in the scaling (@sec-scaling).
 The ideas throughout the chapter will be illustrated using air quality and meteorological variables measured hourly at the Aotizhongxin monitoring station (at the Olympic Sports Centre) in Beijing, over May 2014.
@@ -123,8 +123,8 @@ ggplot(Y, aes(x = co, y = no2)) +
   labs(x = "Standardised carbon monoxide", y = "Standardised nitrogen dioxide")
 ```
 
-Projections can be thought of like shadows.
-Imagine a light source shining on the data cloud from a direction perpendicular to $\bm{a}$; the projection scores are the positions of the shadows cast by the observations onto the line defined by $\bm{a}$.
+Projections are like shadows.
+If a light source shines on the data cloud from a direction perpendicular to $\bm{a}$, the projection scores are the positions of the shadows cast by the observations onto the line defined by $\bm{a}$.
 
 The projection direction $\bm{a}$ can be any unit vector, so there are infinitely many ways to project the data.
 Each choice of $\bm{a}$ captures a different perspective on the joint variation in the data.
@@ -151,7 +151,7 @@ This is important for anomaly detection, because an observation that appears typ
 Let's add a third variable, `pm2_5`, measuring the particulate matter with diameter less than 2.5 micrometres.
 @fig-aq3d shows the standardised `co`, `no2` and `pm2_5` measurements at Aotizhongxin in a 3D scatterplot.
 What you see on the screen is a 2D projection of the 3D data.
-Think of a light source directly behind the screen, casting shadows of the data points onto the screen.
+It is as if a light source directly behind the screen were casting shadows of the data points onto the screen.
 The projection direction is perpendicular to the screen, so you are seeing the data from that perspective.
 As you rotate the plot, you are changing the projection direction, which gives different perspectives on the joint structure.
 
@@ -566,7 +566,7 @@ stopifnot(
 Two of these observations, 8pm on 3 May (which has the largest orthogonal distance) and 11am on 31 May, also lie on the far right of the projection.
 The other five lie within the bulk of the projected data, so they are visible only in the residual space.
 They are daytime hours on 3 and 4 May, which were unusually dry and windy: dew points were between `r min(od_top$dew_point[od_top$day %in% 3:4 & od_top$hour < 20])` and `r max(od_top$dew_point[od_top$day %in% 3:4 & od_top$hour < 20])`°C (compared to a monthly median of `r median(az_aq$dew_point)`°C), and wind speeds were at least `r min(od_top$wind_speed[od_top$day %in% 3:4])` m/s (compared to a median of `r median(az_aq$wind_speed)` m/s).
-This illustrates the importance of considering both spaces when looking for anomalies.
+So both spaces need to be considered when looking for anomalies.
 
 ### Outlier map
 
@@ -622,7 +622,7 @@ Computing Stahel--Donoho outlyingness is a form of projection pursuit: it search
 For each candidate direction $\bm{a}$, compute the robust $z$-scores of the projected data, and keep track of the largest value seen so far.
 
 In practice, the optimisation over all directions is approximated using many candidate projections.
-In R, `robustbase::adjOutlyingness()` provides an efficient implementation for computing these scores.
+In R, `robustbase::adjOutlyingness()` computes these scores efficiently.
 
 We can apply this to the same standardised air quality and meteorological variables from Aotizhongxin used in @fig-proj-10dto2d.
 Because the outlyingness is maximised over all directions, it does not require us to choose a projection in advance: an observation receives a high score if it is extreme in *any* direction.
@@ -660,8 +660,7 @@ The top 10 most anomalous observations by this measure are shown above.
 The highest scores belong to 8pm on 3 May and 10pm on 31 May, both with very high coarse particulate matter (`pm10` of `r az_aq$pm10[az_aq$day == 3 & az_aq$hour == 20]` and `r az_aq$pm10[az_aq$day == 31 & az_aq$hour == 22]`, compared to a monthly median of `r median(az_aq$pm10)`); 8pm on 3 May also had the largest orthogonal distance in @fig-proj-residuals2.
 The morning of 25 May is another period of high particulates, but with low sulphur dioxide and carbon monoxide.
 Three more hours come from the morning of 31 May, when carbon monoxide and sulphur dioxide were extremely high.
-None of these required us to choose a projection in advance, because an observation that is extreme in any single direction is found by maximising over all directions.
-The price is the opposite blind spot: because the measure relies on one-dimensional projections, it can miss anomalies that only appear unusual when several variables are considered jointly.
+However, because the measure relies on one-dimensional projections, it can miss anomalies that only appear unusual when several variables are considered jointly.
 
 ## Principal component analysis {#sec-pca}
 
@@ -752,7 +751,7 @@ This can happen for two reasons:
 
 ### Diagnostic plot
 
-To distinguish these two situations, @Hubert2005-qa introduced a useful framework for classifying observations in the context of PCA, based on the score distance and orthogonal distance.
+To distinguish these two situations, @Hubert2005-qa introduced a useful classification of observations in the context of PCA, based on the score distance and orthogonal distance.
 
 ::: {.stub-column}
   |                     | Small $\text{SD}_i$ | Large $\text{SD}_i$ |
@@ -893,8 +892,8 @@ One approach is the ROBPCA algorithm of @Hubert2005-qa, which proceeds in three 
 
 ### The ROBPCA algorithm
 
-**Stage 1: Reduce the working dimension.** When the number of variables $m$ is large, the data may not actually fill all $m$ dimensions.
-So this first stage identifies the subspace that the data genuinely occupies --- at most $\min(n - 1, m)$ dimensions --- without discarding any information.
+**Stage 1: Reduce the working dimension.** When the number of variables $m$ is large, the data may not fill all $m$ dimensions.
+So this first stage identifies the subspace that the data occupy (at most $\min(n - 1, m)$ dimensions), without discarding any information.
 This makes the subsequent steps faster and numerically better behaved.
 
 **Stage 2: Find a robust subspace.** For each observation, the Stahel--Donoho outlyingness (@sec-stahel-donoho) is computed to measure how far it lies from the bulk of the data.
@@ -1095,7 +1094,7 @@ The retained vectors $\{\bm{z}_\ell\}$ make up the **Y space**.
 Because an anomaly sits far from its neighbours, it contributes several of the largest vectors to this set, so the Y space magnifies the very observations we are trying to find.
 
 The first DOBIN direction is the unit vector $\bm{a}_1$ that makes these retained neighbour distances as large as possible on average; that is, it maximises $\sum_\ell \bm{a}^\intercal\bm{z}_\ell$ subject to $\|\bm{a}\| = 1$.
-Because the objective is linear in $\bm{a}$, the solution is immediate --- the best direction is simply the normalised sum of the Y-space vectors,
+Because the objective is linear in $\bm{a}$, the solution is immediate: the best direction is simply the normalised sum of the Y-space vectors,
 $$
   \bm{a}_1 = \frac{\sum_\ell \bm{z}_\ell}{\big\|\sum_\ell \bm{z}_\ell\big\|}.
 $$
@@ -1107,7 +1106,7 @@ Projecting the data onto these columns, $\bm{W} = \bm{Y}\bm{A}$, gives the DOBIN
 ### Air quality example
 
 In fact we have already seen the result.
-The two-dimensional projection in @fig-proj-10dto2d was the DOBIN projection of the Aotizhongxin data, and the anomalies it revealed --- in both the projection space (@fig-proj-kde) and the residual space (@fig-proj-residuals2) --- were found in this basis.
+The two-dimensional projection in @fig-proj-10dto2d was the DOBIN projection of the Aotizhongxin data, so the anomalies found in both the projection space (@fig-proj-kde) and the residual space (@fig-proj-residuals2) were found in this basis.
 The columns of the mapping matrix used there are the first two DOBIN vectors.
 
 ```{r}
@@ -1149,7 +1148,7 @@ Second, like every projection method in this chapter, DOBIN only reduces the dim
 
 So far we have used only the two leading DOBIN directions, because @sec-projections needed a basis we could plot.
 DOBIN is not limited to two dimensions, though, and giving it more components lets it expose anomalies that a 2D view cannot.
-Following the recipe we used for ROBPCA (@sec-robpca), we take the first four DOBIN components --- the same number ROBPCA chose --- add the orthogonal distance as a fifth coordinate, and pass the result to an isolation forest.
+Following the recipe we used for ROBPCA (@sec-robpca), we take the first four DOBIN components (the same number ROBPCA chose), add the orthogonal distance as a fifth coordinate, and pass the result to an isolation forest.
 
 ```{r}
 #| label: dobin-detect
@@ -1196,7 +1195,7 @@ stopifnot(
 ```
 
 With only four components, the isolation forest picks out three hours of the morning cluster of 22 May seen in @fig-proj-kde, the late morning of 31 May, and the `pm10` spikes at 8pm on 3 May and 10pm on 31 May, together with noon on 4 May and the mornings of 25 and 30 May.
-A handful of components from a basis built to expose anomalies is enough to surface these episodes.
+So a handful of components from a basis built to expose anomalies is enough to find these episodes.
 
 ## Multidimensional scaling {#sec-mds}
 
@@ -1207,7 +1206,8 @@ More generally, the entries $d_{ij}$ need only be **dissimilarities**: measures 
 Every distance is a dissimilarity, but a dissimilarity need not satisfy the triangle inequality, and we return to this extra generality when we discuss non-metric scaling below.
 
 Working from a matrix of distances, rather than directly from the data, is what distinguishes MDS from PCA.
-Any of the distance measures of @sec-distances can be used, including non-Euclidean ones, so MDS applies whenever we can measure how far apart two observations are but cannot form a numerical data matrix --- for example, with mixed categorical and numerical variables, distances between nodes in a network, or edit distances between genomic sequences.
+Any of the distance measures of @sec-distances can be used, including non-Euclidean ones, so MDS applies whenever we can measure how far apart two observations are but cannot form a numerical data matrix.
+Examples include data with mixed categorical and numerical variables, distances between nodes in a network, and edit distances between genomic sequences.
 For anomaly detection, the embedding plays the same role as a projection: an observation that is far from all the others in the original distances is placed far from the bulk of the points in the low-dimensional map, where it can be passed to one of the distance- or density-based detectors of @sec-distance-methods or @sec-density-methods.
 
 ### Classical scaling
@@ -1239,14 +1239,14 @@ $$
   \text{Stress}
   = \sqrt{\frac{\sum_{i<j}\left( \|\bm{w}_i - \bm{w}_j\| - \hat{d}_{ij} \right)^2}{\sum_{i<j} \|\bm{w}_i - \bm{w}_j\|^2}},
 $$
-where the **disparities** $\hat{d}_{ij}$ are a fixed transformation of the input distances --- the identity, $\hat{d}_{ij} = d_{ij}$, in the simplest case.
+where the **disparities** $\hat{d}_{ij}$ are a fixed transformation of the input distances (in the simplest case, the identity $\hat{d}_{ij} = d_{ij}$).
 There is no closed-form solution, so the configuration is found by iterative optimisation, starting from the classical scaling solution.
 A common variant is the @Sammon1969 mapping, which weights each term by $1/d_{ij}$ so that small distances, describing the local structure, are reproduced more faithfully than large ones.
 
 **Non-metric MDS** [@Kruskal1964] relaxes the requirement that the actual values of the $d_{ij}$ be reproduced, asking only that their *rank order* be preserved.
 This is where the more general notion of dissimilarity matters: the disparities $\hat{d}_{ij}$ are now allowed to be any monotonically increasing transformation of the $d_{ij}$, obtained by isotonic regression (a monotone least squares fit) of the fitted distances on the ranked dissimilarities.
 The configuration and the transformation are updated alternately until the stress converges.
-This is the appropriate method when the dissimilarities are ordinal or only loosely calibrated --- for example, subjective similarity ratings, which may not even satisfy the triangle inequality --- because only their ordering is assumed to carry meaning.
+This is the appropriate method when the dissimilarities are ordinal or only loosely calibrated (for example, subjective similarity ratings, which may not even satisfy the triangle inequality), because only their ordering is assumed to carry meaning.
 It is also more robust to a few large dissimilarities, since these need only be reproduced in rank, not in size.
 
 ### Air quality example
@@ -1331,9 +1331,6 @@ Like the PCA projection, classical scaling keeps the directions of greatest vari
 Non-metric scaling instead tries to preserve the rank order of all the pairwise distances, and 8pm on 3 May is further from the other hours than any other observation, both on average and to its nearest neighbour.
 To preserve that ordering, it has to be placed well away from the rest of the map.
 
-Like PCA and DOBIN, MDS is a dimension-reduction step rather than an anomaly detector in itself: the resulting coordinates are handed to one of the distance- or density-based methods of the earlier chapters.
-Its distinctive feature is that it begins from a matrix of pairwise distances --- or, more generally, dissimilarities --- so it can be applied to data for which no natural coordinates exist.
-
 ## FastPCS {#sec-fastpcs}
 
 The remaining methods in this chapter detect anomalies directly, rather than producing a projection that is handed to a separate detector.
@@ -1391,9 +1388,9 @@ stopifnot(
 )
 ```
 
-FastPCS ranks the whole daytime build-up of 31 May 2014 among its most outlying hours --- a run of hours dominated by extreme carbon monoxide and sulphur dioxide (four to five and seven to eight times their monthly medians respectively, with both reaching their highest values of the month at 11am), on a warm and humid morning.
+FastPCS ranks the whole daytime build-up of 31 May 2014 among its most outlying hours.
+These hours were dominated by extreme carbon monoxide and sulphur dioxide (four to five and seven to eight times their monthly medians respectively, with both reaching their highest values of the month at 11am), on a warm and humid morning.
 All six hours from 7am to noon were among the bad leverage points of the four-component PCA in @fig-pca-outliermaps, and Stahel--Donoho outlyingness (@sec-stahel-donoho) put three of them in its top ten, but FastPCS is the only method here to rank the whole run among its ten most anomalous hours.
-This sustained episode is the distinctive contribution of FastPCS.
 
 ## HDoutliers algorithm {#sec-hdoutliers}
 
@@ -1434,7 +1431,7 @@ Stray avoids clustering altogether, but deals with clusters of anomalies by usin
 
 Recall from @sec-knn-scores that $d_{i,k}$ denotes the distance from observation $\bm{y}_i$ to its $k$th nearest neighbour, so that $d_{i,1} \le d_{i,2} \le \cdots \le d_{i,k}$ are its neighbour distances ranked from closest to furthest.
 Stray finds the largest jump between one of these distances and the next (counting the step from the observation itself to $d_{i,1}$), and scores the observation by the distance at which this largest jump occurs.
-Imagine stepping outward from the observation: at first we pass through any points packed tightly around it, and then at some radius we cross an empty gap into the main body of the data.
+Stepping outward from the observation, we first pass through any points packed tightly around it, and then at some radius cross an empty gap into the main body of the data.
 The stray score is the radius at which that crossing happens.
 A typical point in a dense region reaches the bulk on its very first step, so it scores low; a lone anomaly is already far from its nearest neighbour, so the largest jump comes immediately, and it scores high.
 
@@ -1486,7 +1483,7 @@ stopifnot(
 
 The two highest stray scores, 10pm on 31 May and 8pm on 3 May, are the two hours with the highest `pm10` readings of the month, which several of the earlier methods also found.
 
-What stray adds is further down the list.
+The hours that stray adds are further down the list.
 Three of the top ten hours (10pm and 11pm on 29 May, and midnight on 30 May) belong to a run of five consecutive hours, from 9pm to 1am, with the five highest nitrogen dioxide readings of the month (around four times the monthly median), almost no ozone and almost no wind.
 No other method in this chapter ranks these hours among its ten most anomalous.
 Each hour has a close nearest neighbour within the run, but the run as a whole lies some distance from the rest of the data, which is the small-cluster effect described above.
@@ -1513,7 +1510,7 @@ The result is passed to `O3plotM()`, which displays how many methods flagged eac
 ### Air quality example
 
 Checking every combination of all 10 Aotizhongxin variables would mean examining $2^{10} - 1 = 1023$ combinations for each method, which is impractical to compute and to display together.
-Instead, we restrict attention to five variables that recurred throughout our earlier discussion --- `co`, `so2`, `pm2_5`, `pm10` and `dew_point` --- and compare all five methods available in **`OutliersO3`** across every combination of one to five of them.
+Instead, we restrict attention to five variables that recurred throughout our earlier discussion (`co`, `so2`, `pm2_5`, `pm10` and `dew_point`), and compare all five methods available in **`OutliersO3`** across every combination of one to five of them.
 
 ```{r}
 #| label: o3prep

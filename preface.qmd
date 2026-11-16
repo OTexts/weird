@@ -13,7 +13,7 @@ You will need a knowledge of statistics and probability at about second-year und
 So if you've done a couple of statistics subjects, and are familiar with multiple regression, hypothesis tests and probability distributions, then you should be prepared for what follows.
 Although the book covers a wide range of methods, it gives particular emphasis to probabilistic approaches to anomaly detection, and so probability distributions are particularly important.
 This is the subject of @sec-univariate and @sec-multivariate.
-You will also need some knowledge of matrix algebra; the most important matrix results that we use are provided in @sec-appendix.
+You will also need some knowledge of matrix algebra; the most important matrix results used in the book are provided in @sec-appendix.
 
 Finally, you will need to know how to use R and be familiar with the [tidyverse](https://tidyverse.org) packages such as **`dplyr`**, **`tidyr`** and **`ggplot2`**.
 There are many online resources that cover this material, including @r4ds and the [StartR](https://startr.numbat.space/) self-learning modules developed at Monash University.

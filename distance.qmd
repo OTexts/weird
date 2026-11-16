@@ -520,7 +520,7 @@ The "global--local" label reflects the fact that each observation is compared to
 
 ### Mutual reachability distances
 
-The starting point is the distance $d_{i,k}$ introduced in @sec-knn-scores --- that is, the distance from $\bm{y}_i$ to its $k$-th nearest neighbour, known here as the **core distance**.
+The starting point is the distance $d_{i,k}$ from $\bm{y}_i$ to its $k$-th nearest neighbour, introduced in @sec-knn-scores and known here as the **core distance**.
 The **mutual reachability distance** between observations $\bm{y}_i$ and $\bm{y}_j$ is a smoothed version of the usual distance:
 $$
   d_\text{mreach}(\bm{y}_i, \bm{y}_j)
@@ -534,7 +534,7 @@ This stabilises the hierarchy that is built next.
 
 GLOSH is computed from the cluster hierarchy produced by HDBSCAN [@glosh], which can be thought of as single-linkage hierarchical clustering (@sec-clustering) applied to the mutual reachability distances, together with one extra rule: at any distance threshold $\varepsilon$, an observation $\bm{y}_i$ is treated as **noise** unless it is a **core point**, meaning that it has at least $k$ observations within distance $\varepsilon$, that is, unless $\varepsilon \ge d_{i,k}$.
 
-As distance threshold $\varepsilon$ increases from very small to very large, the picture changes as follows:
+As the distance threshold $\varepsilon$ increases from very small to very large, the picture changes as follows:
 
 - At very small $\varepsilon$, every observation is noise: no point has enough close neighbours to qualify as a core point.
 - As $\varepsilon$ increases, observations one by one cease to be noise and join clusters; clusters appear, grow, and eventually merge with each other.
@@ -547,7 +547,7 @@ For $\varepsilon \ge \varepsilon_i$, $\bm{y}_i$ belongs to a cluster, but as soo
 So $\varepsilon_i$ is the distance threshold at which $\bm{y}_i$ *joins* a cluster going upwards, or equivalently the threshold at which it *leaves* its cluster going downwards.
 Points with many close neighbours have a small $\varepsilon_i$; isolated points have a large $\varepsilon_i$.
 
-In the hierarchy, let $C_i$ denote the smallest (deepest) cluster that contains $\bm{y}_i$ --- that is, the cluster that $\bm{y}_i$ belongs to just before it falls out into noise as the threshold shrinks.
+In the hierarchy, let $C_i$ denote the smallest (deepest) cluster that contains $\bm{y}_i$; that is, the cluster that $\bm{y}_i$ belongs to just before it falls out into noise as the threshold shrinks.
 
 ### GLOSH scores
 

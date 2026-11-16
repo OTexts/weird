@@ -905,6 +905,5 @@ The two approaches tend to find different anomalies, so it is worth using both.
 
 A video is a collection of images (frames) with a time order, so the methods for images apply directly to videos, with each frame treated as an observation.
 For a fixed camera, robust principal components describe the static background and its usual variation, and the orthogonal distance of each frame measures how much is happening in it.
-The time order and the fixed camera add two things.
-The orthogonal distances form a time series, which can be monitored with the methods of @sec-timeseries.
-And because each pixel location shows the same part of the scene in every frame, the median over frames gives a robust estimate of the background, and the residuals show where in a frame something differs from the background.
+With the frames in time order, the orthogonal distances form a time series, which can be monitored with the methods of @sec-timeseries.
+Because the camera is fixed, each pixel location shows the same part of the scene in every frame, so the median over frames gives a robust estimate of the background, and the residuals show where in a frame something differs from the background.

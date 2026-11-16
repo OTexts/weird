@@ -171,7 +171,7 @@ cells |>
 
 The least probable cells include drivers aged 0--4 and 5--9, very young motorcycle riders and passengers, motorcycle riders aged 85 and over, and motorcycle passengers aged 55--69.
 The three cells with a single death are tied, so each has $p_i = 3/n$.
-Neither drivers nor young children are unusual among road deaths; what is unusual is the combination.
+Neither drivers nor young children are unusual among road deaths, but the combination is.
 The five drivers in the 0--4 group are all recorded as aged zero, so they are clearly recording errors.
 At least some of the other young drivers or motorcycle riders are also likely to be recording errors.
 
