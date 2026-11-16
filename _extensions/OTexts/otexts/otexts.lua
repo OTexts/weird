@@ -156,14 +156,56 @@ local function drop_cover(blocks)
   return kept
 end
 
+-- Jupyter figures fill the text column, as knitr figures do through the
+-- extension's out.width: "100%", unless their cell sets out-width. Jupyter
+-- images carry only their pixel size, and Quarto doesn't pass out-width on
+-- to Jupyter output, so it is read from the cells in the source file
+local function out_widths()
+  local widths = {}
+  local f = quarto.doc.input_file and io.open(quarto.doc.input_file, "r")
+  if not f then return widths end
+  local label, width
+  for line in f:lines() do
+    if line:match("^%s*```") then
+      if label and width then widths[label] = width end
+      label, width = nil, nil
+    else
+      label = line:match("^%s*#|%s*label:%s*(%S+)") or label
+      width = line:match("^%s*#|%s*out%-width:%s*[\"']?([^\"'%s]+)") or width
+    end
+  end
+  f:close()
+  return widths
+end
+
+-- Only Jupyter cells have an execution_count; their id is cell-<label>
+local function jupyter_figures(div, widths)
+  if not (div.classes:includes("cell") and div.attributes.execution_count) then
+    return nil
+  end
+  local width = widths[div.identifier:gsub("^cell%-", "")] or "100%"
+  return div:walk({
+    Image = function(img)
+      if img.attributes.style or not img.attributes.width then return nil end
+      -- A percentage width, as knitr's out.width gives (Pandoc writes it as
+      -- the image's style); a style set here would be copied to the float
+      img.attributes.width = width
+      img.attributes.height = nil
+      return img
+    end,
+  })
+end
+
 function Pandoc(doc)
   if not quarto.doc.is_format("html") then
     doc.blocks = drop_cover(doc.blocks)
     return doc
   end
+  local widths = out_widths()
   doc.blocks = doc.blocks:walk({
     Div = function(div)
       if div.classes:includes("otexts-cover") then return cover(div, doc.meta) end
+      return jupyter_figures(div, widths)
     end,
   })
   return doc
