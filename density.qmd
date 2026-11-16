@@ -37,6 +37,7 @@ So it is a measure of how surprising (or anomalous) that observation is, given t
 A large value of $s_i$ indicates that $\bm{y}_i$ is not a likely value, and so is a potential anomaly.
 On the other hand, typical values will have low surprisals.
 In information theory, the average surprisal is known as the **entropy** of a random variable\ [@Cover2006;@Stone2022], and provides a measure of uncertainty.
+Throughout this book, $\log$ denotes the natural logarithm, so surprisals are measured in **nats**; surprisals computed with base-2 logarithms are measured in bits, and one nat is $1/\log 2 \approx 1.44$ bits.
 
 Although the term "surprisal" may not be in common use amongst statisticians and other data scientists, the underlying idea is widely used.
 For example, if $f$ is obtained from a model with parameters that need to be estimated from the data, then the sum of the surprisals is equal to minus the log likelihood of the data.
