@@ -23,12 +23,11 @@ Keep the book's probabilistic framing throughout: anomalous documents have high 
    - Discussion: detectors of machine-generated text (DetectGPT, Binoculars) flag text that is too predictable, i.e. unusually LOW surprisal.
 
 4. Was this text written by someone else?
-   - Stylometric features: frequencies of the most common function words (Mosteller & Wallace).
-     Burrows' Delta is a Manhattan distance on standardised frequencies (link to ch6).
-   - Authorship verification as one-class anomaly detection: split the author's known works into chunks, model the distribution of their feature vectors, score the questioned text, calibrate by leaving one chunk out.
-     Brief mention of unmasking (Koppel & Schler, 2004) and the imposters method.
-   - Example: The Royal Book of Oz (1921), credited to L Frank Baum but written by Ruth Plumly Thompson (Binongo, 2003, Chance).
-     Gutenberg #30537; Baum's 14 Oz books and several later Thompson Oz books are also on Gutenberg (the latter as a check).
+   - Authorship verification as one-class anomaly detection; function-word rates per chunk; Burrows' Delta mentioned as the stylometric standard (Manhattan distance on z-scores, ignores correlations).
+   - Example: The Royal Book of Oz (1921), credited to L Frank Baum but written by Ruth Plumly Thompson (Binongo, 2003, Chance); fetch_oz_books() (14 Baum, 15 Thompson).
+   - Model of Baum's style: Normal distribution fitted to Baum's chunks (clean subset, as in BACON); surprisals = Mahalanobis (ch6); leave-one-book-out surprisals as the reference sample; rank approximation; book surprisal = sum of chunk surprisals (as tokens in section 3).
+   - Where the differences hide: Thompson's chunks differ along Baum's smallest-variance principal components (hidden anomalies, ch3); outlier map shows residual-space anomalies (ch9); explains why Delta and a 2-D projection do less well.
+   - Brief mention of unmasking (Koppel & Schler, 2004) and the imposters method (Koppel & Winter, 2014).
 
 Data for the weird package (book must not download from Gutenberg at build time; gutenbergr only in data-raw):
 
@@ -1082,3 +1081,422 @@ The model has seen countless correctly spelt words, so the surprisal of a misspe
 Three are names or abbreviations that the model could not have expected: "Thin Mint" (a brand of biscuit), "Case Ibidini" (a range of wines) and "RDD" (the taster's abbreviation for Ribera del Duero).
 The rest are words or phrases that are unusual in a wine review: "Pinotesque", "interventionist", and a Chardonnay that "bowls it right down the middle" of popular taste.
 Each of these tokens has a surprisal above 21 nats, so the model gave it a probability of less than one in a billion.
+
+## Authorship anomalies {#sec-text-authorship}
+
+Did Shakespeare write all of the plays attributed to him?
+Which of the *Federalist* papers were written by Hamilton and which by Madison\ [@Mosteller1964]?
+Was this essay written by the student who submitted it?
+When the candidate authors are known, the problem is one of classification, called **authorship attribution**.
+More often, there is only one candidate: the person to whom the text is credited.
+Deciding whether that person wrote it, using only the texts known to be theirs, is called **authorship verification**.
+
+Authorship verification is an anomaly detection problem\ [@Koppel2004].
+The known works of the author provide a model of their writing, and the question is whether the disputed text is surprising under that model.
+An anomalous text is unlike the author's other work, which suggests that someone else wrote it, but it does not say who.
+
+### Style markers
+
+The features used to describe an author's style should be the same whatever the author is writing about.
+Content words are a poor choice, as they depend on the subject: a novel set at sea will use "ship" far more often than one set in a city.
+Function words are better (@sec-text-numbers).
+Every text uses them, so their frequencies can be estimated even from a short passage.
+Writers also choose them unconsciously, so their habits are consistent from one text to the next and are difficult to imitate.
+For example, in their study of the *Federalist* papers, @Mosteller1964 found that Hamilton wrote "upon" far more often than Madison, while Madison preferred "whilst" to "while".
+
+A text is split into chunks of equal length, and each chunk $c$ is described by a vector $\bm{x}_c$ giving the rates at which it uses each of the $k$ most common function words.
+The usual measure of stylistic distance is **Burrows' Delta**\ [@Burrows2002].
+Each rate is converted to a $z$-score, using the means and standard deviations of the rates in the chunks of the author's known work, and Delta is the mean of the absolute $z$-scores.
+That is, it is the Manhattan distance (@sec-distances) between the scaled chunk and the author's average chunk, divided by $k$.
+Delta treats each word separately, ignoring the correlations between the rates of different words.
+Instead, the distance of a chunk from the author's style can be measured by its surprisal under a probability distribution fitted to the author's chunks, so that the methods of @sec-density-methods can be used.
+
+### Who wrote *The Royal Book of Oz*?
+
+L. Frank Baum wrote fourteen books about the land of Oz, beginning with *The Wonderful Wizard of Oz* in 1900.
+He died in 1919, but the series was too popular for his publisher to end it.
+The next book, *The Royal Book of Oz* (1921), was credited to Baum and described as "enlarged and edited" by Ruth Plumly Thompson, a children's author who went on to write another eighteen Oz books under her own name.
+It was said to be based on notes that Baum left unfinished, but it is now thought to be entirely Thompson's work\ [@Binongo2003].
+
+The `fetch_oz_books()` function returns the text of the fourteen Oz books written by Baum and fifteen of those written by Thompson, including *The Royal Book of Oz*, which is listed under her name.
+Each row is a paragraph.
+
+```{r}
+#| label: oz-books-display
+#| eval: false
+#| code-fold: false
+
+oz_books <- fetch_oz_books()
+```
+
+```{r}
+#| label: oz-books
+#| include: false
+
+oz_books <- fetch_oz_books() |> cache("oz_books")
+```
+
+```{r}
+#| label: oz-books-print
+#| code-fold: false
+#| dependson: oz-books
+
+oz_books
+```
+
+Each book is split into chunks of 5,000 words, dropping the incomplete chunk at the end.
+The function words used are the 20 most common words in Baum's books that are in the `stop_words` list of @sec-text-numbers.
+
+```{r}
+#| label: oz-words
+#| code-fold: false
+#| dependson: oz-books
+
+oz_words <- oz_books |>
+  unnest_tokens(word, text) |>
+  mutate(chunk = (row_number() - 1) %/% 5000 + 1, .by = title) |>
+  filter(n() == 5000, .by = c(title, chunk))
+baum_words <- oz_words |>
+  filter(author == "L. Frank Baum", word %in% stop_words$word) |>
+  count(word, sort = TRUE) |>
+  slice_head(n = 20) |>
+  pull(word)
+baum_words
+```
+
+The rates of these words per 1,000 words in each chunk form a matrix with one row for each chunk and one column for each word.
+
+```{r}
+#| label: oz-freq
+#| code-fold: false
+#| dependson: oz-words
+
+oz_freq <- oz_words |>
+  filter(word %in% baum_words) |>
+  count(year, title, author, chunk, word) |>
+  mutate(rate = n / 5) |>
+  select(-n) |>
+  tidyr::pivot_wider(names_from = word, values_from = rate, values_fill = 0) |>
+  select(year:chunk, all_of(baum_words))
+oz_freq
+```
+
+### A model of Baum's style
+
+Baum's books are a subset of the data believed to be free of anomalies, like the subset used by the BACON algorithm (@sec-bacon).
+So the mean $\bar{\bm{x}}$ and covariance matrix $\bm{S}$ of his chunks can be estimated without the robust methods of @sec-robust-cov.
+These would be unreliable here anyway, as the minimum covariance determinant estimator would base a $20 \times 20$ covariance matrix on little more than half of Baum's chunks.
+A multivariate Normal distribution with mean $\bar{\bm{x}}$ and covariance matrix $\bm{S}$ is then a model of Baum's style, and the surprisal of chunk $c$ under this distribution (@sec-surprisals) is
+$$
+  s_c = -\log f(\bm{x}_c) = \tfrac{1}{2} d_c^2 + \tfrac{1}{2} \log|2\pi\bm{S}|,
+$$
+where $d_c$ is the Mahalanobis distance of $\bm{x}_c$ from $\bar{\bm{x}}$ (@sec-mahal-scores).
+Unlike Delta, the Mahalanobis distance takes account of the correlations between the rates of different words.
+
+If $\bar{\bm{x}}$ and $\bm{S}$ were known, $d_c^2$ would have a $\chi^2_{20}$ distribution for Baum's chunks, and the surprisal probabilities would follow directly.
+But the parameters are estimated from the same chunks, and the chunks of a book share their characters, their plot and their narrative voice, so a chunk is more like the rest of its own book than a new book would be.
+Instead, each of Baum's books is left out in turn, the Normal distribution is fitted to his other thirteen books, and the surprisals of the chunks of the omitted book are computed from it.
+These are leave-one-out surprisals (@sec-loo-surprisals), with a whole book left out rather than a single observation.
+Thompson's chunks are scored using the Normal distribution fitted to all of Baum's books.
+
+```{r}
+#| label: oz-surprisal
+#| code-fold: false
+#| dependson: oz-freq
+
+X <- oz_freq |>
+  select(all_of(baum_words)) |>
+  as.matrix()
+baum <- oz_freq$author == "L. Frank Baum"
+baum_normal <- function(ref) {
+  dist_multivariate_normal(list(colMeans(ref)), list(cov(ref)))
+}
+oz_freq$s <- surprisals(X, distribution = baum_normal(X[baum, ]))
+for (book in unique(oz_freq$title[baum])) {
+  this <- oz_freq$title == book
+  oz_freq$s[this] <- surprisals(
+    X[this, ],
+    distribution = baum_normal(X[baum & !this, ])
+  )
+}
+```
+
+```{r}
+#| label: oz-chisq-check
+#| include: false
+#| dependson: oz-surprisal
+
+log_det <- determinant(2 * pi * cov(X[baum, ]))$modulus
+mean_d2 <- mean(2 * (oz_freq$s[baum] - log_det / 2))
+# The prose describes the mean squared Mahalanobis distance of Baum's chunks
+stopifnot(round(mean_d2) == 27)
+```
+
+The squared Mahalanobis distances of Baum's chunks, computed in this way, have a mean of `r round(mean_d2)`, rather than the mean of 20 of a $\chi^2_{20}$ distribution, so the $\chi^2_{20}$ distribution would flag too many of his own chunks.
+Instead, the surprisal probabilities are estimated by the rank approximation of @sec-approximate-surprisal-prob, using Baum's `r sum(baum)` leave-one-book-out surprisals as the reference sample.
+That is, the surprisal probability of a chunk is estimated by the proportion of Baum's chunks with a surprisal at least as large.
+There are too few of them to fit a GPD to the largest surprisals.
+The table below gives, for each book, the number of chunks, their mean surprisal, and the proportion with a surprisal probability below 0.05.
+
+```{r}
+#| label: oz-prob
+#| code-fold: false
+#| dependson: oz-surprisal
+
+baum_s <- oz_freq$s[baum]
+oz_freq <- oz_freq |>
+  mutate(p = sapply(s, \(x) mean(baum_s >= x)))
+oz_summary <- oz_freq |>
+  summarise(
+    chunks = n(),
+    s = mean(s),
+    flagged = mean(p < 0.05),
+    .by = c(year, title, author)
+  ) |>
+  arrange(year)
+oz_summary |> print(n = 29)
+```
+
+```{r}
+#| label: oz-check
+#| include: false
+#| dependson: oz-prob
+
+baum_books <- oz_summary |> filter(author == "L. Frank Baum")
+thompson_books <- oz_summary |> filter(author != "L. Frank Baum")
+royal <- oz_summary |> filter(title == "The Royal Book of Oz")
+royal_chunks <- oz_freq |> filter(title == "The Royal Book of Oz")
+thompson_chunks <- oz_freq |>
+  filter(author != "L. Frank Baum", title != "The Royal Book of Oz")
+# The prose describes the surprisals of each book
+stopifnot(
+  NROW(oz_freq) == 230,
+  sum(baum) == 116,
+  identical(
+    baum_words[1:8],
+    c("the", "and", "to", "of", "a", "in", "i", "you")
+  ),
+  "said" %in% baum_words,
+  between(mean(oz_freq$p[baum] < 0.05), 0.04, 0.06),
+  setequal(
+    baum_books$title[baum_books$flagged > 0],
+    c(
+      "The Wonderful Wizard of Oz",
+      "The Marvelous Land of Oz",
+      "Rinkitink in Oz"
+    )
+  ),
+  all(baum_books$flagged[baum_books$year >= 1919] == 0),
+  round(100 * mean(thompson_chunks$p < 0.05)) == 82,
+  min(thompson_books$s) > max(baum_books$s),
+  baum_books$title[which.max(baum_books$s)] == "The Wonderful Wizard of Oz",
+  royal$chunks == 8,
+  sum(royal_chunks$p < 0.05) == 4,
+  sum(royal_chunks$s > max(baum_s)) == 2,
+  sum(thompson_books$s < royal$s) == 1,
+  thompson_books$title[which.min(thompson_books$s)] ==
+    "The Cowardly Lion of Oz",
+  cor(thompson_books$year, thompson_books$s) > 0.5,
+  # The dashed line in fig-oz-surprisal separates the flagged chunks
+  identical(oz_freq$p < 0.05, oz_freq$s > quantile(baum_s, 0.95, type = 1))
+)
+```
+
+About 5% of Baum's chunks have surprisal probabilities below 0.05, as they must when his own chunks are the reference sample.
+They come from only three books: *Rinkitink in Oz*, and his first two Oz books, which are the least typical of his style.
+None come from *The Magic of Oz* or *Glinda of Oz*, which were published after his death.
+In contrast, `r round(100 * mean(thompson_chunks$p < 0.05))`% of the chunks of Thompson's other books have surprisal probabilities below 0.05.
+Four of the eight chunks of *The Royal Book of Oz* have surprisal probabilities below 0.05, and two of them are more surprising than any chunk written by Baum.
+
+The surprisal of a book is the sum of the surprisals of its chunks, if the chunks are treated as independent, just as the surprisal of a document is the sum of the surprisals of its tokens (@sec-text-lm).
+So the mean surprisal of the chunks measures how surprising a book is, allowing for its length.
+Every one of Thompson's books has a larger mean surprisal than every one of Baum's.
+The mean surprisal of *The Royal Book of Oz* is `r sprintf("%.1f", royal$s)`, compared with at most `r sprintf("%.1f", max(baum_books$s))` (for *The Wonderful Wizard of Oz*) for Baum's books.
+So the book is anomalous given Baum's known work, which is consistent with it having been written by someone else.
+
+@fig-oz-surprisal shows the surprisal of every chunk, with the books in order of publication.
+Thompson's style moved further from Baum's as she wrote more Oz books: the correlation between the year of publication and the mean surprisal of her books is `r sprintf("%.2f", cor(thompson_books$year, thompson_books$s))`.
+Only *The Cowardly Lion of Oz* (1923) is closer to Baum's style than *The Royal Book of Oz*.
+Perhaps she imitated Baum's style more closely at first, or perhaps the notes he left did contribute something to *The Royal Book of Oz*; the function words cannot distinguish these explanations.
+
+```{r}
+#| label: fig-oz-surprisal
+#| dependson: oz-prob
+#| fig-cap: >-
+#|   Surprisals of the 5,000-word chunks of the Oz books under a Normal distribution fitted to Baum's chunks, with the books in order of publication.
+#|   Each of Baum's books is left out of the fitted distribution used for its own chunks.
+#|   Chunks to the right of the dashed line have surprisal probabilities below 0.05.
+#| fig-height: 6
+
+oz_freq |>
+  mutate(title = reorder(title, -year)) |>
+  ggplot(aes(x = s, y = title, colour = author)) +
+  geom_vline(
+    xintercept = quantile(baum_s, 0.95, type = 1),
+    linetype = "dashed"
+  ) +
+  geom_point(alpha = 0.7) +
+  labs(x = TeX("Surprisal ($s_c$)"), y = NULL, colour = "Author")
+```
+
+### Where the differences hide
+
+```{r}
+#| label: oz-delta-check
+#| include: false
+#| dependson: oz-prob
+
+delta <- function(x, ref) {
+  rowMeans(abs(scale(x, center = colMeans(ref), scale = apply(ref, 2, sd))))
+}
+oz_delta <- delta(X, X[baum, ])
+for (book in unique(oz_freq$title[baum])) {
+  this <- oz_freq$title == book
+  oz_delta[this] <- delta(X[this, ], X[baum & !this, ])
+}
+delta_p <- sapply(oz_delta, \(d) mean(oz_delta[baum] >= d))
+delta_thompson <- mean(delta_p[oz_freq$title %in% thompson_chunks$title] < 0.05)
+# The prose compares Delta with the Normal surprisals
+stopifnot(
+  round(100 * delta_thompson) == 65,
+  sum(delta_p[oz_freq$title == "The Royal Book of Oz"] < 0.05) == 4
+)
+```
+
+Burrows' Delta, computed with each of Baum's books left out in turn and with the same rank approximation, does less well.
+It gives surprisal probabilities below 0.05 to `r round(100 * delta_thompson)`% of the chunks of Thompson's other books, compared with `r round(100 * mean(thompson_chunks$p < 0.05))`% for the Normal surprisals, although it also flags four of the eight chunks of *The Royal Book of Oz*.
+The difference comes from the correlations between the words, and the principal components (@sec-pca) of Baum's chunks show why.
+The code below finds the principal components of Baum's scaled chunks, and then projects all of the chunks onto them.
+Each projection is divided by the standard deviation of Baum's chunks along that component, and averaged over the chunks of Thompson's books (including *The Royal Book of Oz*).
+
+```{r}
+#| label: oz-pca
+#| code-fold: false
+#| dependson: oz-prob
+
+baum_pca <- prcomp(X[baum, ], scale. = TRUE)
+Z <- scale(X, center = baum_pca$center, scale = baum_pca$scale)
+scores <- Z %*% baum_pca$rotation
+colMeans(scores[!baum, ]) / baum_pca$sdev
+```
+
+```{r}
+#| label: oz-pca-check
+#| include: false
+#| dependson: oz-pca
+
+pc_shift <- colMeans(scores[!baum, ]) / baum_pca$sdev
+# The prose describes the shift of Thompson's chunks along each component
+stopifnot(
+  all(abs(pc_shift[1:4]) < 1),
+  which.max(abs(pc_shift)) == 19,
+  abs(pc_shift[19]) > 3.5,
+  abs(pc_shift[18]) > 2.5
+)
+```
+
+Along the first four components, where Baum's chunks vary most, the average of Thompson's chunks is less than one standard deviation from the average of Baum's.
+The largest shifts, of about `r round(abs(pc_shift[18]))` and `r round(abs(pc_shift[19]))` standard deviations, are along the 18th and 19th components, where Baum's chunks hardly vary at all.
+So Thompson's chunks are anomalous because of their combinations of word rates, rather than the rate of any one word: the anomalies are hidden in the sense of @sec-hiding.
+The squared Mahalanobis distance is the sum of the squared projections onto all the principal components, each divided by the variance of Baum's chunks along that component, so it gives the most weight to the directions in which Baum's chunks vary least.
+Delta scales each word separately, so it gives these directions no extra weight.
+
+An outlier map (@sec-projection-anomalies) shows the same thing.
+The chunks are projected onto the first two principal components of Baum's chunks, which explain `r round(100 * sum(baum_pca$sdev[1:2]^2) / 20)`% of their variance.
+The score distance of each chunk measures how far its projection is from the centre of Baum's chunks, and the orthogonal distance measures how far the chunk is from its projection.
+
+```{r}
+#| label: oz-distances
+#| code-fold: false
+#| dependson: oz-pca
+
+W <- scores[, 1:2]
+R <- Z - W %*% t(baum_pca$rotation[, 1:2])
+oz_freq <- oz_freq |>
+  mutate(
+    score_distance = sqrt(rowSums(sweep(W^2, 2, baum_pca$sdev[1:2]^2, "/"))),
+    orthogonal_distance = sqrt(rowSums(R^2)),
+    book = case_when(
+      author == "L. Frank Baum" ~ "Baum",
+      title == "The Royal Book of Oz" ~ "The Royal Book of Oz",
+      .default = "Thompson (other books)"
+    )
+  )
+```
+
+```{r}
+#| label: oz-distances-check
+#| include: false
+#| dependson: oz-distances
+
+od_threshold <- quantile(oz_freq$orthogonal_distance[baum], 0.95)
+od_share <- mean(oz_freq$orthogonal_distance[!baum] > od_threshold)
+sd_medians <- oz_freq |>
+  summarise(m = median(score_distance), .by = author)
+# The prose describes the outlier map
+stopifnot(
+  round(100 * sum(baum_pca$sdev[1:2]^2) / 20) == 29,
+  round(100 * od_share) == 84,
+  abs(diff(sd_medians$m)) < 0.1
+)
+```
+
+```{r}
+#| label: fig-oz-outlier-map
+#| dependson: oz-distances
+#| fig-cap: >-
+#|   Outlier map of the chunks of the Oz books, using the first two principal components of Baum's chunks.
+#| fig-height: 3.5
+
+oz_freq |>
+  ggplot(aes(x = score_distance, y = orthogonal_distance, colour = book)) +
+  geom_point(alpha = 0.7) +
+  labs(x = "Score distance", y = "Orthogonal distance", colour = NULL)
+```
+
+In @fig-oz-outlier-map, the score distances of Thompson's chunks are similar to those of Baum's, but most of her chunks have larger orthogonal distances: `r round(100 * od_share)`% of them exceed the 95th percentile of the orthogonal distances of Baum's chunks.
+They are anomalies in the residual space, which would be missed by looking for anomalies only in the projection onto the first two principal components.
+Baum's chunks were used to find the principal components, so their distances are a little smaller than those of a new book by Baum would be, but that does not explain differences as large as these.
+
+The scaled rates `Z` also show which words make *The Royal Book of Oz* unlike Baum's books.
+Below are their means over its eight chunks.
+
+```{r}
+#| label: oz-royal-words
+#| code-fold: false
+#| dependson: oz-pca
+
+royal_book <- oz_freq$title == "The Royal Book of Oz"
+colMeans(Z[royal_book, ]) |>
+  sort() |>
+  round(2)
+```
+
+```{r}
+#| label: oz-royal-words-check
+#| include: false
+#| dependson: oz-royal-words
+
+royal_z <- sort(colMeans(Z[royal_book, ]))
+thompson_z <- colMeans(Z[!baum & !royal_book, ])
+# The prose describes the mean z-scores of the Royal Book of Oz
+stopifnot(
+  identical(names(royal_z)[1:4], c("to", "that", "and", "but")),
+  names(royal_z)[20] == "his",
+  royal_z[["his"]] > 1.5,
+  royal_z[["to"]] < -2,
+  all(thompson_z[c("that", "but", "said", "his")] * c(-1, -1, -1, 1) > 1),
+  thompson_z[["said"]] < -2.5
+)
+```
+
+Thompson used "to", "that", "and" and "but" less often than Baum, and "his" more often.
+Her other books share most of these differences, and also use "said" much less often than Baum's.
+Some of the differences may reflect the stories rather than the writers.
+Baum's books have more dialogue than Thompson's, and her books use "she" and "her" less often than his, suggesting that more of her central characters are male.
+Function words are less affected by content than other words, but their rates still depend partly on the story being told.
+
+The approach used here needs only the author's known work, so it can only say that a text is unusual for that author.
+Two other methods of authorship verification make different comparisons.
+The **unmasking** method of @Koppel2004 repeatedly trains a classifier to distinguish the disputed text from the author's known work, removing the most useful features each time; if the accuracy falls quickly, the differences were superficial and the author is probably the same.
+The **imposters** method of @Koppel2014 asks whether the disputed text is closer to the author's work than to the work of a set of other authors (the imposters), using many random subsets of the features.
