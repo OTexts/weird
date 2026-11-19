@@ -22,7 +22,7 @@ source .uvr/activate && quarto render univariate.qmd --to otexts-html
 ```
 Use `--to otexts-html`: `--to html` silently drops the book's styling.
 
-R packages are managed with [uvr](https://github.com/nbafrank/uvr), not `renv`: `uvr sync` installs `uvr.toml`/`uvr.lock` into `.uvr/`, which the Makefile activates.
+R packages are managed with [uvr](https://github.com/nbafrank/uvr), not `renv`: `uvr sync` installs `uvr.toml`/`uvr.lock` into `.uvr/`, which the Makefile activates. Some uvr binaries (e.g. mclust) link to R's `libRblas.so`, which this R lacks; `make update` rebuilds those from source, so after a bare `uvr sync` run `make update` (or rebuild by hand) if a package fails with "libRblas.so: cannot open shared object file".
 
 ## Architecture
 

@@ -36,6 +36,20 @@ update:
 	uvr update && uvr sync
 # uvr unpacks x13binary without its executable bit, which seasonal::seas() needs
 	if [ -f .uvr/library/x13binary/bin/x13ashtml ]; then chmod +x .uvr/library/x13binary/bin/x13ashtml; fi
+# Some binaries (e.g. mclust) link to R's own libRblas.so, which this R (using system BLAS)
+# lacks; rebuild those packages from the CRAN source of the same version
+	@command -v ldd >/dev/null || exit 0; \
+	tmp=$$(mktemp -d); \
+	for so in .uvr/library/*/libs/*.so; do \
+	  ldd "$$so" | grep -q 'libRblas.so => not found' || continue; \
+	  pkg=$$(basename $$(dirname $$(dirname "$$so"))); \
+	  ver=$$(sed -n 's/^Version: //p' .uvr/library/$$pkg/DESCRIPTION); \
+	  echo "Rebuilding $$pkg $$ver from source (binary needs libRblas.so)"; \
+	  curl -fsSL -o $$tmp/$${pkg}_$$ver.tar.gz https://cran.r-project.org/src/contrib/$${pkg}_$$ver.tar.gz || \
+	  curl -fsSL -o $$tmp/$${pkg}_$$ver.tar.gz https://cran.r-project.org/src/contrib/Archive/$$pkg/$${pkg}_$$ver.tar.gz || exit 1; \
+	  R CMD INSTALL --library=.uvr/library $$tmp/$${pkg}_$$ver.tar.gz || exit 1; \
+	done; \
+	rm -rf $$tmp
 
 deploy: html
 	rsync -zrvc --delete -e 'ssh -p 18765' _book/ u192-zw4zvui1lqsb@ssh.otexts.com:www/otexts.com/public_html/weird
