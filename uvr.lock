@@ -910,11 +910,11 @@ requires = [
 
 [[package]]
 name = "dbscan"
-version = "1.2.7"
+version = "1.3.0"
 source = "cran"
-raw_version = "1.2.7"
-url = "https://cran.r-project.org/src/contrib/dbscan_1.2.7.tar.gz"
-checksum = "md5:fbdda33921d96961054b5d3ea0ba4f58"
+raw_version = "1.3.0"
+url = "https://cran.r-project.org/src/contrib/dbscan_1.3.0.tar.gz"
+checksum = "md5:39fc873c7e75da327c4a1a75e52d6ae2"
 requires = [
     "generics",
     "Rcpp",
@@ -2291,11 +2291,11 @@ checksum = "md5:8bece992ad950d8528407acee0bc2d1e"
 
 [[package]]
 name = "mclust"
-version = "6.1.3"
+version = "6.1.4"
 source = "cran"
-raw_version = "6.1.3"
-url = "https://cran.r-project.org/src/contrib/mclust_6.1.3.tar.gz"
-checksum = "md5:ae1ec76c6ab0ac5750b700951adbad9a"
+raw_version = "6.1.4"
+url = "https://cran.r-project.org/src/contrib/mclust_6.1.4.tar.gz"
+checksum = "md5:02aaeaf4337a3c1f2e45e300db4434de"
 
 [[package]]
 name = "memisc"
@@ -2380,11 +2380,11 @@ requires = ["nanonext"]
 
 [[package]]
 name = "mixtime"
-version = "0.4.0"
+version = "0.5.0"
 source = "cran"
-raw_version = "0.4.0"
-url = "https://cran.r-project.org/src/contrib/mixtime_0.4.0.tar.gz"
-checksum = "md5:e82c8ae7098ee9e6be1696357c7fad1a"
+raw_version = "0.5.0"
+url = "https://cran.r-project.org/src/contrib/mixtime_0.5.0.tar.gz"
+checksum = "md5:5d8a2de1a9e5ba181f680fd71f270609"
 requires = [
     "lifecycle",
     "vctrs",
@@ -2549,11 +2549,11 @@ requires = [
 
 [[package]]
 name = "openssl"
-version = "2.5.0"
+version = "2.6.0"
 source = "cran"
-raw_version = "2.5.0"
-url = "https://cran.r-project.org/src/contrib/openssl_2.5.0.tar.gz"
-checksum = "md5:70a9af88c771af0cec26fec55a5c780c"
+raw_version = "2.6.0"
+url = "https://cran.r-project.org/src/contrib/openssl_2.6.0.tar.gz"
+checksum = "md5:4c90a780fe0e9d65448a28a06568dbd0"
 requires = ["askpass"]
 
 [[package]]
