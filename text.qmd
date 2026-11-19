@@ -1375,9 +1375,9 @@ Each projection is divided by the standard deviation of Baum's chunks along that
 #| dependson: oz-prob
 
 baum_pca <- prcomp(X[baum, ], scale. = TRUE)
-Z <- scale(X, center = baum_pca$center, scale = baum_pca$scale)
-scores <- Z %*% baum_pca$rotation
-colMeans(scores[!baum, ]) / baum_pca$sdev
+scores <- predict(baum_pca, X)
+pc_shift <- colMeans(scores[!baum, ]) / baum_pca$sdev
+pc_shift
 ```
 
 ```{r}
@@ -1385,7 +1385,6 @@ colMeans(scores[!baum, ]) / baum_pca$sdev
 #| include: false
 #| dependson: oz-pca
 
-pc_shift <- colMeans(scores[!baum, ]) / baum_pca$sdev
 # The prose describes the shift of Thompson's chunks along each component
 stopifnot(
   all(abs(pc_shift[1:4]) < 1),
@@ -1410,11 +1409,12 @@ The score distance of each chunk measures how far its projection is from the cen
 #| code-fold: false
 #| dependson: oz-pca
 
+Z <- scale(X, center = baum_pca$center, scale = baum_pca$scale)
 W <- scores[, 1:2]
 R <- Z - W %*% t(baum_pca$rotation[, 1:2])
 oz_freq <- oz_freq |>
   mutate(
-    score_distance = sqrt(rowSums(sweep(W^2, 2, baum_pca$sdev[1:2]^2, "/"))),
+    score_distance = sqrt(rowSums(sweep(W, 2, baum_pca$sdev[1:2], "/")^2)),
     orthogonal_distance = sqrt(rowSums(R^2)),
     book = case_when(
       author == "L. Frank Baum" ~ "Baum",
@@ -1464,7 +1464,7 @@ Below are their means over its eight chunks.
 ```{r}
 #| label: oz-royal-words
 #| code-fold: false
-#| dependson: oz-pca
+#| dependson: oz-distances
 
 royal_book <- oz_freq$title == "The Royal Book of Oz"
 colMeans(Z[royal_book, ]) |>
