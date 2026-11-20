@@ -8,7 +8,7 @@ Keep the book's probabilistic framing throughout: anomalous documents have high 
 1. From text to numbers (brief)
    - Tokens, document-term matrix, tf-idf, function vs content words, using tidytext (Silge & Robinson, Text Mining with R).
 
-2. Feature-based anomalies in text
+2. Bag-of-words anomalies
    - Document features: length, type-token ratio, word and sentence length, punctuation, sentiment, readability, out-of-vocabulary share.
      Then HDR / stray / LOF on the feature matrix (parallels the ch13 features strategy).
    - Example: wine review descriptions.
@@ -27,7 +27,6 @@ Keep the book's probabilistic framing throughout: anomalous documents have high 
    - Example: The Royal Book of Oz (1921), credited to L Frank Baum but written by Ruth Plumly Thompson (Binongo, 2003, Chance); fetch_oz_books() (14 Baum, 15 Thompson).
    - Model of Baum's style: Normal distribution fitted to Baum's chunks (clean subset, as in BACON); surprisals = Mahalanobis (ch6); leave-one-book-out surprisals as the reference sample; rank approximation; book surprisal = sum of chunk surprisals (as tokens in section 3).
    - Where the differences hide: Thompson's chunks differ along Baum's smallest-variance principal components (hidden anomalies, ch3); outlier map shows residual-space anomalies (ch9); explains why Delta and a 2-D projection do less well.
-   - Brief mention of unmasking (Koppel & Schler, 2004) and the imposters method (Koppel & Winter, 2014).
 
 Data for the weird package (book must not download from Gutenberg at build time; gutenbergr only in data-raw):
 
@@ -52,7 +51,9 @@ A document is anomalous if it is improbable under a model of the language in whi
 The chapter starts by converting documents to numbers, and then finds anomalous documents from their features or from their surprisals under a language model.
 Then it explores whether a document is surprising given other documents thought to be from the same author; this can help in identifying misattributed authorship.
 
-TBC
+The first two approaches are illustrated using the tasters' descriptions in the wine reviews data, so that the anomalous descriptions can be compared with the other variables recorded for each wine.
+The authorship example uses the Oz books of L. Frank Baum and Ruth Plumly Thompson, including one published under Baum's name after his death.
+A fuller introduction to analysing text in R is given by @Silge2017.
 
 ## From text to numbers {#sec-text-numbers}
 
@@ -151,9 +152,9 @@ The most common words are "and", "the", "a", "of", "with", "this" and "is".
 These are **function words**, which give a sentence its grammatical structure, as distinct from **content words**, such as "wine", "cherry" and "tannins", which carry its meaning.
 Lists of function words and other very common words are called **stop words**.
 
-The `stop_words` data in **`tidytext`** combine three overlapping lists, giving `r scales::comma(n_distinct(stop_words$word))` distinct words, and these account for `r sprintf("%.0f", 100 * stop_share)`% of the tokens in the descriptions.
+The `stop_words` data in **`tidytext`** combine three overlapping lists, giving `r scales::comma(n_distinct(stop_words$word))` distinct words that account for `r sprintf("%.0f", 100 * stop_share)`% of the tokens in the descriptions.
 Stop words are usually removed when the aim is to find what a document is about, but they are useful words for describing *how* it is written.
-Every writer uses these little words in different ways, and their patterns of usage can help identify an author.
+Patterns in how a writer uses these little words can help to identify the writer.
 
 Removing them with `anti_join()` leaves the content words.
 
@@ -283,11 +284,17 @@ stopifnot(
 ```
 
 Most of the words are what a wine drinker would expect: the oak, buttered toast and pineapple of Chardonnay, the cola, raspberry and cranberry of Pinot Noir, the lime, peach and tangerine of Riesling, the gooseberry and grapefruit of Sauvignon Blanc, the pepper and meat of Syrah, and the alcohol of Zinfandel.
-The words "dry" and "off" (as in "off-dry") appear for Riesling, whose reviews often say how sweet the wine is, and the tasters' abbreviations "zin" and "sb" survive the removal of the variety names.
+The words "dry" and "off" (as in "off-dry") appear for Riesling, whose reviews often say how sweet the wine is.
+The tasters' abbreviations "zin" and "sb" survive the removal of the variety names.
 
-## Feature-based anomalies in text {#sec-text-features}
+## Bag-of-words anomalies {#sec-text-bow}
 
-Anomalous documents can be found by describing each document by a few interpretable features, and then applying the multivariate methods of earlier chapters to the features.
+Although a bag of words ignores the order of the words, the word counts can still reveal anomalous documents in two ways.
+First, each document can be summarised by a few interpretable features, such as its length or its tone, and the multivariate methods of earlier chapters applied to find documents with unusual features.
+Second, the other variables recorded with each document can be modelled conditionally on its word counts, to find documents whose words disagree with those variables.
+
+### Reviews with unusual features
+
 The features used here measure the length of a document, its style, its vocabulary and its tone:
 
 - `words`: the number of words;
@@ -297,11 +304,11 @@ The features used here measure the length of a document, its style, its vocabula
 - `sentiment`: the number of positive words minus the number of negative words, divided by the number of words, using the list of `r scales::comma(n_distinct(get_sentiments()$word))` positive and negative words compiled by @Hu2004;
 - `punctuation`: the number of punctuation marks for each word.
 
-### Reviews with unusual features
+Apart from `punctuation`, the features are computed from the word counts of a document: `words` is their total, and the others are averages over the words of the document, weighted by their counts.
+All but `idf` depend only on the document itself; `idf` also depends on the whole collection, through the number of documents containing each word.
 
-We treat each of the `r scales::comma(NROW(wine_reviews))` descriptions as a document and compute the six features for each one.
-All but one of the features depend only on the description itself.
-The exception is idf, which depends on the whole collection: here $n_w$ is the number of descriptions containing word $w$, not the number of varieties as in @fig-wine-tfidf.
+Each of the `r scales::comma(NROW(wine_reviews))` descriptions is treated as a document, and the six features are computed for each one.
+Because the documents are now descriptions rather than varieties, $n_w$ in `idf` is the number of descriptions containing word $w$, not the number of varieties as in @fig-wine-tfidf.
 
 ```{r}
 #| label: wine-text-features
@@ -337,7 +344,6 @@ text_features <- wine_words |>
 text_features
 ```
 
-Apart from `words`, these features are averages over the words of a review.
 The reviews are relatively short, with a median of `r median(text_features$words)` words, so the features will be noisy, especially for the shortest reviews.
 
 The number of words is replaced by its logarithm, the features are converted to robust multivariate $z$-scores with `mvscale()` (@sec-scaling), and a Gaussian mixture model (@sec-gmm-surprisal) is fitted to the scaled features.
@@ -514,7 +520,7 @@ reviews <- text_features |>
 The regression model has more than 100,000 observations and nearly 1,000 predictors.
 To save memory, `model = FALSE` stops `lm()` from storing another copy of the design matrix in its model frame.
 Even so, the fitted model is large because it contains the QR decomposition of the design matrix, which `surprisals_prob()` needs for the leverages.
-So we keep only the coefficients, fitted values and surprisal probabilities, and then remove the fitted model and the design matrix.
+So only the coefficients, fitted values and surprisal probabilities are kept, and the fitted model and the design matrix are removed.
 
 ```{r}
 #| label: wine-text-points-display
@@ -627,7 +633,8 @@ stopifnot(
 )
 ```
 
-The model explains `r sprintf("%.0f", 100 * r2_words)`% of the variation in the points, and doubling the length of a review adds `r sprintf("%.1f", log(2) * fit_words$coef[2])` points to its expected score if the extra words are all rare ones, leaving the counts of the common words unchanged.
+The model explains `r sprintf("%.0f", 100 * r2_words)`% of the variation in the points.
+Doubling the length of a review adds `r sprintf("%.1f", log(2) * fit_words$coef[2])` points to its expected score if the extra words are all rare ones, leaving the counts of the common words unchanged.
 The words with the most negative coefficients name faults, such as "lacks", "thin", "flat" and "sugary", or damn with faint praise, such as "simple" and "short".
 Those with the most positive coefficients are superlatives, such as "gorgeous", "beautiful" and "wonderful", and years, which occur in advice on when to drink a wine (e.g., "Drink 2023--2035"), given mainly for wines worth keeping.
 
@@ -649,7 +656,7 @@ reviews |>
 Five of these are wines with 96--98 points, but the model predicts only `r round(min(top_great$fitted))`--`r round(max(top_great$fitted))` points for them, close to the average of `r round(mean(reviews$points))` points for all reviews.
 Their reviews praise them in words too rare to be among the predictors, such as "powerhouse", "dazzling", "knockout" and "memorable", while some of their common words count against them.
 "Flat-out dazzling" contains "flat", whose coefficient is `r sprintf("%.2f", coefs["flat"])`, and "an almost medicinal intensity" contains "medicinal", whose coefficient is `r sprintf("%.2f", coefs["medicinal"])`.
-A bag of words gives a word the same weight regardless of the words that surround it, so it does not detect the context in which the word appears.
+A bag of words gives a word the same weight whatever words surround it.
 One review starts with "95-97.\ Barrel sample.", the taster's range of scores for a wine tasted before it was bottled.
 The text states the score, but "95" and "97" are not among the predictors, so the model has to predict the points from the other words, which suggest a score close to the average.
 
@@ -671,7 +678,7 @@ reviews |>
   with(paste(points, "points.", description))
 ```
 
-These are wines with 80--83 points, and their reviews describe the faults in vivid words that are too rare to be among the predictors, such as "asphalt", "Band-Aid" and "Roquefort".
+These are wines with 80--83 points, whose reviews describe the faults in vivid words that are too rare to be among the predictors, such as "asphalt", "Band-Aid" and "Roquefort".
 Others use favourable words to unfavourable effect: a wine that "won't hold your attention for very long", and "fading elegance" in a wine that is "brown around the edges".
 The coefficients of "long" and "elegance" are `r sprintf("%.2f", coefs["long"])` and `r sprintf("%.2f", coefs["elegance"])`.
 
@@ -982,9 +989,9 @@ The texts of the twelve most surprising reviews are shown below.
 lm_reviews |> slice_max(s, n = 12) |> pull(description)
 ```
 
-The three most surprising are import statements, which were also among the least probable descriptions in @sec-text-features.
+The three most surprising are import statements, which were also among the least probable descriptions in @sec-text-bow.
 The other nine are genuine reviews, all of them shorter than the median review, and written in an unusual style: acids that "become jumpy", aromas that are "horsey", a wine that "convinces with simple purity" and another that feels "a bit clampy".
-Only two of the nine were flagged by the text features in @sec-text-features.
+Only two of the nine were flagged by the text features in @sec-text-bow.
 The mean surprisals are almost unrelated to the points: their correlation is `r sprintf("%.2f", cor(lm_reviews$s, lm_reviews$points))`.
 So the language model finds reviews whose wording is unusual, not reviews that disagree with their points.
 
@@ -1000,14 +1007,15 @@ lm_reviews |> slice_min(s, n = 6) |> pull(description)
 ```
 
 These are the most formulaic reviews.
-Five of them list the percentages of the grape varieties in a blend, and once a review starts with "This blend of 43% Cabernet Sauvignon, 29% Merlot", the names of the other varieties are easy to predict.
-None of the six were flagged by the text features in @sec-text-features.
+Five of them list the percentages of the grape varieties in a blend.
+Once a review starts with "This blend of 43% Cabernet Sauvignon, 29% Merlot", the names of the other varieties are easy to predict.
+None of the six were flagged by the text features in @sec-text-bow.
 
 The fourth review is different: its text appears twice, the second copy immediately following the first.
 The mean surprisal of the first half of the tokens is `r sprintf("%.2f", repeated_s[1])` nats (a perplexity of about `r round(exp(repeated_s[1]))`), close to the median for all reviews, but that of the second half is only `r sprintf("%.2f", repeated_s[2])` nats (a perplexity of `r sprintf("%.2f", exp(repeated_s[2]))`): having read the review once, the model is almost never in doubt about the next token the second time.
 A bag of words cannot detect a repeated text, as repeating a document only doubles its word counts.
 The repeated review is anomalous because the language model finds it highly probable, so its mean surprisal lies in the *lower* tail of the distribution, not the upper tail.
-Text that has been written by a large language model is also unusually predictable under a similar model, and detectors of machine-generated text are built on this idea\ [@Mitchell2023; @Hans2024].
+Detectors of machine-generated text are built on the same idea, as text written by a large language model is also unusually predictable under a similar model\ [@Mitchell2023; @Hans2024].
 
 ### Surprising tokens
 
@@ -1092,7 +1100,7 @@ More often, there is only one candidate: the person to whom the text is credited
 Deciding whether that person wrote it, using only the texts known to be theirs, is called **authorship verification**.
 
 Authorship verification is an anomaly detection problem\ [@Koppel2004].
-The known works of the author provide a model of their writing, and the question is whether the disputed text is surprising under that model.
+The question is whether the disputed text is surprising under a model of the author's writing, fitted to their known works.
 An anomalous text is unlike the author's other work, which suggests that someone else wrote it, but it does not say who.
 
 ### Style markers
@@ -1104,23 +1112,15 @@ Every text uses them, so their frequencies can be estimated even from a short pa
 Writers also choose them unconsciously, so their habits are consistent from one text to the next and are difficult to imitate.
 For example, in their study of the *Federalist* papers, @Mosteller1964 found that Hamilton wrote "upon" far more often than Madison, while Madison preferred "whilst" to "while".
 
-A text is split into chunks of equal length, and each chunk $c$ is described by a $k$-vector $\bm{x}_c$ whose $j$th element, $x_{cj}$, is the rate at which the chunk uses the $j$th of the $k$ most common function words.
-The usual measure of stylistic distance is **Burrows' Delta**\ [@Burrows2002].
-Let $\bar{x}_j$ and $\hat{\sigma}_j$ be the mean and standard deviation of the $j$th rate over the chunks of the author's known work.
-Each rate is converted to a $z$-score, $z_{cj} = (x_{cj} - \bar{x}_j)/\hat{\sigma}_j$, and Delta is the mean of their absolute values:
-$$
-  \Delta_c = \frac{1}{k}\sum_{j=1}^k |z_{cj}|.
-$$
-That is, $k\Delta_c$ is the Manhattan distance (@sec-distances) between $\bm{x}_c$ and the author's mean vector $\bar{\bm{x}}$, once each rate has been scaled by its standard deviation.
-Delta treats each word separately, ignoring the correlations between the rates of different words.
-Instead, the distance of a chunk from the author's style can be measured by the surprisal of $\bm{x}_c$ under a probability distribution fitted to the author's chunks, so that the methods of @sec-density-methods can be used.
+A text is split into chunks of equal length, and each chunk $c$ is described by a $k$-vector $\bm{x}_c$ whose $j$th element, $x_{cj}$, is the number of times the chunk uses the $j$th of the $k$ most common function words.
+The distance of a chunk from the author's style can then be measured by the surprisal of $\bm{x}_c$ under a probability distribution fitted to the author's chunks, so that the methods of @sec-density-methods can be used.
 
 ### Who wrote *The Royal Book of Oz*?
 
 L. Frank Baum wrote fourteen books about the land of Oz, beginning with *The Wonderful Wizard of Oz* in 1900.
 He died in 1919, but the series was too popular for his publisher to end it.
 The next book, *The Royal Book of Oz* (1921), was credited to Baum and described as "enlarged and edited" by Ruth Plumly Thompson, a children's author who went on to write another eighteen Oz books under her own name.
-It was said to be based on notes that Baum left unfinished, but it is now thought to be entirely Thompson's work\ [@Binongo2003].
+Although it was said to be based on notes that Baum left unfinished, it is now thought to be entirely Thompson's work\ [@Binongo2003].
 
 The `fetch_oz_books()` function returns the text of the fourteen Oz books written by Baum and fifteen of those written by Thompson, including *The Royal Book of Oz*, which is listed under her name.
 Each row is a paragraph.
@@ -1148,8 +1148,8 @@ oz_books <- fetch_oz_books() |> cache("oz_books")
 oz_books
 ```
 
-We will split the books into chunks of 5,000 words (dropping the incomplete chunks at the end of each book) and use the number of function words to describe each chunk.
-The function words used are the 20 most common words in Baum's known books that are in the `stop_words` list of @sec-text-numbers.
+The books are split into chunks of 5,000 words, dropping the incomplete chunks at the end of each book.
+Each chunk is described by the number of times it uses each of 20 function words: the most common words in Baum's known books that are in the `stop_words` list of @sec-text-numbers.
 
 ```{r}
 #| label: oz-words
@@ -1186,14 +1186,14 @@ oz_freq
 ### A model of Baum's style
 
 Let $\bm{x}_c$ be the vector of counts of the 20 function words in chunk $c$, the $c$th row of the matrix above.
-We can model Baum's style by assuming that, for his chunks, $\bm{x}_c$ has a multivariate Normal distribution with mean $\bm{\mu}$ and covariance matrix $\bm{\Sigma}$.
+Baum's style is modelled by assuming that, for his chunks, $\bm{x}_c$ has a multivariate Normal distribution with mean $\bm{\mu}$ and covariance matrix $\bm{\Sigma}$.
 As the counts are relatively large, the integer nature of the data can be ignored and the numbers treated as continuous.
 The surprisal of chunk $c$ under this distribution (@sec-surprisals) is
 $$
   s_c = -\log f(\bm{x}_c) = \tfrac{1}{2} d_c^2 + \tfrac{1}{2} \log|2\pi\bm{\Sigma}|,
 $$
 where $d_c$ is the Mahalanobis distance of $\bm{x}_c$ from $\bm{\mu}$ (@sec-mahal-scores).
-Unlike Delta, the Mahalanobis distance takes account of the correlations between the rates of different words.
+The Mahalanobis distance takes account of the correlations between the counts of different words.
 For Baum's chunks, $d_c^2$ has a $\chi^2_{20}$ distribution, so the surprisal probabilities follow directly.
 
 Baum's books are a subset of the data believed to be free of anomalies, so $\bm{\mu}$ and $\bm{\Sigma}$ can be estimated by the mean $\bar{\bm{x}}$ and covariance matrix $\bm{S}$ of his chunks, without the robust methods of @sec-robust-cov.
@@ -1368,9 +1368,18 @@ stopifnot(
 ```
 
 The Normal model separates the two authors clearly, but it does not show which aspects of the word counts make Thompson's chunks surprising.
-A comparison with Burrows' Delta, which uses the same counts but ignores the correlations between them, gives a clue.
+A comparison with the usual stylometric measure, **Burrows' Delta**\ [@Burrows2002], gives a clue.
+Let $\bar{x}_j$ and $\hat{\sigma}_j$ be the mean and standard deviation of the $j$th count over the chunks of the author's known work.
+Each count is converted to a $z$-score, $z_{cj} = (x_{cj} - \bar{x}_j)/\hat{\sigma}_j$, and Delta is the mean of their absolute values:
+$$
+  \Delta_c = \frac{1}{k}\sum_{j=1}^k |z_{cj}|.
+$$
+That is, $k\Delta_c$ is the Manhattan distance (@sec-distances) between $\bm{x}_c$ and the author's mean vector $\bar{\bm{x}}$, once each count has been scaled by its standard deviation.
+Delta uses the same counts as the Normal model, but treats each word separately, ignoring the correlations between them.
+
 With each of Baum's books left out in turn and the same rank approximation, Delta gives surprisal probabilities below 0.05 to `r round(100 * delta_thompson)`% of the chunks of Thompson's other books, compared with `r round(100 * mean(thompson_chunks$p < 0.05))`% for the Normal surprisals, although it also flags four of the eight chunks of *The Royal Book of Oz*.
-So much of the difference between the authors lies in the correlations between the words, and the principal components (@sec-pca) of Baum's chunks show where.
+So much of the difference between the authors lies in the correlations between the words.
+The principal components (@sec-pca) of Baum's chunks show where.
 The code below finds the principal components of Baum's scaled chunks, and then projects all of the chunks onto them.
 Each projection is divided by the standard deviation of Baum's chunks along that component, and averaged over the chunks of Thompson's books (including *The Royal Book of Oz*).
 
@@ -1403,7 +1412,7 @@ Along the first four components, where Baum's chunks vary most, the average of T
 The largest shifts, of about `r round(abs(pc_shift[18]))` and `r round(abs(pc_shift[19]))` standard deviations, are along the 18th and 19th components, where Baum's chunks hardly vary at all.
 So Thompson's chunks are anomalous because of their combinations of word rates, rather than the rate of any one word: the anomalies are hidden in the sense of @sec-hiding.
 The squared Mahalanobis distance is the sum of the squared projections onto all the principal components, each divided by the variance of Baum's chunks along that component, so it gives the most weight to the directions in which Baum's chunks vary least.
-Delta scales each word separately, so it gives these directions no extra weight.
+Delta, which scales each word separately, gives these directions no extra weight.
 
 An outlier map (@sec-projection-anomalies) shows the same thing.
 The chunks are projected onto the first two principal components of Baum's chunks, which explain `r round(100 * sum(baum_pca$sdev[1:2]^2) / 20)`% of their variance.
@@ -1461,7 +1470,7 @@ oz_freq |>
 
 In @fig-oz-outlier-map, the score distances of Thompson's chunks are similar to those of Baum's, but most of her chunks have larger orthogonal distances: `r round(100 * od_share)`% of them exceed the 95th percentile of the orthogonal distances of Baum's chunks.
 They are anomalies in the residual space, which would be missed by looking for anomalies only in the projection onto the first two principal components.
-Baum's chunks were used to find the principal components, so their distances are a little smaller than those of a new book by Baum would be, but that does not explain differences as large as these.
+Because Baum's chunks were used to find the principal components, their distances are a little smaller than those of a new book by Baum would be, but not by enough to explain differences as large as these.
 
 The scaled counts `Z` also show which words make *The Royal Book of Oz* unlike Baum's books.
 Below are their means over its eight chunks.
@@ -1498,10 +1507,28 @@ stopifnot(
 Thompson used "to", "that", "and" and "but" less often than Baum, and "his" more often.
 Her other books share most of these differences, and also use "said" much less often than Baum's.
 Some of the differences may reflect the stories rather than the writers.
-Baum's books have more dialogue than Thompson's, and her books use "she" and "her" less often than his, suggesting that more of her central characters are male.
+Baum's books have more dialogue than Thompson's.
+Her books also use "she" and "her" less often than his, which suggests that more of her central characters are male.
 Function words are less affected by content than other words, but their rates still depend partly on the story being told.
 
-The approach used here needs only the author's known work, so it can only say that a text is unusual for that author.
-Two other methods of authorship verification make different comparisons.
-The **unmasking** method of @Koppel2004 repeatedly trains a classifier to distinguish the disputed text from the author's known work, removing the most useful features each time; if the accuracy falls quickly, the differences were superficial and the author is probably the same.
-The **imposters** method of @Koppel2014 asks whether the disputed text is closer to the author's work than to the work of a set of other authors (the imposters), using many random subsets of the features.
+## Summary {#sec-text-summary}
+
+Each method in this chapter converts documents to numbers, and then looks for documents with small surprisal probabilities under a model of typical text.
+The methods differ in how much of the text they use, from word counts with no regard to order, to every token in the context of all the tokens before it.
+
+- **Bag-of-words anomalies**: each document is reduced to its word counts, which form a large and sparse document-term matrix.
+  A few interpretable features of each document, mostly computed from its word counts, such as its length, its share of function words, the rarity of its words, its sentiment and its punctuation, can be scaled robustly and modelled with a multivariate density, so that anomalous documents are those with unusual features or unusual combinations of features.
+  Features that are averages over the words of a document are noisy for short documents, which are therefore more likely to be flagged.
+  When other variables are recorded with each document, a regression on the word counts gives conditional surprisals, which find documents whose wording disagrees with those variables.
+  Because a bag of words ignores context, it cannot read words that are too rare to be among the predictors, or common words whose meaning depends on the words around them.
+- **Language-model surprisals**: a language model gives the probability of each token given the tokens before it, so the surprisal of a document is the sum of the surprisals of its tokens.
+  The mean surprisal per token (or the perplexity) allows documents of different lengths to be compared.
+  The token surprisals also show where the surprises are within a document, such as misspellings and unexpected names.
+  Both tails of the distribution are of interest: unusually high surprisals indicate unusual wording, while unusually low surprisals indicate formulaic or repeated text, or text generated by a similar model.
+  The model should not have been trained on the documents being scored, as it would then find them unduly predictable.
+- **Authorship anomalies**: authorship verification asks whether a disputed text is surprising under a model fitted to the author's known work.
+  Function words make good style markers, as their rates depend less on the subject than those of content words, and writers use them unconsciously.
+  The chunks of a text are not independent, so the reference sample of surprisals is obtained by leaving out a whole work at a time.
+  The surprisal probabilities are then estimated by the rank approximation.
+  Differences in style can hide in combinations of words, along the directions in which the author's own chunks vary least, so methods that ignore the correlations between words, or project onto the leading principal components only, can miss them.
+  An anomalous text is unlike the author's other work, but the method cannot say who wrote it.
