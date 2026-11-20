@@ -1104,12 +1104,16 @@ Every text uses them, so their frequencies can be estimated even from a short pa
 Writers also choose them unconsciously, so their habits are consistent from one text to the next and are difficult to imitate.
 For example, in their study of the *Federalist* papers, @Mosteller1964 found that Hamilton wrote "upon" far more often than Madison, while Madison preferred "whilst" to "while".
 
-A text is split into chunks of equal length, and each chunk $c$ is described by a vector $\bm{x}_c$ giving the rates at which it uses each of the $k$ most common function words.
+A text is split into chunks of equal length, and each chunk $c$ is described by a $k$-vector $\bm{x}_c$ whose $j$th element, $x_{cj}$, is the rate at which the chunk uses the $j$th of the $k$ most common function words.
 The usual measure of stylistic distance is **Burrows' Delta**\ [@Burrows2002].
-Each rate is converted to a $z$-score, using the means and standard deviations of the rates in the chunks of the author's known work, and Delta is the mean of the absolute $z$-scores.
-That is, it is the Manhattan distance (@sec-distances) between the scaled chunk and the author's average chunk, divided by $k$.
+Let $\bar{x}_j$ and $\hat{\sigma}_j$ be the mean and standard deviation of the $j$th rate over the chunks of the author's known work.
+Each rate is converted to a $z$-score, $z_{cj} = (x_{cj} - \bar{x}_j)/\hat{\sigma}_j$, and Delta is the mean of their absolute values:
+$$
+  \Delta_c = \frac{1}{k}\sum_{j=1}^k |z_{cj}|.
+$$
+That is, $k\Delta_c$ is the Manhattan distance (@sec-distances) between $\bm{x}_c$ and the author's mean vector $\bar{\bm{x}}$, once each rate has been scaled by its standard deviation.
 Delta treats each word separately, ignoring the correlations between the rates of different words.
-Instead, the distance of a chunk from the author's style can be measured by its surprisal under a probability distribution fitted to the author's chunks, so that the methods of @sec-density-methods can be used.
+Instead, the distance of a chunk from the author's style can be measured by the surprisal of $\bm{x}_c$ under a probability distribution fitted to the author's chunks, so that the methods of @sec-density-methods can be used.
 
 ### Who wrote *The Royal Book of Oz*?
 
@@ -1144,8 +1148,8 @@ oz_books <- fetch_oz_books() |> cache("oz_books")
 oz_books
 ```
 
-Each book is split into chunks of 5,000 words, dropping the incomplete chunk at the end.
-The function words used are the 20 most common words in Baum's books that are in the `stop_words` list of @sec-text-numbers.
+We will split the books into chunks of 5,000 words (dropping the incomplete chunks at the end of each book) and use the number of function words to describe each chunk.
+The function words used are the 20 most common words in Baum's known books that are in the `stop_words` list of @sec-text-numbers.
 
 ```{r}
 #| label: oz-words
@@ -1164,7 +1168,7 @@ baum_words <- oz_words |>
 baum_words
 ```
 
-The rates of these words per 1,000 words in each chunk form a matrix with one row for each chunk and one column for each word.
+The counts of function words per chunk form a matrix with one row for each chunk and one column for each word.
 
 ```{r}
 #| label: oz-freq
@@ -1174,27 +1178,27 @@ The rates of these words per 1,000 words in each chunk form a matrix with one ro
 oz_freq <- oz_words |>
   filter(word %in% baum_words) |>
   count(year, title, author, chunk, word) |>
-  mutate(rate = n / 5) |>
-  select(-n) |>
-  tidyr::pivot_wider(names_from = word, values_from = rate, values_fill = 0) |>
+  tidyr::pivot_wider(names_from = word, values_from = n, values_fill = 0) |>
   select(year:chunk, all_of(baum_words))
 oz_freq
 ```
 
 ### A model of Baum's style
 
-Baum's books are a subset of the data believed to be free of anomalies, like the subset used by the BACON algorithm (@sec-bacon).
-So the mean $\bar{\bm{x}}$ and covariance matrix $\bm{S}$ of his chunks can be estimated without the robust methods of @sec-robust-cov.
-These would be unreliable here anyway, as the minimum covariance determinant estimator would base a $20 \times 20$ covariance matrix on little more than half of Baum's chunks.
-A multivariate Normal distribution with mean $\bar{\bm{x}}$ and covariance matrix $\bm{S}$ is then a model of Baum's style, and the surprisal of chunk $c$ under this distribution (@sec-surprisals) is
+Let $\bm{x}_c$ be the vector of counts of the 20 function words in chunk $c$, the $c$th row of the matrix above.
+We can model Baum's style by assuming that, for his chunks, $\bm{x}_c$ has a multivariate Normal distribution with mean $\bm{\mu}$ and covariance matrix $\bm{\Sigma}$.
+As the counts are relatively large, the integer nature of the data can be ignored and the numbers treated as continuous.
+The surprisal of chunk $c$ under this distribution (@sec-surprisals) is
 $$
-  s_c = -\log f(\bm{x}_c) = \tfrac{1}{2} d_c^2 + \tfrac{1}{2} \log|2\pi\bm{S}|,
+  s_c = -\log f(\bm{x}_c) = \tfrac{1}{2} d_c^2 + \tfrac{1}{2} \log|2\pi\bm{\Sigma}|,
 $$
-where $d_c$ is the Mahalanobis distance of $\bm{x}_c$ from $\bar{\bm{x}}$ (@sec-mahal-scores).
+where $d_c$ is the Mahalanobis distance of $\bm{x}_c$ from $\bm{\mu}$ (@sec-mahal-scores).
 Unlike Delta, the Mahalanobis distance takes account of the correlations between the rates of different words.
+For Baum's chunks, $d_c^2$ has a $\chi^2_{20}$ distribution, so the surprisal probabilities follow directly.
 
-If $\bar{\bm{x}}$ and $\bm{S}$ were known, $d_c^2$ would have a $\chi^2_{20}$ distribution for Baum's chunks, and the surprisal probabilities would follow directly.
-But the parameters are estimated from the same chunks, and the chunks of a book share their characters, their plot and their narrative voice, so a chunk is more like the rest of its own book than a new book would be.
+Baum's books are a subset of the data believed to be free of anomalies, so $\bm{\mu}$ and $\bm{\Sigma}$ can be estimated by the mean $\bar{\bm{x}}$ and covariance matrix $\bm{S}$ of his chunks, without the robust methods of @sec-robust-cov.
+But estimates from the same chunks that are being scored fit those chunks better than they would fit a new book by Baum, and the $\chi^2_{20}$ distribution no longer applies.
+Leaving out one chunk at a time would not solve this, as the rest of the book shares the omitted chunk's characters, plot and narrative voice.
 Instead, each of Baum's books is left out in turn, the Normal distribution is fitted to his other thirteen books, and the surprisals of the chunks of the omitted book are computed from it.
 These are leave-one-out surprisals (@sec-loo-surprisals), with a whole book left out rather than a single observation.
 Thompson's chunks are scored using the Normal distribution fitted to all of Baum's books.
@@ -1254,7 +1258,7 @@ oz_summary <- oz_freq |>
     .by = c(year, title, author)
   ) |>
   arrange(year)
-oz_summary |> print(n = 29)
+oz_summary |> print(n = Inf)
 ```
 
 ```{r}
@@ -1303,7 +1307,7 @@ stopifnot(
 ```
 
 About 5% of Baum's chunks have surprisal probabilities below 0.05, as they must when his own chunks are the reference sample.
-They come from only three books: *Rinkitink in Oz*, and his first two Oz books, which are the least typical of his style.
+They come from only three books, which are also the three with the largest mean surprisals: his first two Oz books and *Rinkitink in Oz*.
 None come from *The Magic of Oz* or *Glinda of Oz*, which were published after his death.
 In contrast, `r round(100 * mean(thompson_chunks$p < 0.05))`% of the chunks of Thompson's other books have surprisal probabilities below 0.05.
 Four of the eight chunks of *The Royal Book of Oz* have surprisal probabilities below 0.05, and two of them are more surprising than any chunk written by Baum.
@@ -1363,9 +1367,10 @@ stopifnot(
 )
 ```
 
-Burrows' Delta, computed with each of Baum's books left out in turn and with the same rank approximation, does less well.
-It gives surprisal probabilities below 0.05 to `r round(100 * delta_thompson)`% of the chunks of Thompson's other books, compared with `r round(100 * mean(thompson_chunks$p < 0.05))`% for the Normal surprisals, although it also flags four of the eight chunks of *The Royal Book of Oz*.
-The difference comes from the correlations between the words, and the principal components (@sec-pca) of Baum's chunks show why.
+The Normal model separates the two authors clearly, but it does not show which aspects of the word counts make Thompson's chunks surprising.
+A comparison with Burrows' Delta, which uses the same counts but ignores the correlations between them, gives a clue.
+With each of Baum's books left out in turn and the same rank approximation, Delta gives surprisal probabilities below 0.05 to `r round(100 * delta_thompson)`% of the chunks of Thompson's other books, compared with `r round(100 * mean(thompson_chunks$p < 0.05))`% for the Normal surprisals, although it also flags four of the eight chunks of *The Royal Book of Oz*.
+So much of the difference between the authors lies in the correlations between the words, and the principal components (@sec-pca) of Baum's chunks show where.
 The code below finds the principal components of Baum's scaled chunks, and then projects all of the chunks onto them.
 Each projection is divided by the standard deviation of Baum's chunks along that component, and averaged over the chunks of Thompson's books (including *The Royal Book of Oz*).
 
@@ -1458,7 +1463,7 @@ In @fig-oz-outlier-map, the score distances of Thompson's chunks are similar to 
 They are anomalies in the residual space, which would be missed by looking for anomalies only in the projection onto the first two principal components.
 Baum's chunks were used to find the principal components, so their distances are a little smaller than those of a new book by Baum would be, but that does not explain differences as large as these.
 
-The scaled rates `Z` also show which words make *The Royal Book of Oz* unlike Baum's books.
+The scaled counts `Z` also show which words make *The Royal Book of Oz* unlike Baum's books.
 Below are their means over its eight chunks.
 
 ```{r}
