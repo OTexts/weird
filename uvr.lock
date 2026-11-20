@@ -398,11 +398,11 @@ checksum = "md5:825ec304404cad180a6bfb5aef5204b7"
 
 [[package]]
 name = "S7"
-version = "0.2.2"
+version = "1.0.0"
 source = "cran"
-raw_version = "0.2.2"
-url = "https://cran.r-project.org/src/contrib/S7_0.2.2.tar.gz"
-checksum = "md5:6a40d3eae470be0f06a03737b9391269"
+raw_version = "1.0.0"
+url = "https://cran.r-project.org/src/contrib/S7_1.0.0.tar.gz"
+checksum = "md5:efb87f59334cee4c9ea0a8af20bf80e6"
 
 [[package]]
 name = "SnowballC"
@@ -2744,11 +2744,11 @@ requires = [
 
 [[package]]
 name = "processx"
-version = "3.9.0"
+version = "3.10.0"
 source = "cran"
-raw_version = "3.9.0"
-url = "https://cran.r-project.org/src/contrib/processx_3.9.0.tar.gz"
-checksum = "md5:c4e0ed59285d195cdb03c66e3a9cb76d"
+raw_version = "3.10.0"
+url = "https://cran.r-project.org/src/contrib/processx_3.10.0.tar.gz"
+checksum = "md5:787f91ac0ed47ea60bba66d8b548b2d4"
 requires = [
     "ps",
     "R6",

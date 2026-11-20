@@ -14,7 +14,8 @@ contributes:
       linestretch: 1.6
       mainfont: "Libron, Georgia, serif"
       html-math-method: katex
-      syntax-highlighting: kate
+      # Outback light (https://github.com/robjhyndman/outback), made for $code-block-bg
+      syntax-highlighting: outback-light.theme
       number-depth: 2
       code-link: false
       fig-responsive: true
@@ -46,6 +47,7 @@ contributes:
         - before-title.tex
       documentclass: book
       pdf-engine: lualatex
+      syntax-highlighting: outback-light.theme
       # Kp text and maths (the OpenType kpfonts, from kpfonts-otf), Fira Sans
       # and Hack as in the HTML. Hack is not in TeX Live: it is in fonts/, and
       # otexts.lua adds its Path. Options are strings so a book's own options
