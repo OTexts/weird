@@ -472,7 +472,7 @@ The contribution also depends on the row's mass, and measures how much the row a
 The Northern Territory has only `r sprintf("%.0f", 100 * state_d("NT")$mass)`% of the deaths, but because its profile is so unusual, it accounts for `r sprintf("%.0f", state_d("NT")$contribution)`% of the total inertia.
 The ACT has less than 1% of the deaths, so although its profile is the second most unusual, it contributes only `r sprintf("%.0f", state_d("ACT")$contribution)`% of the inertia.
 A profile estimated from a few observations is more variable than one estimated from many, so a large distance for a small row could be noise.
-Row $j$'s term in the chi-squared statistic is $n_{j \cdot} d_j^2$, and if the row's observations came from the average profile, this would be about $K - 1$ on average.
+If the row's observations came from the average profile, row $j$'s term in the chi-squared statistic, $n_{j \cdot} d_j^2$, would be about $K - 1$ on average.
 For the ACT, it is `r sprintf("%.1f", act_x2)`, compared with $K - 1 = 5$, so its unusual profile is not just noise.
 
 ### The correspondence analysis map
@@ -526,7 +526,7 @@ stopifnot(
 )
 ```
 
-The same analysis can be applied to the columns, and it gives the same principal inertias, so the rows and the columns can be shown on the same map.
+Applying the same analysis to the columns gives the same principal inertias, so the rows and the columns can be shown on the same map.
 @fig-road-ca shows the first two dimensions, which together capture `r sprintf("%.0f", road_ca$eig[2, 3])`% of the total inertia.
 For most states, the distance from the origin of the map is close to the chi-squared distance, but not for South Australia or the ACT.
 Much of the difference from the average profile for these two lies in the dimensions that are not shown.
@@ -884,7 +884,7 @@ $$
 where $d_{ijq} = |y_{iq} - y_{jq}|/R_q$ for a numerical variable with range $R_q$, and for a categorical variable $d_{ijq}$ is 0 if the two observations are in the same category and 1 otherwise.
 Each $d_{ijq}$ lies between 0 and 1, so no single variable can contribute more than $1/m$ to the distance.
 
-The Gower distance is computed by `cluster::daisy()`, whose result can be passed to `dbscan::kNNdist()` to give the kNN anomaly scores of @sec-knn-scores.
+Passing the Gower distances from `cluster::daisy()` to `dbscan::kNNdist()` gives the kNN anomaly scores of @sec-knn-scores.
 Here it is applied to the Shiraz wines, with the country, the points and the log price, and $k = 10$.
 
 ```{r}

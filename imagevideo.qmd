@@ -675,7 +675,7 @@ But each component is a weighted combination of hundreds of pixels, so it is har
 Features are chosen by the analyst, so they only detect the kinds of anomaly the analyst anticipated, but the anomalies they find are easy to explain.
 
 For larger and more complex images, such as photographs, hand-crafted features like these are usually replaced by features learned by a convolutional neural network that has been trained on a large collection of images.
-The output of one of the final layers of the network provides a few hundred features for each image, and any of the multivariate methods in this book can then be applied to those features.
+One of the final layers of the network provides a few hundred features for each image, to which any of the multivariate methods in this book can be applied.
 
 ## Video data {#sec-video}
 
@@ -893,7 +893,7 @@ The bag covers too few pixels to give the frame a large orthogonal distance, but
 ## Summary {#sec-image-summary}
 
 An image with $m$ pixels is a point in $m$-dimensional space, so collections of images can be analysed with the high-dimensional methods of @sec-highdim.
-Because neighbouring pixels are strongly correlated, the images lie close to a lower-dimensional subspace, and principal component analysis can help find it.
+Because neighbouring pixels are strongly correlated, the images lie close to a lower-dimensional subspace, which principal component analysis can help find.
 Each image is then summarised by its scores on the first $k$ components and by its orthogonal distance from the subspace.
 Any multivariate anomaly detection method can be applied to the scores, while the orthogonal distance identifies images whose shape is not captured by the main patterns of variation, which the scores alone can miss.
 Robust PCA gives components that describe the bulk of the images rather than being pulled towards the anomalies.

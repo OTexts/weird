@@ -198,7 +198,7 @@ Y |>
 
 A projection from $m$ variables onto a $k$-dimensional subspace is defined by an $m \times k$ **mapping matrix** $\bm{A}$ where $\bm{A}^\intercal\bm{A} = \bm{I}_k$.
 In other words, the columns of $\bm{A}$ are "orthonormal": each column is a unit vector, and all columns are mutually orthogonal (i.e., $\bm{a}_j^\intercal\bm{a}_\ell = 0$ for any two distinct columns $j$ and $\ell$).
-The columns of $\bm{A}$ define the projection directions, and they form a **basis** for the $k$-dimensional subspace: i.e., any point in the subspace is a unique linear combination of them.
+The columns of $\bm{A}$ define the projection directions and form a **basis** for the $k$-dimensional subspace: i.e., any point in the subspace is a unique linear combination of them.
 The projection of $\bm{y}_i$ is the $k$-vector of scores
 $$
   \bm{w}_i = \bm{A}^\intercal \bm{y}_i.
@@ -309,7 +309,7 @@ The group of points at the bottom right is mostly from the morning of 22 May, in
 Points on the far right with `a2` near zero are high in `pm10` (the longest arrow), such as 8pm on 3 May and 10pm on 31 May (the two highest `pm10` readings of the month), or high in several variables at once, such as the daytime hours of 31 May, when `co` and `so2` were extremely high.
 
 A few observations in this projection appear to be anomalies, but we may also have missed some anomalies that are only visible in other projections.
-This illustrates the challenge of anomaly detection in high dimensions: we may not know which projection will reveal the anomalies, and there are infinitely many projections to choose from.
+This illustrates the challenge of anomaly detection in high dimensions: we may not know which of the infinitely many possible projections will reveal the anomalies.
 
 ### Regression projections
 
@@ -922,7 +922,7 @@ pca_robpca$loadings
 
 The first two robust principal components are shown in @fig-pca-robpca.
 Compared to @fig-pca-2d, both components have been flipped to point in the opposite direction (the sign of a principal component is arbitrary), and the robust first component gives more weight to `no2` and `wind_speed`, and less to the particulates.
-The main differences are in the higher principal components, which are not shown here, but which are more influenced by the anomalies in the standard PCA than in the ROBPCA.
+The main differences are in the higher principal components (not shown here), which are more influenced by the anomalies in the standard PCA than in the ROBPCA.
 
 ```{r}
 #| label: fig-pca-robpca
@@ -1011,12 +1011,13 @@ stopifnot(
 ```
 
 Now there are far fewer bad leverage points than in @fig-pca-outliermaps, and the map changes much less as we increase $k$.
-This suggests that the ROBPCA algorithm has found projection directions that are less influenced by the anomalies, so they are easier to identify in the projection space.
+This suggests that the ROBPCA algorithm has found projection directions that are less influenced by the anomalies, making the anomalies easier to identify in the projection space.
 
 The observation with the largest orthogonal distance, for every value of $k$, is 8pm on 3 May.
 With $k = 4$, its score distance lies close to the cutoff, because the fourth robust component gives positive weights to `wind_speed` and `pm10`, both of which were very high at that hour (especially `pm10`).
 Whether it falls just above the cutoff (making it a bad leverage point, as in @fig-pca-outliermap2) or just below it varies slightly between runs, because ROBPCA uses random subsets of the data.
-Either way, its orthogonal distance falls only slightly as components are added, so the robust components have not been pulled towards it, and it remains clearly anomalous.
+Either way, it remains clearly anomalous.
+Its orthogonal distance falls only slightly as components are added, so the robust components have not been pulled towards it.
 By contrast, in the classical PCA with four components (@fig-pca-outliermaps), the same hour had a score distance of more than twice the cutoff, as the classical components had been pulled towards it.
 
 ### Combining components with orthogonal distances
@@ -1147,7 +1148,8 @@ This is the price of working one variable at a time, and it is also what keeps t
 Second, like every projection method in this chapter, DOBIN only reduces the dimension; the anomalies must still be found by applying a distance- or density-based method to the resulting coordinates, as we did in @sec-projection-anomalies.
 
 So far we have used only the two leading DOBIN directions, because @sec-projections needed a basis we could plot.
-DOBIN is not limited to two dimensions, though, and giving it more components lets it expose anomalies that a 2D view cannot.
+DOBIN is not limited to two dimensions, though.
+Giving it more components lets it expose anomalies that a 2D view cannot.
 Following the recipe we used for ROBPCA (@sec-robpca), we take the first four DOBIN components (the same number ROBPCA chose), add the orthogonal distance as a fifth coordinate, and pass the result to an isolation forest.
 
 ```{r}
@@ -1203,7 +1205,8 @@ All the projection methods so far have started from the data matrix $\bm{Y}$ and
 **Multidimensional scaling (MDS)** instead starts from the $n \times n$ matrix $\bm{D}$ of pairwise distances $d_{ij} = \|\bm{y}_i - \bm{y}_j\|$ between observations (@sec-distances), and looks for a configuration of points $\bm{w}_1, \dots, \bm{w}_n$ in a low-dimensional space, usually $k = 2$ or $3$ dimensions, whose distances $\|\bm{w}_i - \bm{w}_j\|$ reproduce the given $d_{ij}$ as closely as possible [@Borg2005; @Cox2001].
 The result is a "map" in which similar observations are placed close together and dissimilar observations far apart, much like reconstructing a map of cities from a table of the distances between them.
 More generally, the entries $d_{ij}$ need only be **dissimilarities**: measures of how different two observations are.
-Every distance is a dissimilarity, but a dissimilarity need not satisfy the triangle inequality, and we return to this extra generality when we discuss non-metric scaling below.
+Every distance is a dissimilarity, but a dissimilarity need not satisfy the triangle inequality.
+We return to this extra generality when we discuss non-metric scaling below.
 
 Working from a matrix of distances, rather than directly from the data, is what distinguishes MDS from PCA.
 Any of the distance measures of @sec-distances can be used, including non-Euclidean ones, so MDS applies whenever we can measure how far apart two observations are but cannot form a numerical data matrix.
@@ -1228,7 +1231,8 @@ As with PCA, the eigenvalues say how much structure each dimension captures, so 
 
 This is exactly the same as PCA when $\bm{D}$ contains the Euclidean distances between the observations.
 Then $\bm{B}$ and the covariance matrix $\bm{\Sigma}$ share the same nonzero eigenvalues (up to the factor $n - 1$), and the classical scaling coordinates $\bm{W}_k$ coincide with the principal component scores of @sec-pca, up to a reflection of the axes.
-Classical scaling is therefore PCA computed from the distance matrix instead of from the data, and it is useful precisely when the distances are *not* Euclidean, or when only a matrix of distances is available.
+Classical scaling is therefore PCA computed from the distance matrix instead of from the data.
+It is useful precisely when the distances are *not* Euclidean, or when only a matrix of distances is available.
 (However, note that the eigenvalues of $\bm{B}$ can be negative when the distances are not Euclidean, and these are discarded.)
 
 ### Metric and non-metric scaling
@@ -1328,8 +1332,8 @@ stopifnot(
 
 In the classical scaling map, this hour lies closer to the centre than most other observations.
 Like the PCA projection, classical scaling keeps the directions of greatest variance, and 8pm on 3 May is unusual in a direction that these miss: it was the orthogonal outlier with the largest orthogonal distance in @fig-pca-outliermap.
-Non-metric scaling instead tries to preserve the rank order of all the pairwise distances, and 8pm on 3 May is further from the other hours than any other observation, both on average and to its nearest neighbour.
-To preserve that ordering, it has to be placed well away from the rest of the map.
+Non-metric scaling instead tries to preserve the rank order of all the pairwise distances.
+Because 8pm on 3 May is further from the other hours than any other observation, both on average and to its nearest neighbour, preserving that ordering puts it well away from the rest of the map.
 
 ## FastPCS {#sec-fastpcs}
 
@@ -1340,10 +1344,10 @@ Also, rather than identify the clean subset using the Stahel--Donoho outlyingnes
 
 The idea is that a clean group of observations should stay packed together no matter which direction we view it from, whereas a subset that mixes in outlying anomalies will look stretched out from at least some viewpoints.
 FastPCS turns this into a score.
-It examines many one-dimensional projections of the data, and along each one it identifies the $h$ observations that fall closest together.
+It examines many one-dimensional projections of the data, identifying along each one the $h$ observations that fall closest together.
 A candidate subset earns a good score on that projection when its own members are nearly as tightly packed as this tightest group, and a poor score when many of its members instead lie spread out along the fringes.
 Averaging over many directions measures how consistently cohesive the candidate subset is: the score is small only when the subset stays compact across the widest range of viewpoints.
-The subset that minimises this is the "projection congruent subset", and it is taken to be the clean data.
+The subset that minimises this, the "projection congruent subset", is taken to be the clean data.
 
 FastPCS estimates a centre and covariance matrix from this clean subset of the data.
 Because the anomalies are excluded before the covariance is estimated, they cannot distort it.
@@ -1418,7 +1422,7 @@ It then works upwards through the remaining distances one at a time: each candid
 Because the cutoff is a quantile of a fitted distribution, $\alpha$ is the probability that each typical observation tested is wrongly flagged.
 It is a per-test false-positive rate, not an overall false-discovery rate, so with many candidates tested, a few false positives can still occur.
 
-An implementation of the HDoutliers algorithm was previously available in the [HDoutliers](https://CRAN.R-project.org/package=HDoutliers) package, but it is now archived on CRAN.
+An implementation of the HDoutliers algorithm was previously available in the [HDoutliers](https://CRAN.R-project.org/package=HDoutliers) package, which is now archived on CRAN.
 However, the stray algorithm discussed in the next section is a modification of HDoutliers that omits the clustering step and replaces nearest-neighbour distances with $k$-nearest-neighbour distances, and it is available in the [stray](https://CRAN.R-project.org/package=stray) and [weird](https://CRAN.R-project.org/package=weird) packages.
 
 ## Stray algorithm {#sec-stray}
@@ -1503,7 +1507,7 @@ An observation flagged across almost every combination and by every method is a 
 
 The O3 plot is implemented in the **`OutliersO3`** package for R [@Unwin2019].
 `O3prep()` takes the data, a range of combination sizes (up to `K` variables per combination), and one or more outlier-detection methods, and works out which observations are flagged as outliers for every combination of variables.
-Five methods are available, and we have already met all of them elsewhere in this book: FastPCS (@sec-fastpcs), mvBACON (@sec-bacon), adjOutlyingness (Stahel--Donoho outlyingness, @sec-stahel-donoho), DDC (@sec-ddc), and the MCD estimator (@sec-robust-cov).
+We have already met all five available methods elsewhere in this book: FastPCS (@sec-fastpcs), mvBACON (@sec-bacon), adjOutlyingness (Stahel--Donoho outlyingness, @sec-stahel-donoho), DDC (@sec-ddc), and the MCD estimator (@sec-robust-cov).
 Because these methods are not directly comparable at a single shared tolerance level, `O3prep()` takes a separate tolerance argument for each one, and these usually need adjusting for the data set at hand to ensure that the methods flag broadly comparable numbers of anomalies overall.
 The result is passed to `O3plotM()`, which displays how many methods flagged each observation, and for which combinations of variables.
 
@@ -1625,7 +1629,8 @@ All of these are dimension-reduction steps, so a distance- or density-based meth
 Other methods detect anomalies directly.
 Stahel--Donoho outlyingness searches over one-dimensional projections, so it requires no choice of projection, but it can miss anomalies that are only unusual when several variables are considered jointly.
 FastPCS identifies a clean subset of observations that remains compact from many viewpoints, and measures the distance of each observation from that subset.
-HDoutliers and stray work with distances to nearest neighbours, so they make no assumption about the shape of the bulk of the data, and they use extreme value theory to decide when a distance is unusually large; by using several neighbours, stray can also detect small clusters of anomalies.
+HDoutliers and stray work with distances to nearest neighbours, so they make no assumption about the shape of the bulk of the data.
+Both use extreme value theory to decide when a distance is unusually large; by using several neighbours, stray can also detect small clusters of anomalies.
 Methods based on robust estimates of scale, including Stahel--Donoho outlyingness and FastPCS, break down when a variable takes the same value for most observations, so such variables need to be removed or handled separately.
 
 Because anomalies can hide in some views of the data and stand out in others, no single method or projection should be trusted on its own, and the O3 plot provides a convenient way to compare several methods across many subsets of the variables.

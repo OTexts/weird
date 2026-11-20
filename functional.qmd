@@ -582,7 +582,8 @@ stopifnot(
 ```
 
 As with the bagplot, the envelope of each functional HDR is formed directly from the curves whose scores fall inside it, using the `hdr_region` classification already computed above.
-Because the bivariate scores split into two separated clusters (@fig-pca-hdrboxplot), so does each HDR: `hdr_regions()` labels which disconnected piece of the HDR each year's scores fall into, via `hdr_cluster`, and we build a separate envelope for each piece, so the split remains visible wherever the two pieces' envelopes do not overlap.
+Because the bivariate scores split into two separated clusters (@fig-pca-hdrboxplot), so does each HDR.
+Each piece gets its own envelope, built from the years whose scores `hdr_regions()` places in that piece (recorded in `hdr_cluster`), so the split remains visible wherever the two pieces' envelopes do not overlap.
 
 ```{r}
 #| label: fig-fhdrboxplot
@@ -681,7 +682,7 @@ $$
   = \binom{n}{2}^{-1} \sum_{1 \le u<v \le n} \frac{1}{|\mathcal{X}|} \int_{\mathcal{X}} 𝟙\Big(\min\{y_u(x), y_v(x)\} \le y_i(x) \le \max\{y_u(x), y_v(x)\}\Big)\,dx,
 $$
 where $\mathcal{X}$ is the domain of the curves and $|\mathcal{X}|$ is its length.
-In practice, the integral is replaced by an average over the grid of ages at which the curves are evaluated, which is what the `mbd()` function below computes.
+In practice, the integral is replaced by an average over the grid of ages at which the curves are evaluated, as in the `mbd()` function below.
 
 ```{r}
 #| label: mbd-build
@@ -947,10 +948,10 @@ So the magnitude-shape plot re-discovers the same problem as the Sun--Genton fun
 
 ## Summary {#sec-functional-summary}
 
-The methods in this chapter fall into two groups, and they do not always agree, because they are not measuring the same thing.
+The methods in this chapter fall into two groups, which do not always agree because they are not measuring the same thing.
 
 The first group reduces each curve to a few principal component scores, and then applies multivariate methods (such as surprisal probabilities, the O3 plot, the bagplot or the HDR boxplot) to the scores.
-These methods find curves whose scores sit apart from the rest, so they detect curves that are unusual relative to the main modes of variation captured by the components.
+By finding curves whose scores sit apart from the rest, these methods detect curves that are unusual relative to the main modes of variation captured by the components.
 A gradual trend over time becomes a continuous path through the score space, rather than a set of isolated points, so these methods are not easily misled by curves at the end of a trend.
 
 The second group works directly with the curves, via functional depth (such as the modified band depth) or directional outlyingness, leading to the functional boxplot and the magnitude-shape plot.

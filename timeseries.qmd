@@ -767,7 +767,8 @@ Next we consider unusual series within a large collection of time series.
 
 Comparing whole time series directly is awkward, because the series can have very different scales and lengths, and two series with similar behaviour may be offset in time.
 Instead, we summarise each series by a vector of **features**: statistics computed from the series, such as the strength of trend and seasonality, autocorrelations, spectral entropy, and the size of level shifts [@icdm2015; @fpp3, Ch.\ 4].
-Each series then becomes a single point in feature space, and finding a weird series becomes a multivariate anomaly detection problem, for which we can use any of the methods of the preceding chapters.
+Each series then becomes a single point in feature space.
+Finding a weird series thus becomes a multivariate anomaly detection problem, for which we can use any of the methods of the preceding chapters.
 Most of these features do not depend on the scale of the series, so a series is identified as anomalous because of its shape and dynamics, rather than its size.
 The choice of features determines what kind of "unusual" we can detect; a series that is unusual in some way that is not captured by any feature will not be deemed anomalous.
 

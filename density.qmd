@@ -225,7 +225,7 @@ In effect, the estimated probabilities depend on where each surprisal lies among
 @surprisals give the precise conditions under which this works, and show that it leads to good estimates of the surprisal probabilities for the largest surprisals, which are the ones that matter for anomaly detection.
 
 Let $\beta$ denote the tail probability used in the GPD threshold, and let $u$ denote the $(1 - \beta)$ sample quantile of the surprisal values.
-For example, $\beta = 0.1$ is a common choice, and then $u$ is the $90^{\text{th}}$ percentile of the $s_i$ values.
+For example, with the common choice $\beta = 0.1$, $u$ is the $90^{\text{th}}$ percentile of the $s_i$ values.
 We fit a GPD to the surprisals above $u$, and then compute the approximate surprisal probability of each observation with $s_i > u$ by
 $$
   \hat{p}_i = \beta\int_{s_i}^\infty \hat g(s) ds,

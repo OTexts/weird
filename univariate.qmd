@@ -251,7 +251,7 @@ If $Y$ is a continuous random variable with cdf $F$, then the random variable $U
 This is because $\Pr(U \le u) = \Pr(F(Y) \le u) = \Pr(Y \le F^{-1}(u)) = F(F^{-1}(u)) = u$ for $0 < u < 1$.
 The inverse is also true: if $U$ is a U(0,1) random variable, then the random variable $Y = F^{-1}(U)$ has distribution $F$.
 A useful consequence of this result is that it is possible to simulate from any continuous distribution by first simulating from a U(0,1) distribution, and then applying the inverse cdf of the desired distribution.
-For anomaly detection, it allows us to put observations from any continuous distribution on a common scale, which we will use in later chapters.
+For anomaly detection, it allows us to put observations from any continuous distribution on a common scale.
 
 There is also a discrete version of the probability integral transform, but we will not need to use it in this book.
 
@@ -1136,4 +1136,4 @@ If $F$ is in the domain of attraction of the Gumbel distribution, then, for fixe
 Equivalently, the scaled spacings $(n - k) D_k$, for $k = n - r, \dots, n - 1$, are approximately independent Exponential random variables with a common mean $a_n$.
 This is useful for anomaly detection because we do not need to know $F$, or $a_n$.
 The common mean can be estimated from the scaled spacings among the largest observations, and an unusually large spacing at the top of the sample can then be judged against the fitted Exponential distribution.
-This is the idea behind the HDoutliers algorithm (@sec-hdoutliers), which applies it to nearest-neighbour distances.
+The HDoutliers algorithm (@sec-hdoutliers) applies this idea to nearest-neighbour distances.

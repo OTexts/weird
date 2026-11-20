@@ -28,7 +28,7 @@ The simpler problem, finding anomalous nodes within a single network, comes firs
 From @sec-network-sequence onwards, the chapter turns to anomalous networks within a longer sequence, which additionally requires the time series tools of @sec-timeseries.
 
 Statistical methods have a long history of success in modelling temporal dependence, but they have been underused for network anomaly detection compared to purely graph-theoretic approaches [@Ranshous2015-kf].
-For the whole-network problem, this chapter describes **oddnet**, a method due to @oddnet that fuses network analysis with time series modelling; the R package **`oddnet`** implements the algorithm.
+For the whole-network problem, this chapter describes **oddnet**, a method due to @oddnet that fuses network analysis with time series modelling and is implemented in the R package **`oddnet`**.
 
 This chapter uses the following packages, and defines a few functions for plotting.
 
@@ -180,7 +180,8 @@ $$
   p_i = \frac{1 - \gamma}{n} + \gamma \sum_{j} \frac{a_{ji}}{d_j} p_j,
 $$
 where $d_j$ is the number of edges leaving node $j$ (its degree, for an undirected network), so each node shares its own score equally among the nodes it links to.
-The damping factor $\gamma$ is usually set to 0.85 (the **`igraph`** default); the first term ensures that every node receives some score, even if nothing links to it.
+The damping factor $\gamma$ is usually set to 0.85 (the **`igraph`** default).
+The first term ensures that every node receives some score, even if nothing links to it.
 Nodes with no outgoing edges (such as isolated senators) have nowhere to send their score, so **`igraph`** spreads it evenly over all nodes.
 The equations are solved iteratively, and the scores sum to one.
 Applied here, a senator has high PageRank if they co-vote with other senators who are themselves well-connected, rather than simply co-voting with a large number of colleagues.
@@ -345,7 +346,7 @@ A senator with high betweenness is one whose voting pattern regularly links sena
 Zorinsky is a special case, though.
 He died in March 1987, two months into the Congress, and was replaced by David Karnes, so his edges are based only on the votes held before his death.
 He accounts for `r english::words(n_cross_zorinsky)` of the `r english::words(n_cross)` edges between the two parties.
-One of these links him to Murkowski, and it is Murkowski's only edge to a Democrat.
+One of these is Murkowski's only edge to a Democrat.
 Without Zorinsky, Murkowski's betweenness falls from `r round(murkowski_btw)` to `r round(murkowski_btw_noz)` and he is no longer flagged, so his anomaly is a by-product of Zorinsky's.
 The remaining `r english::words(n_isolated)` flagged senators, William Roth and Daniel Evans (both Republicans) and William Proxmire (a Democrat), are isolated: they have no co-voting partners at all, so all their features except PageRank are zero.
 
@@ -695,7 +696,8 @@ This Congress sat during the Panic of 1873, a severe economic depression that wa
 
 Our second example is a directed network, at a much finer time granularity, from an entirely different domain.
 @Panzarasa2009 recorded private messages sent between students on an online platform at the University of California, Irvine, from April to October 2004.
-A directed edge runs from sender to receiver each time a message is sent, and the data are available in the **`tnet`** package [@tnet].
+A directed edge runs from sender to receiver each time a message is sent.
+The data are available in the **`tnet`** package [@tnet].
 
 ```{r}
 #| label: uci-data
@@ -735,7 +737,8 @@ patchwork::wrap_plots(uci_gr(3), uci_gr(22), uci_gr(42), nrow = 1)
 
 Because the daily networks vary hugely in size, some features (the clustering coefficient and the assortativity) are undefined on the smallest, sparsest days.
 We set these missing features to zero before running oddnet.
-The proportion of isolated nodes is zero on every day, because students only appear in a daily network if they sent or received a message that day, and the vertex connectivity is also zero on every day.
+The proportion of isolated nodes is zero on every day, because students only appear in a daily network if they sent or received a message that day.
+The vertex connectivity is also zero on every day.
 So oddnet drops these two features, leaving 18.
 
 ```{r}

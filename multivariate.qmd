@@ -22,7 +22,8 @@ One way to start developing this intuition is to plot data with increasing numbe
 
 Consider the `n01` data set, which contains 10 variables, each from independent standard Normal distributions.
 Only the first three variables are used here and, to make the example more interesting, they are replaced by their cumulative sums.
-A couple of anomalies are also added, and then we will see if we can find them using some data visualisations.
+A couple of anomalies are also added.
+We will then see if we can find them using some data visualisations.
 
 ```{r}
 #| label: demo_data
@@ -619,7 +620,7 @@ Then, each observation is assigned to the cluster whose centroid is closest to i
 After all observations have been assigned to clusters, the centroids are updated to be the mean of the observations in each cluster.
 This process is repeated until convergence, which occurs when the cluster assignments no longer change.
 
-The K-means algorithm is relatively fast, but it can be sensitive to the choice of initial centroids, so it is common to run the algorithm several times using different random starts.
+Although the K-means algorithm is relatively fast, it can be sensitive to the choice of initial centroids, so it is common to run the algorithm several times using different random starts.
 It also assumes that the clusters are roughly spherical and of similar size, which may not always be the case.
 A further drawback, especially in the context of anomaly detection, is that anomalies can strongly affect the cluster centroids.
 The number of clusters, $K$, must also be specified in advance, which can be difficult to determine, and often requires some experimentation.

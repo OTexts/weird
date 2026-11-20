@@ -105,7 +105,7 @@ The argument `method` in the `dist()` function specifies the type of distance to
 
 A problem with all of these distances is that variables with large ranges dominate the calculation.
 For example, in the Dongsi air quality data, ozone levels range from 0 to over 500 $\mu\text{g m}^{-3}$, while maximum temperatures range from $-14$ to 41 degrees.
-So the distance between two observations will be dominated by the difference in ozone levels, and the difference in temperatures will have a smaller influence on the distance.
+So the distance between two observations will be dominated by the difference in ozone levels rather than the difference in temperatures.
 Consequently, it is often preferable to scale the variables before computing distances, as discussed in @sec-scaling.
 
 The scaled observations are defined as the robust multivariate $z$-scores, given by
@@ -123,7 +123,7 @@ This combination of first scaling using a covariance matrix (or its estimate) an
 It is a multivariate generalisation of the number of standard deviations separating two observations, and accounts for both the different scales of the variables and the correlations between them.
 
 We compute the scaled Dongsi air quality data using `mvscale()`, and then the Euclidean distances using `dist()` in order to obtain the Mahalanobis distances between the original observations.
-The first five rows of the scaled data are shown, and the resulting distance matrix is displayed.
+The first five rows of the scaled data are shown, followed by the resulting distance matrix.
 
 ```{r}
 #| label: zscores
@@ -526,7 +526,7 @@ $$
   d_\text{mreach}(\bm{y}_i, \bm{y}_j)
   = \max(d_{i,k},\, d_{j,k},\, \|\bm{y}_i - \bm{y}_j\|).
 $$
-This is always at least as large as the actual distance between the two points, and it can never fall below the larger of the two core distances.
+This can never fall below the actual distance between the two points or the larger of the two core distances.
 The effect is that very close pairs sitting inside a tightly packed region cannot drag the inter-point distance arbitrarily low: their mutual reachability is held up by the local core distance.
 This stabilises the hierarchy that is built next.
 
@@ -1095,7 +1095,7 @@ Unless the variables are on comparable scales, the variable with the largest ran
 
 The methods in this chapter measure distance in different ways.
 Mahalanobis anomaly scores and the BACON algorithm measure the distance of each observation from a single centre.
-They work best when the bulk of the data forms one elliptical cloud, and they rely on a robust estimate of the centre and covariance (or a clean basic subset) to avoid being distorted by the anomalies themselves.
+They work best when the bulk of the data forms one elliptical cloud, and rely on a robust estimate of the centre and covariance (or a clean basic subset) to avoid being distorted by the anomalies themselves.
 The kNN, LOF and GLOSH scores instead use distances to nearby observations, so they can handle data with more complicated shapes, including multiple clusters: kNN scores measure absolute isolation, LOF measures isolation relative to the local neighbourhood, and GLOSH combines the two.
 Isolation forests avoid computing distances altogether, and score observations by how easily they can be separated from the rest by random splits, which allows them to scale to large data sets.
 

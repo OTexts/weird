@@ -302,7 +302,7 @@ A positive-definite matrix is invertible, and its inverse is also positive defin
 A **positive semi-definite** matrix is a symmetric matrix where all the eigenvalues are non-negative.
 A positive semi-definite matrix is invertible if and only if it is positive definite.
 
-Covariance matrices are used throughout this book, and they must always be at least positive semi-definite.
+Covariance matrices, which are used throughout this book, must always be at least positive semi-definite.
 
 ## Cholesky decomposition {#sec-cholesky}
 

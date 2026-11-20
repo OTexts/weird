@@ -149,7 +149,7 @@ When a boxplot is used for anomaly detection, all points outside the whiskers ar
 
 In this cricket batting example, the boxplot works well because the data set is not too large or small, and the distribution of points other than the anomaly is unimodal.
 
-However, boxplots can be misleading, and they are limited in at least two respects.
+However, boxplots can be misleading and are limited in at least two respects.
 
 1. For large data sets, boxplots show too many points as anomalies, and it is hard to distinguish the genuine anomalies from the rest.
 2. Boxplots assume that the distribution of the data is unimodal.
@@ -323,7 +323,7 @@ n6 <- chisq4 |>
 stopifnot(identical(c(n1, n2, n3, n4, n5, n6), c(1L, 273L, 1L, 1L, 23L, 13L)))
 ```
 
-This is an improvement on the original boxplot approach, and it finds the true anomaly in the `cricket_batting` data and one of the two anomalies in the `n01b` data.
+This is an improvement on the original boxplot approach, finding the true anomaly in the `cricket_batting` data and one of the two anomalies in the `n01b` data.
 But it also identifies false anomalies in the other data sets: only one in the `n01` data, but many in those that are not Normally distributed.
 The assumption of Normality means that the method is not a good choice for most data sets.
 
@@ -695,7 +695,7 @@ HDR boxplots define the regions by probability density instead, using highest de
 
 The points shown individually are not necessarily anomalies.
 With fixed fences, a boxplot shows more spurious anomalies as the sample size grows; the modified IQR rule widens the fences with the sample size to control this, but only under Normality.
-Letter-value plots show a few legitimate observations in each tail by design, and an HDR boxplot shows about 1% of observations outside its 99% region.
+Letter-value plots show a few legitimate observations in each tail by design, whereas an HDR boxplot shows about 1% of observations outside its 99% region.
 
 Boxplots, letter-value plots, bagplots, and HDR boxplots are all useful tools in exploratory data analysis, and deserve to be widely applied.
 They are particularly useful in summarising univariate and bivariate data distributions.

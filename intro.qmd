@@ -215,7 +215,7 @@ Now there is considerable interaction and overlap between these communities, and
 ### Supervised vs unsupervised approaches {-}
 
 Some books and papers distinguish "supervised anomaly detection" from "unsupervised anomaly detection".
-In the former case, anomalies are identified using human input, and then a model or algorithm is employed to learn how to identify new anomalies contained within new data.
+In the former case, a model or algorithm uses anomalies identified with human input to learn how to identify new anomalies contained within new data.
 I do not regard this as anomaly detection, and I do not cover it in this book.
 It is possible, for example, that what a human labels as "anomalous" is not anomalous in a statistical sense.
 What is called "supervised anomaly detection" is actually a classification problem, where the aim is to mimic the human who labelled the training set.
@@ -253,7 +253,7 @@ However, some real data examples contain anomalies so extreme that they can safe
 
 In some applications, we will be less interested in detecting anomalies than in ranking observations according to their degree of "anomalousness".
 For example, we may have a limited team of human analysts who can investigate a few observations, and we want to make sure that they investigate the most anomalous observations.
-Then it is important to compute an anomaly score, so we can rank the observations according to their scores, and our analysts can look at the observations with the highest scores.
+Then it is important to compute an anomaly score for ranking the observations, so that our analysts can look at those with the highest scores.
 
 In fact, anomaly scores often underpin the algorithms that are used to detect anomalies.
 The algorithms compute a score for each observation, and then identify the observations with scores above some threshold as the anomalies.

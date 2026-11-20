@@ -643,7 +643,7 @@ Because we have used a statistical model, we have been able to account for the p
 
 In the regression version of the BACON algorithm [@Billor2000], the goal is to identify observations that are inconsistent with the regression model.
 This is more complicated than the multivariate case discussed in @sec-bacon, because an observation can be anomalous in terms of its predictor values, or in terms of its response value given its predictor values, or both.
-Cook's distance (@sec-residuals) captures both of these sources of influence, but it does not protect against masking.
+Cook's distance (@sec-residuals) captures both of these sources of influence but does not protect against masking.
 Also, high leverage values can lead to residual anomalies being masked.
 Like the LTS estimator (@sec-ols), BACON addresses masking by fitting the model to a subset of regular observations rather than to all the data.
 Unlike LTS, which selects the subset by minimising trimmed residuals, BACON builds the subset sequentially, making it computationally efficient for large data sets.
@@ -710,7 +710,7 @@ shiraz_points <- shiraz |> count(points) |> arrange(desc(n))
 ### Example: Shiraz reviews
 
 We now apply regression BACON to the same `shiraz` data set containing wine reviews that was used in @sec-ols, with `points` as the predictor and `log(price)` as the response.
-Multivariate BACON is first applied to the predictor variable, and then the regression version of the algorithm uses scaled prediction errors.
+Multivariate BACON is first applied to the predictor variable.
 Because the predictor has many repeated values (taking only integer values between 80 and 100), we need to specify the initial set to be larger than the number of observations with the most common points score, which is `r shiraz_points$points[1]` with `r shiraz_points$n[1]` observations.
 So we set the initial size of the multivariate BACON subset to $s = 650$ observations to ensure it does not contain only observations with a single points score (with the default initial size, the subset collapses onto a single points score and its covariance matrix is singular).
 The BACON algorithm then identifies outliers as those with large scaled prediction errors from the fitted regression line based on the final basic subset.
@@ -882,7 +882,8 @@ Leave-one-out residuals, which can be computed without refitting the model, prev
 Leverage and Cook's distance are useful diagnostics, but they measure the influence of an observation on the fitted model rather than whether its response is anomalous.
 Because least squares estimates can be pulled towards anomalous observations with high leverage, anomalies can be masked; robust methods such as least trimmed squares or the regression version of the BACON algorithm avoid this by fitting the model to a subset of regular observations.
 
-Specifying a conditional density for the response turns the residuals into surprisals, and the surprisal probabilities of @sec-density-methods then provide a natural threshold for identifying anomalies.
+Specifying a conditional density for the response turns the residuals into surprisals.
+The surprisal probabilities of @sec-density-methods then provide a natural threshold for identifying anomalies.
 A linear model with Normal errors is the simplest choice.
 When the conditional distribution is not Normal, or the relationships are not linear, a generalised additive model can be used instead, allowing for other response distributions (such as Binomial counts) and smooth nonlinear effects of the predictors.
 Where a model is mis-specified, the GPD approximation to the surprisal probabilities still gives reasonable estimates for the most extreme observations.
