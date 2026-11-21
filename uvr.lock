@@ -3186,17 +3186,17 @@ requires = [
 
 [[package]]
 name = "sass"
-version = "0.4.10"
+version = "0.5.0"
 source = "cran"
-raw_version = "0.4.10"
-url = "https://cran.r-project.org/src/contrib/sass_0.4.10.tar.gz"
-checksum = "md5:16054a7117a81ba75893fec17da62209"
+raw_version = "0.5.0"
+url = "https://cran.r-project.org/src/contrib/sass_0.5.0.tar.gz"
+checksum = "md5:fdc11cc1b8f6cffd1ceef6b4d96b529c"
 requires = [
     "fs",
-    "rlang",
     "htmltools",
     "R6",
     "rappdirs",
+    "rlang",
 ]
 
 [[package]]
@@ -3567,11 +3567,11 @@ checksum = "md5:bd550e30b1f17722a87feec6f88b393e"
 
 [[package]]
 name = "textshaping"
-version = "1.0.5"
+version = "1.1.0"
 source = "cran"
-raw_version = "1.0.5"
-url = "https://cran.r-project.org/src/contrib/textshaping_1.0.5.tar.gz"
-checksum = "md5:93771d8cfc50a7ed021df061ce71e07f"
+raw_version = "1.1.0"
+url = "https://cran.r-project.org/src/contrib/textshaping_1.1.0.tar.gz"
+checksum = "md5:5f79be037dcb57d6ce6fd6b88d6f5100"
 requires = [
     "lifecycle",
     "stringi",
@@ -4019,10 +4019,10 @@ checksum = "md5:b5603af0a2d1b62511f85f5574c747a8"
 
 [[package]]
 name = "weird"
-version = "3.1.0-4.9000"
+version = "3.2.0-4.9000"
 source = "github"
-url = "https://api.github.com/repos/robjhyndman/weird/tarball/9a0347c7b58f92ee766bdf1e7d401062a26b78f7"
-checksum = "git:9a0347c7b58f92ee766bdf1e7d401062a26b78f7"
+url = "https://api.github.com/repos/robjhyndman/weird/tarball/355df161dc5c5cd0e9ccd978ee5c24a9e8124eda"
+checksum = "git:355df161dc5c5cd0e9ccd978ee5c24a9e8124eda"
 requires = [
     "aplpack",
     "broom",
